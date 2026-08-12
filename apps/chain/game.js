@@ -1,8 +1,7 @@
 const NODES = {
-  higuma: { name:'ヒグマ', search:'ヒグマ', emoji:'🐻', kind:'頂点捕食者', foods:['salmon','ezo_deer','acorn'] },
+  higuma: { name:'ヒグマ', search:'ヒグマ', emoji:'🐻', kind:'頂点捕食者', foods:['salmon','ezo_deer','oak'] },
   salmon: { name:'サケ', search:'サケ 鮭', emoji:'🐟', kind:'消費者', foods:['small_fish','krill','aquatic_insect'] },
   ezo_deer: { name:'エゾシカ', search:'エゾシカ', emoji:'🦌', kind:'草食動物', foods:['sasa','grass','tree_leaf'] },
-  acorn: { name:'ドングリ', search:'ドングリ', emoji:'🌰', kind:'植物の実', foods:['oak','oak','oak'] },
   small_fish: { name:'小魚', search:'北海道 小魚', emoji:'🐟', kind:'消費者', foods:['zooplankton','shrimp','aquatic_insect'] },
   krill: { name:'オキアミ', search:'オキアミ', emoji:'🦐', kind:'消費者', foods:['phytoplankton','algae','diatom'] },
   aquatic_insect: { name:'水生昆虫', search:'水生昆虫', emoji:'🪲', kind:'消費者', foods:['zooplankton','algae','aquatic_plant'] },
@@ -11,7 +10,7 @@ const NODES = {
   sasa: { name:'ササ', search:'北海道 ササ', emoji:'🌿', kind:'生産者', producer:true },
   grass: { name:'草', search:'北海道 草原 植物', emoji:'🌱', kind:'生産者', producer:true },
   tree_leaf: { name:'木の葉', search:'北海道 広葉樹 葉', emoji:'🍃', kind:'生産者', producer:true },
-  oak: { name:'ミズナラ', search:'ミズナラ 樹木', emoji:'🌳', kind:'生産者', producer:true },
+  oak: { name:'ミズナラ', search:'ミズナラ 樹木 ドングリ', emoji:'🌳', kind:'生産者', producer:true },
   phytoplankton: { name:'植物プランクトン', search:'植物プランクトン 顕微鏡', emoji:'🦠', kind:'生産者', producer:true },
   algae: { name:'藻類', search:'藻類 水中', emoji:'🌿', kind:'生産者', producer:true },
   diatom: { name:'珪藻', search:'珪藻 顕微鏡', emoji:'🔬', kind:'生産者', producer:true },
