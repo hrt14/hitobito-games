@@ -112,7 +112,8 @@
 
   ui.boostBtn.addEventListener('click',()=>{
     if(!draining||completed)return showToast(promptItemId?'先に光っているものをタップ':'先に水抜きを開始');
-    boost=Math.min(boost+12,26);water=Math.max(0,water-2.4);showToast('水位 -2%');ui.boostBtn.classList.add('flash');ui.waterCard.classList.add('pulse');
+    const prev=water;boost=Math.min(boost+12,26);water=Math.max(0,water-2.4);checkReveal(prev,water);checkWaterMoment();if(water<=0)finishStage();updateHud();
+    showToast('水位 -2%');ui.boostBtn.classList.add('flash');ui.waterCard.classList.add('pulse');
     clearTimeout(pumpFlashTimer);pumpFlashTimer=setTimeout(()=>{ui.boostBtn.classList.remove('flash');ui.waterCard.classList.remove('pulse')},260)
   });
 
