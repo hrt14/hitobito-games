@@ -1,43 +1,22 @@
 (() => {
   'use strict';
-  const body=document.body;
-  const title=document.getElementById('objectiveTitle');
-  const detail=document.getElementById('objectiveDetail');
-  const objective=document.getElementById('objective');
-  const sound=document.getElementById('soundBtn');
-  const hud=document.querySelector('.hud');
-  const tray=document.getElementById('speciesTray');
-  const actions=[...document.querySelectorAll('.action-card')];
-  const stage=body.classList.contains('pond-stage')?'池のほとり':'草原';
-  const stageNo=body.classList.contains('pond-stage')?'2 / 2':'1 / 2';
-  let currentTarget=null;
-
+  const body=document.body,title=document.getElementById('objectiveTitle'),detail=document.getElementById('objectiveDetail'),objective=document.getElementById('objective'),sound=document.getElementById('soundBtn'),hud=document.querySelector('.hud'),tray=document.getElementById('speciesTray'),actions=[...document.querySelectorAll('.action-card')];
+  const stage=body.classList.contains('pond-stage')?'池のほとり':'草原',stageNo=body.classList.contains('pond-stage')?'2 / 2':'1 / 2';let currentTarget=null,lastReady='';
   if(hud&&!document.querySelector('.ux-stage-progress')){const p=document.createElement('div');p.className='ux-stage-progress';p.textContent=`${stage} · ${stageNo}`;hud.insertBefore(p,sound);}
   if(sound){sound.setAttribute('aria-label','画面演出を切り替える');sound.title='画面演出を切り替える';}
   if(objective){objective.setAttribute('role','button');objective.setAttribute('tabindex','0');objective.setAttribute('aria-label','次にすること。タップすると操作場所へ移動します');}
-  const stats=[...document.querySelectorAll('.stat')],statLabels=[...document.querySelectorAll('.stat-label')];
-  if(statLabels[0])statLabels[0].textContent='いのち';if(statLabels[1])statLabels[1].textContent='バランス';if(statLabels[2])statLabels[2].textContent=body.classList.contains('pond-stage')?'食物網':'循環';
-  stats.forEach(s=>{if(!s.querySelector('.ux-stat-state')){const x=document.createElement('small');x.className='ux-stat-state';s.appendChild(x);}});
-
+  const stats=[...document.querySelectorAll('.stat')],statLabels=[...document.querySelectorAll('.stat-label')];if(statLabels[0])statLabels[0].textContent='いのち';if(statLabels[1])statLabels[1].textContent='バランス';if(statLabels[2])statLabels[2].textContent=body.classList.contains('pond-stage')?'食物網':'循環';stats.forEach(s=>{if(!s.querySelector('.ux-stat-state')){const x=document.createElement('small');x.className='ux-stat-state';s.appendChild(x);}});
+  const live=document.createElement('div');live.className='ux-live';live.setAttribute('aria-live','polite');document.body.appendChild(live);
+  function announce(text){live.textContent=text;live.classList.remove('show');void live.offsetWidth;live.classList.add('show');setTimeout(()=>live.classList.remove('show'),1500);}
   function phaseFromText(text){if(/迎える|増やす|少ない|多すぎ|調整/.test(text))return 'species';if(/落ち葉|水辺|草原|育てる|材料/.test(text))return 'environment';return 'balance';}
   function chooseTarget(text){const ready=document.querySelector('.species-card.ready:not(:disabled)');if(ready&&body.dataset.uxPhase==='species')return ready;if(/落ち葉|材料/.test(text))return document.querySelector('[data-action="detritus"]');if(/水質|雨/.test(text))return document.querySelector('[data-action="rain"]');if(body.dataset.uxPhase==='environment')return document.querySelector('[data-action="sun"]');return ready||document.querySelector('.species-card.active')||document.querySelector('.actions');}
-  function semanticStat(stat,index){
-    const n=parseInt(stat.querySelector('strong')?.textContent||'0',10)||0;const s=stat.querySelector('.ux-stat-state');
-    if(index===0){stat.dataset.health=n>0?'good':'neutral';if(s)s.textContent=n>0?'育っている':'はじまり';return;}
-    if(index===1){stat.dataset.health=n>=70?'good':n>=50?'warn':'low';if(s)s.textContent=n>=70?'安定':n>=50?'注意':'偏り';return;}
-    stat.dataset.health=n>=80?'good':n>=50?'warn':'low';if(s)s.textContent=n>=80?'つながった':n>=50?'途中':'これから';
-  }
-  function updateChain(){
-    const activeNames=[...document.querySelectorAll('.species-card.active b')].map(x=>x.textContent);
-    document.querySelectorAll('.food-chain-strip span,.food-web-row span').forEach(span=>{const t=span.textContent.trim();span.classList.toggle('ux-chain-active',activeNames.some(n=>t.includes(n))||/草|藻・水草/.test(t));});
-  }
-  function refresh(){
-    const text=`${title?.textContent||''} ${detail?.textContent||''}`;body.dataset.uxPhase=phaseFromText(text);actions.forEach(a=>a.classList.remove('ux-primary'));currentTarget=chooseTarget(text);if(currentTarget?.classList?.contains('action-card'))currentTarget.classList.add('ux-primary');
-    const cards=[...document.querySelectorAll('.species-card')],active=cards.filter(c=>c.classList.contains('active')).length,progress=document.querySelector('.ux-stage-progress');if(progress)progress.textContent=`${stage} · ${stageNo} · ${active}/${cards.length}`;cards.forEach(c=>c.setAttribute('aria-current',c.classList.contains('ready')?'step':'false'));
-    stats.forEach(semanticStat);updateChain();
-  }
+  function semanticStat(stat,index){const n=parseInt(stat.querySelector('strong')?.textContent||'0',10)||0,s=stat.querySelector('.ux-stat-state');if(index===0){stat.dataset.health=n>0?'good':'neutral';if(s)s.textContent=n>0?'育っている':'はじまり';return;}if(index===1){stat.dataset.health=n>=70?'good':n>=50?'warn':'low';if(s)s.textContent=n>=70?'安定':n>=50?'注意':'偏り';return;}stat.dataset.health=n>=80?'good':n>=50?'warn':'low';if(s)s.textContent=n>=80?'つながった':n>=50?'途中':'これから';}
+  function updateChain(){const activeNames=[...document.querySelectorAll('.species-card.active b')].map(x=>x.textContent);document.querySelectorAll('.food-chain-strip span,.food-web-row span').forEach(span=>{const t=span.textContent.trim();span.classList.toggle('ux-chain-active',activeNames.some(n=>t.includes(n))||/草|藻・水草/.test(t));});}
+  function refresh(){const text=`${title?.textContent||''} ${detail?.textContent||''}`;body.dataset.uxPhase=phaseFromText(text);actions.forEach(a=>a.classList.remove('ux-primary'));currentTarget=chooseTarget(text);if(currentTarget?.classList?.contains('action-card'))currentTarget.classList.add('ux-primary');const cards=[...document.querySelectorAll('.species-card')],active=cards.filter(c=>c.classList.contains('active')).length,progress=document.querySelector('.ux-stage-progress');if(progress)progress.textContent=`${stage} · ${stageNo} · ${active}/${cards.length}`;cards.forEach(c=>c.setAttribute('aria-current',c.classList.contains('ready')?'step':'false'));const ready=cards.find(c=>c.classList.contains('ready')&&!c.disabled);if(ready){const name=ready.querySelector('b')?.textContent||'';if(name&&name!==lastReady){lastReady=name;announce(`UNLOCK · ${name}`);if(navigator.vibrate)navigator.vibrate([12,30,18]);}}stats.forEach(semanticStat);updateChain();}
   function goToNext(){refresh();if(!currentTarget)return;currentTarget.scrollIntoView({behavior:'smooth',block:'center'});currentTarget.classList.add('ux-arrived');setTimeout(()=>currentTarget?.classList.remove('ux-arrived'),850);if(navigator.vibrate)navigator.vibrate(10);}
+  function popOn(button,text){const p=document.createElement('span');p.className='ux-pop';p.textContent=text;button.appendChild(p);setTimeout(()=>p.remove(),750);}
   const observer=new MutationObserver(refresh);[title,detail,tray,...stats].filter(Boolean).forEach(el=>observer.observe(el,{subtree:true,childList:true,characterData:true,attributes:el===tray,attributeFilter:el===tray?['class']:undefined}));refresh();
   objective?.addEventListener('click',goToNext);objective?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goToNext();}});
-  document.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;b.classList.add('ux-pressed');if(navigator.vibrate&&(!b.disabled))navigator.vibrate(8);});document.addEventListener('pointerup',e=>e.target.closest('button')?.classList.remove('ux-pressed'));document.addEventListener('pointercancel',e=>e.target.closest('button')?.classList.remove('ux-pressed'));
+  document.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;b.classList.add('ux-pressed');if(navigator.vibrate&&!b.disabled)navigator.vibrate(8);});document.addEventListener('pointerup',e=>e.target.closest('button')?.classList.remove('ux-pressed'));document.addEventListener('pointercancel',e=>e.target.closest('button')?.classList.remove('ux-pressed'));
+  document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;if(b.classList.contains('action-card')){const a=b.dataset.action;popOn(b,a==='sun'?'+ 生産者':a==='rain'?'+ 回復':'+ 循環');}else if(b.classList.contains('species-card')){const n=b.querySelector('b')?.textContent||'生き物';popOn(b,`+ ${n}`);}},true);
 })();
