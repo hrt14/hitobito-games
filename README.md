@@ -21,4 +21,5 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 
 各ゲームは `apps/<game-slug>` を Vercel の Root Directory に指定して個別プロジェクトとして公開する想定です。
 
-CYCLE の想定ドメイン: `cycle.hitobito.jp`
+- CYCLE: `cycle.hitobito.jp`
+- 404怪異調査: `404.hitobito.jp`（Root Directory: `apps/404-kaiki`）
