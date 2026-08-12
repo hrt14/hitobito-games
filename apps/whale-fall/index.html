@@ -2,81 +2,90 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#071d2c" />
-  <meta name="description" content="一頭のクジラの死から、深海の生態系が生まれる過程を触って体験するインタラクティブWebアニメーション。" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#03131e" />
+  <meta name="description" content="一頭のクジラの死から、深海の生態系が生まれる過程を触って体験するインタラクティブWebゲーム。" />
   <title>クジラが死んだら｜WHALE FALL</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <main id="game" class="game phase-surface" aria-label="クジラが死んだら インタラクティブ体験">
-    <div id="ocean" class="ocean">
-      <div class="sun-rays" aria-hidden="true"></div>
-      <div id="snow" class="snow" aria-hidden="true"></div>
-      <div id="distantLife" class="distant-life" aria-hidden="true"></div>
-      <div id="nutrients" class="nutrients" aria-hidden="true"></div>
-      <div id="seafloor" class="seafloor" aria-hidden="true"><div class="silt"></div><div class="rocks"></div></div>
-
-      <svg id="whale" class="whale" viewBox="0 0 820 330" role="img" aria-label="クジラ">
-        <defs>
-          <linearGradient id="whaleBody" x1="0" x2="1"><stop offset="0" stop-color="#6f91a3"/><stop offset=".55" stop-color="#8da9b6"/><stop offset="1" stop-color="#557a8c"/></linearGradient>
-          <linearGradient id="whaleBelly" x1="0" x2="1"><stop offset="0" stop-color="#b5c8cf"/><stop offset="1" stop-color="#7f9eaa"/></linearGradient>
-          <filter id="softGlow"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        </defs>
-        <g id="livingWhale" class="living-whale">
-          <path class="tail tail-top" d="M150 153 C95 100 57 73 21 92 C58 124 72 156 118 176 Z" fill="#5d8192"/>
-          <path class="tail tail-bottom" d="M150 169 C88 185 54 221 27 249 C71 249 109 228 139 193 Z" fill="#507487"/>
-          <path class="body" d="M115 168 C168 68 335 45 508 69 C644 88 740 140 786 188 C748 243 645 278 497 277 C320 275 181 245 115 168 Z" fill="url(#whaleBody)"/>
-          <path class="belly" d="M256 231 C390 271 604 262 727 218 C674 269 570 292 431 287 C356 284 298 266 256 231Z" fill="url(#whaleBelly)" opacity=".75"/>
-          <path class="fin" d="M434 219 C399 278 353 311 321 304 C350 261 357 225 369 190 Z" fill="#4c7184"/>
-          <path d="M720 154 C747 148 763 153 778 164" fill="none" stroke="#b8d4de" stroke-width="5" stroke-linecap="round" opacity=".55"/>
-          <circle cx="704" cy="140" r="7" fill="#102735"/><circle cx="706" cy="138" r="2" fill="#d8fbff"/>
-          <path d="M782 194 Q748 201 720 196" fill="none" stroke="#365668" stroke-width="5" stroke-linecap="round"/>
-          <g class="breath" opacity="0"><circle cx="592" cy="62" r="8" fill="#dff9ff"/><circle cx="604" cy="42" r="5" fill="#dff9ff"/></g>
-        </g>
-        <g id="skeleton" class="skeleton" opacity="0">
-          <path d="M173 174 C285 96 566 103 731 179" fill="none" stroke="#d7d2bf" stroke-width="25" stroke-linecap="round"/>
-          <path d="M218 159 C240 214 255 244 279 264 M276 135 C292 204 309 239 334 270 M337 121 C351 195 369 238 391 271 M402 116 C413 192 432 233 451 269 M467 120 C474 187 494 224 513 259 M532 130 C541 181 559 214 578 246 M596 145 C604 181 620 207 642 230" stroke="#c9c3af" stroke-width="10" fill="none" stroke-linecap="round"/>
-          <path d="M703 174 C757 149 792 159 803 193 C778 226 738 228 701 205 Z" fill="#d8d1ba"/>
-          <path d="M173 174 L88 140 M166 182 L88 216 M92 140 L29 108 M92 216 L28 252" stroke="#ccc5ae" stroke-width="14" stroke-linecap="round"/>
-        </g>
-        <g id="osedax" class="osedax" opacity="0"></g>
-      </svg>
-
-      <div id="scavengers" class="scavengers" aria-hidden="true"></div>
-      <div id="benthicLife" class="benthic-life" aria-hidden="true"></div>
-      <canvas id="microbeCanvas" class="microbe-canvas" aria-hidden="true"></canvas>
-      <div class="foreground" aria-hidden="true"><i></i><i></i><i></i></div>
+<main id="game" class="game phase-surface" aria-label="クジラが死んだら">
+  <div id="ocean" class="ocean">
+    <div class="surface-glow"></div>
+    <div class="light-rays"></div>
+    <div id="snow" class="snow"></div>
+    <div id="distantLife" class="distant-life"></div>
+    <div id="scent" class="scent"></div>
+    <div id="seafloor" class="seafloor">
+      <div class="silt-cloud"></div>
+      <div class="ridge ridge-a"></div><div class="ridge ridge-b"></div>
+      <div id="bloomLayer" class="bloom-layer"></div>
     </div>
 
-    <header class="hud">
-      <a class="back" href="../" aria-label="ゲーム一覧へ">‹</a>
-      <div><div class="hud-label">経過時間</div><div id="timeLabel" class="hud-value">0日</div></div>
-      <div class="hud-center"><div id="phaseLabel" class="phase-label">生きている海</div><div class="phase-dots" id="phaseDots"></div></div>
-      <div class="right-stat"><div class="hud-label">水深</div><div id="depthLabel" class="hud-value">20 m</div></div>
-      <button id="infoButton" class="info-btn" aria-label="図鑑を開く">◎ <span id="foundCount">0</span></button>
-    </header>
+    <div id="approaching" class="approaching" aria-hidden="true"><i></i><i></i><i></i></div>
 
-    <section id="intro" class="intro-card">
-      <div class="kicker">WHALE FALL</div>
-      <h1>クジラが死んだら</h1>
-      <p>一頭の巨大な命が終わったあと、深海では何が始まるのか。</p>
-      <button id="startButton" class="primary">時間を進める <span>長押し</span></button>
-    </section>
+    <svg id="whale" class="whale" viewBox="0 0 900 360" role="img" aria-label="クジラ">
+      <defs>
+        <linearGradient id="bodyGrad" x1="0" x2="1"><stop offset="0" stop-color="#7598a8"/><stop offset=".58" stop-color="#91aeba"/><stop offset="1" stop-color="#557989"/></linearGradient>
+        <linearGradient id="bellyGrad" x1="0" x2="1"><stop offset="0" stop-color="#c0d0d5"/><stop offset="1" stop-color="#819da7"/></linearGradient>
+      </defs>
+      <g id="skeleton" class="skeleton">
+        <path class="spine" d="M180 184 C300 103 604 111 778 185"/>
+        <path class="rib" d="M238 163 C256 223 270 258 300 281 M300 140 C315 216 335 253 360 287 M366 127 C380 207 402 250 425 286 M435 122 C449 203 469 245 492 280 M505 126 C516 198 537 237 560 270 M575 139 C586 192 607 225 630 256 M644 155 C655 191 676 216 700 238"/>
+        <path class="skull" d="M752 181 C808 153 848 164 862 199 C835 236 793 239 750 210 Z"/>
+        <path class="tailbone" d="M180 184 L96 147 M173 194 L95 226 M100 147 L34 112 M99 226 L35 266"/>
+      </g>
+      <g id="livingWhale" class="living-whale">
+        <path class="tail tail-a" d="M156 158 C99 103 58 74 20 95 C60 128 76 157 124 181 Z"/>
+        <path class="tail tail-b" d="M156 176 C93 192 57 229 29 258 C76 257 114 235 146 199 Z"/>
+        <path class="body" d="M120 176 C177 70 353 48 537 73 C681 92 782 147 832 197 C792 256 682 291 525 290 C337 288 190 256 120 176 Z"/>
+        <path class="belly" d="M269 243 C411 285 636 276 769 228 C713 281 602 307 455 301 C376 298 315 279 269 243Z"/>
+        <path class="fin" d="M458 230 C421 292 372 327 338 320 C369 274 377 237 390 201 Z"/>
+        <circle class="eye" cx="744" cy="149" r="8"/>
+        <path class="mouth" d="M829 203 Q793 211 763 205"/>
+        <g id="decayMarks" class="decay-marks"></g>
+      </g>
+      <g id="osedax" class="osedax"></g>
+    </svg>
 
-    <div id="storyCaption" class="story-caption" aria-live="polite"></div>
-    <div id="gestureHint" class="gesture-hint" aria-live="polite"></div>
-    <button id="timeHold" class="time-hold hidden" aria-label="長押しして時間を進める"><span class="hold-ring"></span><span>時間</span></button>
+    <div id="scavengers" class="scavengers"></div>
+    <canvas id="energyCanvas" class="energy-canvas"></canvas>
+    <div class="foreground"><i></i><i></i><i></i></div>
+  </div>
 
-    <section id="ending" class="ending hidden">
-      <div class="ending-inner"><div class="kicker">YEARS LATER</div><h2>一頭が終わった場所で、<br>無数の命が始まった。</h2><p>クジラは消えていく。<br>けれど、そのエネルギーは深海を長く生かし続ける。</p><div class="ending-actions"><button id="restartButton" class="primary">もう一度見る</button><button id="openFieldGuide" class="secondary">見つけた生き物</button></div></div>
-    </section>
+  <header class="hud">
+    <div class="stat"><small>経過時間</small><strong id="timeLabel">0日</strong></div>
+    <div class="phase-head"><strong id="phaseLabel">生きている海</strong><div id="phaseDots" class="phase-dots"></div></div>
+    <div class="stat right"><small>水深</small><strong id="depthLabel">20 m</strong></div>
+    <button id="guideButton" class="round-btn" aria-label="図鑑を開く">◎<b id="foundCount">0</b></button>
+  </header>
 
-    <aside id="fieldGuide" class="field-guide" aria-hidden="true">
-      <button id="closeGuide" class="close-guide">×</button>
-      <div class="kicker">FIELD GUIDE</div><h2>見つけた生き物</h2><div id="guideGrid" class="guide-grid"></div>
-    </aside>
-  </main>
-  <script src="./game.js"></script>
+  <section id="intro" class="intro-card">
+    <div class="kicker">WHALE FALL</div>
+    <h1>クジラが死んだら</h1>
+    <p>巨大な命が終わったあと、深海では別の世界が始まる。</p>
+    <button id="startButton" class="primary">触って見届ける <span>START</span></button>
+  </section>
+
+  <div id="storyCaption" class="story-caption" aria-live="polite"></div>
+
+  <section id="actionDock" class="action-dock hidden" aria-live="polite">
+    <div class="action-icon" id="actionIcon">↓</div>
+    <div class="action-copy"><strong id="actionTitle">下へスワイプ</strong><small id="actionSub">深海まで沈める</small></div>
+    <div id="actionProgress" class="action-progress"><i></i></div>
+  </section>
+
+  <button id="timeButton" class="time-button hidden" aria-label="長押しして時間を進める"><span class="ring"></span><b>長押し</b><small>時間を進める</small></button>
+
+  <aside id="fieldGuide" class="field-guide" aria-hidden="true">
+    <button id="closeGuide" class="close-guide">×</button>
+    <div class="kicker">FIELD GUIDE</div><h2>見つけた生き物</h2><div id="guideGrid" class="guide-grid"></div>
+  </aside>
+
+  <section id="ending" class="ending hidden">
+    <div class="ending-inner"><div class="kicker">YEARS LATER</div><h2>一頭が終わった場所で、<br>無数の命が始まった。</h2><p>クジラは小さくなった。<br>でも、周りの世界は豊かになった。</p><div class="ending-actions"><button id="restartButton" class="primary">もう一度</button><button id="endingGuide" class="secondary">生き物を見る</button></div></div>
+  </section>
+</main>
+<script src="./game.js"></script>
 </body>
 </html>
