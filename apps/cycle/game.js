@@ -4,347 +4,254 @@
   const canvas = document.getElementById('world');
   const ctx = canvas.getContext('2d');
   const els = {
-    life: document.getElementById('lifeScore'),
-    balance: document.getElementById('balanceScore'),
-    cycle: document.getElementById('cycleScore'),
-    nutrient: document.getElementById('nutrientValue'),
-    tray: document.getElementById('speciesTray'),
-    legend: document.getElementById('legend'),
-    message: document.getElementById('message'),
-    intro: document.getElementById('intro'),
-    complete: document.getElementById('complete'),
-    best: document.getElementById('bestBalance'),
-    sound: document.getElementById('soundBtn')
+    life: document.getElementById('lifeScore'), balance: document.getElementById('balanceScore'), cycle: document.getElementById('cycleScore'),
+    nutrient: document.getElementById('nutrientValue'), tray: document.getElementById('speciesTray'), message: document.getElementById('message'),
+    intro: document.getElementById('intro'), complete: document.getElementById('complete'), best: document.getElementById('bestBalance'), sound: document.getElementById('soundBtn'),
+    objective: document.getElementById('objective'), objectiveIcon: document.getElementById('objectiveIcon'), objectiveTitle: document.getElementById('objectiveTitle'),
+    objectiveDetail: document.getElementById('objectiveDetail'), objectiveBar: document.getElementById('objectiveBar'), chainHint: document.getElementById('chainHint')
   };
 
   const SPECIES = [
-    { key:'grass', name:'草', sub:'生産者', icon:'♒', color:'#9ed36b', target:72, unlock:()=>true, lock:'最初から' },
-    { key:'insect', name:'バッタ', sub:'草を食べる', icon:'⌁', color:'#d8c86b', target:34, unlock:s=>s.grass>=38, lock:'草 38+' },
-    { key:'frog', name:'カエル', sub:'虫を食べる', icon:'●', color:'#83c786', target:18, unlock:s=>s.insect>=14, lock:'バッタ 14+' },
-    { key:'snake', name:'ヘビ', sub:'カエルを食べる', icon:'∿', color:'#c1af78', target:9, unlock:s=>s.frog>=7, lock:'カエル 7+' },
-    { key:'hawk', name:'タカ', sub:'頂点捕食者', icon:'⌃', color:'#d9b08c', target:5, unlock:s=>s.snake>=4, lock:'ヘビ 4+' },
-    { key:'fungi', name:'菌類', sub:'死を土へ還す', icon:'♧', color:'#c7a6d9', target:24, unlock:s=>s.detritus>=8, lock:'死骸 8+' }
+    {key:'grass',name:'草',sub:'すべての命の入口',icon:'🌿',color:'#9ed36b',target:72,unlock:()=>true,lock:'最初から'},
+    {key:'insect',name:'バッタ',sub:'草を食べる',icon:'🦗',color:'#d8c86b',target:34,unlock:s=>s.grass>=38,lock:'草 38+'},
+    {key:'frog',name:'カエル',sub:'バッタを食べる',icon:'🐸',color:'#83c786',target:18,unlock:s=>s.insect>=14,lock:'バッタ 14+'},
+    {key:'snake',name:'ヘビ',sub:'カエルを狙う',icon:'🐍',color:'#c1af78',target:9,unlock:s=>s.frog>=7,lock:'カエル 7+'},
+    {key:'hawk',name:'タカ',sub:'草原の頂点',icon:'🦅',color:'#d9b08c',target:5,unlock:s=>s.snake>=4,lock:'ヘビ 4+'},
+    {key:'fungi',name:'菌類',sub:'死を土へ戻す',icon:'🍄',color:'#c7a6d9',target:24,unlock:s=>s.detritus>=8,lock:'死骸 8+'}
   ];
 
   const state = {
-    grass: 18, insect: 0, frog: 0, snake: 0, hawk: 0, fungi: 0,
-    nutrients: 46, detritus: 1, moisture: 42, sunlight: 55,
-    introduced: { grass:true },
-    score: 0, bestBalance: 0, completionHold: 0, completed: false,
-    started: false, fx: true, time: 0
+    grass:18,insect:0,frog:0,snake:0,hawk:0,fungi:0,nutrients:46,detritus:1,moisture:42,sunlight:55,
+    introduced:{grass:true},score:0,bestBalance:0,completionHold:0,completed:false,started:false,fx:true,time:0,
+    flashes:[],hunts:[],particles:[]
   };
 
-  const sprites = {};
-  const terrainSeeds = Array.from({length:90}, (_,i)=>({
-    x: pseudo(i*7.13), y: pseudo(i*13.71), a:.1+pseudo(i*4.17)*.6
-  }));
+  const terrainSeeds = Array.from({length:110},(_,i)=>({x:pseudo(i*7.13),y:pseudo(i*13.71),a:.1+pseudo(i*4.17)*.6}));
+  const creatureSeeds = {};
+  const pulse = {};
+  let lastObjectiveKey='';
+  let msgTimer;
 
   function pseudo(n){ return Math.abs(Math.sin(n*12.9898)*43758.5453)%1; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function fmt(v){ return Math.max(0,Math.round(v)); }
+  function rand(a,b){ return a+Math.random()*(b-a); }
 
   function resize(){
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.floor(rect.width*dpr);
-    canvas.height = Math.floor(rect.height*dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const rect=canvas.getBoundingClientRect();
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.floor(rect.width*dpr);canvas.height=Math.floor(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  addEventListener('resize', resize);
-  resize();
+  addEventListener('resize',resize);resize();
 
   function speciesCard(sp){
-    const b = document.createElement('button');
-    b.className = 'species-card';
-    b.dataset.species = sp.key;
-    b.innerHTML = `<span class="species-icon" style="color:${sp.color}">${sp.icon}</span><span class="pop">0</span><b>${sp.name}</b><small>${sp.sub}</small><span class="lock-copy"></span><span class="foodline" style="background:${sp.color}"></span>`;
-    b.addEventListener('click', ()=>introduce(sp.key));
-    els.tray.appendChild(b);
+    const b=document.createElement('button');
+    b.className='species-card';b.dataset.species=sp.key;
+    b.innerHTML=`<span class="species-icon">${sp.icon}</span><span class="pop">0</span><b>${sp.name}</b><small>${sp.sub}</small><span class="lock-copy"></span><span class="foodline" style="background:${sp.color}"></span>`;
+    b.addEventListener('click',()=>introduce(sp.key));els.tray.appendChild(b);
   }
   SPECIES.forEach(speciesCard);
 
-  SPECIES.forEach(sp=>{
-    const l = document.createElement('span');
-    l.className = 'legend-dot';
-    l.innerHTML = `<i style="background:${sp.color}"></i>${sp.name}`;
-    els.legend.appendChild(l);
-  });
+  function whisper(text,kicker='変化'){
+    clearTimeout(msgTimer);
+    els.message.querySelector('.message-kicker').textContent=kicker;
+    els.message.querySelector('strong').textContent=text;
+    els.message.classList.add('is-visible');
+    msgTimer=setTimeout(()=>els.message.classList.remove('is-visible'),2400);
+  }
+
+  function flashObjective(){
+    els.objective.classList.remove('flash');void els.objective.offsetWidth;els.objective.classList.add('flash');setTimeout(()=>els.objective.classList.remove('flash'),500);
+  }
 
   function introduce(key){
-    if(!state.started) return;
-    const sp = SPECIES.find(s=>s.key===key);
-    if(!sp || !sp.unlock(state)) {
-      whisper(`${sp.name}は、まだこの草原では暮らせない。`);
-      return;
-    }
-    state.introduced[key] = true;
-    const amounts = { grass:11, insect:8, frog:4, snake:2.4, hawk:1.5, fungi:7 };
-    state[key] += amounts[key];
-    pulseSprite(key);
-    const copy = {
-      grass:'草が広がる。食べる命を支える土台だ。',
-      insect:'バッタが入った。草が、動物の命へ変わり始める。',
-      frog:'カエルが入った。増えすぎた虫を食べ始める。',
-      snake:'ヘビが入った。食べる側にも、食べられる側ができた。',
-      hawk:'タカが来た。草原の頂点まで食物連鎖が伸びた。',
-      fungi:'菌類が入った。死が土へ還り、循環が閉じ始める。'
-    };
-    whisper(copy[key]);
+    if(!state.started)return;
+    const sp=SPECIES.find(s=>s.key===key);
+    if(!sp||!sp.unlock(state))return;
+    const first=!state.introduced[key];state.introduced[key]=true;
+    const amounts={grass:11,insect:8,frog:4,snake:2.4,hawk:1.5,fungi:7};state[key]+=amounts[key];pulse[key]=1;
+    burst(key,first?13:7);
+    const copy={grass:'草が広がった。食べる命の土台になる。',insect:'バッタが草を食べ始めた。',frog:'カエルがバッタを追い始めた。',snake:'ヘビがカエルを狙い始めた。',hawk:'タカが上空からヘビを探している。',fungi:'菌類が死骸を土へ戻し始めた。'};
+    whisper(copy[key],first?'新しい命':'個体数 +');flashObjective();
   }
 
   document.querySelectorAll('.action-card').forEach(btn=>btn.addEventListener('click',()=>{
-    if(!state.started) return;
+    if(!state.started)return;
     const a=btn.dataset.action;
+    btn.animate([{transform:'scale(.95)'},{transform:'scale(1)'}],{duration:180});
     if(a==='sun'){
-      state.sunlight=clamp(state.sunlight+24,0,100);
-      state.grass+=4;
-      whisper('光が差した。草が一斉に伸びる。');
-    } else if(a==='rain'){
-      state.moisture=clamp(state.moisture+28,0,100);
-      state.nutrients=clamp(state.nutrients+5,0,100);
-      whisper('雨が土を潤した。草原の回復力が上がる。');
-    } else {
-      state.detritus+=7;
-      whisper(state.fungi>0?'落ち葉を菌類が分解し、土へ返していく。':'落ち葉が積もった。これを土へ戻す生き物が必要だ。');
+      state.sunlight=clamp(state.sunlight+24,0,100);state.grass+=5;state.flashes.push({type:'sun',life:1});burst('grass',8);whisper('光で草が伸びた。','☀ 光');
+    }else if(a==='rain'){
+      state.moisture=clamp(state.moisture+30,0,100);state.nutrients=clamp(state.nutrients+5,0,100);state.grass+=2;state.flashes.push({type:'rain',life:1});whisper('雨で草原が潤った。','💧 雨');
+    }else{
+      state.detritus+=8;state.flashes.push({type:'leaf',life:1});burst('fungi',5);whisper(state.fungi>0?'落ち葉を菌類が分解している。':'落ち葉が積もった。分解者がいれば土へ戻せる。','🍂 落ち葉');
     }
-    btn.animate([{transform:'scale(.96)'},{transform:'scale(1)'}],{duration:180});
+    flashObjective();
   }));
 
   document.getElementById('startBtn').addEventListener('click',()=>{
-    state.started=true;
-    els.intro.classList.remove('is-open');
-    whisper('陽だまりや雨を使って、まず草を増やそう。');
+    state.started=true;els.intro.classList.remove('is-open');
+    whisper('光か雨をタップすると、草原がすぐ変わる。','最初の一歩');
+    document.querySelector('[data-action="sun"]').classList.add('pulse');setTimeout(()=>document.querySelector('[data-action="sun"]').classList.remove('pulse'),2400);
   });
   document.getElementById('continueBtn').addEventListener('click',()=>els.complete.classList.remove('is-open'));
-  els.sound.addEventListener('click',()=>{
-    state.fx=!state.fx;
-    els.sound.textContent=state.fx?'✦':'·';
-    els.sound.style.opacity=state.fx?'1':'.45';
-  });
+  els.sound.addEventListener('click',()=>{state.fx=!state.fx;els.sound.textContent=state.fx?'✦':'·';els.sound.style.opacity=state.fx?'1':'.45';});
 
-  let msgTimer;
-  function whisper(text){
-    clearTimeout(msgTimer);
-    els.message.querySelector('strong').textContent=text;
-    els.message.classList.add('is-visible');
-    msgTimer=setTimeout(()=>els.message.classList.remove('is-visible'),2800);
+  function burst(key,count){
+    if(!state.fx)return;
+    const colors={grass:'#b8e57f',insect:'#e4d56e',frog:'#8fd194',snake:'#d3bf87',hawk:'#ebc29c',fungi:'#d3b4e4'};
+    for(let i=0;i<count;i++)state.particles.push({x:rand(.18,.82),y:rand(.48,.86),vx:rand(-.04,.04),vy:rand(-.12,-.035),life:rand(.55,1.1),color:colors[key]||'#fff'});
   }
 
   function simulate(dt){
-    if(!state.started) return;
-    state.time += dt;
+    if(!state.started)return;
+    state.time+=dt;
+    state.sunlight+=(54-state.sunlight)*dt*.045;state.moisture+=(48-state.moisture)*dt*.035;
 
-    state.sunlight += (54-state.sunlight)*dt*.045;
-    state.moisture += (48-state.moisture)*dt*.035;
+    const env=(state.nutrients/100)*.45+(state.sunlight/100)*.3+(state.moisture/100)*.25;
+    const grassGrowth=2.55*env*(1-state.grass/126);
+    const herbivory=.03*state.insect*state.grass/(22+state.grass);
+    const grassDeath=state.grass*.0058;
+    state.grass+=(grassGrowth-herbivory-grassDeath)*dt;state.nutrients-=Math.max(0,grassGrowth)*.041*dt;state.detritus+=grassDeath*.18*dt;
 
-    // Producer growth is limited by soil nutrients, light, water and crowding.
-    const env = (state.nutrients/100)*.45 + (state.sunlight/100)*.3 + (state.moisture/100)*.25;
-    const grassGrowth = 2.35*env*(1-state.grass/125);
-    const herbivory = .026*state.insect*state.grass/(22+state.grass);
-    const grassNaturalDeath = state.grass*.006;
-    state.grass += (grassGrowth-herbivory-grassNaturalDeath)*dt;
-    state.nutrients -= Math.max(0,grassGrowth)*.042*dt;
-    state.detritus += grassNaturalDeath*.18*dt;
+    const insectBirth=.145*state.insect*(state.grass/(19+state.grass));const insectPred=.051*state.frog*state.insect/(8+state.insect);const insectDeath=.037*state.insect;
+    state.insect+=(insectBirth-insectPred-insectDeath)*dt;state.detritus+=insectDeath*.15*dt;
 
-    const insectBirth = .13*state.insect*(state.grass/(20+state.grass));
-    const insectPred = .045*state.frog*state.insect/(8+state.insect);
-    const insectDeath = .038*state.insect;
-    state.insect += (insectBirth-insectPred-insectDeath)*dt;
-    state.detritus += insectDeath*.15*dt;
+    const frogBirth=.112*state.frog*(state.insect/(9+state.insect));const frogPred=.059*state.snake*state.frog/(5+state.frog);const frogDeath=.033*state.frog;
+    state.frog+=(frogBirth-frogPred-frogDeath)*dt;state.detritus+=frogDeath*.3*dt;
 
-    const frogBirth = .105*state.frog*(state.insect/(10+state.insect));
-    const frogPred = .055*state.snake*state.frog/(5+state.frog);
-    const frogDeath = .034*state.frog;
-    state.frog += (frogBirth-frogPred-frogDeath)*dt;
-    state.detritus += frogDeath*.3*dt;
+    const snakeBirth=.09*state.snake*(state.frog/(5+state.frog));const snakePred=.066*state.hawk*state.snake/(2.8+state.snake);const snakeDeath=.029*state.snake;
+    state.snake+=(snakeBirth-snakePred-snakeDeath)*dt;state.detritus+=snakeDeath*.55*dt;
 
-    const snakeBirth = .085*state.snake*(state.frog/(5+state.frog));
-    const snakePred = .062*state.hawk*state.snake/(2.8+state.snake);
-    const snakeDeath = .03*state.snake;
-    state.snake += (snakeBirth-snakePred-snakeDeath)*dt;
-    state.detritus += snakeDeath*.55*dt;
+    const hawkBirth=.058*state.hawk*(state.snake/(3+state.snake));const hawkDeath=.031*state.hawk;
+    state.hawk+=(hawkBirth-hawkDeath)*dt;state.detritus+=hawkDeath*.8*dt;
 
-    const hawkBirth = .055*state.hawk*(state.snake/(3+state.snake));
-    const hawkDeath = .032*state.hawk;
-    state.hawk += (hawkBirth-hawkDeath)*dt;
-    state.detritus += hawkDeath*.8*dt;
+    const fungiGrowth=.125*state.fungi*(state.detritus/(7+state.detritus));const fungiDeath=.046*state.fungi;const decomposition=Math.min(state.detritus,.175*state.fungi*state.detritus/(6+state.detritus));
+    state.fungi+=(fungiGrowth-fungiDeath)*dt;state.detritus-=decomposition*dt;state.nutrients+=decomposition*.97*dt;
 
-    const fungiGrowth = .12*state.fungi*(state.detritus/(7+state.detritus));
-    const fungiDeath = .048*state.fungi;
-    const decomposition = Math.min(state.detritus, .16*state.fungi*state.detritus/(6+state.detritus));
-    state.fungi += (fungiGrowth-fungiDeath)*dt;
-    state.detritus -= decomposition*dt;
-    state.nutrients += decomposition*.95*dt;
+    ['grass','insect','frog','snake','hawk','fungi'].forEach(k=>state[k]=clamp(state[k],0,180));state.detritus=clamp(state.detritus,0,90);state.nutrients=clamp(state.nutrients,2,100);
 
-    ['grass','insect','frog','snake','hawk','fungi'].forEach(k=>state[k]=clamp(state[k],0,180));
-    state.detritus=clamp(state.detritus,0,90);
-    state.nutrients=clamp(state.nutrients,2,100);
+    const balance=getBalance(),cycle=getCycle();state.score+=dt*(.24+balance/210+cycle/245);state.bestBalance=Math.max(state.bestBalance,balance);
+    maybeHunt(dt);updateFx(dt);
 
-    // Ecological activity becomes LIFE score; a stable web scores faster.
-    const balance = getBalance();
-    const cycle = getCycle();
-    state.score += dt*(.22 + balance/220 + cycle/260);
-    state.bestBalance=Math.max(state.bestBalance,balance);
+    const all=SPECIES.every(sp=>state.introduced[sp.key]&&state[sp.key]>.35);
+    if(all&&balance>=70&&cycle>=80){state.completionHold+=dt;if(state.completionHold>7&&!state.completed){state.completed=true;els.best.textContent=`${Math.round(state.bestBalance)}%`;els.complete.classList.add('is-open');burst('grass',24);}}
+    else state.completionHold=Math.max(0,state.completionHold-dt*.7);
+  }
 
-    const all = SPECIES.every(sp=>state.introduced[sp.key] && state[sp.key]>.35);
-    if(all && balance>=70 && cycle>=80){
-      state.completionHold += dt;
-      if(state.completionHold>10 && !state.completed){
-        state.completed=true;
-        els.best.textContent=`${Math.round(state.bestBalance)}%`;
-        els.complete.classList.add('is-open');
-      }
-    } else state.completionHold=Math.max(0,state.completionHold-dt*.6);
+  function maybeHunt(dt){
+    if(!state.fx||Math.random()>dt*.55)return;
+    const pairs=[['frog','insect'],['snake','frog'],['hawk','snake']];
+    const valid=pairs.filter(([pred,prey])=>state[pred]>.8&&state[prey]>1);
+    if(!valid.length)return;
+    const [pred,prey]=valid[Math.floor(Math.random()*valid.length)];
+    state.hunts.push({pred,prey,x:rand(.18,.82),y:rand(.48,.82),life:1});
+  }
+
+  function updateFx(dt){
+    state.flashes.forEach(f=>f.life-=dt*1.35);state.flashes=state.flashes.filter(f=>f.life>0);
+    state.hunts.forEach(h=>h.life-=dt*.9);state.hunts=state.hunts.filter(h=>h.life>0);
+    state.particles.forEach(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.055*dt;});state.particles=state.particles.filter(p=>p.life>0);
   }
 
   function getBalance(){
-    const active=SPECIES.filter(sp=>state.introduced[sp.key]);
-    if(!active.length) return 0;
-    let sum=0;
-    active.forEach(sp=>{
-      const ratio=state[sp.key]/sp.target;
-      sum += clamp(1-Math.abs(Math.log(Math.max(.02,ratio)))*.55,0,1);
-    });
-    // Penalize a nearly empty trophic level heavily.
+    const active=SPECIES.filter(sp=>state.introduced[sp.key]);if(!active.length)return 0;let sum=0;
+    active.forEach(sp=>{const ratio=state[sp.key]/sp.target;sum+=clamp(1-Math.abs(Math.log(Math.max(.02,ratio)))*.55,0,1);});
     return clamp((sum/active.length)*100,0,100);
   }
-
   function getCycle(){
-    const levels=['grass','insect','frog','snake','hawk'];
-    const present=levels.filter(k=>state.introduced[k]&&state[k]>.4).length;
-    const chain=(present/levels.length)*67;
-    const decomposer=(state.introduced.fungi&&state.fungi>.5)?22:0;
-    const soil=state.nutrients>18&&state.nutrients<88?6:2;
-    const det=state.detritus<35?5:1;
-    return clamp(chain+decomposer+soil+det,0,100);
+    const levels=['grass','insect','frog','snake','hawk'];const present=levels.filter(k=>state.introduced[k]&&state[k]>.4).length;
+    return clamp((present/levels.length)*67+(state.introduced.fungi&&state.fungi>.5?22:0)+(state.nutrients>18&&state.nutrients<88?6:2)+(state.detritus<35?5:1),0,100);
+  }
+
+  function currentObjective(){
+    if(state.grass<38)return{key:'grass38',icon:'🌿',title:'草原を育てる',detail:`草 ${fmt(state.grass)} / 38`,progress:state.grass/38,target:'grass'};
+    if(!state.introduced.insect)return{key:'add-insect',icon:'🦗',title:'バッタを迎える',detail:'光っているカードをタップ',progress:1,target:'insect'};
+    if(state.insect<14)return{key:'insect14',icon:'🦗',title:'バッタを増やす',detail:`バッタ ${fmt(state.insect)} / 14`,progress:state.insect/14,target:'insect'};
+    if(!state.introduced.frog)return{key:'add-frog',icon:'🐸',title:'カエルを迎える',detail:'バッタを食べる仲間',progress:1,target:'frog'};
+    if(state.frog<7)return{key:'frog7',icon:'🐸',title:'カエルを増やす',detail:`カエル ${fmt(state.frog)} / 7`,progress:state.frog/7,target:'frog'};
+    if(!state.introduced.snake)return{key:'add-snake',icon:'🐍',title:'ヘビを迎える',detail:'カエルとの関係をつくる',progress:1,target:'snake'};
+    if(state.snake<4)return{key:'snake4',icon:'🐍',title:'ヘビを増やす',detail:`ヘビ ${fmt(state.snake)} / 4`,progress:state.snake/4,target:'snake'};
+    if(!state.introduced.hawk)return{key:'add-hawk',icon:'🦅',title:'タカを迎える',detail:'食物連鎖を頂点までつなぐ',progress:1,target:'hawk'};
+    if(state.detritus<8)return{key:'detritus8',icon:'🍂',title:'死と落ち葉をためる',detail:`分解材料 ${fmt(state.detritus)} / 8`,progress:state.detritus/8,target:'detritus'};
+    if(!state.introduced.fungi)return{key:'add-fungi',icon:'🍄',title:'菌類を迎える',detail:'死を土へ戻す最後の輪',progress:1,target:'fungi'};
+    return{key:'balance',icon:'◌',title:'循環を安定させる',detail:`BALANCE ${Math.round(getBalance())}% · CYCLE ${Math.round(getCycle())}%`,progress:Math.min(getBalance()/70,getCycle()/80),target:'balance'};
   }
 
   function updateUI(){
-    const balance=getBalance(), cycle=getCycle();
-    els.life.textContent=Math.floor(state.score).toLocaleString('ja-JP');
-    els.balance.textContent=`${Math.round(balance)}%`;
-    els.cycle.textContent=`${Math.round(cycle)}%`;
-    els.nutrient.textContent=Math.round(state.nutrients);
+    const balance=getBalance(),cycle=getCycle();els.life.textContent=Math.floor(state.score).toLocaleString('ja-JP');els.balance.textContent=`${Math.round(balance)}%`;els.cycle.textContent=`${Math.round(cycle)}%`;els.nutrient.textContent=Math.round(state.nutrients);
+    const obj=currentObjective();els.objectiveIcon.textContent=obj.icon;els.objectiveTitle.textContent=obj.title;els.objectiveDetail.textContent=obj.detail;els.objectiveBar.style.width=`${clamp(obj.progress,0,1)*100}%`;
+    if(obj.key!==lastObjectiveKey&&state.started){lastObjectiveKey=obj.key;flashObjective();}
 
     document.querySelectorAll('.species-card').forEach(card=>{
-      const sp=SPECIES.find(s=>s.key===card.dataset.species);
-      const unlocked=sp.unlock(state);
-      card.disabled=!unlocked;
-      card.classList.toggle('locked',!unlocked);
-      card.classList.toggle('active',!!state.introduced[sp.key]);
+      const sp=SPECIES.find(s=>s.key===card.dataset.species);const unlocked=sp.unlock(state);const firstReady=unlocked&&!state.introduced[sp.key]&&obj.target===sp.key;
+      card.disabled=!unlocked;card.classList.toggle('locked',!unlocked);card.classList.toggle('active',!!state.introduced[sp.key]);card.classList.toggle('ready',firstReady);
       card.querySelector('.pop').textContent=fmt(state[sp.key]);
-      card.querySelector('.lock-copy').textContent=unlocked?(state.introduced[sp.key]?'もう一度迎える':'迎えられる'):sp.lock;
-      const health=clamp(state[sp.key]/sp.target,0,1);
-      card.querySelector('.foodline').style.transform=`scaleX(${health})`;
+      card.querySelector('.lock-copy').textContent=!unlocked?`🔒 ${sp.lock}`:firstReady?'← 今ここをタップ':(state.introduced[sp.key]?'もう一度迎える':'迎えられる');
+      card.querySelector('.foodline').style.transform=`scaleX(${clamp(state[sp.key]/sp.target,0,1)})`;
     });
-  }
-
-  function pulseSprite(key){
-    sprites[key] = sprites[key] || {};
-    sprites[key].pulse=1;
+    els.chainHint.textContent=obj.target==='balance'?'全体の数を見て調整':'次に迎えられる生き物が光る';
   }
 
   function draw(){
-    const w=canvas.clientWidth,h=canvas.clientHeight;
-    ctx.clearRect(0,0,w,h);
+    const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);
+    drawSky(w,h);drawTerrain(w,h);drawGrass(w,h);drawCreatures(w,h);drawHunts(w,h);drawCycle(w,h);drawParticles(w,h);drawWeather(w,h);
+  }
 
-    // Distant haze and irregular terrain patches.
-    const sky=ctx.createLinearGradient(0,0,0,h);
-    sky.addColorStop(0,'#101e16');sky.addColorStop(.55,'#273a25');sky.addColorStop(1,'#162319');
-    ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
-    ctx.save();
-    ctx.globalAlpha=.24;
-    for(let i=0;i<9;i++){
-      const x=pseudo(i*9.1)*w, y=h*(.45+pseudo(i*2.4)*.4), r=80+pseudo(i*3.2)*130;
-      const g=ctx.createRadialGradient(x,y,2,x,y,r);g.addColorStop(0,'#638150');g.addColorStop(1,'rgba(40,66,39,0)');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-    }
-    ctx.restore();
+  function drawSky(w,h){
+    const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#10241a');g.addColorStop(.45,'#355034');g.addColorStop(1,'#18281b');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha=.18;ctx.fillStyle='#dce8c2';ctx.beginPath();ctx.arc(w*.78,h*.2,58,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(21,46,27,.95)';ctx.beginPath();ctx.moveTo(0,h*.38);for(let x=0;x<=w;x+=35)ctx.lineTo(x,h*(.33+pseudo(x*.18)*.08));ctx.lineTo(w,h*.56);ctx.lineTo(0,h*.56);ctx.fill();
+  }
 
-    // Soil and detritus details.
-    terrainSeeds.forEach((p,i)=>{
-      const y=h*(.35+p.y*.62), x=p.x*w;
-      ctx.globalAlpha=.08+p.a*.14;
-      ctx.fillStyle=i%3?'#d2d6a8':'#8b704a';
-      ctx.beginPath();ctx.arc(x,y,1+p.a*1.8,0,Math.PI*2);ctx.fill();
-    });
-    ctx.globalAlpha=1;
-
-    drawGrass(w,h);
-    drawSpecies(w,h);
-    drawFlow(w,h);
+  function drawTerrain(w,h){
+    ctx.fillStyle='#304a2d';ctx.beginPath();ctx.moveTo(0,h*.39);ctx.bezierCurveTo(w*.2,h*.31,w*.34,h*.48,w*.54,h*.39);ctx.bezierCurveTo(w*.73,h*.31,w*.87,h*.49,w,h*.4);ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
+    ctx.fillStyle='rgba(126,104,66,.18)';ctx.beginPath();ctx.ellipse(w*.5,h*.76,w*.45,h*.11,-.05,0,Math.PI*2);ctx.fill();
+    terrainSeeds.forEach((p,i)=>{const y=h*(.42+p.y*.54),x=p.x*w;ctx.globalAlpha=.06+p.a*.12;ctx.fillStyle=i%3?'#d4d9ab':'#8d7147';ctx.beginPath();ctx.arc(x,y,1+p.a*1.8,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;
   }
 
   function drawGrass(w,h){
-    const density=Math.min(135,Math.floor(state.grass*1.8));
-    ctx.lineCap='round';
+    const density=Math.min(190,Math.floor(state.grass*2.15));ctx.lineCap='round';
     for(let i=0;i<density;i++){
-      const x=pseudo(i*3.77+1)*w;
-      const y=h*(.38+pseudo(i*8.31+2)*.58);
-      const len=6+pseudo(i*6.11)*15;
-      const sway=Math.sin(state.time*.8+i)*1.8;
-      const alpha=.22+pseudo(i*11.8)*.48;
-      ctx.strokeStyle=`rgba(${120+Math.floor(pseudo(i)*40)},${158+Math.floor(pseudo(i*2)*60)},${82+Math.floor(pseudo(i*4)*30)},${alpha})`;
-      ctx.lineWidth=.7+pseudo(i*4.2)*1.2;
-      ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+sway,y-len*.55,x+sway*1.3,y-len);ctx.stroke();
+      const x=pseudo(i*3.77+1)*w,y=h*(.45+pseudo(i*8.31+2)*.48),len=7+pseudo(i*6.11)*18,sway=Math.sin(state.time*.9+i)*2;
+      ctx.strokeStyle=`rgba(${112+Math.floor(pseudo(i)*35)},${162+Math.floor(pseudo(i*2)*62)},${70+Math.floor(pseudo(i*4)*32)},${.3+pseudo(i*11.8)*.52})`;ctx.lineWidth=.8+pseudo(i*4.2)*1.3;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+sway,y-len*.55,x+sway*1.3,y-len);ctx.stroke();
     }
+    if(state.grass>55){ctx.globalAlpha=.42;for(let i=0;i<Math.min(30,(state.grass-50));i++){ctx.fillStyle=i%2?'#ebdc87':'#d6edaa';ctx.beginPath();ctx.arc(pseudo(i*5.2)*w,h*(.53+pseudo(i*8.1)*.37),1.4,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
   }
 
-  function drawSpecies(w,h){
-    const config={
-      insect:{glyph:'⌁',size:14,max:16,y:[.45,.84]},
-      frog:{glyph:'●',size:14,max:10,y:[.55,.87]},
-      snake:{glyph:'∿',size:22,max:8,y:[.56,.88]},
-      hawk:{glyph:'⌃',size:26,max:6,y:[.25,.54]},
-      fungi:{glyph:'♧',size:18,max:14,y:[.64,.93]}
-    };
-    Object.entries(config).forEach(([key,c],si)=>{
-      const sp=SPECIES.find(s=>s.key===key);
-      const count=Math.min(c.max,Math.ceil(state[key]/Math.max(1,sp.target/c.max)));
-      const pulse=sprites[key]?.pulse||0;
-      for(let i=0;i<count;i++){
-        const seed=si*100+i;
-        let x=pseudo(seed*2.31+3)*w;
-        let y=h*(c.y[0]+pseudo(seed*7.17+4)*(c.y[1]-c.y[0]));
-        const speed=(si+1)*.22;
-        x=(x + Math.sin(state.time*speed+seed)*14 + w)%w;
-        y+=Math.cos(state.time*.35+seed)*3;
-        const size=c.size*(1+pulse*.18);
-        ctx.save();ctx.translate(x,y);
-        if(key==='hawk') ctx.rotate(Math.sin(state.time+seed)*.12);
-        ctx.globalAlpha=.55+pseudo(seed)*.4;
-        ctx.font=`700 ${size}px Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillStyle=sp.color;ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=7;ctx.fillText(c.glyph,0,0);
-        ctx.restore();
-      }
-      if(sprites[key]) sprites[key].pulse=Math.max(0,pulse-.035);
-    });
+  function seedFor(key,i){creatureSeeds[key]=creatureSeeds[key]||[];if(!creatureSeeds[key][i])creatureSeeds[key][i]={x:pseudo(i*7.2+key.length),y:pseudo(i*13.3+key.length*2),phase:pseudo(i*5.9)*Math.PI*2};return creatureSeeds[key][i];}
+  function creatureCount(key,max){const sp=SPECIES.find(s=>s.key===key);return Math.min(max,Math.ceil(state[key]/Math.max(1,sp.target/max)));}
+
+  function drawCreatures(w,h){
+    for(let i=0;i<creatureCount('insect',18);i++)drawInsect(w,h,i);
+    for(let i=0;i<creatureCount('frog',11);i++)drawFrog(w,h,i);
+    for(let i=0;i<creatureCount('snake',8);i++)drawSnake(w,h,i);
+    for(let i=0;i<creatureCount('hawk',5);i++)drawHawk(w,h,i);
+    for(let i=0;i<creatureCount('fungi',18);i++)drawFungus(w,h,i);
   }
 
-  function drawFlow(w,h){
-    if(!state.fx) return;
-    // Floating specks make decomposition and renewal visible without UI arrows.
-    const intensity=Math.min(20,Math.floor(state.fungi/2 + state.detritus/6));
-    for(let i=0;i<intensity;i++){
-      const phase=(state.time*.025+pseudo(i*5.3))%1;
-      const x=pseudo(i*12.2+7)*w;
-      const y=h*(.92-phase*.44);
-      ctx.globalAlpha=.1*(1-phase);
-      ctx.fillStyle=i%2?'#c8b486':'#c2d69b';
-      ctx.beginPath();ctx.arc(x,y,1.2,0,Math.PI*2);ctx.fill();
-    }
-    ctx.globalAlpha=1;
+  function drawInsect(w,h,i){const s=seedFor('insect',i),x=(s.x*w+Math.sin(state.time*1.4+s.phase)*10+w)%w,y=h*(.53+s.y*.34)+Math.sin(state.time*3+s.phase)*2,sc=1+(pulse.insect||0)*.14;ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);ctx.strokeStyle='#2a2915';ctx.fillStyle='#d7c75e';ctx.lineWidth=1.3;ctx.beginPath();ctx.ellipse(0,0,5,2.4,-.2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(-2,1);ctx.lineTo(-7,5);ctx.moveTo(2,1);ctx.lineTo(8,5);ctx.moveTo(-1,-1);ctx.lineTo(-5,-5);ctx.stroke();ctx.restore();}
+  function drawFrog(w,h,i){const s=seedFor('frog',i),x=s.x*w+Math.sin(state.time*.65+s.phase)*8,y=h*(.58+s.y*.27),sc=1+(pulse.frog||0)*.14;ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);ctx.fillStyle='#78bd79';ctx.beginPath();ctx.ellipse(0,2,8,6,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(-4,-3,3,0,Math.PI*2);ctx.arc(4,-3,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#132017';ctx.beginPath();ctx.arc(-4,-4,1,0,Math.PI*2);ctx.arc(4,-4,1,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#78bd79';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,5);ctx.lineTo(-11,10);ctx.moveTo(5,5);ctx.lineTo(11,10);ctx.stroke();ctx.restore();}
+  function drawSnake(w,h,i){const s=seedFor('snake',i),x=s.x*w+Math.sin(state.time*.45+s.phase)*16,y=h*(.58+s.y*.29),sc=1+(pulse.snake||0)*.16;ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);ctx.strokeStyle='#c1af78';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-13,2);ctx.bezierCurveTo(-7,-7,0,9,8,-1);ctx.bezierCurveTo(11,-4,13,-2,15,0);ctx.stroke();ctx.fillStyle='#c1af78';ctx.beginPath();ctx.arc(15,0,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(16,-1,0.7,0,Math.PI*2);ctx.fill();ctx.restore();}
+  function drawHawk(w,h,i){const s=seedFor('hawk',i),x=(s.x*w+state.time*(9+i*1.2))%(w+80)-40,y=h*(.25+s.y*.18)+Math.sin(state.time*.7+s.phase)*12,sc=1+(pulse.hawk||0)*.16;ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);ctx.fillStyle='#c99b76';ctx.beginPath();ctx.moveTo(0,3);ctx.quadraticCurveTo(-12,-9,-24,-2);ctx.quadraticCurveTo(-12,-2,-5,6);ctx.lineTo(0,10);ctx.lineTo(5,6);ctx.quadraticCurveTo(12,-2,24,-2);ctx.quadraticCurveTo(12,-9,0,3);ctx.fill();ctx.restore();}
+  function drawFungus(w,h,i){const s=seedFor('fungi',i),x=s.x*w,y=h*(.72+s.y*.2),sc=.7+pseudo(i*3.2)*.7+(pulse.fungi||0)*.12;ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);ctx.fillStyle='#dbc7aa';ctx.fillRect(-1.5,0,3,7);ctx.fillStyle=i%3===0?'#b692c9':'#c8a67f';ctx.beginPath();ctx.arc(0,0,5,Math.PI,0);ctx.lineTo(5,1);ctx.lineTo(-5,1);ctx.fill();ctx.restore();}
+
+  function drawHunts(w,h){
+    const icons={insect:'🦗',frog:'🐸',snake:'🐍',hawk:'🦅'};
+    state.hunts.forEach(ev=>{const t=1-ev.life,x=ev.x*w,y=ev.y*h;ctx.save();ctx.globalAlpha=Math.min(1,ev.life*2);ctx.font='20px system-ui';ctx.textAlign='center';ctx.fillText(icons[ev.prey],x+18*(1-t),y);ctx.font='25px system-ui';ctx.fillText(icons[ev.pred],x-25+31*t,y-8*Math.sin(t*Math.PI));ctx.strokeStyle='rgba(244,230,177,.55)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-10,y+8);ctx.lineTo(x+12,y+2);ctx.stroke();ctx.restore();});
   }
 
-  let last=performance.now(), uiClock=0;
-  function frame(now){
-    const dt=Math.min(.08,(now-last)/1000);last=now;
-    simulate(dt);
-    draw();
-    uiClock+=dt;
-    if(uiClock>.18){ updateUI();uiClock=0; }
-    requestAnimationFrame(frame);
+  function drawCycle(w,h){
+    if(state.fungi<1)return;
+    const a=clamp(state.fungi/18,0,.65);ctx.save();ctx.globalAlpha=a;ctx.strokeStyle='#c8daa0';ctx.setLineDash([3,6]);ctx.lineWidth=1;ctx.beginPath();ctx.arc(w*.5,h*.72,Math.min(w*.29,105),-.15,Math.PI*1.75);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#c8daa0';ctx.font='11px system-ui';ctx.fillText('土へ還る',w*.5-25,h*.72-100);ctx.restore();
   }
-  updateUI();
-  requestAnimationFrame(frame);
+
+  function drawParticles(w,h){state.particles.forEach(p=>{ctx.globalAlpha=clamp(p.life,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x*w,p.y*h,2,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;}
+  function drawWeather(w,h){
+    state.flashes.forEach(f=>{ctx.save();ctx.globalAlpha=f.life*.28;if(f.type==='sun'){const g=ctx.createRadialGradient(w*.78,h*.18,5,w*.78,h*.18,150);g.addColorStop(0,'#fff6b5');g.addColorStop(1,'rgba(255,240,170,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}else if(f.type==='rain'){ctx.strokeStyle='#b7d8e7';ctx.lineWidth=1;for(let i=0;i<38;i++){const x=pseudo(i*9.2+state.time)*w,y=(pseudo(i*3.1)+state.time*.8)%1*h;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+12);ctx.stroke();}}else{ctx.fillStyle='#c79756';for(let i=0;i<18;i++){const x=pseudo(i*8.2)*w,y=h*(.4+((pseudo(i*4.4)+state.time*.05)%1)*.5);ctx.fillRect(x,y,4,2);}}ctx.restore();});
+  }
+
+  let last=performance.now(),uiClock=0;
+  function frame(now){const dt=Math.min(.08,(now-last)/1000);last=now;simulate(dt);draw();uiClock+=dt;if(uiClock>.14){updateUI();uiClock=0;}Object.keys(pulse).forEach(k=>pulse[k]=Math.max(0,pulse[k]-.04));requestAnimationFrame(frame);}
+  updateUI();requestAnimationFrame(frame);
 })();
