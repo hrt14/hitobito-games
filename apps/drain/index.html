@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#0b1718" />
-  <title>水、抜いてみた。 | DRAIN IT.</title>
+  <title>水、抜いてみた。 | HITOBITO GAMES</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -27,7 +27,7 @@
         <strong id="stageName">家の風呂</strong>
         <small id="stageSub">最初の水抜き</small>
       </div>
-      <div class="hud-card">
+      <div class="hud-card water-card">
         <span class="label">水位</span>
         <strong><span id="waterText">100</span><small>%</small></strong>
       </div>
@@ -39,6 +39,9 @@
 
     <section class="game-card">
       <canvas id="gameCanvas" aria-label="水抜きフィールド"></canvas>
+      <div id="goalBanner" class="goal-banner" role="status" aria-live="polite">
+        <span id="goalIcon">↓</span><strong id="goalText">水を抜いてみよう</strong>
+      </div>
       <div class="depth-scale" aria-hidden="true">
         <span>満水</span><i></i><span>浅瀬</span><i></i><span>泥</span>
       </div>
@@ -47,27 +50,28 @@
         <p id="introKicker">STAGE 01</p>
         <h2 id="introTitle">家の風呂</h2>
         <p id="introCopy">栓を抜くだけ。何が残る？</p>
-        <button id="startBtn" class="primary-btn" type="button">水を抜く</button>
+        <button id="startBtn" class="primary-btn" type="button"><span>水を抜く</span><b>↓</b></button>
       </div>
       <div id="completePanel" class="complete-panel hidden">
         <p class="complete-kicker">調査完了</p>
         <h2 id="completeTitle">水底が見えた。</h2>
         <p id="completeCopy"></p>
+        <div id="nextTease" class="next-tease"></div>
         <button id="nextBtn" class="primary-btn" type="button">次の水場へ</button>
       </div>
     </section>
 
     <section class="control-row">
-      <div class="pump-meter">
+      <div id="pumpMeter" class="pump-meter">
         <div class="pump-copy">
-          <span class="label">排水速度</span>
+          <span class="label">排水装置</span>
           <strong id="pumpName">排水栓</strong>
         </div>
         <div class="meter"><i id="pumpBar"></i></div>
       </div>
       <button id="boostBtn" class="boost-btn" type="button">
-        <span>排水ブースト</span>
-        <small id="boostCopy">タップで少し加速</small>
+        <span>ポンプを強くする</span>
+        <small id="boostCopy">タップで水位を一気に下げる</small>
       </button>
     </section>
 
@@ -84,7 +88,7 @@
       </div>
     </section>
 
-    <p class="footnote">画面の中の生き物や物を直接タップして拾う。水位が下がるほど、隠れていたものが露出する。</p>
+    <p class="footnote">水位が下がるほど、生き物・落とし物・地形が姿を現す。見つけたものは直接タップ。</p>
   </main>
 
   <script src="./game.js"></script>
