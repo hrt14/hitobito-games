@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#0b1718" />
+  <title>水、抜いてみた。 | DRAIN IT.</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">HITOBITO GAMES</p>
+        <h1>水、抜いてみた。</h1>
+      </div>
+      <button id="resetBtn" class="icon-btn" type="button" aria-label="最初から">↺</button>
+    </header>
+
+    <section class="stage-strip" aria-label="ステージ一覧">
+      <div id="stageTabs" class="stage-tabs"></div>
+    </section>
+
+    <section class="hud" aria-label="ゲーム情報">
+      <div class="hud-card stage-card">
+        <span class="label">調査地点</span>
+        <strong id="stageName">家の風呂</strong>
+        <small id="stageSub">最初の水抜き</small>
+      </div>
+      <div class="hud-card">
+        <span class="label">水位</span>
+        <strong><span id="waterText">100</span><small>%</small></strong>
+      </div>
+      <div class="hud-card">
+        <span class="label">発見</span>
+        <strong><span id="foundText">0</span><small id="totalText">/ 0</small></strong>
+      </div>
+    </section>
+
+    <section class="game-card">
+      <canvas id="gameCanvas" aria-label="水抜きフィールド"></canvas>
+      <div class="depth-scale" aria-hidden="true">
+        <span>満水</span><i></i><span>浅瀬</span><i></i><span>泥</span>
+      </div>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div id="introPanel" class="intro-panel">
+        <p id="introKicker">STAGE 01</p>
+        <h2 id="introTitle">家の風呂</h2>
+        <p id="introCopy">栓を抜くだけ。何が残る？</p>
+        <button id="startBtn" class="primary-btn" type="button">水を抜く</button>
+      </div>
+      <div id="completePanel" class="complete-panel hidden">
+        <p class="complete-kicker">調査完了</p>
+        <h2 id="completeTitle">水底が見えた。</h2>
+        <p id="completeCopy"></p>
+        <button id="nextBtn" class="primary-btn" type="button">次の水場へ</button>
+      </div>
+    </section>
+
+    <section class="control-row">
+      <div class="pump-meter">
+        <div class="pump-copy">
+          <span class="label">排水速度</span>
+          <strong id="pumpName">排水栓</strong>
+        </div>
+        <div class="meter"><i id="pumpBar"></i></div>
+      </div>
+      <button id="boostBtn" class="boost-btn" type="button">
+        <span>排水ブースト</span>
+        <small id="boostCopy">タップで少し加速</small>
+      </button>
+    </section>
+
+    <section class="discovery-panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">FIELD NOTES</p>
+          <h2>今回の発見</h2>
+        </div>
+        <span id="recordText" class="record-pill">0 / 0</span>
+      </div>
+      <div id="discoveries" class="discoveries empty">
+        <p>水の下に、まだ何かいる。</p>
+      </div>
+    </section>
+
+    <p class="footnote">画面の中の生き物や物を直接タップして拾う。水位が下がるほど、隠れていたものが露出する。</p>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>
