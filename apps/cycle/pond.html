@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#0b2022" />
+  <title>CYCLE — 池のほとり</title>
+  <meta name="description" content="食物連鎖が枝分かれする。CYCLE 第2生態系・池のほとり。" />
+  <link rel="stylesheet" href="./style.css" />
+  <style>
+    .pond-stage .world-wrap{background:radial-gradient(circle at 50% 78%,#315b55 0,#1a4140 42%,#0d292b 76%,#071a1d 100%)}
+    .pond-stage .control-panel{background:#0d2020}
+    .pond-stage .objective-progress i{background:#9fe0d2}
+    .pond-stage .action-card.suggested,.pond-stage .species-card.ready{border-color:rgba(145,222,207,.5);box-shadow:0 0 26px rgba(104,205,190,.12)}
+    .pond-stage .start-btn{background:#aee4d7;color:#0d2421}
+    .pond-stage .intro-card{background:linear-gradient(180deg,#12302e,#091b1b 72%)}
+    .food-web-grid{display:grid;gap:5px;margin-top:13px;color:#8faeaa}
+    .food-web-row{display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none}.food-web-row::-webkit-scrollbar{display:none}
+    .food-web-row span{white-space:nowrap;padding:5px 7px;border-radius:999px;background:#102827;border:1px solid rgba(255,255,255,.06);font-size:8px}.food-web-row b{font-size:8px;color:#4f716d}
+    .stage-badge{position:absolute;right:16px;top:122px;z-index:6;padding:7px 9px;border-radius:12px;background:rgba(6,23,23,.62);border:1px solid rgba(183,231,223,.11);font-size:8px;color:#9fbdb7;backdrop-filter:blur(10px)}
+  </style>
+</head>
+<body class="pond-stage">
+  <div id="app">
+    <header class="hud">
+      <div class="brand"><span class="brand-mark">◌</span><div><h1>CYCLE</h1><p>POND EDGE · 02</p></div></div>
+      <button id="soundBtn" class="icon-btn" aria-label="演出オンオフ">✦</button>
+    </header>
+
+    <main>
+      <section class="world-wrap" aria-label="池のほとりの生態系">
+        <canvas id="world"></canvas><div class="world-vignette"></div>
+        <div class="top-stats">
+          <div class="stat"><span class="stat-label">LIFE</span><strong id="lifeScore">0</strong></div>
+          <div class="stat stat-center"><span class="stat-label">BALANCE</span><strong id="balanceScore">0%</strong></div>
+          <div class="stat stat-right"><span class="stat-label">WEB</span><strong id="cycleScore">0%</strong></div>
+        </div>
+        <div id="objective" class="objective-card">
+          <span class="objective-kicker">NEXT</span>
+          <div class="objective-main"><span id="objectiveIcon" class="objective-icon">🪷</span><div><strong id="objectiveTitle">水辺を育てる</strong><small id="objectiveDetail">藻と水草を38まで増やす</small></div></div>
+          <div class="objective-progress"><i id="objectiveBar"></i></div>
+        </div>
+        <div class="stage-badge">FOOD WEB<br>2 BRANCHES</div>
+        <div id="message" class="message is-visible"><span class="message-kicker">第2生態系</span><strong>今度は、食べる道が枝分かれする。</strong></div>
+        <div class="world-labels"><span>☀ 光</span><span>💧 水</span><span>🍂 栄養</span></div>
+      </section>
+
+      <section class="control-panel">
+        <div class="panel-head"><div><span class="eyebrow">WATERSIDE</span><h2>池に手を入れる</h2></div><div class="nutrient-pill"><span>水質</span><strong id="nutrientValue">50</strong></div></div>
+        <div class="actions">
+          <button class="action-card suggested" data-action="sun"><span class="action-icon">☀</span><span class="action-copy"><b>日差し</b><small>藻と水草が育つ</small></span><span class="action-cost">生産者 +</span></button>
+          <button class="action-card" data-action="rain"><span class="action-icon">💧</span><span class="action-copy"><b>雨</b><small>水質を回復</small></span><span class="action-cost">水質 +</span></button>
+          <button class="action-card" data-action="detritus"><span class="action-icon">🍂</span><span class="action-copy"><b>落ち葉</b><small>分解の材料</small></span><span class="action-cost">循環 +</span></button>
+        </div>
+
+        <div class="chain-head"><div><span class="eyebrow">FOOD WEB</span><h2>生き物を迎える</h2></div><span id="chainHint" class="hint">二つの道をつなぐ</span></div>
+        <div id="speciesTray" class="species-tray"></div>
+        <div class="food-web-grid" aria-label="池の食物網">
+          <div class="food-web-row"><span>🪷 藻・水草</span><b>→</b><span>◌ ミジンコ</span><b>→</b><span>🐟 メダカ</span><b>→</b><span>🐦 カワセミ</span></div>
+          <div class="food-web-row"><span>🪷 藻・水草</span><b>→</b><span>🐌 タニシ</span><b>→</b><span>🐢 カメ</span><b>→</b><span>🍄 土へ</span></div>
+        </div>
+        <div class="next-biome"><div><span class="eyebrow">NEXT BIOME</span><strong>森の縁</strong><small>池の食物網を安定させると、陸と水が交わる世界へ。</small></div><div class="biome-preview" aria-hidden="true"><span>🌳</span><span>🐛</span><span>🐿️</span><span>🦉</span></div></div>
+      </section>
+    </main>
+
+    <div id="intro" class="overlay is-open">
+      <div class="intro-card">
+        <div class="intro-mark">CYCLE · POND EDGE</div>
+        <h2>一本の鎖が、<br><em>食物網になる。</em></h2>
+        <div class="intro-visual"><span>🪷</span><b>↗</b><span>🐟</span><b>→</b><span>🐦</span><b>／</b><span>🐌</span><b>→</b><span>🐢</span></div>
+        <p>同じ水草を、違う生き物が食べる。片方だけ増やすと池は偏る。二つの枝を同時に育てよう。</p>
+        <button id="startBtn" class="start-btn">池の循環をつくる <span>→</span></button>
+        <small>草原より少し複雑。次に必要な生き物は画面が教えてくれる。</small>
+      </div>
+    </div>
+
+    <div id="complete" class="overlay">
+      <div class="intro-card complete-card">
+        <div class="complete-ring">◌</div><span class="eyebrow">FOOD WEB COMPLETE</span>
+        <h2>二つの流れが、<br><em>ひとつの池になった。</em></h2>
+        <p>藻から魚へ。藻から貝へ。違う道が、分解者を通じてまた同じ水へ戻った。</p>
+        <div class="result-row"><span>最高BALANCE</span><strong id="bestBalance">0%</strong></div>
+        <button id="continueBtn" class="start-btn">完成した池を見る <span>→</span></button>
+        <div class="next-tease">NEXT · 森の縁　🌳 🦉</div>
+      </div>
+    </div>
+  </div>
+  <script src="./pond.js"></script>
+</body>
+</html>
