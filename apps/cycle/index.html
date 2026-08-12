@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#0b1711" />
+  <meta name="theme-color" content="#102017" />
   <title>CYCLE — 食物連鎖を育てる</title>
   <meta name="description" content="食べる。増える。減る。そして、また生まれる。生態系そのものを育てるスマホゲーム CYCLE。" />
   <link rel="stylesheet" href="./style.css" />
@@ -11,39 +11,78 @@
 <body>
   <div id="app">
     <header class="hud">
-      <div class="brand">
-        <span class="brand-mark">◌</span>
-        <div><h1>CYCLE</h1><p>GRASSLAND · 01</p></div>
-      </div>
+      <div class="brand"><span class="brand-mark">◌</span><div><h1>CYCLE</h1><p>GRASSLAND · 01</p></div></div>
       <button id="soundBtn" class="icon-btn" aria-label="演出オンオフ">✦</button>
     </header>
+
     <main>
       <section class="world-wrap" aria-label="草原の生態系">
-        <canvas id="world"></canvas><div class="world-vignette"></div>
+        <canvas id="world"></canvas>
+        <div class="world-vignette"></div>
+
         <div class="top-stats">
           <div class="stat"><span class="stat-label">LIFE</span><strong id="lifeScore">0</strong></div>
           <div class="stat stat-center"><span class="stat-label">BALANCE</span><strong id="balanceScore">0%</strong></div>
           <div class="stat stat-right"><span class="stat-label">CYCLE</span><strong id="cycleScore">0%</strong></div>
         </div>
-        <div id="message" class="message is-visible"><span class="message-kicker">はじまり</span><strong>まず、草原に光と水を。</strong></div>
-        <div class="legend" id="legend"></div>
-      </section>
-      <section class="control-panel">
-        <div class="panel-head"><div><span class="eyebrow">ENVIRONMENT</span><h2>環境に手を入れる</h2></div><div class="nutrient-pill"><span>土</span><strong id="nutrientValue">50</strong></div></div>
-        <div class="actions">
-          <button class="action-card" data-action="sun"><span class="action-icon">☀</span><span class="action-copy"><b>陽だまり</b><small>植物の成長</small></span><span class="action-cost">+草</span></button>
-          <button class="action-card" data-action="rain"><span class="action-icon">◒</span><span class="action-copy"><b>雨</b><small>草原を回復</small></span><span class="action-cost">+土</span></button>
-          <button class="action-card" data-action="detritus"><span class="action-icon">◐</span><span class="action-copy"><b>落ち葉</b><small>分解の材料</small></span><span class="action-cost">+循環</span></button>
+
+        <div id="objective" class="objective-card">
+          <span class="objective-kicker">NEXT</span>
+          <div class="objective-main"><span id="objectiveIcon" class="objective-icon">🌱</span><div><strong id="objectiveTitle">草原を育てる</strong><small id="objectiveDetail">草を38まで増やす</small></div></div>
+          <div class="objective-progress"><i id="objectiveBar"></i></div>
         </div>
-        <div class="chain-head"><div><span class="eyebrow">FOOD WEB</span><h2>生き物を迎える</h2></div><span class="hint">タップで導入</span></div>
+
+        <div id="message" class="message is-visible"><span class="message-kicker">はじまり</span><strong>まず、草原に光と水を。</strong></div>
+        <div class="world-labels"><span>☀ 光</span><span>💧 水</span><span>◌ 土</span></div>
+      </section>
+
+      <section class="control-panel">
+        <div class="panel-head">
+          <div><span class="eyebrow">ENVIRONMENT</span><h2>草原に手を入れる</h2></div>
+          <div class="nutrient-pill"><span>土の力</span><strong id="nutrientValue">46</strong></div>
+        </div>
+
+        <div class="actions">
+          <button class="action-card suggested" data-action="sun"><span class="action-icon">☀</span><span class="action-copy"><b>陽だまり</b><small>草が伸びる</small></span><span class="action-cost">即反応</span></button>
+          <button class="action-card" data-action="rain"><span class="action-icon">💧</span><span class="action-copy"><b>雨</b><small>草原を回復</small></span><span class="action-cost">土 +</span></button>
+          <button class="action-card" data-action="detritus"><span class="action-icon">🍂</span><span class="action-copy"><b>落ち葉</b><small>分解の材料</small></span><span class="action-cost">循環 +</span></button>
+        </div>
+
+        <div class="chain-head"><div><span class="eyebrow">FOOD WEB</span><h2>生き物を迎える</h2></div><span id="chainHint" class="hint">条件を満たすと光る</span></div>
         <div id="speciesTray" class="species-tray"></div>
+
+        <div class="food-chain-strip" aria-label="食物連鎖">
+          <span>🌿 草</span><b>→</b><span>🦗 バッタ</span><b>→</b><span>🐸 カエル</span><b>→</b><span>🐍 ヘビ</span><b>→</b><span>🦅 タカ</span><b>→</b><span>🍄 土へ</span>
+        </div>
+
+        <div class="next-biome">
+          <div><span class="eyebrow">NEXT BIOME</span><strong>池のほとり</strong><small>草原の循環を完成させると、新しい食物網へ。</small></div>
+          <div class="biome-preview" aria-hidden="true"><span>🌾</span><span>🪷</span><span>🐟</span><span>🪶</span></div>
+        </div>
       </section>
     </main>
+
     <div id="intro" class="overlay is-open">
-      <div class="intro-card"><span class="intro-orbit orbit-a"></span><span class="intro-orbit orbit-b"></span><div class="intro-mark">CYCLE</div><h2>食物連鎖は、<br><em>一本の線じゃない。</em></h2><p>草が増えれば虫が増える。虫が増えれば捕食者が増える。死は土へ還り、また草になる。</p><button id="startBtn" class="start-btn">小さな草原をつくる <span>→</span></button><small>目的：すべての生き物が共存する循環をつくる</small></div>
+      <div class="intro-card">
+        <span class="intro-orbit orbit-a"></span><span class="intro-orbit orbit-b"></span>
+        <div class="intro-mark">CYCLE</div>
+        <h2>食べることで、<br><em>世界がつながる。</em></h2>
+        <div class="intro-visual"><span>🌿</span><b>→</b><span>🦗</span><b>→</b><span>🐸</span><b>→</b><span>🐍</span><b>→</b><span>🦅</span></div>
+        <p>生き物を増やすだけでは崩れる。食べる・食べられる・土へ還る、その全部をつないで小さな生態系を完成させよう。</p>
+        <button id="startBtn" class="start-btn">草原を育てはじめる <span>→</span></button>
+        <small>最初は光と雨。次に、食べる生き物を迎える。</small>
+      </div>
     </div>
+
     <div id="complete" class="overlay">
-      <div class="intro-card complete-card"><div class="complete-ring">◌</div><span class="eyebrow">ECOSYSTEM COMPLETE</span><h2>循環が、<br><em>つながった。</em></h2><p>食べることも、死ぬことも、次の命を生む一部になった。</p><div class="result-row"><span>最高BALANCE</span><strong id="bestBalance">0%</strong></div><button id="continueBtn" class="start-btn">この草原を眺める <span>→</span></button></div>
+      <div class="intro-card complete-card">
+        <div class="complete-ring">◌</div><span class="eyebrow">ECOSYSTEM COMPLETE</span>
+        <h2>循環が、<br><em>つながった。</em></h2>
+        <p>草からタカへ。死骸から菌類へ。そして土から、また草へ。</p>
+        <div class="result-row"><span>最高BALANCE</span><strong id="bestBalance">0%</strong></div>
+        <button id="continueBtn" class="start-btn">完成した草原を見る <span>→</span></button>
+        <div class="next-tease">NEXT · 池のほとり　🪷 🐟</div>
+      </div>
     </div>
   </div>
   <script src="./game.js"></script>
