@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#05070c" />
+<title>404怪異調査クラブ — CASE 01</title>
+<meta name="description" content="中学生3人組「404部」で夜の町を歩き、都市伝説を確かめに行く探索型ホラー。近づくだけで調査が進む。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305070c'/%3E%3Ctext x='16' y='22' font-size='13' font-family='monospace' font-weight='bold' fill='%235fe09b' text-anchor='middle'%3E404%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<div id="hud" hidden>
+  <button id="btnPause" aria-label="一時停止">❙❙</button>
+</div>
+
+<section id="title" class="overlay">
+  <div class="title-inner">
+    <span class="eyebrow">URBAN LEGEND / INVESTIGATION</span>
+    <h1>404怪異調査<br><span>クラブ</span></h1>
+    <p class="lead">ネットで怖い噂を見つける。<br>3人で確かめに行く。</p>
+    <div class="members">
+      <span><b>四郎</b>4</span><span><b>零</b>0</span><span><b>四葉</b>4</span>
+    </div>
+    <div class="title-btns">
+      <button id="btnContinue" class="ghost">続きから</button>
+      <button id="btnNew" class="primary">CASE 01 をはじめる</button>
+    </div>
+    <small class="hint">スワイプで移動。それだけ。</small>
+  </div>
+</section>
+
+<section id="pause" class="overlay" hidden>
+  <div class="sheet">
+    <h2>一時停止</h2>
+    <button id="btnRecord" class="ghost">404調査記録</button>
+    <button id="btnResume" class="primary">もどる</button>
+  </div>
+</section>
+
+<section id="record" class="overlay" hidden>
+  <div class="note">
+    <div class="note-head"><b>404調査記録</b><span>404部のノート</span></div>
+    <div id="recBody"></div>
+    <div class="note-btns">
+      <button id="btnRestart" class="ghost" hidden>もう一度調べる</button>
+      <button id="btnRecordClose" class="primary">閉じる</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
