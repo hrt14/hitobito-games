@@ -9,7 +9,7 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 - `apps/cycle` — **CYCLE**  草から捕食者、死骸、分解者、土へつながる食物連鎖と生態系の循環を育てるゲーム。
 - `apps/chain` — **CHAIN**  食物連鎖の頂点から「何を食べる？」を選び続け、生産者と太陽まで逆向きにたどる探索ゲーム。
 - `apps/whale-fall` — **クジラが死んだら / WHALE FALL**  一頭のクジラが深海へ沈み、スカベンジャー・富栄養化した海底・骨を利用する生物・化学合成系へと命が受け渡される過程を、触って進めるインタラクティブWebアニメーション。
-- `apps/404-kaiki` — **404怪異調査 / 404 PARANORMAL INVESTIGATION**  架空のスマートフォンOSを操作し、検索・写真・地図・メッセージに潜む違和感から都市伝説を調査する謎解きホラーゲーム。CASE 01「終点のないホーム」を実装。
+- `apps/404-kaiki` — **404怪異調査クラブ / 404**  中学生3人組「404部」で夜の町を歩き、近づくだけで調査が進む探索型の都市伝説ホラー。操作は移動だけ。怪異を見つけたら戦わずに、前半で見つけた神社まで逃げ戻る。CASE 01「口裂け女」の5エリア縦切り版を実装。設計は [`SPEC.md`](./apps/404-kaiki/SPEC.md)、実装範囲は [`CASE01_SLICE.md`](./apps/404-kaiki/CASE01_SLICE.md)。
 
 ## 共通品質基準
 
@@ -34,4 +34,5 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 
 - 一坪王国: `apps/one-tsubo`（新規 Vercel プロジェクトを作成して公開）
 - CYCLE: `cycle.hitobito.jp`
-- 404怪異調査: `404.hitobito.jp`（Root Directory: `apps/404-kaiki`）
+- 404怪異調査クラブ: `404.hitobito.jp`（Root Directory: `apps/404-kaiki`）
+  - ES Modules を使うため、`file://` では動かない。静的配信（Vercel など）が必要。

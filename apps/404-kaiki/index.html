@@ -1,104 +1,57 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#05070a" />
-  <title>404怪異調査 — CASE 01</title>
-  <meta name="description" content="ネットの噂を読み、証拠を確かめ、怪異へ接触するスマートフォン向け謎解きホラー。" />
-  <link rel="stylesheet" href="./simple.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#05070c" />
+<title>404怪異調査クラブ — CASE 01</title>
+<meta name="description" content="中学生3人組「404部」で夜の町を歩き、都市伝説を確かめに行く探索型ホラー。近づくだけで調査が進む。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305070c'/%3E%3Ctext x='16' y='22' font-size='13' font-family='monospace' font-weight='bold' fill='%235fe09b' text-anchor='middle'%3E404%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-<div class="shell">
-  <div class="noise"></div>
-  <header class="topbar"><span>404 INVESTIGATION</span><span>CASE 01</span></header>
-  <main class="main">
-    <div class="brand"><small>PARANORMAL INVESTIGATION</small><h1>404怪異調査</h1></div>
 
-    <div class="stagebar" aria-label="調査の流れ">
-      <div class="stage"><b>01</b>噂</div>
-      <div class="stage"><b>02</b>検証</div>
-      <div class="stage"><b>03</b>条件</div>
-      <div class="stage"><b>04</b>接触</div>
-    </div>
+<canvas id="stage"></canvas>
 
-    <section class="panel open" data-screen="rumor">
-      <article class="card">
-        <div class="card-head"><b>ネットの噂</b><span class="pill">ARCHIVE</span></div>
-        <div class="card-body">
-          <span class="eyebrow">URBAN LEGEND / STATION</span>
-          <h2 class="rumor-title">終電後だけ現れる<br>「13番ホーム」</h2>
-          <div class="rumor-log"><small>オカルト掲示板 / 保存ログ</small>毎日使っている駅なのに、昨日だけ「13」と書かれた案内を見た。<br>階段を降りたところで電波が切れた。<br>駅の構内図には、12番線までしか載っていない。</div>
-          <button id="start" class="primary">この噂を調べる <span>→</span></button>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel" data-screen="tasks">
-      <article class="card">
-        <div class="card-head"><b>噂を検証する</b><span class="pill"><span id="count">0 / 3</span></span></div>
-        <div class="card-body">
-          <p class="task-intro">やることは3つだけ。噂と現実が食い違う点を順番に確かめる。</p>
-          <div class="task-list">
-            <button id="taskSearch" class="task available"><span class="icon">⌕</span><div><b>① 駅の記録を調べる</b><small>13番ホームは本当に存在する？</small></div><span class="state">調べる</span></button>
-            <button id="taskPhoto" class="task locked"><span class="icon">▣</span><div><b>② 監視画像を調べる</b><small>投稿者が残した画像を確認</small></div><span class="state">LOCK</span></button>
-            <button id="taskMap" class="task locked"><span class="icon">⌖</span><div><b>③ 古い構内図を調べる</b><small>削除された場所がないか探す</small></div><span class="state">LOCK</span></button>
-          </div>
-          <button id="syncBtn" class="primary" style="display:none">3つの矛盾が一致した <span>→</span></button>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel" data-screen="search">
-      <button class="back" data-back>‹ 調査一覧へ</button>
-      <article class="card">
-        <div class="card-head"><b>駅の記録</b><span class="pill">SEARCH</span></div>
-        <div class="card-body">
-          <div class="searchbox"><span>港北中央駅 13番ホーム</span><span>⌕</span></div>
-          <button id="doSearch" class="primary">検索する <span>→</span></button>
-          <div id="searchResult" class="result" style="display:none"><h3>港北中央駅 構内案内</h3><p>現在のホーム数：12。13番線の記録はありません。</p><div class="evidence">矛盾：投稿には「13番ホーム」が出てくるが、現行記録には存在しない。</div></div>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel" data-screen="photo">
-      <button class="back" data-back>‹ 調査一覧へ</button>
-      <article class="card">
-        <div class="card-head"><b>監視画像</b><span class="pill">PHOTO</span></div>
-        <div class="card-body">
-          <p class="task-intro">画像の中で、閉鎖後の駅にいるはずのないものを探す。</p>
-          <div id="photoFrame" class="photo"><span class="beam b1"></span><span class="beam b2"></span><span class="beam b3"></span><span class="yellow"></span><span class="person"></span><button id="photoSpot" class="spot" aria-label="ホーム奥の人影"></button></div>
-          <div id="photoSuccess" class="success" style="display:none"><b>矛盾を確認</b><p>23:47:51。閉鎖後のホーム奥に人影。勤務記録に該当者はいない。</p></div>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel" data-screen="map">
-      <button class="back" data-back>‹ 調査一覧へ</button>
-      <article class="card">
-        <div class="card-head"><b>改修前の構内図</b><span class="pill">1996</span></div>
-        <div class="card-body">
-          <p class="task-intro">現在の12番線と、改修前の資料を比較する。</p>
-          <div class="map"><div class="map-top">港北中央駅 / 改修前</div><div class="platform-grid"><div class="platform">9</div><div class="platform">10</div><div class="platform">11</div><div class="platform">12</div><button id="mapTap" class="platform old">13 / CLOSED</button><div id="mapOld" class="platform old" style="display:none">最終入線 23:48</div></div></div>
-          <div id="mapSuccess" class="success" style="display:none"><b>3つ目の矛盾を確認</b><p>13番線は過去には存在した。閉鎖記録に残る最後の時刻は「23:48」。</p></div>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel" data-screen="sync">
-      <article class="sync-card"><span class="eyebrow">CONDITION MATCHED</span><div class="sync-time">23:48</div><p>3つの証拠が同じ条件を指している。<br>端末をその時刻に同期すると、噂を再現できる。</p><button id="syncGo" class="primary">23:48 に同期する <span>→</span></button></article>
-    </section>
-
-    <section class="panel" data-screen="encounter">
-      <div class="encounter"><div class="sign">13</div><div class="girl"></div><div class="encounter-copy"><small>PLATFORM 13 / UNKNOWN</small><h2>噂を調べていたはずなのに、<br>ここにいる。</h2><p>電車はいない。なのに線路の奥から走行音だけが近づいてくる。</p></div><button id="clue" class="clue">404-02<br><small>拾う</small></button></div>
-    </section>
-
-    <section class="panel" data-screen="ending">
-      <article class="card"><div class="ending"><span class="eyebrow">CASE 01 / CLOSED?</span><h2>終点のないホーム</h2><div class="code">404-02</div><p>紙片の裏には、次の怪異につながる時刻が書かれていた。</p><div class="next">02:13<br><small>UNKNOWN CALLER</small></div><button id="restart" class="primary">最初から確認する <span>↺</span></button></div></article>
-    </section>
-  </main>
-  <div id="toast" class="toast"></div>
+<div id="hud" hidden>
+  <button id="btnPause" aria-label="一時停止">❙❙</button>
 </div>
-<script src="./game-v3.js"></script>
+
+<section id="title" class="overlay">
+  <div class="title-inner">
+    <span class="eyebrow">URBAN LEGEND / INVESTIGATION</span>
+    <h1>404怪異調査<br><span>クラブ</span></h1>
+    <p class="lead">ネットで怖い噂を見つける。<br>3人で確かめに行く。</p>
+    <div class="members">
+      <span><b>四郎</b>4</span><span><b>零</b>0</span><span><b>四葉</b>4</span>
+    </div>
+    <div class="title-btns">
+      <button id="btnContinue" class="ghost">続きから</button>
+      <button id="btnNew" class="primary">CASE 01 をはじめる</button>
+    </div>
+    <small class="hint">スワイプで移動。それだけ。</small>
+  </div>
+</section>
+
+<section id="pause" class="overlay" hidden>
+  <div class="sheet">
+    <h2>一時停止</h2>
+    <button id="btnRecord" class="ghost">404調査記録</button>
+    <button id="btnResume" class="primary">もどる</button>
+  </div>
+</section>
+
+<section id="record" class="overlay" hidden>
+  <div class="note">
+    <div class="note-head"><b>404調査記録</b><span>404部のノート</span></div>
+    <div id="recBody"></div>
+    <div class="note-btns">
+      <button id="btnRestart" class="ghost" hidden>もう一度調べる</button>
+      <button id="btnRecordClose" class="primary">閉じる</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="./main.js"></script>
 </body>
 </html>
