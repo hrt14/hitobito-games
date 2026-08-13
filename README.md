@@ -4,6 +4,7 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 
 ## Apps
 
+- `apps/one-tsubo` — **一坪王国 / ONE-TSUBO KINGDOM**  3×3の小さな土地に訪れる木・池・家・猫・祠などを残す／入れ替えることで、毎回ちがう王国を24ターンで作るミニ箱庭ゲーム。
 - `apps/drain` — **水、抜いてみた。 / DRAIN IT.**  水位が下がるほど隠れていた生物・人工物・歴史物が露出する、水抜き探索ゲーム。
 - `apps/cycle` — **CYCLE**  草から捕食者、死骸、分解者、土へつながる食物連鎖と生態系の循環を育てるゲーム。
 - `apps/chain` — **CHAIN**  食物連鎖の頂点から「何を食べる？」を選び続け、生産者と太陽まで逆向きにたどる探索ゲーム。
@@ -31,5 +32,6 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 
 各ゲームは `apps/<game-slug>` を Vercel の Root Directory に指定して個別プロジェクトとして公開する想定です。
 
+- 一坪王国: `apps/one-tsubo`（新規 Vercel プロジェクトを作成して公開）
 - CYCLE: `cycle.hitobito.jp`
 - 404怪異調査: `404.hitobito.jp`（Root Directory: `apps/404-kaiki`）
