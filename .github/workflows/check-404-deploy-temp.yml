@@ -1,0 +1,37 @@
+name: Check 404 deploy temporary
+
+on:
+  push:
+    paths:
+      - '.github/workflows/check-404-deploy-temp.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe hosts
+        shell: bash
+        run: |
+          probe() {
+            code=$(curl -sL -o /tmp/body -w '%{http_code}' --max-time 25 "$1" || echo "ERR")
+            printf '%-46s %s\n' "$1" "$code"
+            if [ "$code" = "200" ]; then
+              head -c 400 /tmp/body | tr -d '\n' | sed 's/^/    /'
+              echo
+            fi
+          }
+          echo "=== 404 (target) ==="
+          probe https://404.hitobito.jp/
+          echo "=== 404 new-build assets (expect 200 if new build is live) ==="
+          probe https://404.hitobito.jp/main.js
+          probe https://404.hitobito.jp/core/case.js
+          echo "=== 404 old-build assets (expect 404 if new build is live) ==="
+          probe https://404.hitobito.jp/game-v3.js
+          echo "=== controls: other projects known to work ==="
+          probe https://cycle.hitobito.jp/
+          probe https://drain.hitobito.jp/
+          probe https://drain.hitobito.jp/one-tsubo/
+          echo "=== portal ==="
+          probe https://hitobito.jp/
+          echo "done"
