@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#111319" />
+  <title>LIFE — 人生をめくる</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app" aria-live="polite">
+    <section id="game" class="screen game-screen">
+      <div id="scene" class="scene"></div>
+      <header class="topbar">
+        <div>
+          <div id="age" class="age">0 YEARS</div>
+          <div id="place" class="place">HOME</div>
+        </div>
+        <button id="soundBtn" class="icon-btn" aria-label="音のオンオフ">♪</button>
+      </header>
+      <div id="memoryToast" class="memory-toast"></div>
+      <div id="swipeHint" class="swipe-hint">
+        <span class="arrow">↑</span>
+        <span>上へめくる</span>
+      </div>
+      <div id="dragLayer" class="drag-layer" aria-label="上へスワイプして人生を進める"></div>
+    </section>
+
+    <section id="ending" class="screen ending-screen hidden">
+      <div class="ending-scroll">
+        <div class="ending-hero">
+          <div class="ending-kicker">YOUR LIFE</div>
+          <h1 id="endingAge">82 YEARS</h1>
+          <p id="endingLine" class="ending-line"></p>
+          <div id="endingMetrics" class="metrics"></div>
+        </div>
+
+        <div class="section-title-row">
+          <div>
+            <div class="ending-kicker">MEMORIES</div>
+            <h2>人生を振り返る</h2>
+          </div>
+        </div>
+        <div id="eraTabs" class="era-tabs"></div>
+        <div id="eraSummary" class="era-summary"></div>
+
+        <div class="section-title-row possibilities-title">
+          <div>
+            <div class="ending-kicker">POSSIBILITIES</div>
+            <h2>あの時、ありえた人生</h2>
+          </div>
+        </div>
+        <div id="possibilities" class="possibilities"></div>
+
+        <button id="rebornBtn" class="reborn-btn">もう一度、生まれる</button>
+      </div>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
