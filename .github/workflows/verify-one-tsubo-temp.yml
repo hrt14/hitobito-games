@@ -1,0 +1,20 @@
+name: Verify One Tsubo temporary deploy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-one-tsubo-temp.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify deployed game assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://drain.hitobito.jp/one-tsubo'
+          curl --fail --location --silent --show-error "$base/" | grep -q '<title>一坪王国'
+          curl --fail --location --silent --show-error "$base/style.css" | grep -q -- '--ink:'
+          curl --fail --location --silent --show-error "$base/game.js" | grep -q 'TOTAL_TURNS = 24'
+          echo "One Tsubo temporary deployment is reachable."
