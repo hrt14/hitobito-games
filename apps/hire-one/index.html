@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#f4efe5">
+<meta name="description" content="毎日2人、採用できるのは1人だけ。人選だけで会社を30日経営するゲーム。">
+<title>一人だけ採用 | hitobito games</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<main class="app" id="app">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="hitobito gamesへ戻る">HITOBITO / GAMES</a>
+    <div class="day-pill"><span id="dayLabel">DAY 1</span><b>/ 30</b></div>
+  </header>
+
+  <section class="scoreboard" aria-label="会社の状態">
+    <div class="metric metric-money"><span class="metric-icon">¥</span><div><small>売上</small><strong id="revenueValue">0</strong></div><i id="revenueDelta"></i></div>
+    <div class="metric"><span class="metric-icon">⚙</span><div><small>技術</small><strong id="techValue">0</strong></div><i id="techDelta"></i></div>
+    <div class="metric"><span class="metric-icon">♥</span><div><small>組織</small><strong id="cultureValue">50</strong></div><i id="cultureDelta"></i></div>
+    <div class="metric metric-chaos"><span class="metric-icon">✦</span><div><small>カオス</small><strong id="chaosValue">0</strong></div><i id="chaosDelta"></i></div>
+  </section>
+
+  <section class="office-shell" id="officeShell">
+    <div class="skyline" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="office-head">
+      <div>
+        <span class="stage-label" id="officeStage">創業初日</span>
+        <h1 id="companyName">株式会社ひとりめ</h1>
+      </div>
+      <div class="headcount"><b id="headcountValue">0</b><span>人</span></div>
+    </div>
+    <div class="office" id="office">
+      <div class="office-back" aria-hidden="true">
+        <div class="window"><i></i><i></i><i></i></div>
+        <div class="whiteboard"><span id="whiteboardText">最初の一人を<br>採用しよう</span></div>
+        <div class="plant">🪴</div>
+      </div>
+      <div class="team" id="team" aria-label="社員一覧"></div>
+      <div class="founder" id="founder"><span class="person-avatar">👤</span><small>あなた</small></div>
+    </div>
+    <div class="event-strip" id="eventStrip" aria-live="polite">
+      <span class="event-dot"></span><p id="eventText">履歴書が2通届いた。今日採れるのは、1人だけ。</p>
+    </div>
+  </section>
+
+  <section class="choice-area" id="choiceArea">
+    <div class="choice-title">
+      <div><small>本日の最終面接</small><h2>どっちを採る？</h2></div>
+      <span class="discard-note">選ばなかった人は<br>二度と来ない</span>
+    </div>
+    <div class="candidates" id="candidates"></div>
+  </section>
+
+  <button class="log-button" id="logButton" type="button">会社の出来事 <span id="logCount">0</span></button>
+</main>
+
+<div class="intro modal show" id="introModal" role="dialog" aria-modal="true">
+  <div class="intro-card">
+    <span class="intro-kicker">30 DAYS / 30 HIRES</span>
+    <div class="intro-visual" aria-hidden="true"><span>🧑‍💻</span><span>🐈</span><span>🤖</span><span>🧙</span><span>👴</span></div>
+    <h2>一人だけ<br>採用。</h2>
+    <p>毎日、候補者は2人。<br><b>採用できるのは1人だけ。</b></p>
+    <p class="intro-sub">社員は勝手にチームを作り、喧嘩し、発明し、会社を変えていく。あなたが決めるのは人選だけ。</p>
+    <button id="startButton" type="button">会社をつくる</button>
+    <small>1プレイ 約3分</small>
+  </div>
+</div>
+
+<div class="modal" id="logModal" role="dialog" aria-modal="true" aria-label="会社の出来事">
+  <div class="sheet">
+    <div class="sheet-head"><h3>会社の出来事</h3><button class="close" id="closeLog" type="button">×</button></div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<div class="modal" id="endingModal" role="dialog" aria-modal="true">
+  <div class="ending-card" id="endingCard">
+    <span class="ending-label">DAY 30 / FINAL REPORT</span>
+    <div class="ending-icon" id="endingIcon">🚀</div>
+    <h2 id="endingTitle">上場しました</h2>
+    <p id="endingText"></p>
+    <div class="ending-stats" id="endingStats"></div>
+    <div class="ending-cast"><small>この会社をつくった人たち</small><div id="endingCast"></div></div>
+    <div class="ending-actions">
+      <button id="shareButton" type="button">結果を共有</button>
+      <button class="ghost" id="restartButton" type="button">もう一社つくる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+<script src="./game.js"></script>
+</body>
+</html>
