@@ -1,0 +1,17 @@
+/* Late-game density pass: keep all 30 hires legible on small screens. */
+.office-shell.stage-3 .team,
+.office-shell.stage-4 .team,
+.office-shell.stage-5 .team{grid-template-columns:repeat(8,1fr)}
+.office-shell.stage-4 .employee,
+.office-shell.stage-5 .employee{height:44px}
+.office-shell.stage-4 .person-avatar,
+.office-shell.stage-5 .person-avatar{width:31px;height:31px;font-size:20px}
+.office-shell.stage-4 .employee small,
+.office-shell.stage-5 .employee small{display:none}
+@media(min-width:620px){
+  .office-shell.stage-3 .team,
+  .office-shell.stage-4 .team,
+  .office-shell.stage-5 .team{grid-template-columns:repeat(10,1fr)}
+  .office-shell.stage-4 .person-avatar,
+  .office-shell.stage-5 .person-avatar{width:36px;height:36px;font-size:24px}
+}
