@@ -3,71 +3,102 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#07090c" />
-  <title>404怪異調査 — CASE 01 終点のないホーム</title>
-  <meta name="description" content="見つからないものには、理由がある。都市伝説を調査するスマートフォン向け謎解きホラーゲーム。" />
-  <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./quality.css" />
+  <meta name="theme-color" content="#05070a" />
+  <title>404怪異調査 — CASE 01</title>
+  <meta name="description" content="ネットの噂を読み、証拠を確かめ、怪異へ接触するスマートフォン向け謎解きホラー。" />
+  <link rel="stylesheet" href="./simple.css" />
 </head>
 <body>
-  <div id="app" class="app-shell">
-    <div id="noise" class="noise" aria-hidden="true"></div>
-    <header class="statusbar">
-      <button id="clockBtn" class="clock" aria-label="端末の時計"><span id="clockText">23:47</span><i id="clockCue" class="clock-cue">SYNC</i></button>
-      <div class="status-icons"><span>◉</span><span>⌁</span><span class="battery">72</span></div>
-    </header>
+<div class="shell">
+  <div class="noise"></div>
+  <header class="topbar"><span>404 INVESTIGATION</span><span>CASE 01</span></header>
+  <main class="main">
+    <div class="brand"><small>PARANORMAL INVESTIGATION</small><h1>404怪異調査</h1></div>
 
-    <main id="screen" class="screen">
-      <section id="homeView" class="view view-home is-active" data-view="home">
-        <div class="home-head">
-          <div><p class="eyebrow">404 PARANORMAL INVESTIGATION</p><h1>404怪異調査</h1></div>
-          <div id="caseBadge" class="case-badge">CASE 01</div>
+    <div class="stagebar" aria-label="調査の流れ">
+      <div class="stage"><b>01</b>噂</div>
+      <div class="stage"><b>02</b>検証</div>
+      <div class="stage"><b>03</b>条件</div>
+      <div class="stage"><b>04</b>接触</div>
+    </div>
+
+    <section class="panel open" data-screen="rumor">
+      <article class="card">
+        <div class="card-head"><b>ネットの噂</b><span class="pill">ARCHIVE</span></div>
+        <div class="card-body">
+          <span class="eyebrow">URBAN LEGEND / STATION</span>
+          <h2 class="rumor-title">終電後だけ現れる<br>「13番ホーム」</h2>
+          <div class="rumor-log"><small>オカルト掲示板 / 保存ログ</small>毎日使っている駅なのに、昨日だけ「13」と書かれた案内を見た。<br>階段を降りたところで電波が切れた。<br>駅の構内図には、12番線までしか載っていない。</div>
+          <button id="start" class="primary">この噂を調べる <span>→</span></button>
         </div>
-        <div id="homeNotice" class="system-notice"><span class="notice-dot"></span><div><small>調査室</small><strong id="homeNoticeText">新しい調査依頼が届いています。</strong></div><span>›</span></div>
-        <div class="app-grid">
-          <button class="app-icon" data-open="case"><span class="icon case-icon">01</span><b>CASE</b><i id="caseDot" class="app-dot"></i></button>
-          <button class="app-icon" data-open="message"><span class="icon message-icon">•••</span><b>MESSAGE</b><i id="messageDot" class="app-dot"></i></button>
-          <button class="app-icon" data-open="map"><span class="icon map-icon">⌖</span><b>MAP</b><i id="mapDot" class="app-dot is-hidden"></i></button>
-          <button class="app-icon" data-open="search"><span class="icon search-icon">⌕</span><b>SEARCH</b></button>
-          <button class="app-icon" data-open="photo"><span class="icon photo-icon">▣</span><b>PHOTO</b><i id="photoDot" class="app-dot is-hidden"></i></button>
-          <button class="app-icon" data-open="file"><span class="icon file-icon">≡</span><b>FILE</b><i id="fileDot" class="app-dot is-hidden"></i></button>
+      </article>
+    </section>
+
+    <section class="panel" data-screen="tasks">
+      <article class="card">
+        <div class="card-head"><b>噂を検証する</b><span class="pill"><span id="count">0 / 3</span></span></div>
+        <div class="card-body">
+          <p class="task-intro">やることは3つだけ。噂と現実が食い違う点を順番に確かめる。</p>
+          <div class="task-list">
+            <button id="taskSearch" class="task available"><span class="icon">⌕</span><div><b>① 駅の記録を調べる</b><small>13番ホームは本当に存在する？</small></div><span class="state">調べる</span></button>
+            <button id="taskPhoto" class="task locked"><span class="icon">▣</span><div><b>② 監視画像を調べる</b><small>投稿者が残した画像を確認</small></div><span class="state">LOCK</span></button>
+            <button id="taskMap" class="task locked"><span class="icon">⌖</span><div><b>③ 古い構内図を調べる</b><small>削除された場所がないか探す</small></div><span class="state">LOCK</span></button>
+          </div>
+          <button id="syncBtn" class="primary" style="display:none">3つの矛盾が一致した <span>→</span></button>
         </div>
-        <div id="progressCard" class="progress-card"><div class="progress-top"><span>INVESTIGATION</span><strong id="progressText">0 / 4</strong></div><div class="progress-track"><span id="progressBar"></span></div><p id="objectiveText">まず調査依頼を確認する。</p></div>
-      </section>
+      </article>
+    </section>
 
-      <section class="view app-view" data-view="case">
-        <header class="app-header"><button class="back-btn" data-back>‹</button><div><small>404-ID 001</small><h2>終点のないホーム</h2></div><span class="header-mark">CASE</span></header>
-        <div class="scroll-body">
-          <article class="case-hero"><div class="case-photo station-night"><span class="rail-line"></span><span class="lamp l1"></span><span class="lamp l2"></span><span class="lamp l3"></span></div><div class="case-status"><span class="pulse"></span><b>調査中</b><small>港北中央駅 / 深夜</small></div></article>
-          <article class="case-copy"><p class="kicker">URBAN LEGEND</p><h3>23時48分の電車だけ、<br>存在しないホームに着く。</h3><p>「港北中央駅には終電後だけ現れる13番ホームがある」。掲示板に投稿された写真には、現行の構内図にはない階段が写っていた。</p></article>
-          <div class="evidence-list"><button class="evidence-row" data-open="message"><span>01</span><div><b>投稿者からのメッセージ</b><small>最後の通信を確認</small></div><i>›</i></button><button class="evidence-row" data-open="search"><span>02</span><div><b>駅の過去記録</b><small>SEARCHで調査</small></div><i>›</i></button><button class="evidence-row" data-open="photo"><span>03</span><div><b>監視カメラ</b><small>23:47の記録</small></div><i>›</i></button></div>
+    <section class="panel" data-screen="search">
+      <button class="back" data-back>‹ 調査一覧へ</button>
+      <article class="card">
+        <div class="card-head"><b>駅の記録</b><span class="pill">SEARCH</span></div>
+        <div class="card-body">
+          <div class="searchbox"><span>港北中央駅 13番ホーム</span><span>⌕</span></div>
+          <button id="doSearch" class="primary">検索する <span>→</span></button>
+          <div id="searchResult" class="result" style="display:none"><h3>港北中央駅 構内案内</h3><p>現在のホーム数：12。13番線の記録はありません。</p><div class="evidence">矛盾：投稿には「13番ホーム」が出てくるが、現行記録には存在しない。</div></div>
         </div>
-      </section>
+      </article>
+    </section>
 
-      <section class="view app-view" data-view="message"><header class="app-header"><button class="back-btn" data-back>‹</button><div><small>SECURE CHANNEL</small><h2>MESSAGE</h2></div><span class="header-mark">●</span></header><div id="messageThread" class="message-thread scroll-body"></div></section>
-      <section class="view app-view" data-view="search"><header class="app-header"><button class="back-btn" data-back>‹</button><div><small>ARCHIVE SEARCH</small><h2>SEARCH</h2></div><span class="header-mark">⌕</span></header><div class="scroll-body"><div class="search-box"><span>⌕</span><input id="searchInput" value="港北中央駅" readonly /></div><div class="query-chips"><button data-query="current">構内図</button><button data-query="old">1996 改修</button><button data-query="rumor">13番ホーム</button></div><div id="searchResults" class="search-results"></div></div></section>
-      <section class="view app-view" data-view="file"><header class="app-header"><button class="back-btn" data-back>‹</button><div><small>EVIDENCE ARCHIVE</small><h2>FILE</h2></div><span id="fileCount" class="header-mark">1</span></header><div id="fileList" class="scroll-body file-list"></div></section>
-
-      <section class="view app-view" data-view="photo">
-        <header class="app-header"><button class="back-btn" data-back>‹</button><div><small>STATION CCTV</small><h2>PHOTO</h2></div><span class="header-mark">REC</span></header>
-        <div class="scroll-body photo-body">
-          <div id="cctv" class="cctv-frame" role="button" tabindex="0" aria-label="監視カメラ画像を調べる"><div class="scanlines"></div><div class="cctv-label"><span>CAM 12-B</span><span id="cctvTime">23:47:51</span></div><div class="platform-scene"><span class="ceiling-beam b1"></span><span class="ceiling-beam b2"></span><span class="fluorescent f1"></span><span class="fluorescent f2"></span><span class="fluorescent f3"></span><span class="platform-sign">12</span><span class="bench"></span><span class="platform-edge"></span><span class="pillar p1"></span><span class="pillar p2"></span><span class="pillar p3"></span><button id="photoHotspot" class="photo-hotspot" aria-label="ホーム奥の人影を調べる"></button><span id="girl" class="girl"></span><span id="scanFeedback" class="scan-feedback"></span></div></div>
-          <p id="photoCaption" class="photo-caption">画面の中で、記録と食い違う場所を探す。</p><div id="photoFinding" class="finding-card is-hidden"></div>
+    <section class="panel" data-screen="photo">
+      <button class="back" data-back>‹ 調査一覧へ</button>
+      <article class="card">
+        <div class="card-head"><b>監視画像</b><span class="pill">PHOTO</span></div>
+        <div class="card-body">
+          <p class="task-intro">画像の中で、閉鎖後の駅にいるはずのないものを探す。</p>
+          <div id="photoFrame" class="photo"><span class="beam b1"></span><span class="beam b2"></span><span class="beam b3"></span><span class="yellow"></span><span class="person"></span><button id="photoSpot" class="spot" aria-label="ホーム奥の人影"></button></div>
+          <div id="photoSuccess" class="success" style="display:none"><b>矛盾を確認</b><p>23:47:51。閉鎖後のホーム奥に人影。勤務記録に該当者はいない。</p></div>
         </div>
-      </section>
+      </article>
+    </section>
 
-      <section class="view app-view" data-view="map"><header class="app-header"><button class="back-btn" data-back>‹</button><div><small>KOHHOKU CENTRAL</small><h2>MAP</h2></div><span id="mapState" class="header-mark">LIVE</span></header><div class="map-body scroll-body"><div class="station-map"><div class="map-title"><b>港北中央駅</b><small id="mapSubtitle">現行構内図</small></div><div class="concourse">中央改札</div><div class="platforms" id="platforms"></div><div id="hiddenStairs" class="hidden-stairs is-hidden">地下連絡通路 ↓</div></div><div id="mapHint" class="map-hint">現在の構内図には12番ホームまでしか存在しない。</div><button id="enter13" class="enter-btn is-hidden">13番ホームへ進む <span>→</span></button></div></section>
+    <section class="panel" data-screen="map">
+      <button class="back" data-back>‹ 調査一覧へ</button>
+      <article class="card">
+        <div class="card-head"><b>改修前の構内図</b><span class="pill">1996</span></div>
+        <div class="card-body">
+          <p class="task-intro">現在の12番線と、改修前の資料を比較する。</p>
+          <div class="map"><div class="map-top">港北中央駅 / 改修前</div><div class="platform-grid"><div class="platform">9</div><div class="platform">10</div><div class="platform">11</div><div class="platform">12</div><button id="mapTap" class="platform old">13 / CLOSED</button><div id="mapOld" class="platform old" style="display:none">最終入線 23:48</div></div></div>
+          <div id="mapSuccess" class="success" style="display:none"><b>3つ目の矛盾を確認</b><p>13番線は過去には存在した。閉鎖記録に残る最後の時刻は「23:48」。</p></div>
+        </div>
+      </article>
+    </section>
 
-      <section class="view app-view" data-view="terminal"><div class="terminal-view"><div class="terminal-noise"></div><div class="terminal-station" aria-hidden="true"><span class="terminal-ceiling"></span><span class="terminal-light tl1"></span><span class="terminal-light tl2"></span><span class="terminal-light tl3"></span><span class="terminal-pillar tp1"></span><span class="terminal-pillar tp2"></span><span class="terminal-pillar tp3"></span><span class="terminal-yellow"></span><span class="terminal-rail tr1"></span><span class="terminal-rail tr2"></span><span class="terminal-sign">13</span><span class="terminal-fog"></span></div><p class="terminal-time">23:48</p><div class="terminal-copy"><span>PLATFORM 13</span><h2>ここは、<br>構内図にない。</h2><p>電車はいない。なのに、線路の奥から走行音が近づいてくる。</p></div><button id="pickupClue" class="clue-paper"><span>404-02</span><small>紙片を拾う</small></button><div class="distant-girl"><i></i></div></div></section>
-    </main>
+    <section class="panel" data-screen="sync">
+      <article class="sync-card"><span class="eyebrow">CONDITION MATCHED</span><div class="sync-time">23:48</div><p>3つの証拠が同じ条件を指している。<br>端末をその時刻に同期すると、噂を再現できる。</p><button id="syncGo" class="primary">23:48 に同期する <span>→</span></button></article>
+    </section>
 
-    <nav id="dock" class="dock is-hidden"><button data-home>⌂</button><button data-open="case">01</button><button data-open="message">•••</button><button data-open="map">⌖</button></nav>
-    <div id="clockSheet" class="sheet" aria-hidden="true"><button class="sheet-backdrop" data-close-clock aria-label="閉じる"></button><div class="sheet-card"><div class="sheet-grip"></div><p class="eyebrow">DEVICE CLOCK</p><h3>時刻を変更する</h3><p class="muted">調査端末の時刻を同期できます。</p><div class="time-options"><button data-time="23:47">23:47</button><button id="time2348" data-time="23:48">23:48</button></div><small id="clockHint">現在時刻と同期中</small></div></div>
-    <div id="discoveryToast" class="discovery-toast" aria-live="polite"><small>404 INVESTIGATION</small><strong id="toastTitle">証拠を発見</strong><p id="toastBody"></p></div>
+    <section class="panel" data-screen="encounter">
+      <div class="encounter"><div class="sign">13</div><div class="girl"></div><div class="encounter-copy"><small>PLATFORM 13 / UNKNOWN</small><h2>噂を調べていたはずなのに、<br>ここにいる。</h2><p>電車はいない。なのに線路の奥から走行音だけが近づいてくる。</p></div><button id="clue" class="clue">404-02<br><small>拾う</small></button></div>
+    </section>
 
-    <div id="intro" class="overlay is-open"><div class="intro-card"><div class="intro-code">404</div><p class="eyebrow">PARANORMAL INVESTIGATION</p><h2>見つからないものには、<br><em>理由がある。</em></h2><p>あなたは「404怪異調査室」の新人調査員。存在しないはずの場所と記録を、端末に残された情報から調査してください。</p><button id="startBtn" class="primary-btn">CASE 01 を受信する <span>→</span></button><small>音量を上げすぎず、暗い場所でのプレイを推奨します。</small></div></div>
-    <div id="ending" class="overlay"><div class="ending-card"><p class="eyebrow">CASE 01 / CLOSED?</p><h2>終点のないホーム</h2><div class="ending-code">404-02</div><div class="incoming-badge"><span></span> INCOMING SIGNAL</div><p>紙片の裏には、ひとつの時刻だけが書かれていた。</p><p class="next-case">02:13<br><small>UNKNOWN CALLER</small></p><button id="endingHome" class="primary-btn">調査端末へ戻る <span>→</span></button><small>CASE 02「午前2時13分の電話」— COMING NEXT</small></div></div>
-  </div>
-  <script src="./game-v2.js"></script>
+    <section class="panel" data-screen="ending">
+      <article class="card"><div class="ending"><span class="eyebrow">CASE 01 / CLOSED?</span><h2>終点のないホーム</h2><div class="code">404-02</div><p>紙片の裏には、次の怪異につながる時刻が書かれていた。</p><div class="next">02:13<br><small>UNKNOWN CALLER</small></div><button id="restart" class="primary">最初から確認する <span>↺</span></button></div></article>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+</div>
+<script src="./game-v3.js"></script>
 </body>
 </html>
