@@ -26,14 +26,14 @@
 
 | 項目 | 状態 |
 | --- | --- |
-| Working Planet からの流用（移動・カメラ・緑ライン・エリア解放・認証） | **未実施**。本リポジトリに Working Planet のソースが無く、§72 第1段階を実行できない |
-| 共通ログイン | 縦切り版では **実装しない**。進行は `localStorage` に保存し、後で共通IDへ載せ替える |
+| Working Planet の探索エンジン流用 | **行わない**（SPEC §61 で決定）。404の世界は一本道の回廊で、該当部分は合計300行程度にしかならず、経営ゲーム側の前提を分離するほうが高くつくため |
+| 共通ログイン | 縦切り版では **実装しない**。進行は `localStorage` に保存し、後で共通IDへ載せ替える（SPEC §65） |
 | 描画方式 | Canvas 2D + ES Modules で新規実装した |
 
-流用可否が確定しないため、`Investigation` / `Anomaly` / `Chase` / `SafeZone` / `Checkpoint` / `Case` / `Log` の
-**404固有システム側**（§63）から着手した。これらは Working Planet に存在せず、どちらにせよ新規実装になる。
+`Investigation` / `Anomaly` / `Chase` / `SafeZone` / `Checkpoint` / `Case` / `Log`（§63）は
+そもそも Working Planet に存在しないため、いずれにせよ新規実装になる。
 
-エンジン依存を局所化するため、以下の境界で実装している。
+将来 Working Planet のエンジンへ載せ替える判断をした場合に備え、以下の境界を守っている。
 
 ```
 main.js          ループ、シーン管理、会話進行、各システムの結線
@@ -52,8 +52,11 @@ data/
   case01.js        エリア／調査ポイント／会話／出現候補地点／背景物
 ```
 
-`core/` は canvas や DOM を参照しない。Working Planet の探索エンジンを導入する際は
-`world/` を差し替え、`core/` と `data/` はそのまま載せ替えられる。
+`core/` は canvas や DOM を参照しない。`world/` の4ファイルを差し替えれば、
+`core/` と `data/` はそのまま別の描画・入力系へ載せ替えられる。
+
+セーブの読み書きは `core/case.js` の `load()` / `save()` の2箇所に閉じてある。
+共通ログイン統合（SPEC §65）はここを差し替える。
 
 ---
 
