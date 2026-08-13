@@ -1,0 +1,5 @@
+{
+  "name": "Hitobito Games Mobile Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [8000]
+}
