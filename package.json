@@ -1,0 +1,10 @@
+{
+  "name": "hitobito-games",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/local-server.mjs",
+    "start": "node scripts/local-server.mjs",
+    "check": "node scripts/smoke-check.mjs"
+  }
+}
