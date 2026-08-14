@@ -3,83 +3,80 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#11130f">
-<meta name="description" content="最後のエレベーター — 100階まで、誰を乗せる？">
+<meta name="theme-color" content="#0b0d0b">
+<meta name="description" content="最後のエレベーター — 10階まで、誰を乗せる？">
 <title>最後のエレベーター</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div id="app" class="app">
-  <header class="hud">
-    <a class="back" href="../../" aria-label="hitobito games に戻る">‹ GAMES</a>
-    <div class="floor-display" aria-live="polite"><span id="floorNum">001</span><small>F</small></div>
-    <div class="endings" id="endingCount">END 0/8</div>
+<div class="app" id="app">
+  <header class="topbar">
+    <a href="../../" class="back">‹ GAMES</a>
+    <div class="title"><small>THE LAST</small><strong>最後のエレベーター</strong></div>
+    <button class="sound" type="button" aria-label="演出">✦</button>
   </header>
 
-  <main class="elevator-shell" id="gameArea">
-    <div class="ceiling-light"></div>
-    <div class="side-panel left-panel">
-      <span class="plate">LAST<br>ELEVATOR</span>
-      <div class="society-meter">
-        <div><b>♥</b><i><span id="moodBar"></span></i></div>
-        <div><b>!</b><i><span id="dangerBar"></span></i></div>
-        <div><b>✦</b><i><span id="wonderBar"></span></i></div>
-      </div>
-    </div>
+  <main class="game" id="gameArea">
+    <section class="left-rail">
+      <div class="meter mood"><span>機嫌</span><b id="moodValue">25</b><i><em id="moodBar"></em></i></div>
+      <div class="meter danger"><span>危険</span><b id="dangerValue">12</b><i><em id="dangerBar"></em></i></div>
+      <div class="meter wonder"><span>怪異</span><b id="wonderValue">8</b><i><em id="wonderBar"></em></i></div>
+    </section>
 
-    <section class="door-frame" id="doorFrame" aria-label="エレベーターのドア">
-      <div class="hall" id="hall">
-        <div class="hall-floor" id="hallFloorLabel">1F</div>
-        <div class="candidate" id="candidate">
-          <div class="candidate-shadow"></div>
-          <div class="candidate-emoji" id="candidateEmoji">👴</div>
-          <div class="candidate-name" id="candidateName">老人</div>
-          <div class="candidate-note" id="candidateNote">少し息を切らしている</div>
+    <section class="elevator">
+      <div class="floor-display"><strong id="floorNum">01</strong><span>/10</span><small id="hallFloorLabel">1F</small></div>
+      <div class="end-count" id="endingCount">END 0/8</div>
+
+      <div class="door-frame" id="doorFrame">
+        <div class="hall" id="hall">
+          <div class="hall-sign" id="hallSign">1F</div>
+          <div class="candidate" id="candidate">
+            <div class="candidate-art" id="candidateArt"></div>
+            <div class="candidate-card">
+              <strong id="candidateName">老人</strong>
+              <span id="candidateNote">少し息を切らしている</span>
+            </div>
+          </div>
         </div>
+        <div class="door left"></div>
+        <div class="door right"></div>
+        <div class="door-light"></div>
       </div>
-      <div class="door door-left"></div>
-      <div class="door door-right"></div>
-      <div class="door-seam"></div>
-    </section>
 
-    <div class="side-panel right-panel">
-      <div class="capacity"><span id="capacityNow">0</span><small>/12</small></div>
-      <div class="buttons" aria-hidden="true">
-        <i class="lit"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      <div class="cabin">
+        <div class="capacity"><span>定員</span><strong><b id="capacityNow">0</b>/8</strong></div>
+        <div class="passengers" id="passengers"></div>
+        <div class="floor-shadow"></div>
       </div>
-    </div>
 
-    <section class="cabin" aria-label="乗っているメンバー">
-      <div class="passengers" id="passengers"></div>
-      <div class="cabin-floor"></div>
+      <div class="event-toast" id="eventToast" role="status" aria-live="polite"></div>
+      <div class="swipe left" id="leftFeedback">← 見送る</div>
+      <div class="swipe right" id="rightFeedback">乗せる →</div>
     </section>
-
-    <div class="event-toast" id="eventToast" role="status" aria-live="polite"></div>
-    <div class="swipe-feedback left" id="leftFeedback">← 見送る</div>
-    <div class="swipe-feedback right" id="rightFeedback">乗せる →</div>
   </main>
 
   <footer class="controls" id="controls">
-    <button id="rejectBtn" class="choice reject" type="button"><span>←</span><small>乗せない</small></button>
-    <div class="hint" id="hint"><b>SWIPE</b><span>← / →</span></div>
-    <button id="acceptBtn" class="choice accept" type="button"><small>乗せる</small><span>→</span></button>
+    <button id="rejectBtn" class="choice reject" type="button"><span>←</span><strong>乗せない</strong></button>
+    <div class="guide"><b>SWIPE</b><small>← / →</small></div>
+    <button id="acceptBtn" class="choice accept" type="button"><strong>乗せる</strong><span>→</span></button>
   </footer>
 
   <section class="intro" id="intro">
     <div class="intro-card">
-      <span class="intro-kicker">100 FLOORS / ONE CABIN</span>
-      <h1>最後の<br>エレベーター</h1>
-      <p>毎階、誰かが乗ろうとする。<br>乗せるか、乗せないか。それだけ。</p>
-      <div class="intro-demo"><span>← 見送る</span><b>👴</b><span>乗せる →</span></div>
+      <div class="intro-emblem">10F</div>
+      <p class="kicker">TEN FLOORS / ONE CABIN</p>
+      <h1>最後の<br><em>エレベーター</em></h1>
+      <p>毎階、誰かが乗ろうとする。<br>乗せるか、見送るか。<br><b>同じ箱に入れた者同士で、何かが起きる。</b></p>
+      <div class="intro-pair"><span>犬</span><i>＋</i><span>老人</span><b>→ 元気</b></div>
       <button id="startBtn" type="button">1階から上がる</button>
     </div>
   </section>
 
-  <section class="ending-screen" id="endingScreen" hidden>
+  <section class="ending" id="endingScreen" hidden>
     <div class="ending-card">
-      <span class="ending-kicker">100F / ENDING</span>
-      <div class="ending-icon" id="endingIcon">🏙️</div>
-      <h2 id="endingTitle">小さな社会</h2>
+      <span class="kicker" id="endingKicker">10F / ENDING</span>
+      <div class="ending-icon" id="endingIcon"></div>
+      <h2 id="endingTitle"></h2>
       <p id="endingText"></p>
       <div class="ending-cast" id="endingCast"></div>
       <div class="ending-stats" id="endingStats"></div>
