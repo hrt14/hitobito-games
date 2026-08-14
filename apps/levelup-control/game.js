@@ -87,7 +87,7 @@
   let audio = null;
 
   function resetState(){
-    state = {index:0,score:0,combo:0,maxCombo:0,correct:0,answered:0,times:[],deck:shuffle([...questions]).slice(0,30),three:false,bossIndex:0,bossModeOnly:false};
+    state = {index:0,score:0,combo:0,maxCombo:0,correct:0,answered:0,times:[],deck:shuffle([...questions]).slice(0,30),three:false,bossIndex:0,bossModeOnly:false,bossesSeen:{}};
     renderHud();
   }
 
@@ -125,12 +125,11 @@
   function nextQuestion(){
     cancelAnimationFrame(timerRaf); locked=false;
     if(state.index>=state.deck.length){ return finish(); }
-    if(state.index===10 || state.index===20){ return startBoss(Math.floor(state.index/10)-1); }
+    if((state.index===10 || state.index===20) && !state.bossesSeen[state.index]){ state.bossesSeen[state.index]=true; return startBoss(Math.floor(state.index/10)-1); }
     state.three=state.index>=10;
     els.choices.className=`choices ${state.three?'three':'two'}`;
     els.microcopy.textContent=state.three?'OUT / INFLUENCE / CONTROL を選べ':'左右どちらかをタップ';
     const q=state.deck[state.index];
-    if(!state.three && q.a==='influence') q.a='out';
     els.context.textContent=q.c; els.qText.textContent=q.t; els.qType.textContent=state.three?'どこまで動かせる？':'これは変えられる？'; els.qHint.textContent=state.index<3?'直感で選べ。':'3秒で切り分けろ。';
     els.card.className='problem-card';
     renderHud();
@@ -149,9 +148,9 @@
 
   function answer(choice, forcedStart){
     if(locked)return;locked=true;cancelAnimationFrame(timerRaf);
-    const q=state.deck[state.index];const started=forcedStart||Number(els.card.dataset.started);const dt=(performance.now()-started)/1000;
+    const q=state.deck[state.index];const expected=(!state.three&&q.a==='influence')?'out':q.a;const started=forcedStart||Number(els.card.dataset.started);const dt=(performance.now()-started)/1000;
     state.times.push(Math.min(dt,4.2));state.answered++;
-    const ok=choice===q.a;
+    const ok=choice===expected;
     if(ok){
       state.correct++;state.combo++;state.maxCombo=Math.max(state.maxCombo,state.combo);
       const speed=Math.max(0,Math.round((3-dt)*70));const gain=100+speed+Math.min(300,state.combo*10);state.score+=gain;
@@ -161,7 +160,7 @@
     }
     renderHud();
     setTimeout(()=>{
-      els.card.classList.add(q.a==='control'?'fly-control':q.a==='influence'?'fly-up':'fly-out');
+      els.card.classList.add(expected==='control'?'fly-control':expected==='influence'?'fly-up':'fly-out');
       setTimeout(()=>{state.index++;nextQuestion();},230);
     },ok?330:850);
   }
