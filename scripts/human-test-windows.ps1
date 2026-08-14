@@ -16,22 +16,21 @@ $preventFlags = [uint32]($ES_CONTINUOUS -bor $ES_SYSTEM_REQUIRED)
 $result = [HitobitoSleepBlocker]::SetThreadExecutionState($preventFlags)
 
 if ($result -eq 0) {
-    Write-Host "[Sleep] スリープ防止を有効にできませんでした。テストサーバーはそのまま起動します。" -ForegroundColor Yellow
+    Write-Host "[Sleep] Could not enable sleep prevention. Starting server anyway." -ForegroundColor Yellow
 } else {
-    Write-Host "[Sleep] 人間テスト中はPCのスリープを防止します。画面オフは可能です。" -ForegroundColor Green
+    Write-Host "[Sleep] Sleep prevention is ON while playtest server is running. Display may turn off." -ForegroundColor Green
 }
 
+$exitCode = 0
 try {
     & npm run human-test
-    $exitCode = $LASTEXITCODE
+    if ($null -ne $LASTEXITCODE) {
+        $exitCode = $LASTEXITCODE
+    }
 }
 finally {
     [void][HitobitoSleepBlocker]::SetThreadExecutionState($ES_CONTINUOUS)
-    Write-Host "[Sleep] スリープ防止を解除しました。" -ForegroundColor DarkGray
-}
-
-if ($null -eq $exitCode) {
-    $exitCode = 0
+    Write-Host "[Sleep] Sleep prevention is OFF." -ForegroundColor DarkGray
 }
 
 exit $exitCode
