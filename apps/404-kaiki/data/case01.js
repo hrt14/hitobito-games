@@ -17,6 +17,8 @@ export const CHARS = {
   shirou: { name: '四郎', label: 'シロウ', color: '#f08a45', hair: '#1a1414', scale: 1.06 },
   rei:    { name: '零',   label: 'レイ',   color: '#5f96e0', hair: '#141018', scale: 0.94 },
   yotsuba:{ name: '四葉', label: 'ヨツバ', color: '#49c98c', hair: '#1d1512', scale: 1.0 },
+  // 吹き出し専用。ここまで喋るのは3人だけなので、初めて別の声が出る
+  kuchisake: { name: '女', label: '女', color: '#c9505a', hair: '#08070a', scale: 1.3 },
 };
 
 export const AREAS = [
@@ -139,8 +141,14 @@ export const DIALOGUE = {
     [ L('yotsuba', 'さっきより近い') ],
     [ L('rei', '三回目。同じ人だ') ],
   ],
+  // 完全出現。噂の核心をここで起こす（記録の「私、きれい？」の回収）
+  // index 4 でマスクが外れる（main.js の UNMASK_AT と対応）
   phase4: [
-    L('yotsuba', '走って'),
+    L('kuchisake', '……ねえ'),
+    L('yotsuba', '……え'),
+    L('kuchisake', 'わたし、きれい？'),
+    L('rei', '答えるな。絶対に答えるな'),
+    L('kuchisake', 'これでも？'),
     L('shirou', '鳥居！鳥居まで走れ！'),
   ],
   // 近づくと消える。無反応だと緊張感が消えるので必ず何か起こす

@@ -26,8 +26,12 @@ export class Chase {
     this.block = 0;
     anomaly.chasing = true;
     anomaly.visible = true;
-    anomaly.x = player.x + behind;
-    anomaly.y = 105;
+    // behind が null なら今いる場所から追い始める
+    // （問いかけの直後に位置が飛ぶと、対峙していた緊張が切れる）
+    if (behind !== null) {
+      anomaly.x = player.x + behind;
+      anomaly.y = 105;
+    }
   }
 
   stop(anomaly) {

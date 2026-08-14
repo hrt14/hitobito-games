@@ -19,7 +19,10 @@ export function buildRecord(state) {
     .map(p => EVIDENCE[p.id])
     .filter(Boolean);
 
-  const unresolved = ['じゃあ、最初の目撃写真を撮ったのは誰？'];
+  const unresolved = [
+    '結局、あれは何て答えるのが正解だったんだ？',
+    'じゃあ、最初の目撃写真を撮ったのは誰？',
+  ];
   if (state.flags.saw_graffiti_404) {
     unresolved.push('あの落書き、なんでうちらと同じ数字なんだ？');
   }
@@ -28,7 +31,7 @@ export function buildRecord(state) {
     case: 'CASE 01 / 口裂け女',
     rumor: '深夜の住宅街、マスクの女に「私、きれい？」と聞かれる',
     places: ['住宅街入口', '小さな公園', 'コンビニ裏', '細い路地', '神社周辺'],
-    encounter: 'あり（鳥居の外で停止）',
+    encounter: 'あり。「わたし、きれい？」と聞かれた（鳥居の外で停止）',
     evidence: found,
     optional: `${state.optionalDone()} / ${state.optionalTotal()}`,
     notes: [

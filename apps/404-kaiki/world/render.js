@@ -1143,11 +1143,12 @@ export class Renderer {
 
   // ---------------------------------------------------------------- 吹き出し
 
-  drawBubble(text, who, wx, wy) {
+  // lift: 背の高い相手の顔を隠さないための持ち上げ量
+  drawBubble(text, who, wx, wy, lift = 0) {
     const { ctx, W } = this;
     const def = CHARS[who] || { label: '', color: '#dfe6f2' };
     const x = this.sx(wx, wy);
-    const y = this.sy(wy) - 76 * this.scaleAt(wy);
+    const y = this.sy(wy) - (76 + lift) * this.scaleAt(wy);
 
     ctx.save();
     ctx.font = '600 14px ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif';

@@ -342,14 +342,31 @@ class Game {
 
     // PHASE 4：完全出現
     if (this.goingHome && a.phase < 4 && px < TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
-      a.appear(this.party.shirou, px - 430);
+      // 問いかけの場面。近すぎず、画面に二者が収まる距離で向かい合う
+      a.appear(this.party.shirou, px - 262);
+      // 3人を固めて、全員が女の方を向く（散っていると誰かが画面外に出る）
+      this.party.rei = { x: px + 46, y: this.party.shirou.y - 26 };
+      this.party.yotsuba = { x: px + 26, y: this.party.shirou.y + 30 };
+      this.trail = [];
+      this.moving = false;
+      this.facing = { shirou: -1, rei: -1, yotsuba: -1 };
       this.audio.setMode('silent');
       this.audio.sting();
       this.r.shake = 0.9;
       this.mode = 'dialogue';
       this.input.setEnabled(false);
+      const UNMASK_AT = 4; // 「これでも？」でマスクを外す
       this.say(DIALOGUE.phase4, {
         blocking: true,
+        onIndex: i => {
+          if (i === UNMASK_AT) {
+            a.unmask();
+            this.audio.reveal();
+            this.r.shake = 1.1;
+          } else if (DIALOGUE.phase4[i] && DIALOGUE.phase4[i].who === 'kuchisake') {
+            this.audio.voice();
+          }
+        },
         onEnd: () => { this.startEscape(false); },
       });
     }
@@ -364,7 +381,11 @@ class Game {
     this.mode = 'free';
     this.input.setEnabled(true);
     this.anomaly.setPhase(4);
-    this.chase.start(this.anomaly, this.party.shirou, -430);
+    this.anomaly.unmask();
+    // 対峙の直後はその場から追い始める。復帰時だけ距離を作り直す
+    this.chase.start(this.anomaly, this.party.shirou, restored ? -320 : null);
+    // 会話が終わった瞬間に詰められると反応できない。一拍だけ動かない
+    if (!restored) this.chase.block = 0.9;
     this.escapeStarted = this.t;
     this.audio.setMode('silent');
     this.refreshObjective();
@@ -640,6 +661,8 @@ class Game {
     let cam = p.x;
     // 生還の瞬間は、鳥居の内と外の両方が同時に見える位置で止める
     if (this.mode === 'survive') cam = SAFE_ZONE.x - 46;
+    // 問いかけの場面は、3人と女の両方が画面に入る位置で止める
+    else if (this.mode === 'dialogue' && this.anomaly.visible) cam = (p.x + this.anomaly.x) / 2;
     else if (this.camFocus) {
       const k = 1 - Math.abs(this.camFocus.t - 0.85) / 0.85;
       cam = p.x + (this.camFocus.x - p.x) * Math.max(0, Math.min(1, k));
@@ -669,8 +692,8 @@ class Game {
       r.drawGuideLine(path, this.t, this.state.data.case_progress === 'escape' ? 'escape' : 'normal');
     }
 
-    // 逃走中は調査できないので、マークも出さない
-    if (this.state.data.case_progress !== 'escape') {
+    // 逃走中と、女と対峙している間はマークを出さない
+    if (this.state.data.case_progress !== 'escape' && !(this.mode === 'dialogue' && this.anomaly.visible)) {
       for (const pt of visiblePoints(this.state, p)) {
         const near = Math.hypot(pt.x - p.x, pt.y - p.y);
         r.drawMark(pt, this.t, pt.hidden ? Math.min(1, (150 - near) / 60) : 1);
@@ -693,8 +716,8 @@ class Game {
     r.drawAreaName(this.areaLabel.name, Math.min(1, this.areaLabel.a));
 
     for (const b of this.bubbles) {
-      const c = this.party[b.who] || p;
-      r.drawBubble(b.text, b.who, c.x, c.y);
+      const c = b.who === 'kuchisake' ? this.anomaly : (this.party[b.who] || p);
+      r.drawBubble(b.text, b.who, c.x, c.y, b.who === 'kuchisake' ? 62 : 0);
     }
 
     if (this.mode === 'free') r.drawStick(this.input);

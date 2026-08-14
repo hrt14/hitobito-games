@@ -96,6 +96,16 @@ export class Ambience {
   found()     { this.blip(520, 0.18, 0.05); setTimeout(() => this.blip(690, 0.22, 0.045), 90); }
   unlock()    { this.blip(300, 0.3, 0.06, 'triangle'); setTimeout(() => this.blip(420, 0.4, 0.05, 'triangle'), 140); }
   sting()     { this.blip(48, 1.1, 0.09, 'sawtooth'); }
+  // 女の声。人の声には寄せず、低く濁った音を短く重ねる
+  voice() {
+    this.blip(132, 0.42, 0.05, 'sawtooth');
+    setTimeout(() => this.blip(98, 0.5, 0.04, 'square'), 70);
+  }
+  // マスクを外す瞬間
+  reveal() {
+    this.blip(210, 0.16, 0.07, 'square');
+    setTimeout(() => this.blip(44, 1.4, 0.11, 'sawtooth'), 130);
+  }
   caught()    { this.blip(60, 0.9, 0.12, 'square'); }
   relief()    { this.blip(392, 0.5, 0.05); setTimeout(() => this.blip(523, 0.7, 0.045), 220); }
 }

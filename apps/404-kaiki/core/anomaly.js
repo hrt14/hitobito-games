@@ -22,10 +22,7 @@ export class Anomaly {
     this.chasing = false;
   }
 
-  setPhase(n) {
-    this.phase = n;
-    if (n === 4) this.masked = false;
-  }
+  setPhase(n) { this.phase = n; }
 
   // どの候補地点かをランダムに選び（＝どこに出るかは毎回変わる）、
   // 実際の位置は「画面内だが遠い」帯に置く。
@@ -55,17 +52,20 @@ export class Anomaly {
     return this.spawn(SPAWNS.phase3, player, dir);
   }
 
-  // 完全出現。プレイヤーの進行方向の先に立ちふさがる
+  // 完全出現。プレイヤーの進行方向の先に立ちふさがる。
+  // マスクはまだ外さない。「わたし、きれい？」の後に外す（setPhase より後で unmask）
   appear(player, towardX) {
     this.visible = true;
     this.high = false;
-    this.masked = false;
     this.chasing = false;
     this.fade = 0;
     this.x = towardX;
     this.y = 105;
-    this.setPhase(4);
+    this.phase = 4;
+    this.masked = true;
   }
+
+  unmask() { this.masked = false; }
 
   hide() { this.visible = false; this.chasing = false; }
 
