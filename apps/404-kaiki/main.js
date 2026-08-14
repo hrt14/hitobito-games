@@ -36,6 +36,9 @@ class Game {
     this.trail = [];
     this.walkPhase = 0;
     this.moving = false;
+    this.facing = { shirou: 1, rei: 1, yotsuba: 1 };
+    this.vel = { x: 0, y: 0 };   // 入力を均して動きを硬くしない
+    this.nearMissT = 0;          // 仲間が怪異にかすった時のクールダウン
 
     this.bubbles = [];         // {who, text, until}
     this.queue = null;
@@ -115,6 +118,30 @@ class Game {
   }
 
   // ------------------------------------------------------------ 会話
+
+  // 同じものが続けて出ないように選ぶ
+  pick(list, key) {
+    this._picked = this._picked || {};
+    const used = this._picked[key] || [];
+    let pool = list.filter((_, i) => !used.includes(i));
+    if (!pool.length) { this._picked[key] = []; pool = list; }
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    this._picked[key] = [...(this._picked[key] || []), list.indexOf(item)];
+    return item;
+  }
+
+  // 歩いている最中の雑談。3人の会話そのものを見せる（SPEC §4③ §9）
+  updateBanter(dt) {
+    if (this.queue || this.mode !== 'free') return;
+    if (this.state.data.case_progress === 'escape') return;
+    if (!this.moving) return;
+    this.banterT = (this.banterT === undefined ? 9 : this.banterT) - dt;
+    if (this.banterT > 0) return;
+    this.banterT = 17 + Math.random() * 13;
+    const area = this.state.areaAt(this.party.shirou.x);
+    const sets = DIALOGUE.banter[area.id];
+    if (sets && sets.length) this.say(this.pick(sets, 'banter-' + area.id), { blocking: false });
+  }
 
   say(lines, opts = {}) {
     this.queue = {
@@ -301,6 +328,18 @@ class Game {
       }
     }
 
+    // 遠くの人影に近づくと消える。触れて無反応だと緊張感が消える
+    if (a.visible && !a.chasing && this.state.data.case_progress !== 'escape') {
+      const d = Math.hypot(px - a.x, this.party.shirou.y - a.y);
+      if (d < 150) {
+        a.hide();
+        this.sightingTimer = 0;
+        this.audio.blip(64, 0.8, 0.08, 'sawtooth');
+        this.r.shake = 0.5;
+        this.say(this.pick(DIALOGUE.vanish, 'vanish'), { blocking: false });
+      }
+    }
+
     // PHASE 4：完全出現
     if (this.goingHome && a.phase < 4 && px < TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
       a.appear(this.party.shirou, px - 430);
@@ -461,6 +500,7 @@ class Game {
     }
 
     this.updateFollowers(dt, this.moving);
+    this.updateBanter(dt);
     this.updatePhases(dt);
     this.updateEscape(dt);
     this.updateArea(dt);
@@ -475,14 +515,20 @@ class Game {
     const running = this.state.data.case_progress === 'escape';
     const sp = running ? SPEED.run : SPEED.walk;
     const p = this.party.shirou;
-    const vx = this.input.vx, vy = this.input.vy;
-    this.moving = Math.hypot(vx, vy) > 0.05;
+
+    // 入力を直接座標へ流すと動きが硬い。速度を追従させる
+    const k = Math.min(1, dt * 16);
+    this.vel.x += (this.input.vx - this.vel.x) * k;
+    this.vel.y += (this.input.vy - this.vel.y) * k;
+    const vx = this.vel.x, vy = this.vel.y;
+    this.moving = Math.hypot(vx, vy) > 0.06;
 
     if (this.moving) {
       p.x += vx * sp * dt;
-      p.y += vy * sp * dt * 0.62;
-      this.walkPhase += dt * (running ? 15 : 10);
+      p.y += vy * sp * dt * 0.72;
+      this.walkPhase += dt * (running ? 15 : 11);
       if (Math.sin(this.walkPhase) > 0.94) this.audio.step();
+      if (Math.abs(vx) > 0.12) this.facing.shirou = vx > 0 ? 1 : -1;
     }
 
     const limit = this.state.frontier();
@@ -517,17 +563,38 @@ class Game {
         target = { x: this.party.shirou.x - gaps[i], y: this.party.shirou.y };
       }
       const offY = moving ? 0 : (i === 0 ? -30 : 34);
-      const tx = target.x, ty = target.y + offY;
+      let tx = target.x, ty = target.y + offY;
+
+      // 怪異をよける。素通りさせると絵として壊れるし、緊張感も消える
+      const a = this.anomaly;
+      if (a.visible && a.fade > 0.3 && !a.high) {
+        const ax = c.x - a.x, ay = c.y - a.y;
+        const ad = Math.hypot(ax, ay);
+        if (ad < 76) {
+          const push = (76 - ad) / 76;
+          tx += (ax / (ad || 1)) * push * 120;
+          ty += (ay / (ad || 1)) * push * 90;
+          if (ad < 46 && this.nearMissT <= 0 && this.state.data.case_progress === 'escape') {
+            this.nearMissT = 3.2;
+            this.r.shake = 0.55;
+            this.audio.sting();
+            this.say([{ who, text: who === 'rei' ? 'うわっ、来た！' : 'こっち来ないで！' }], { blocking: false });
+          }
+        }
+      }
+
       const dx = tx - c.x, dy = ty - c.y;
       const d = Math.hypot(dx, dy);
       if (d > 1.5) {
-        const sp = Math.min(d * 5.5, (this.state.data.case_progress === 'escape' ? SPEED.run : SPEED.walk) * 1.25);
+        const sp = Math.min(d * 5.5, (this.state.data.case_progress === 'escape' ? SPEED.run : SPEED.walk) * 1.3);
         c.x += dx / d * sp * dt;
         c.y += dy / d * sp * dt;
+        if (Math.abs(dx) > 2) this.facing[who] = dx > 0 ? 1 : -1;
       }
       const area = this.state.areaAt(c.x);
       c.y = Math.max(area.bandTop + 4, Math.min(area.bandBottom - 2, c.y));
     });
+    if (this.nearMissT > 0) this.nearMissT -= dt;
   }
 
   updateArea(dt) {
@@ -583,9 +650,9 @@ class Game {
 
     // 奥から手前へ並べて描く
     const ents = [
-      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, 1, { moving: this.moving, lookBack: this.anomaly.visible }) },
-      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, 1, { moving: this.moving, lookBack: this.anomaly.visible }) },
-      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, 1, { moving: this.moving }) },
+      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, this.facing.rei, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, this.facing.yotsuba, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, this.facing.shirou, { moving: this.moving }) },
     ];
     if (this.anomaly.fade > 0.02) ents.push({ y: this.anomaly.high ? -50 : this.anomaly.y, f: () => r.drawAnomaly(this.anomaly) });
     ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
@@ -722,8 +789,9 @@ class Game {
     const POS = { rei: [214, 86], shirou: [300, 122], yotsuba: [382, 158] };
     r.groundTop = H * 0.60; r.groundBottom = H * 0.90;
     r.camX = 300;
+    const FACE = { rei: 1, shirou: 1, yotsuba: -1 }; // 輪になって話している
     ['rei', 'shirou', 'yotsuba'].forEach(who => {
-      r.drawPerson(who, POS[who][0], POS[who][1], 0, 1, { moving: false, phone: who !== 'rei' });
+      r.drawPerson(who, POS[who][0], POS[who][1], 0, FACE[who], { moving: false, phone: who !== 'rei' });
     });
     for (const b of this.bubbles) {
       const pos = POS[b.who] || POS.shirou;

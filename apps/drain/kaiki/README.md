@@ -11,8 +11,11 @@ node apps/404-kaiki/build-standalone.mjs
 `404.hitobito.jp` の Vercel プロジェクトが GitHub に接続されていないため、
 main へ push しても再ビルドされない（CLI から手動デプロイされた状態のまま）。
 
-稼働中の drain プロジェクト配下に置くことで `drain.hitobito.jp/404/` として公開している。
+稼働中の drain プロジェクト配下に置くことで `drain.hitobito.jp/kaiki/` として公開している。
 一坪王国（`apps/drain/one-tsubo/`）と同じ回避策。
+
+ディレクトリ名を `404` にすると Vercel の not-found 処理と衝突し、
+200 を返しつつ中身が別物になったため `kaiki` にしている。
 
 ## 本来やるべきこと
 

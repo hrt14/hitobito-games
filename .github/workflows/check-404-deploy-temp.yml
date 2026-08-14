@@ -13,24 +13,28 @@ jobs:
       - name: Wait for drain deploy then probe
         shell: bash
         run: |
-          url=https://drain.hitobito.jp/404/
-          for i in $(seq 1 18); do
-            body=$(curl -sL --max-time 20 "$url" || true)
-            if printf '%s' "$body" | grep -q '404怪異調査クラブ'; then
-              echo "OK after ${i} tries"
-              printf '%s' "$body" | grep -o '<title>[^<]*</title>'
-              printf '%s' "$body" | wc -c | sed 's/^/bytes: /'
-              for marker in 'CASE 01 をはじめる' 'id="stage"' '404調査記録' 'drawAnomaly' 'SAFE_ZONE'; do
-                printf '%s' "$body" | grep -q "$marker" \
-                  && echo "  found: $marker" || echo "  MISSING: $marker"
-              done
-              echo "--- old 404 project (expected: still stale) ---"
-              curl -sL --max-time 20 https://404.hitobito.jp/ | grep -o '<title>[^<]*</title>' || true
-              exit 0
+          show() {
+            code=$(curl -sL -o /tmp/b -w '%{http_code}' --max-time 20 "$1" || echo ERR)
+            title=$(grep -o '<title>[^<]*</title>' /tmp/b 2>/dev/null | head -1)
+            size=$(wc -c < /tmp/b 2>/dev/null || echo 0)
+            printf '%-42s %s  %-9s %s\n' "$1" "$code" "${size}B" "$title"
+          }
+          ok=0
+          for i in $(seq 1 24); do
+            if curl -sL --max-time 20 https://drain.hitobito.jp/kaiki/ | grep -q '404怪異調査クラブ'; then
+              echo "LIVE after ${i} tries"; ok=1; break
             fi
             echo "try $i: not live yet"
             sleep 10
           done
-          echo "TIMED OUT — not deployed within ~3 minutes"
-          curl -sL -o /dev/null -w 'final status: %{http_code}\n' --max-time 20 "$url"
-          exit 1
+          echo "--- state ---"
+          show https://drain.hitobito.jp/kaiki/
+          show https://drain.hitobito.jp/404/
+          show https://drain.hitobito.jp/one-tsubo/
+          show https://404.hitobito.jp/
+          [ "$ok" = "1" ] || { echo "NOT DEPLOYED"; exit 1; }
+          echo "--- content markers ---"
+          curl -sL --max-time 20 https://drain.hitobito.jp/kaiki/ > /tmp/g
+          for m in 'CASE 01 をはじめる' 'id="stage"' '404調査記録' 'drawAnomaly' 'SAFE_ZONE' 'banter'; do
+            grep -q "$m" /tmp/g && echo "  ok: $m" || echo "  MISSING: $m"
+          done

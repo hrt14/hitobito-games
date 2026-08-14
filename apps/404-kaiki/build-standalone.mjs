@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const SRC = dirname(fileURLToPath(import.meta.url));
-const OUT = join(SRC, '../drain/404/index.html');
+const OUT = join(SRC, '../drain/kaiki/index.html');
 
 // 依存順に並べる（import を消して連結するため）
 const ORDER = [

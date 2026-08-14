@@ -8,9 +8,9 @@ export const WORLD = {
 };
 
 export const SPEED = {
-  walk: 132,
-  run: 205,
-  anomaly: 189, // run * 0.92
+  walk: 178,
+  run: 238,
+  anomaly: 219, // run * 0.92
 };
 
 export const CHARS = {
@@ -142,6 +142,42 @@ export const DIALOGUE = {
     L('yotsuba', '走って'),
     L('shirou', '鳥居！鳥居まで走れ！'),
   ],
+  // 近づくと消える。無反応だと緊張感が消えるので必ず何か起こす
+  vanish: [
+    [L('shirou', '……いない')],
+    [L('yotsuba', '消えた')],
+    [L('rei', '今の、絶対いたよね')],
+    [L('shirou', 'え、どこ行った')],
+    [L('yotsuba', '見間違い、じゃないよね')],
+  ],
+  // 歩いている間に流れる雑談。エリアごとに用意する（SPEC §9）
+  banter: {
+    A1: [
+      [L('shirou', 'この辺、来たことある？'), L('yotsuba', '通学路の逆'), L('rei', 'だから誰も来ない')],
+      [L('rei', '書き込み、全部この時間帯なんだよな'), L('yotsuba', 'もう過ぎてるけど'), L('shirou', 'じゃあ今じゃん')],
+      [L('yotsuba', '街灯、一個おきに切れてる'), L('shirou', '節電だろ'), L('rei', 'この町、そんな余裕ない')],
+    ],
+    A2: [
+      [L('shirou', '公園って夜だと別物だな'), L('yotsuba', 'ブランコ、動いてない？'), L('rei', '風'), L('yotsuba', '無風だけど')],
+      [L('rei', '昔ここで撮られた写真があるらしい'), L('shirou', '見せて'), L('rei', '消えた')],
+      [L('yotsuba', '砂場に足跡ある'), L('shirou', '子どもだろ'), L('yotsuba', 'こんな時間に？')],
+    ],
+    A3: [
+      [L('shirou', '肉まん'), L('yotsuba', 'まだ言ってる')],
+      [L('yotsuba', '店員さん、さっきからこっち見てない？'), L('rei', '見てない'), L('yotsuba', '……そう')],
+      [L('rei', 'コンビニの明かりって安心する'), L('shirou', 'わかる'), L('yotsuba', '珍しく意見合ってる')],
+    ],
+    A4: [
+      [L('yotsuba', 'ここ、通らないとダメ？'), L('shirou', '近道だろ'), L('rei', '遠回りだよ'), L('shirou', '……')],
+      [L('rei', '路地の怪談は多い'), L('yotsuba', '今は言わないで')],
+      [L('shirou', '室外機うるさいな'), L('yotsuba', 'さっきから止まってるよ'), L('shirou', 'は？')],
+    ],
+    A5: [
+      [L('shirou', '意外と綺麗にしてあるな'), L('rei', '誰かが掃除してる'), L('yotsuba', 'こんな時間に？')],
+      [L('yotsuba', '石段、何段あるんだろ'), L('rei', '数えると増えるらしい'), L('yotsuba', '数えない')],
+      [L('rei', '鳥居の内側は、別の場所って考え方がある'), L('shirou', 'じゃあ安全だな'), L('yotsuba', '軽い')],
+    ],
+  },
   cutAhead: [ L('rei', '前！前にいる！') ],
   survive: [
     L('rei', '……止まった'),

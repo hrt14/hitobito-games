@@ -20,7 +20,8 @@ export class Input {
   consumeTap() { const t = this.tapped; this.tapped = false; return t; }
 
   _attach(canvas) {
-    const R = 56;
+    // 半径を小さくすると親指の移動量が減って反応が良くなる
+    const R = 42;
     const start = (x, y) => {
       this.tapped = true;
       if (!this.enabled) return;
@@ -34,10 +35,11 @@ export class Input {
       let dx = x - this.origin.x, dy = y - this.origin.y;
       const d = Math.hypot(dx, dy);
       if (d > R) { dx = dx / d * R; dy = dy / d * R; this.origin = { x: x - dx, y: y - dy }; }
-      const dead = 6;
+      const dead = 3;
       const m = Math.hypot(dx, dy);
       if (m < dead) { this.vx = 0; this.vy = 0; return; }
-      const k = Math.min(1, (m - dead) / (R - dead));
+      // 少し倒しただけでも十分な速度が出るようにする
+      const k = Math.min(1, Math.pow((m - dead) / (R - dead), 0.7));
       this.vx = (dx / m) * k;
       this.vy = (dy / m) * k;
     };

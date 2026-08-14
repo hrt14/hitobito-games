@@ -115,9 +115,9 @@ const WORLD = {
   bandBottom: 200, // 道の手前側
 };
 const SPEED = {
-  walk: 132,
-  run: 205,
-  anomaly: 189, // run * 0.92
+  walk: 178,
+  run: 238,
+  anomaly: 219, // run * 0.92
 };
 const CHARS = {
   shirou: { name: '四郎', label: 'シロウ', color: '#f08a45', hair: '#1a1414', scale: 1.06 },
@@ -243,6 +243,42 @@ const DIALOGUE = {
     L('yotsuba', '走って'),
     L('shirou', '鳥居！鳥居まで走れ！'),
   ],
+  // 近づくと消える。無反応だと緊張感が消えるので必ず何か起こす
+  vanish: [
+    [L('shirou', '……いない')],
+    [L('yotsuba', '消えた')],
+    [L('rei', '今の、絶対いたよね')],
+    [L('shirou', 'え、どこ行った')],
+    [L('yotsuba', '見間違い、じゃないよね')],
+  ],
+  // 歩いている間に流れる雑談。エリアごとに用意する（SPEC §9）
+  banter: {
+    A1: [
+      [L('shirou', 'この辺、来たことある？'), L('yotsuba', '通学路の逆'), L('rei', 'だから誰も来ない')],
+      [L('rei', '書き込み、全部この時間帯なんだよな'), L('yotsuba', 'もう過ぎてるけど'), L('shirou', 'じゃあ今じゃん')],
+      [L('yotsuba', '街灯、一個おきに切れてる'), L('shirou', '節電だろ'), L('rei', 'この町、そんな余裕ない')],
+    ],
+    A2: [
+      [L('shirou', '公園って夜だと別物だな'), L('yotsuba', 'ブランコ、動いてない？'), L('rei', '風'), L('yotsuba', '無風だけど')],
+      [L('rei', '昔ここで撮られた写真があるらしい'), L('shirou', '見せて'), L('rei', '消えた')],
+      [L('yotsuba', '砂場に足跡ある'), L('shirou', '子どもだろ'), L('yotsuba', 'こんな時間に？')],
+    ],
+    A3: [
+      [L('shirou', '肉まん'), L('yotsuba', 'まだ言ってる')],
+      [L('yotsuba', '店員さん、さっきからこっち見てない？'), L('rei', '見てない'), L('yotsuba', '……そう')],
+      [L('rei', 'コンビニの明かりって安心する'), L('shirou', 'わかる'), L('yotsuba', '珍しく意見合ってる')],
+    ],
+    A4: [
+      [L('yotsuba', 'ここ、通らないとダメ？'), L('shirou', '近道だろ'), L('rei', '遠回りだよ'), L('shirou', '……')],
+      [L('rei', '路地の怪談は多い'), L('yotsuba', '今は言わないで')],
+      [L('shirou', '室外機うるさいな'), L('yotsuba', 'さっきから止まってるよ'), L('shirou', 'は？')],
+    ],
+    A5: [
+      [L('shirou', '意外と綺麗にしてあるな'), L('rei', '誰かが掃除してる'), L('yotsuba', 'こんな時間に？')],
+      [L('yotsuba', '石段、何段あるんだろ'), L('rei', '数えると増えるらしい'), L('yotsuba', '数えない')],
+      [L('rei', '鳥居の内側は、別の場所って考え方がある'), L('shirou', 'じゃあ安全だな'), L('yotsuba', '軽い')],
+    ],
+  },
   cutAhead: [ L('rei', '前！前にいる！') ],
   survive: [
     L('rei', '……止まった'),
@@ -742,7 +778,8 @@ class Input {
   consumeTap() { const t = this.tapped; this.tapped = false; return t; }
 
   _attach(canvas) {
-    const R = 56;
+    // 半径を小さくすると親指の移動量が減って反応が良くなる
+    const R = 42;
     const start = (x, y) => {
       this.tapped = true;
       if (!this.enabled) return;
@@ -756,10 +793,11 @@ class Input {
       let dx = x - this.origin.x, dy = y - this.origin.y;
       const d = Math.hypot(dx, dy);
       if (d > R) { dx = dx / d * R; dy = dy / d * R; this.origin = { x: x - dx, y: y - dy }; }
-      const dead = 6;
+      const dead = 3;
       const m = Math.hypot(dx, dy);
       if (m < dead) { this.vx = 0; this.vy = 0; return; }
-      const k = Math.min(1, (m - dead) / (R - dead));
+      // 少し倒しただけでも十分な速度が出るようにする
+      const k = Math.min(1, Math.pow((m - dead) / (R - dead), 0.7));
       this.vx = (dx / m) * k;
       this.vy = (dy / m) * k;
     };
@@ -1537,131 +1575,225 @@ class Renderer {
 
   // ---------------------------------------------------------------- 人物
 
+  // 3人。スマホでもシルエットで判別でき、暗い道の上でも沈まないように
+  // 縁取りとリムライトを入れる。facing で左右を反転する。
   drawPerson(who, wx, wy, phase, facing, opts = {}) {
     const { ctx } = this;
     const def = CHARS[who];
     const x = this.sx(wx, wy), y = this.sy(wy);
     const s = this.scaleAt(wy) * def.scale * 1.24;
-    const H = 54 * s;
+    const H = 56 * s;
     const swing = Math.sin(phase) * (opts.moving ? 1 : 0);
-    const bob = opts.moving ? Math.abs(Math.sin(phase)) * 1.6 * s : 0;
+    const bob = opts.moving ? Math.abs(Math.sin(phase)) * 1.5 * s : 0;
+    const headR = 10.2 * s;
+    const ink = 'rgba(5,7,12,0.9)';
 
     ctx.save();
-    // 影
-    ctx.fillStyle = 'rgba(0,0,0,0.42)';
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.beginPath(); ctx.ellipse(x, y, 13 * s, 4.6 * s, 0, 0, Math.PI * 2); ctx.fill();
 
-    const top = y - H - bob;
-    const headR = 8.2 * s;
-    const bodyTop = top + headR * 2.0;
-    const bodyH = H - headR * 2.0 - 15 * s;
+    ctx.translate(x, -bob);
+    if (facing < 0) ctx.scale(-1, 1);
 
-    // 脚
-    ctx.strokeStyle = '#1a1f2b';
-    ctx.lineWidth = 4.2 * s;
+    const top = y - H;
+    const bodyTop = top + headR * 1.72;
+    const bodyH = H - headR * 1.72 - 14 * s;
+    ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
+
+    // 脚（ズボン／ソックス）と靴
+    ctx.strokeStyle = who === 'yotsuba' ? '#20262f' : '#232936';
+    ctx.lineWidth = 4.6 * s;
     ctx.beginPath();
-    ctx.moveTo(x - 2.6 * s, y - 15 * s); ctx.lineTo(x - 2.6 * s + swing * 5 * s, y - 1 * s);
-    ctx.moveTo(x + 2.6 * s, y - 15 * s); ctx.lineTo(x + 2.6 * s - swing * 5 * s, y - 1 * s);
+    ctx.moveTo(-2.8 * s, y - 14 * s); ctx.lineTo(-2.8 * s + swing * 5.5 * s, y - 2.4 * s);
+    ctx.moveTo(2.8 * s, y - 14 * s);  ctx.lineTo(2.8 * s - swing * 5.5 * s, y - 2.4 * s);
+    ctx.stroke();
+    ctx.strokeStyle = '#0e1219';
+    ctx.lineWidth = 3.4 * s;
+    ctx.beginPath();
+    ctx.moveTo(-3.2 * s + swing * 5.5 * s, y - 1.4 * s); ctx.lineTo(-0.6 * s + swing * 5.5 * s, y - 1.4 * s);
+    ctx.moveTo(3.2 * s - swing * 5.5 * s, y - 1.4 * s);  ctx.lineTo(0.6 * s - swing * 5.5 * s, y - 1.4 * s);
     ctx.stroke();
 
+    // ヨツバのスカート（脚より前、胴より後ろ）
+    if (who === 'yotsuba') {
+      ctx.beginPath();
+      ctx.moveTo(-8.4 * s, bodyTop + bodyH - 4 * s);
+      ctx.lineTo(8.4 * s, bodyTop + bodyH - 4 * s);
+      ctx.lineTo(11.6 * s, bodyTop + bodyH + 8 * s);
+      ctx.lineTo(-11.6 * s, bodyTop + bodyH + 8 * s);
+      ctx.closePath();
+      ctx.fillStyle = '#242b34'; ctx.fill();
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.4 * s; ctx.stroke();
+    }
+
     // 胴
-    ctx.fillStyle = def.color;
     ctx.beginPath();
-    ctx.roundRect(x - 8 * s, bodyTop, 16 * s, bodyH, 3.4 * s);
-    ctx.fill();
+    ctx.roundRect(-8.6 * s, bodyTop, 17.2 * s, bodyH, 4 * s);
+    ctx.fillStyle = def.color; ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.5 * s; ctx.stroke();
 
     if (who === 'shirou') {
-      // 開けたジャケットの前身頃
-      ctx.fillStyle = '#1e2532';
-      ctx.fillRect(x - 3 * s, bodyTop, 6 * s, bodyH);
+      // 前を開けたジャケット。中はTシャツ
+      ctx.fillStyle = '#e9edf5';
+      ctx.fillRect(-3.4 * s, bodyTop + 1 * s, 6.8 * s, bodyH - 2 * s);
       ctx.fillStyle = def.color;
-      ctx.fillRect(x - 9.6 * s, bodyTop, 3.6 * s, bodyH * 0.94);
-      ctx.fillRect(x + 6 * s, bodyTop, 3.6 * s, bodyH * 0.94);
+      ctx.beginPath(); ctx.roundRect(-9.6 * s, bodyTop, 5.4 * s, bodyH * 0.96, 2.4 * s); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(4.2 * s, bodyTop, 5.4 * s, bodyH * 0.96, 2.4 * s); ctx.fill();
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.2 * s;
+      ctx.beginPath(); ctx.moveTo(-3.4 * s, bodyTop); ctx.lineTo(-3.4 * s, bodyTop + bodyH - 2 * s);
+      ctx.moveTo(3.4 * s, bodyTop); ctx.lineTo(3.4 * s, bodyTop + bodyH - 2 * s); ctx.stroke();
     }
     if (who === 'rei') {
-      // パーカーのフード
-      ctx.fillStyle = '#2b3446';
-      ctx.beginPath(); ctx.ellipse(x, bodyTop + 2 * s, 9.4 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+      // 下ろしたフードと胸の紐
+      ctx.fillStyle = '#33405a';
+      ctx.beginPath(); ctx.ellipse(0, bodyTop + 3 * s, 9.6 * s, 5.4 * s, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.2 * s; ctx.stroke();
+      ctx.strokeStyle = '#dfe6f2'; ctx.lineWidth = 1.3 * s;
+      ctx.beginPath();
+      ctx.moveTo(-2.4 * s, bodyTop + 6 * s); ctx.lineTo(-2.4 * s, bodyTop + 12 * s);
+      ctx.moveTo(2.4 * s, bodyTop + 6 * s); ctx.lineTo(2.4 * s, bodyTop + 12 * s);
+      ctx.stroke();
     }
     if (who === 'yotsuba') {
-      // スカートとバッグ
-      ctx.fillStyle = '#20272f';
+      // セーラー襟とバッグの斜め掛け
+      ctx.fillStyle = '#e9edf5';
       ctx.beginPath();
-      ctx.moveTo(x - 9 * s, bodyTop + bodyH - 2 * s);
-      ctx.lineTo(x + 9 * s, bodyTop + bodyH - 2 * s);
-      ctx.lineTo(x + 11 * s, bodyTop + bodyH + 7 * s);
-      ctx.lineTo(x - 11 * s, bodyTop + bodyH + 7 * s);
+      ctx.moveTo(-8.6 * s, bodyTop + 1 * s);
+      ctx.lineTo(0, bodyTop + 9 * s);
+      ctx.lineTo(8.6 * s, bodyTop + 1 * s);
+      ctx.lineTo(8.6 * s, bodyTop + 4.5 * s);
+      ctx.lineTo(0, bodyTop + 12 * s);
+      ctx.lineTo(-8.6 * s, bodyTop + 4.5 * s);
       ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#c7a34a'; ctx.lineWidth = 1.8 * s;
-      ctx.beginPath(); ctx.moveTo(x - 6 * s, bodyTop + 1 * s); ctx.lineTo(x + 7 * s, bodyTop + bodyH * 0.7); ctx.stroke();
-      ctx.fillStyle = '#8a6f34';
-      ctx.fillRect(x + 5 * s, bodyTop + bodyH * 0.6, 8 * s, 7 * s);
+      ctx.strokeStyle = '#b9903c'; ctx.lineWidth = 2 * s;
+      ctx.beginPath(); ctx.moveTo(-6.6 * s, bodyTop + 2 * s); ctx.lineTo(8 * s, bodyTop + bodyH * 0.78); ctx.stroke();
+      ctx.fillStyle = '#7d6432';
+      ctx.beginPath(); ctx.roundRect(5.4 * s, bodyTop + bodyH * 0.66, 9.4 * s, 8.4 * s, 1.8 * s); ctx.fill();
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.2 * s; ctx.stroke();
     }
 
     // 腕
     ctx.strokeStyle = def.color;
-    ctx.lineWidth = 3.6 * s;
+    ctx.lineWidth = 4 * s;
     ctx.beginPath();
     if (who === 'shirou' && !opts.moving) {
-      ctx.moveTo(x - 8 * s, bodyTop + 4 * s); ctx.lineTo(x - 6 * s, bodyTop + bodyH * 0.72);
-      ctx.moveTo(x + 8 * s, bodyTop + 4 * s); ctx.lineTo(x + 6 * s, bodyTop + bodyH * 0.72);
+      ctx.moveTo(-8.2 * s, bodyTop + 5 * s); ctx.lineTo(-6.4 * s, bodyTop + bodyH * 0.74);
+      ctx.moveTo(8.2 * s, bodyTop + 5 * s);  ctx.lineTo(6.4 * s, bodyTop + bodyH * 0.74);
+    } else if (who === 'rei') {
+      ctx.moveTo(-8.2 * s, bodyTop + 5 * s); ctx.lineTo(-9.4 * s - swing * 3 * s, bodyTop + bodyH * 0.86);
+      ctx.moveTo(8.2 * s, bodyTop + 5 * s);  ctx.lineTo(5.6 * s, bodyTop + bodyH * 0.58);
     } else {
-      ctx.moveTo(x - 8 * s, bodyTop + 4 * s); ctx.lineTo(x - 9 * s - swing * 3 * s, bodyTop + bodyH * 0.85);
-      ctx.moveTo(x + 8 * s, bodyTop + 4 * s); ctx.lineTo(x + 9 * s + swing * 3 * s, bodyTop + bodyH * 0.85);
+      ctx.moveTo(-8.2 * s, bodyTop + 5 * s); ctx.lineTo(-9.4 * s - swing * 3.4 * s, bodyTop + bodyH * 0.86);
+      ctx.moveTo(8.2 * s, bodyTop + 5 * s);  ctx.lineTo(9.4 * s + swing * 3.4 * s, bodyTop + bodyH * 0.86);
     }
     ctx.stroke();
 
-    // 頭
-    ctx.fillStyle = '#e6c9a8';
-    ctx.beginPath(); ctx.arc(x, top + headR, headR, 0, Math.PI * 2); ctx.fill();
-
-    // 髪（シルエットで見分ける・SPEC §48）
-    ctx.fillStyle = def.hair;
-    if (who === 'shirou') {
-      ctx.beginPath();
-      ctx.arc(x, top + headR * 0.92, headR * 1.03, Math.PI, 0);
-      ctx.lineTo(x + headR, top + headR * 0.5);
-      for (let i = 0; i < 5; i++) {
-        ctx.lineTo(x + headR - i * headR * 0.42, top - headR * (i % 2 ? 0.05 : 0.42));
-      }
-      ctx.closePath(); ctx.fill();
-    }
-    if (who === 'rei') {
-      ctx.beginPath();
-      ctx.ellipse(x, top + headR * 1.15, headR * 1.12, headR * 1.35, 0, Math.PI, 0);
-      ctx.fill();
-      ctx.fillRect(x - headR * 1.12, top + headR * 0.9, headR * 2.24, headR * 1.5);
-      ctx.fillRect(x - headR * 0.2, top + headR * 0.3, headR * 1.3, headR * 1.0);
-    }
-    if (who === 'yotsuba') {
-      ctx.beginPath();
-      ctx.arc(x, top + headR * 0.98, headR * 1.06, Math.PI, 0);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(x - headR * 1.35, top + headR * 1.5, headR * 0.5, headR * 1.15, 0.3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // レイの携帯の光
+    // レイの携帯とその光
     if (who === 'rei' && opts.phone !== false) {
+      const px = 6.4 * s, py = bodyTop + bodyH * 0.56;
+      ctx.fillStyle = '#0d1420';
+      ctx.beginPath(); ctx.roundRect(px - 2.4 * s, py - 3.4 * s, 4.8 * s, 7 * s, 1 * s); ctx.fill();
+      ctx.fillStyle = '#9fd4ff';
+      ctx.fillRect(px - 1.6 * s, py - 2.6 * s, 3.2 * s, 5.4 * s);
       ctx.save();
-      ctx.globalAlpha = 0.55;
-      const g = ctx.createRadialGradient(x + 9 * s, bodyTop + bodyH * 0.6, 1, x + 9 * s, bodyTop + bodyH * 0.6, 16 * s);
-      g.addColorStop(0, 'rgba(150,205,255,0.75)');
+      ctx.globalAlpha = 0.5;
+      const g = ctx.createRadialGradient(px, py, 1, px, py, 17 * s);
+      g.addColorStop(0, 'rgba(150,205,255,0.8)');
       g.addColorStop(1, 'rgba(150,205,255,0)');
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x + 9 * s, bodyTop + bodyH * 0.6, 16 * s, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, 17 * s, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
 
-    // 立ち止まって振り返る（怪異のヒント・SPEC §28）
-    if (opts.lookBack) {
-      ctx.strokeStyle = 'rgba(230,240,255,0.5)';
-      ctx.lineWidth = 1.4 * s;
+    // 首と頭
+    ctx.strokeStyle = '#d8b998'; ctx.lineWidth = 3.6 * s;
+    ctx.beginPath(); ctx.moveTo(0, bodyTop - 1 * s); ctx.lineTo(0, bodyTop + 2 * s); ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, top + headR, headR, 0, Math.PI * 2);
+    ctx.fillStyle = '#f0d3b0'; ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.5 * s; ctx.stroke();
+
+    // 目（前を向いている側だけ）
+    ctx.fillStyle = '#20242e';
+    ctx.beginPath(); ctx.ellipse(3.2 * s, top + headR * 1.05, 1.15 * s, 1.7 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-2.6 * s, top + headR * 1.05, 1.05 * s, 1.6 * s, 0, 0, Math.PI * 2); ctx.fill();
+
+    // 髪（ここで3人を見分けさせる）
+    ctx.fillStyle = def.hair;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.2 * s;
+    if (who === 'shirou') {
       ctx.beginPath();
-      ctx.arc(x, top + headR, headR * 1.5, -0.5, 0.5);
-      ctx.stroke();
+      ctx.moveTo(-headR * 1.06, top + headR * 1.0);
+      ctx.quadraticCurveTo(-headR * 1.16, top - headR * 0.28, -headR * 0.1, top - headR * 0.2);
+      for (let i = 0; i < 4; i++) {
+        const bx = -headR * 0.1 + i * headR * 0.34;
+        ctx.lineTo(bx + headR * 0.12, top - headR * (i % 2 ? 0.62 : 0.34));
+        ctx.lineTo(bx + headR * 0.34, top + headR * 0.06);
+      }
+      ctx.lineTo(headR * 1.08, top + headR * 0.86);
+      ctx.quadraticCurveTo(headR * 0.6, top + headR * 0.2, 0, top + headR * 0.28);
+      ctx.quadraticCurveTo(-headR * 0.7, top + headR * 0.3, -headR * 1.06, top + headR * 1.0);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    if (who === 'rei') {
+      ctx.beginPath();
+      ctx.moveTo(-headR * 1.14, top + headR * 3.5);
+      ctx.lineTo(-headR * 1.14, top + headR * 0.8);
+      ctx.quadraticCurveTo(-headR * 1.2, top - headR * 0.42, 0, top - headR * 0.4);
+      ctx.quadraticCurveTo(headR * 1.2, top - headR * 0.42, headR * 1.14, top + headR * 0.8);
+      ctx.lineTo(headR * 1.14, top + headR * 3.5);
+      ctx.lineTo(headR * 0.62, top + headR * 3.3);
+      ctx.lineTo(headR * 0.62, top + headR * 1.0);
+      // 片目を隠す長い前髪
+      ctx.lineTo(headR * 0.1, top + headR * 1.5);
+      ctx.lineTo(-headR * 0.3, top + headR * 0.5);
+      ctx.lineTo(-headR * 0.62, top + headR * 1.1);
+      ctx.lineTo(-headR * 0.62, top + headR * 3.3);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    if (who === 'yotsuba') {
+      ctx.beginPath();
+      ctx.arc(0, top + headR * 0.96, headR * 1.1, Math.PI * 1.02, Math.PI * 1.98);
+      ctx.lineTo(headR * 1.05, top + headR * 1.3);
+      ctx.quadraticCurveTo(headR * 0.5, top + headR * 0.42, -headR * 0.15, top + headR * 0.72);
+      ctx.quadraticCurveTo(-headR * 0.8, top + headR * 0.9, -headR * 1.05, top + headR * 1.35);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // ポニーテール
+      ctx.beginPath();
+      ctx.moveTo(-headR * 0.95, top + headR * 0.75);
+      ctx.quadraticCurveTo(-headR * 2.3, top + headR * 1.1, -headR * 1.75, top + headR * 3.0);
+      ctx.quadraticCurveTo(-headR * 1.35, top + headR * 1.7, -headR * 0.7, top + headR * 1.5);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#d8544f';
+      ctx.beginPath(); ctx.arc(-headR * 1.06, top + headR * 0.98, 1.7 * s, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // 暗い道から浮かせるリムライト
+    ctx.save();
+    ctx.globalAlpha = 0.34;
+    ctx.strokeStyle = '#cfe0ff';
+    ctx.lineWidth = 1.2 * s;
+    ctx.beginPath();
+    ctx.arc(0, top + headR, headR, -Math.PI * 0.85, -Math.PI * 0.3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-8.6 * s, bodyTop + 3 * s);
+    ctx.lineTo(-8.6 * s, bodyTop + bodyH - 3 * s);
+    ctx.stroke();
+    ctx.restore();
+
+    // 立ち止まって振り返る合図（SPEC §28）
+    if (opts.lookBack) {
+      ctx.strokeStyle = 'rgba(225,238,255,0.55)';
+      ctx.lineWidth = 1.4 * s;
+      for (let i = 0; i < 2; i++) {
+        ctx.beginPath();
+        ctx.arc(-headR * 1.1, top + headR * 0.8, headR * (0.55 + i * 0.4), Math.PI * 0.62, Math.PI * 1.38);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -1755,18 +1887,19 @@ class Renderer {
       for (let i = 1; i < path.length; i++) {
         ctx.lineTo(this.sx(path[i].x, path[i].y), this.sy(path[i].y) - 1);
       }
+      // 世界の上に乗る細い光にする。太いと絵を殺す
       if (pass === 0) {
-        ctx.strokeStyle = escape ? 'rgba(130,255,190,0.16)' : 'rgba(90,230,150,0.13)';
-        ctx.lineWidth = escape ? 20 : 15;
+        ctx.strokeStyle = escape ? 'rgba(130,255,190,0.10)' : 'rgba(90,230,150,0.07)';
+        ctx.lineWidth = escape ? 9 : 7;
         ctx.setLineDash([]);
         ctx.stroke();
       } else {
-        ctx.strokeStyle = escape ? 'rgba(190,255,215,0.95)' : 'rgba(96,240,158,0.82)';
-        ctx.lineWidth = escape ? 6.5 : 4.5;
-        ctx.setLineDash(escape ? [20, 13] : [15, 13]);
-        ctx.lineDashOffset = -t * (escape ? 150 : 62);
-        ctx.shadowColor = escape ? 'rgba(160,255,205,0.85)' : 'rgba(80,235,150,0.6)';
-        ctx.shadowBlur = escape ? 16 : 9;
+        ctx.strokeStyle = escape ? 'rgba(185,255,212,0.78)' : 'rgba(104,238,160,0.52)';
+        ctx.lineWidth = escape ? 3 : 2;
+        ctx.setLineDash(escape ? [16, 12] : [11, 12]);
+        ctx.lineDashOffset = -t * (escape ? 150 : 58);
+        ctx.shadowColor = escape ? 'rgba(160,255,205,0.6)' : 'rgba(80,235,150,0.35)';
+        ctx.shadowBlur = escape ? 9 : 5;
         ctx.stroke();
       }
     }
@@ -1857,11 +1990,11 @@ class Renderer {
     ctx.save();
     ctx.globalAlpha = 0.32;
     ctx.strokeStyle = '#8ef0b8';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(input.origin.x, input.origin.y, 46, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = 'rgba(142,240,184,0.5)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(input.origin.x, input.origin.y, 42, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(142,240,184,0.45)';
     ctx.beginPath();
-    ctx.arc(input.origin.x + input.vx * 46, input.origin.y + input.vy * 46, 17, 0, Math.PI * 2);
+    ctx.arc(input.origin.x + input.vx * 42, input.origin.y + input.vy * 42, 15, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -1930,6 +2063,9 @@ class Game {
     this.trail = [];
     this.walkPhase = 0;
     this.moving = false;
+    this.facing = { shirou: 1, rei: 1, yotsuba: 1 };
+    this.vel = { x: 0, y: 0 };   // 入力を均して動きを硬くしない
+    this.nearMissT = 0;          // 仲間が怪異にかすった時のクールダウン
 
     this.bubbles = [];         // {who, text, until}
     this.queue = null;
@@ -2009,6 +2145,30 @@ class Game {
   }
 
   // ------------------------------------------------------------ 会話
+
+  // 同じものが続けて出ないように選ぶ
+  pick(list, key) {
+    this._picked = this._picked || {};
+    const used = this._picked[key] || [];
+    let pool = list.filter((_, i) => !used.includes(i));
+    if (!pool.length) { this._picked[key] = []; pool = list; }
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    this._picked[key] = [...(this._picked[key] || []), list.indexOf(item)];
+    return item;
+  }
+
+  // 歩いている最中の雑談。3人の会話そのものを見せる（SPEC §4③ §9）
+  updateBanter(dt) {
+    if (this.queue || this.mode !== 'free') return;
+    if (this.state.data.case_progress === 'escape') return;
+    if (!this.moving) return;
+    this.banterT = (this.banterT === undefined ? 9 : this.banterT) - dt;
+    if (this.banterT > 0) return;
+    this.banterT = 17 + Math.random() * 13;
+    const area = this.state.areaAt(this.party.shirou.x);
+    const sets = DIALOGUE.banter[area.id];
+    if (sets && sets.length) this.say(this.pick(sets, 'banter-' + area.id), { blocking: false });
+  }
 
   say(lines, opts = {}) {
     this.queue = {
@@ -2195,6 +2355,18 @@ class Game {
       }
     }
 
+    // 遠くの人影に近づくと消える。触れて無反応だと緊張感が消える
+    if (a.visible && !a.chasing && this.state.data.case_progress !== 'escape') {
+      const d = Math.hypot(px - a.x, this.party.shirou.y - a.y);
+      if (d < 150) {
+        a.hide();
+        this.sightingTimer = 0;
+        this.audio.blip(64, 0.8, 0.08, 'sawtooth');
+        this.r.shake = 0.5;
+        this.say(this.pick(DIALOGUE.vanish, 'vanish'), { blocking: false });
+      }
+    }
+
     // PHASE 4：完全出現
     if (this.goingHome && a.phase < 4 && px < TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
       a.appear(this.party.shirou, px - 430);
@@ -2355,6 +2527,7 @@ class Game {
     }
 
     this.updateFollowers(dt, this.moving);
+    this.updateBanter(dt);
     this.updatePhases(dt);
     this.updateEscape(dt);
     this.updateArea(dt);
@@ -2369,14 +2542,20 @@ class Game {
     const running = this.state.data.case_progress === 'escape';
     const sp = running ? SPEED.run : SPEED.walk;
     const p = this.party.shirou;
-    const vx = this.input.vx, vy = this.input.vy;
-    this.moving = Math.hypot(vx, vy) > 0.05;
+
+    // 入力を直接座標へ流すと動きが硬い。速度を追従させる
+    const k = Math.min(1, dt * 16);
+    this.vel.x += (this.input.vx - this.vel.x) * k;
+    this.vel.y += (this.input.vy - this.vel.y) * k;
+    const vx = this.vel.x, vy = this.vel.y;
+    this.moving = Math.hypot(vx, vy) > 0.06;
 
     if (this.moving) {
       p.x += vx * sp * dt;
-      p.y += vy * sp * dt * 0.62;
-      this.walkPhase += dt * (running ? 15 : 10);
+      p.y += vy * sp * dt * 0.72;
+      this.walkPhase += dt * (running ? 15 : 11);
       if (Math.sin(this.walkPhase) > 0.94) this.audio.step();
+      if (Math.abs(vx) > 0.12) this.facing.shirou = vx > 0 ? 1 : -1;
     }
 
     const limit = this.state.frontier();
@@ -2411,17 +2590,38 @@ class Game {
         target = { x: this.party.shirou.x - gaps[i], y: this.party.shirou.y };
       }
       const offY = moving ? 0 : (i === 0 ? -30 : 34);
-      const tx = target.x, ty = target.y + offY;
+      let tx = target.x, ty = target.y + offY;
+
+      // 怪異をよける。素通りさせると絵として壊れるし、緊張感も消える
+      const a = this.anomaly;
+      if (a.visible && a.fade > 0.3 && !a.high) {
+        const ax = c.x - a.x, ay = c.y - a.y;
+        const ad = Math.hypot(ax, ay);
+        if (ad < 76) {
+          const push = (76 - ad) / 76;
+          tx += (ax / (ad || 1)) * push * 120;
+          ty += (ay / (ad || 1)) * push * 90;
+          if (ad < 46 && this.nearMissT <= 0 && this.state.data.case_progress === 'escape') {
+            this.nearMissT = 3.2;
+            this.r.shake = 0.55;
+            this.audio.sting();
+            this.say([{ who, text: who === 'rei' ? 'うわっ、来た！' : 'こっち来ないで！' }], { blocking: false });
+          }
+        }
+      }
+
       const dx = tx - c.x, dy = ty - c.y;
       const d = Math.hypot(dx, dy);
       if (d > 1.5) {
-        const sp = Math.min(d * 5.5, (this.state.data.case_progress === 'escape' ? SPEED.run : SPEED.walk) * 1.25);
+        const sp = Math.min(d * 5.5, (this.state.data.case_progress === 'escape' ? SPEED.run : SPEED.walk) * 1.3);
         c.x += dx / d * sp * dt;
         c.y += dy / d * sp * dt;
+        if (Math.abs(dx) > 2) this.facing[who] = dx > 0 ? 1 : -1;
       }
       const area = this.state.areaAt(c.x);
       c.y = Math.max(area.bandTop + 4, Math.min(area.bandBottom - 2, c.y));
     });
+    if (this.nearMissT > 0) this.nearMissT -= dt;
   }
 
   updateArea(dt) {
@@ -2477,9 +2677,9 @@ class Game {
 
     // 奥から手前へ並べて描く
     const ents = [
-      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, 1, { moving: this.moving, lookBack: this.anomaly.visible }) },
-      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, 1, { moving: this.moving, lookBack: this.anomaly.visible }) },
-      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, 1, { moving: this.moving }) },
+      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, this.facing.rei, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, this.facing.yotsuba, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, this.facing.shirou, { moving: this.moving }) },
     ];
     if (this.anomaly.fade > 0.02) ents.push({ y: this.anomaly.high ? -50 : this.anomaly.y, f: () => r.drawAnomaly(this.anomaly) });
     ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
@@ -2616,8 +2816,9 @@ class Game {
     const POS = { rei: [214, 86], shirou: [300, 122], yotsuba: [382, 158] };
     r.groundTop = H * 0.60; r.groundBottom = H * 0.90;
     r.camX = 300;
+    const FACE = { rei: 1, shirou: 1, yotsuba: -1 }; // 輪になって話している
     ['rei', 'shirou', 'yotsuba'].forEach(who => {
-      r.drawPerson(who, POS[who][0], POS[who][1], 0, 1, { moving: false, phone: who !== 'rei' });
+      r.drawPerson(who, POS[who][0], POS[who][1], 0, FACE[who], { moving: false, phone: who !== 'rei' });
     });
     for (const b of this.bubbles) {
       const pos = POS[b.who] || POS.shirou;
