@@ -4,21 +4,30 @@ using System.Runtime.InteropServices;
 
 public static class HitobitoSleepBlocker
 {
+    private const uint ES_CONTINUOUS = 0x80000000;
+    private const uint ES_SYSTEM_REQUIRED = 0x00000001;
+
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern uint SetThreadExecutionState(uint esFlags);
+    private static extern uint SetThreadExecutionState(uint esFlags);
+
+    public static bool PreventSleep()
+    {
+        return SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED) != 0;
+    }
+
+    public static void RestoreSleep()
+    {
+        SetThreadExecutionState(ES_CONTINUOUS);
+    }
 }
 "@
 
-$ES_CONTINUOUS = [uint32]0x80000000
-$ES_SYSTEM_REQUIRED = [uint32]0x00000001
+$enabled = [HitobitoSleepBlocker]::PreventSleep()
 
-$preventFlags = [uint32]($ES_CONTINUOUS -bor $ES_SYSTEM_REQUIRED)
-$result = [HitobitoSleepBlocker]::SetThreadExecutionState($preventFlags)
-
-if ($result -eq 0) {
-    Write-Host "[Sleep] Could not enable sleep prevention. Starting server anyway." -ForegroundColor Yellow
-} else {
+if ($enabled) {
     Write-Host "[Sleep] Sleep prevention is ON while playtest server is running. Display may turn off." -ForegroundColor Green
+} else {
+    Write-Host "[Sleep] Could not enable sleep prevention. Starting server anyway." -ForegroundColor Yellow
 }
 
 $exitCode = 0
@@ -29,7 +38,7 @@ try {
     }
 }
 finally {
-    [void][HitobitoSleepBlocker]::SetThreadExecutionState($ES_CONTINUOUS)
+    [HitobitoSleepBlocker]::RestoreSleep()
     Write-Host "[Sleep] Sleep prevention is OFF." -ForegroundColor DarkGray
 }
 
