@@ -1,0 +1,6 @@
+"successor" data-s="${p.id}"><span class="sface">${face(p)}</span><span><b>${p.name}</b><small>${p.age}歳 ・ ${m.children.includes(p.id)?'あなたの子ども':'町の若者'}</small></span></button>`).join('')}</section></main>`;document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>inherit(b.dataset.s))}
+function inherit(i){let old=me(),n=gp(i);old.isPlayer=false;n.isPlayer=true;S.playerId=n.id;S.generation++;S.life=[{age:n.age,text:`${old.first}の人生から、この町を引き継いだ。`}];n.location='square';hist(`${n.name}が第${S.generation}代の主人公になった。`,'arrival');view='world';startTimer();save();render();toast(`第${S.generation}代。${n.first}の人生が始まる。`)}
+function render(){if(!S)return title();if(view==='legacy')return legacy();if(view==='map')return map();if(view==='history')return history();if(view==='family')return family();world()}
+window.TsuzukuMachi={state:()=>S,advanceHours:n=>advance(n||1),forceYear:()=>{S.day=YEAR_DAYS;S.hour=23;advance(1)},reset:()=>{localStorage.removeItem(KEY);location.reload()}};
+title();
+})();
