@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="『人を変えるな』— 相手ではなく自分の対応を変える反射を鍛えるLEVEL UPゲーム" />
+  <title>人を変えるな | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell" id="app">
+    <header class="topbar">
+      <a class="brand" href="../../" aria-label="hitobito GAMESへ戻る">
+        <span class="brand-mark">↗</span>
+        <span><b>LEVEL UP</b><small>thinking reflex game</small></span>
+      </a>
+      <div class="top-actions">
+        <span class="best-pill" id="bestPill">BEST --</span>
+        <button class="icon-button" id="soundBtn" type="button" aria-label="効果音のオンオフ">♪</button>
+      </div>
+    </header>
+
+    <section class="hero" id="heroScreen">
+      <div class="hero-copy">
+        <p class="eyebrow">ADAPTATION TRAINING / 100 PEOPLE</p>
+        <h1>人を、<br><span>変えるな。</span></h1>
+        <p class="lead">その人を直すより、<br><b>関わり方を変えた方が早い。</b></p>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="you-node"><span>YOU</span></div>
+        <div class="people-cloud" id="heroPeople"></div>
+        <span class="route route-a">配置</span>
+        <span class="route route-b">頼み方</span>
+        <span class="route route-c">距離</span>
+        <span class="route route-d">仕事</span>
+      </div>
+
+      <div class="hero-rule">
+        <div><b>説教する</b><span>説得 +20</span><span>関係 -10</span><span>時間 -15</span></div>
+        <p>「この人はこういう人」<br><strong>↓<br>じゃあ、自分側の何を変える？</strong></p>
+      </div>
+
+      <div class="hero-actions">
+        <button class="primary-button" id="startBtn" type="button">100人の職場へ <span>→</span></button>
+        <button class="text-button" id="howBtn" type="button">遊び方を見る</button>
+      </div>
+      <p class="microcopy">1プレイ約5分・15ケース</p>
+    </section>
+
+    <section class="game-screen hidden" id="gameScreen" aria-live="polite">
+      <div class="hud">
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <span id="progressText">1 / 15</span>
+        </div>
+        <div class="combo-pill" id="comboPill">ADAPT <b id="comboValue">0</b></div>
+      </div>
+
+      <div class="metrics" aria-label="状態">
+        <div><span>FLOW</span><b id="flowValue">50</b><i id="flowDelta"></i></div>
+        <div><span>RELATION</span><b id="relationValue">65</b><i id="relationDelta"></i></div>
+        <div><span>YOUR TIME</span><b id="timeValue">100</b><i id="timeDelta"></i></div>
+        <div class="cost"><span>説得コスト</span><b id="costValue">0</b><i id="costDelta"></i></div>
+      </div>
+
+      <div class="level-label" id="levelLabel">LEVEL 1 · 分かりやすい癖</div>
+
+      <section class="encounter" id="encounter">
+        <div class="person-card">
+          <div class="portrait" id="portrait"><span id="portraitFace">●</span></div>
+          <div class="person-copy">
+            <small id="personNo">PERSON 01 / 100</small>
+            <h2 id="personName">田中 葵</h2>
+            <span class="trait" id="personTrait">5分遅れがち</span>
+          </div>
+        </div>
+        <div class="problem-card">
+          <p class="problem-kicker">いま起きている摩擦</p>
+          <h3 id="problemText">朝一の引き継ぎが毎回止まる。</h3>
+          <p id="situationText">朝9時の定例。田中さんはまた5分遅れてきた。</p>
+        </div>
+      </section>
+
+      <section class="action-panel" id="actionPanel">
+        <p class="action-title">どこを変える？ <b>→ 自分側のレバーを選ぶ</b></p>
+        <div class="action-grid" id="actionGrid"></div>
+      </section>
+
+      <section class="feedback hidden" id="feedbackPanel">
+        <div class="feedback-head"><span id="feedbackBadge">SETTING CHANGED</span><b id="feedbackGrade">◎</b></div>
+        <h3 id="feedbackTitle">人ではなく、朝一の依存を外した。</h3>
+        <p id="feedbackBody">遅刻癖が残っても、仕事は止まらない。</p>
+        <div class="feedback-deltas" id="feedbackDeltas"></div>
+        <button class="continue-button" id="continueBtn" type="button">次の人へ <span>→</span></button>
+      </section>
+
+      <section class="roster-shell">
+        <div class="roster-head"><span><b>100 PEOPLE</b> / 直すのではなく関わり方を変える</span><small id="solvedLabel">0人対応</small></div>
+        <div class="roster" id="roster" aria-label="100人のNPC"></div>
+      </section>
+
+      <section class="toolbox">
+        <div class="toolbox-head"><span>対応の引き出し</span><small>使った回数</small></div>
+        <div class="tool-row">
+          <div class="tool place"><span>↔</span><b>配置</b><strong id="placeCount">0</strong></div>
+          <div class="tool request"><span>✉</span><b>頼み方</b><strong id="requestCount">0</strong></div>
+          <div class="tool distance"><span>◎</span><b>距離</b><strong id="distanceCount">0</strong></div>
+          <div class="tool task"><span>◆</span><b>仕事</b><strong id="taskCount">0</strong></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="result-screen hidden" id="resultScreen">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <h1>人はそのまま。<br><span>問題は動かせる。</span></h1>
+
+      <div class="result-hero">
+        <span>説教せずに処理できたケース</span>
+        <strong id="adaptedCount">0</strong><b>/ 15</b>
+        <small id="resultHeroNote">対応を変える方が早かった。</small>
+      </div>
+
+      <div class="result-grid">
+        <div><span>対応変更率</span><b id="adaptRate">0%</b><small>「直させる」以外を選べた率</small></div>
+        <div><span>最適化率</span><b id="optRate">0%</b><small>最適なレバーを選べた率</small></div>
+        <div><span>説得コスト</span><b id="finalCost">0</b><small>人を変えようとして使ったコスト</small></div>
+        <div><span>最長ADAPT</span><b id="maxCombo">0</b><small>対応変更の連続回数</small></div>
+      </div>
+
+      <div class="strategy-chart" id="strategyChart">
+        <div class="chart-title"><span>あなたが使ったレバー</span><small>偏りも攻略スタイル</small></div>
+        <div class="bar-row"><b>配置</b><div><i id="barPlace"></i></div><span id="chartPlace">0</span></div>
+        <div class="bar-row"><b>頼み方</b><div><i id="barRequest"></i></div><span id="chartRequest">0</span></div>
+        <div class="bar-row"><b>距離</b><div><i id="barDistance"></i></div><span id="chartDistance">0</span></div>
+        <div class="bar-row"><b>仕事</b><div><i id="barTask"></i></div><span id="chartTask">0</span></div>
+      </div>
+
+      <div class="takeaway">
+        <span>今日の反射</span>
+        <blockquote>「この人はこういう人。<br>じゃあ、自分側の何を変える？」</blockquote>
+        <p id="resultMessage">相手の人格ではなく、配置・頼み方・距離・仕事を動かす。</p>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary-button" id="retryBtn" type="button">別の15人でやる <span>↻</span></button>
+        <button class="text-button" id="homeBtn" type="button">タイトルへ戻る</button>
+      </div>
+      <p class="disclaimer">※ 暴力・脅迫・ハラスメント・差別・危険行為まで「その人はそういう人」で受け入れるゲームではありません。安全確保、距離、記録、相談、ルール化を優先してください。</p>
+    </section>
+  </main>
+
+  <dialog id="howDialog">
+    <div class="dialog-card">
+      <button class="dialog-close" id="closeHowBtn" type="button" aria-label="閉じる">×</button>
+      <p class="eyebrow">HOW TO PLAY</p>
+      <h2>人を直さず、<br>4つのレバーを動かす。</h2>
+      <div class="how-grid">
+        <div class="place"><b>↔ 配置</b><span>組み合わせ・時間帯・場所・順番を変える</span></div>
+        <div class="request"><b>✉ 頼み方</b><span>伝達手段・期限・粒度・確認方法を変える</span></div>
+        <div class="distance"><b>◎ 距離</b><span>接点の頻度・窓口・同席・境界線を変える</span></div>
+        <div class="task"><b>◆ 仕事</b><span>癖が弱点にならない仕事へ変える</span></div>
+      </div>
+      <div class="change-warning"><b>「直させる」も押せる。</b><span>ただし説得コスト、人間関係、自分の時間を同時に使う。</span></div>
+      <button class="primary-button" id="dialogStartBtn" type="button">やってみる <span>→</span></button>
+    </div>
+  </dialog>
+
+  <script src="./game.js"></script>
+</body>
+</html>
