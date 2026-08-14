@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#08111f">
+  <meta name="description" content="LEVEL UP『期待しない』— 人への期待を、自分でできる行動へ戻す反射ゲーム。">
+  <title>期待しない | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="brand" href="../../" aria-label="hitobito gamesへ戻る"><span>LEVEL UP</span><b>期待しない</b></a>
+      <button class="icon-btn" id="soundBtn" type="button" aria-label="効果音のオンオフ" aria-pressed="true">♪</button>
+    </header>
+
+    <section class="screen start-screen active" id="startScreen" aria-labelledby="gameTitle">
+      <div class="start-visual" aria-hidden="true">
+        <div class="person me-person"><span>ME</span><i>●</i></div>
+        <div class="thread thread-a"></div>
+        <div class="thread thread-b"></div>
+        <div class="thread thread-c"></div>
+        <div class="people-cloud"><span>上司</span><span>家族</span><span>友人</span></div>
+      </div>
+      <div class="eyebrow">LEVEL UP / THINKING REFLEX</div>
+      <h1 id="gameTitle">期待を、<br><em>自分側</em>に戻せ。</h1>
+      <p class="lead">人を信じないゲームではありません。<br>「相手がこうするはず」を見つけて、<strong>自分でできる次の一手</strong>に変えるゲームです。</p>
+      <button class="primary-btn start-btn" id="startBtn" type="button"><span>PLAY</span><b>3分で鍛える</b></button>
+      <p class="start-note">タップだけで遊べます。全15問＋ボス3問。</p>
+    </section>
+
+    <section class="screen game-screen" id="gameScreen" aria-live="polite">
+      <div class="hud">
+        <div class="hud-top">
+          <span class="level-label" id="levelLabel">LEVEL 1 / 気づく</span>
+          <span class="round-label"><b id="roundNow">1</b>/<span id="roundTotal">18</span></span>
+        </div>
+        <div class="meters">
+          <div class="meter control-meter"><div class="meter-copy"><span>CONTROL</span><b id="controlValue">50</b></div><div class="bar"><i id="controlBar"></i></div></div>
+          <div class="meter expectation-meter"><div class="meter-copy"><span>EXPECTATION</span><b id="expectationValue">20</b></div><div class="bar"><i id="expectationBar"></i></div></div>
+        </div>
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="zone them-zone"><span>THEM</span><small>相手の領域</small></div>
+        <div class="zone me-zone"><span>ME</span><small>自分の領域</small></div>
+        <svg class="threads" id="threads" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="orbit orbit-a" aria-hidden="true">上司</div>
+        <div class="orbit orbit-b" aria-hidden="true">家族</div>
+        <div class="orbit orbit-c" aria-hidden="true">友人</div>
+        <div class="avatar" id="avatar" aria-hidden="true"><div class="avatar-face">•‿•</div><span>YOU</span></div>
+
+        <article class="event-card" id="eventCard">
+          <div class="event-meta"><span id="eventScene">仕事</span><span id="timerLabel">THINK</span></div>
+          <p class="event-context" id="eventContext"></p>
+          <div class="thought" id="thoughtBox"><span>頭の中</span><b id="eventThought"></b></div>
+          <p class="prompt" id="eventPrompt">いちばん強い「自分側」の行動は？</p>
+        </article>
+      </div>
+
+      <div class="choices" id="choices" role="group" aria-label="選択肢"></div>
+      <div class="combo" id="combo" aria-hidden="true">CONTROL RETURN ×<b>2</b></div>
+    </section>
+
+    <section class="screen report-screen" id="reportScreen" aria-labelledby="reportTitle">
+      <div class="report-burst" aria-hidden="true">✦</div>
+      <div class="eyebrow">TRAINING COMPLETE</div>
+      <h2 id="reportTitle">反射が<br><em>1段階</em>上がった。</h2>
+      <div class="grade-card">
+        <div><span>SCORE</span><b id="finalScore">0</b><small>/ 1800</small></div>
+        <strong id="grade">A</strong>
+      </div>
+      <div class="pattern-card">
+        <span>今回ひっかかりやすかった期待</span>
+        <h3 id="patternTitle">「察して」型</h3>
+        <p id="patternText"></p>
+      </div>
+      <div class="skill-grid" id="skillGrid"></div>
+      <div class="final-mantra"><span>次に腹が立ったら</span><b>「俺はいま、何を期待してた？」</b></div>
+      <div class="report-actions">
+        <button class="primary-btn" id="retryBtn" type="button"><span>RETRY</span><b>もう一度鍛える</b></button>
+        <button class="secondary-btn" id="shareBtn" type="button">結果をコピー</button>
+      </div>
+      <p class="disclaimer">※「期待をゼロにする」ことが目的ではありません。信頼・願い・依頼と、相手を自分の思い通りにしようとする期待を分ける練習です。</p>
+    </section>
+
+    <div class="feedback" id="feedback" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="feedback-card">
+        <div class="feedback-mark" id="feedbackMark">✓</div>
+        <span class="feedback-kicker" id="feedbackKicker">CONTROL RETURNED</span>
+        <h3 id="feedbackTitle">自分側に戻った。</h3>
+        <p id="feedbackText"></p>
+        <div class="feedback-lesson" id="feedbackLesson"></div>
+        <button class="next-btn" id="nextBtn" type="button">次へ <span>→</span></button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
