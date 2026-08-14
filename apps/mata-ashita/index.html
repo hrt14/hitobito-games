@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#f4a261" />
+  <title>また明日。</title>
+  <link rel="stylesheet" href="./styles-a.css" />
+  <link rel="stylesheet" href="./styles-b.css" />
+</head>
+<body>
+  <main id="game" aria-label="また明日。ゲーム画面">
+    <section id="titleScreen" class="screen title-screen">
+      <div class="sun"></div>
+      <div class="title-town" aria-hidden="true">
+        <span class="house h1"></span><span class="house h2"></span><span class="house h3"></span>
+        <span class="pole"></span><span class="tree t1"></span><span class="tree t2"></span>
+      </div>
+      <div class="title-wrap">
+        <p class="eyebrow">A SMALL TOWN RPG</p>
+        <h1>また明日。</h1>
+        <p class="subtitle">夏休み最後の日、友達から変な電話がかかってきた。</p>
+        <button id="startBtn" class="primary-btn">はじめる</button>
+        <p class="control-note">画面下をドラッグして歩く / 人や物をタップして話す</p>
+      </div>
+    </section>
+    <section id="playScreen" class="screen play-screen hidden">
+      <header class="hud"><div class="hud-left"><span id="areaName" class="area-name">あさひ町</span><span id="clock" class="clock">17:18</span></div><button id="bagBtn" class="hud-chip" aria-label="もちもの">👜 <span id="coinCount">120</span>円</button></header>
+      <div id="viewport" class="viewport"><div id="world" class="world"></div><div id="vignette" class="vignette"></div><div id="hint" class="hint hidden"></div></div>
+      <aside id="objective" class="objective-card"><span class="objective-kicker">いまやること</span><strong id="objectiveText">牛乳を買いに行く</strong></aside>
+      <div id="joystickZone" class="joystick-zone" aria-label="移動エリア"><div id="joystickBase" class="joystick-base hidden"><div id="joystickKnob" class="joystick-knob"></div></div></div>
+      <button id="talkBtn" class="talk-btn hidden">はなす</button>
+    </section>
+    <section id="dialogue" class="dialogue-layer hidden" aria-live="polite"><div class="dialogue-box"><div id="speaker" class="speaker"></div><div id="portrait" class="portrait" aria-hidden="true"></div><p id="dialogueText"></p><div id="choices" class="choices hidden"></div><span class="next-mark">▼</span></div></section>
+    <section id="battle" class="battle-layer hidden"><div class="battle-backdrop"></div><div id="enemyArt" class="enemy-art"></div><h2 id="enemyName">せかせか鳩</h2><p id="enemyLine" class="enemy-line"></p><div class="battle-status"><div><span>げんき</span><strong id="hpText">36 / 36</strong></div><div><span>どうよう</span><strong id="shockText">0</strong></div></div><div id="battleLog" class="battle-log">せかせか鳩が道を急いでいる。</div><div class="battle-actions"><button data-action="attack">たたかう</button><button data-action="try">ためす</button><button data-action="item">もちもの</button></div></section>
+    <section id="bagPanel" class="panel-layer hidden"><div class="panel-card"><button class="close-btn" data-close="bagPanel">×</button><p class="eyebrow">もちもの</p><h2>ポケット</h2><div id="bagList" class="bag-list"></div></div></section>
+    <section id="ending" class="ending-layer hidden"><div class="ending-card"><p class="eyebrow">AREA 1 CLEAR</p><h2>ひばり商店街へ</h2><p>いつもの町の先に、知らない夕方が続いている。</p><button id="walkAgainBtn" class="primary-btn">あさひ町をもう少し歩く</button></div></section>
+  </main>
+  <script src="./game-a.js"></script><script src="./game-b.js"></script>
+</body>
+</html>
