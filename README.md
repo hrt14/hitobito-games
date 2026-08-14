@@ -28,9 +28,47 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 - 数字より、画面そのものの変化で進行を感じさせる。
 - ゲーム固有データと共通ロジックを分離し、将来の共通パッケージ化に備える。
 
-## Local Test
+## Human Playtest（人間の実機テスト）
 
-Vercel にデプロイしなくても、Node.js だけでローカル確認できます。
+Vercel に公開する前に、PCをローカル試遊サーバーにして、同じWi-Fiのスマホから人間が実際にゲームをプレイできます。
+
+### Windows：普段はダブルクリックだけ
+
+リポジトリ内の次のファイルをダブルクリックします。
+
+```text
+START_HUMAN_TEST.bat
+```
+
+自動的に次を行います。
+
+1. GitHub の最新版を `git pull --ff-only` で確認
+2. 初回だけ必要な npm パッケージをインストール
+3. PCを同一LAN向けのローカルサーバーとして起動
+4. ブラウザで「人間テストプレイ」ハブを自動表示
+5. PCのLAN IPを使ったスマホ接続用QRコードを表示
+6. QRを読んだスマホから、`apps/*/index.html` のゲーム一覧を選んで試遊
+
+スマホとPCは同じWi-Fiに接続してください。
+
+初回に Windows Defender Firewall の確認が出た場合は、**プライベート ネットワーク**で Node.js の通信を許可します。パブリック ネットワークへの許可は不要です。
+
+終了は黒いウィンドウで `Ctrl+C`、またはウィンドウを閉じます。サーバーを終了するとスマホからもアクセスできなくなります。
+
+### コマンドから起動する場合
+
+```bash
+npm install
+npm run human-test
+```
+
+PC側では `http://127.0.0.1:4173/__test/` が開きます。スマホ側のURLは起動時に検出したLAN IP（例 `http://192.168.x.x:4173/__test/`）になり、QRにも同じURLが入ります。
+
+この試遊環境はインターネットへ公開する仕組みではありません。同じLAN内からのみアクセスする前提です。
+
+## Local Test（開発者向け）
+
+Vercel にデプロイしなくても、Node.js だけでPC上の確認ができます。
 
 ```bash
 git pull
@@ -62,7 +100,7 @@ npm run check
 ```bash
 git clone https://github.com/hrt14/hitobito-games.git
 cd hitobito-games
-npm run dev
+npm install
 ```
 
 このリポジトリは ES Modules を使うゲームを含むため、HTMLファイルをダブルクリックして `file://` で開くのではなく、必ずローカルHTTPサーバー経由で確認します。
