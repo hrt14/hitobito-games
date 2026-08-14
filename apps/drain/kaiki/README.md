@@ -14,8 +14,8 @@ main へ push しても再ビルドされない（CLI から手動デプロイ�
 稼働中の drain プロジェクト配下に置くことで `drain.hitobito.jp/kaiki/` として公開している。
 一坪王国（`apps/drain/one-tsubo/`）と同じ回避策。
 
-ディレクトリ名を `404` にすると Vercel の not-found 処理と衝突し、
-200 を返しつつ中身が別物になったため `kaiki` にしている。
+ディレクトリ名は `404` を避けて `kaiki` にしている。
+Vercel の not-found 処理と紛らわしいため（衝突するかは未検証）。
 
 ## 本来やるべきこと
 
