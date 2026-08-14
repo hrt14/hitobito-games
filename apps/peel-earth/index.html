@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#111814" />
+  <meta name="description" content="地球の表面をスワイプで一枚ずつ剥がし、地殻の下のマントルまで潜るスマホWebゲーム。" />
+  <title>地球をめくる｜PEEL EARTH</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<main id="game" class="game" aria-label="地球をめくる">
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <header class="hud">
+    <div class="hud-block">
+      <small>DEPTH</small>
+      <strong id="depthLabel">0 cm</strong>
+    </div>
+    <div class="hud-center">
+      <span id="zoneLabel">地表</span>
+      <div class="depth-track"><i id="depthProgress"></i></div>
+    </div>
+    <button id="collectionButton" class="collection-button" aria-label="発見物を見る">
+      <span>◇</span><b id="collectionCount">0</b>
+    </button>
+  </header>
+
+  <section id="world" class="world" aria-live="polite">
+    <div id="mantle" class="mantle-world" aria-hidden="true">
+      <div class="mantle-glow glow-a"></div>
+      <div class="mantle-glow glow-b"></div>
+      <div class="convection convection-a"></div>
+      <div class="convection convection-b"></div>
+      <div class="mantle-rock rock-a"></div>
+      <div class="mantle-rock rock-b"></div>
+      <div class="mantle-rock rock-c"></div>
+      <div class="mantle-title"><small>35 km BELOW</small><strong>マントル</strong></div>
+    </div>
+
+    <div id="layerStack" class="layer-stack"></div>
+
+    <div id="peelHint" class="peel-hint">
+      <span class="finger-line"></span>
+      <strong>上へめくる</strong>
+      <small>ゆっくり剥がすと、きれいに見つかる</small>
+    </div>
+
+    <div id="discoveryToast" class="discovery-toast" aria-live="assertive">
+      <div id="discoveryMark" class="discovery-mark"></div>
+      <div><small id="discoveryEyebrow">FOUND</small><strong id="discoveryTitle"></strong><p id="discoveryNote"></p></div>
+    </div>
+
+    <div id="shards" class="shards" aria-hidden="true"></div>
+  </section>
+
+  <section id="intro" class="intro">
+    <div class="intro-earth" aria-hidden="true">
+      <div class="earth-core"></div>
+      <div class="earth-crust"></div>
+      <div class="earth-continent c1"></div>
+      <div class="earth-continent c2"></div>
+    </div>
+    <div class="kicker">PEEL EARTH</div>
+    <h1>地球を<br>めくる。</h1>
+    <p>足もとの一枚を剥がしたら、<br>どこまで行けるだろう。</p>
+    <button id="startButton" class="start-button">めくりはじめる <span>↑</span></button>
+  </section>
+
+  <aside id="collectionPanel" class="collection-panel" aria-hidden="true">
+    <button id="closeCollection" class="close-button" aria-label="閉じる">×</button>
+    <div class="kicker">DISCOVERIES</div>
+    <h2>地球の中で見つけたもの</h2>
+    <div id="collectionGrid" class="collection-grid"></div>
+  </aside>
+
+  <section id="ending" class="ending" aria-hidden="true">
+    <div class="ending-flare"></div>
+    <div class="ending-card">
+      <div class="kicker">CRUST CLEARED</div>
+      <h2>地球の皮を、<br>剥がしきった。</h2>
+      <p>ここから下は、岩がゆっくり流れる世界。<br>あなたはいま、地殻の下にいる。</p>
+      <div class="ending-stats">
+        <div><small>到達深度</small><strong>35 km</strong></div>
+        <div><small>発見</small><strong id="endingFound">0 / 9</strong></div>
+        <div><small>完全な発見</small><strong id="endingPerfect">0</strong></div>
+      </div>
+      <button id="restartButton" class="start-button">もう一度めくる <span>↻</span></button>
+    </div>
+  </section>
+</main>
+<script src="./game.js"></script>
+</body>
+</html>
