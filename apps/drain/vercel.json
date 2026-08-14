@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "404.hitobito.jp" }],
+      "destination": "/kaiki/index.html"
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "404.hitobito.jp" }],
+      "destination": "/kaiki/:path*"
+    }
+  ]
+}

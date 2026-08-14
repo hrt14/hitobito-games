@@ -17,6 +17,15 @@ main へ push しても再ビルドされない（CLI から手動デプロイ�
 ディレクトリ名は `404` を避けて `kaiki` にしている。
 Vercel の not-found 処理と紛らわしいため（衝突するかは未検証）。
 
+## 404.hitobito.jp で見せる
+
+`apps/drain/vercel.json` に、ホストが `404.hitobito.jp` の時だけ
+`/` を `/kaiki/` へ書き換えるルールを入れてある。
+
+ドメイン `404.hitobito.jp` を drain プロジェクトへ移すと、
+`404.hitobito.jp` のトップでこのゲームが出る。
+`drain.hitobito.jp` はホストが一致しないので影響を受けない。
+
 ## 本来やるべきこと
 
 Vercel ダッシュボードで `404-kaiki` プロジェクトを直す：
