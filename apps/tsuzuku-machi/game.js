@@ -1,0 +1,1 @@
+Promise.all([1,2,3,4].map(i=>fetch(`./game-p${i}.txt`).then(r=>{if(!r.ok)throw new Error(`part ${i}`);return r.text()}))).then(p=>(0,eval)(p.join(''))).catch(e=>{document.getElementById('app').innerHTML='<main style="padding:24px;font-family:sans-serif"><h1>読み込みエラー</h1><p>'+e.message+'</p></main>';console.error(e)});
