@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#0b0f16" />
+<title>PEEL — めくる世界</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="app" id="app">
+  <section class="screen hub active" id="hub">
+    <div class="hero">
+      <div class="kicker">PEEL SERIES</div>
+      <h1>世界は、<br>何層ある？</h1>
+      <p>上へスワイプして、一枚ずつめくる。地面も、人体も、東京も、記憶も。奥にあるものを見つけよう。</p>
+    </div>
+    <div class="grid" id="themeGrid"></div>
+  </section>
+
+  <section class="screen play" id="play">
+    <div class="topbar">
+      <button class="iconbtn" id="backBtn" aria-label="テーマ一覧へ">‹</button>
+      <div class="topcopy"><span class="eyebrow" id="seriesLabel">PEEL</span><strong id="themeTitle">地球をめくる</strong></div>
+      <button class="iconbtn" id="collectionBtn" aria-label="発見物">◇</button>
+      <div class="progress"><small id="depthText">0 / 8</small><div class="bar"><i id="progressBar"></i></div></div>
+    </div>
+    <div class="scene" id="scene">
+      <div class="atmos"></div><div class="ambient"></div>
+      <div class="stack" id="stack"></div>
+      <div class="hint" id="hint"><span class="arrow">↑</span><b>上へめくる</b><small>ゆっくりめくると PERFECT</small></div>
+      <div class="toast" id="toast"><div class="badge" id="toastIcon"></div><div><small id="toastTag">FOUND</small><b id="toastTitle"></b><p id="toastNote"></p></div></div>
+    </div>
+    <div class="ending" id="ending"><div class="endcard"><div class="endicon" id="endIcon"></div><div class="kicker">DEEPEST LAYER</div><h2 id="endTitle"></h2><p id="endText"></p><div class="stats"><div class="stat"><small>発見</small><b id="foundStat">0 / 8</b></div><div class="stat"><small>PERFECT</small><b id="perfectStat">0</b></div></div><button class="primary" id="againBtn">もう一度めくる</button><button class="secondary" id="otherBtn">別の世界をめくる</button></div></div>
+    <aside class="collection" id="collection"><div class="collection-head"><button class="iconbtn" id="closeCollection">×</button><div><span class="eyebrow">DISCOVERIES</span><h2 id="collectionTitle">発見したもの</h2></div></div><div class="collection-grid" id="collectionGrid"></div></aside>
+  </section>
+</div>
+<script src="./game.js"></script>
+</body></html>
