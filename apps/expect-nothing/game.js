@@ -160,7 +160,7 @@
     if(quality===2){state.skills[s.skill][0]++;state.control=Math.min(100,state.control+10+(state.combo>=2?2:0));state.expectation=Math.max(0,state.expectation-7);state.score+=100+Math.min(state.combo,5)*10;state.combo++;goodFx();}
     else if(quality===1){state.control=Math.min(100,state.control+2);state.expectation=Math.min(100,state.expectation+3);state.score+=45;state.combo=0;state.mistakes[s.trap]=(state.mistakes[s.trap]||0)+1;partialFx();}
     else{state.control=Math.max(0,state.control-7);state.expectation=Math.min(100,state.expectation+12);state.combo=0;state.mistakes[s.trap]=(state.mistakes[s.trap]||0)+2;badFx();}
-    button.classList.add(quality===2?'hint':'');
+    if(quality===2) button.classList.add('hint');
     updateHud();showFeedback(s,choice,quality);
   }
   function goodFx(){
@@ -192,7 +192,7 @@
     ui.grade.textContent=normalized>=1530?'S':normalized>=1350?'A':normalized>=1080?'B':normalized>=810?'C':'D';
     const sorted=Object.entries(state.mistakes).sort((a,b)=>b[1]-a[1]);const pattern=sorted[0]?.[0]||'assume';ui.patternTitle.textContent=PATTERNS[pattern][0];ui.patternText.textContent=PATTERNS[pattern][1];
     ui.skillGrid.innerHTML='';Object.entries(state.skills).forEach(([key,[ok,total]])=>{const rate=total?Math.round(ok/total*100):0;const div=document.createElement('div');div.className='skill';div.innerHTML=`<span>${SKILL_NAMES[key]}</span><b>${rate}%</b><i style="--v:${rate}%"></i>`;ui.skillGrid.appendChild(div);});
-    const best=Math.max(Number(localStorage.getItem('levelup-expect-best')||0),normalized);localStorage.setItem('levelup-expect-best',String(best));sound('finish');
+    try{const best=Math.max(Number(localStorage.getItem('levelup-expect-best')||0),normalized);localStorage.setItem('levelup-expect-best',String(best));}catch(e){}sound('finish');
   }
   function sound(type){if(!state.sound)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const now=audioCtx.currentTime;const tones={start:[330,520],good:[520,760],partial:[420,510],bad:[180,120],finish:[440,660,880]}[type]||[440];tones.forEach((freq,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(freq,now+i*.08);g.gain.setValueAtTime(.0001,now+i*.08);g.gain.exponentialRampToValueAtTime(.055,now+i*.08+.01);g.gain.exponentialRampToValueAtTime(.0001,now+i*.08+.12);o.connect(g).connect(audioCtx.destination);o.start(now+i*.08);o.stop(now+i*.08+.14);});}catch(e){}
   }
