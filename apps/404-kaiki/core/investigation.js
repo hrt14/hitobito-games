@@ -1,7 +1,5 @@
 // Investigation System（SPEC §12 §14）
 // 「調べる」ボタンは作らない。近づくだけで発火する。
-import { POINTS } from '../data/case01.js';
-
 // 道は横に長いので判定は楕円にする。奥行き方向にも十分な余裕を持たせ、
 // 「マークの近くまで歩いたのに何も起きない」を作らない。
 export const RADIUS_X = 74;
@@ -21,7 +19,7 @@ function inRange(p, player) {
 
 // マークを描画すべき調査ポイント
 export function visiblePoints(state, player) {
-  return POINTS.filter(p => {
+  return state.c.POINTS.filter(p => {
     if (state.isDone(p.id)) return false;
     if (!state.isUnlocked(p.area)) return false;
     if (p.hidden && distance(p, player) > HIDDEN_REVEAL) return false;
@@ -31,7 +29,7 @@ export function visiblePoints(state, player) {
 
 // 発火すべき調査ポイント（無ければ null）
 export function findTrigger(state, player) {
-  for (const p of POINTS) {
+  for (const p of state.c.POINTS) {
     if (state.isDone(p.id)) continue;
     if (!state.isUnlocked(p.area)) continue;
     if (inRange(p, player)) return p;
@@ -41,5 +39,5 @@ export function findTrigger(state, player) {
 
 // 次の必須目的地。緑ラインはここへ伸びる
 export function nextRequired(state) {
-  return POINTS.find(p => p.required && !state.isDone(p.id) && state.isUnlocked(p.area)) || null;
+  return state.c.POINTS.find(p => p.required && !state.isDone(p.id) && state.isUnlocked(p.area)) || null;
 }

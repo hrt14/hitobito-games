@@ -1,8 +1,6 @@
 // 緑のガイドライン用の経路（SPEC §15 §16 §17）
-import { WAYPOINTS } from '../data/case01.js';
-
 // プレイヤーから目的地まで、道なりに折れる折線を作る
-export function buildPath(from, to) {
+export function buildPath(from, to, WAYPOINTS) {
   if (!to) return [];
   const forward = to.x >= from.x;
   const mid = WAYPOINTS.filter(w =>

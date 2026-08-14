@@ -1,5 +1,5 @@
 // 404怪異調査クラブ / CASE 01 縦切り版
-import { WORLD, SPEED, AREAS, GATES, POINTS, SCENERY, SAFE_ZONE, DIALOGUE, TRIGGERS } from './data/case01.js';
+import { CASE01 } from './data/case01.js';
 import { CaseState } from './core/case.js';
 import { Anomaly } from './core/anomaly.js';
 import { Chase } from './core/chase.js';
@@ -14,14 +14,18 @@ const $ = s => document.querySelector(s);
 const HOME = { x: 220, y: 130 };
 
 class Game {
-  constructor() {
+  constructor(caseData) {
+    this.c = caseData;
+    const { SPEED, SAFE_ZONE, DIALOGUE, TRIGGERS } = caseData;
+    this.SPEED = SPEED; this.SAFE_ZONE = SAFE_ZONE;
+    this.DIALOGUE = DIALOGUE; this.TRIGGERS = TRIGGERS;
     this.canvas = $('#stage');
     this.r = new Renderer(this.canvas);
     this.input = new Input(this.canvas);
     this.audio = new Ambience();
-    this.state = new CaseState();
-    this.anomaly = new Anomaly();
-    this.chase = new Chase();
+    this.state = new CaseState(caseData);
+    this.anomaly = new Anomaly(caseData);
+    this.chase = new Chase(caseData);
 
     this.scene = 'title';
     this.mode = 'free';        // free | investigate | dialogue | caught | survive
@@ -52,7 +56,7 @@ class Game {
     this.escapeStarted = 0;
     this.caughtT = 0;
     this.fade = 0;
-    this.lamps = SCENERY.lamps.map(l => ({ ...l }));
+    this.lamps = caseData.SCENERY.lamps.map(l => ({ ...l }));
 
     window.addEventListener('resize', () => this.r.resize());
     window.game = this; // デバッグ・テストプレイ用
@@ -70,7 +74,7 @@ class Game {
     $('#btnRecord').onclick = () => this.showRecord();
     $('#btnRecordClose').onclick = () => { $('#record').hidden = true; if (this.scene === 'done') $('#title').hidden = false; };
     $('#btnRestart').onclick = () => { $('#record').hidden = true; this.state.reset(); this.begin(false); };
-    if (!CaseState.hasSave()) $('#btnContinue').hidden = true;
+    if (!CaseState.hasSave(this.c.id)) $('#btnContinue').hidden = true;
   }
 
   togglePause(on) {
@@ -102,7 +106,7 @@ class Game {
       if (this.state.data.case_progress === 'escape') this.startEscape(true);
     } else {
       this.setPartyAt(150, 130);
-      this.say(DIALOGUE.intro, { blocking: false });
+      this.say(this.DIALOGUE.intro, { blocking: false });
     }
     this.goingHome = this.state.isDone('P5');
     if (this.goingHome && this.state.data.case_progress !== 'escape') this.anomaly.setPhase(3);
@@ -139,7 +143,7 @@ class Game {
     if (this.banterT > 0) return;
     this.banterT = 17 + Math.random() * 13;
     const area = this.state.areaAt(this.party.shirou.x);
-    const sets = DIALOGUE.banter[area.id];
+    const sets = this.DIALOGUE.banter[area.id];
     if (sets && sets.length) this.say(this.pick(sets, 'banter-' + area.id), { blocking: false });
   }
 
@@ -234,7 +238,7 @@ class Game {
   }
 
   runPointDialogue(point, alreadyDone) {
-    const lines = DIALOGUE[point.id] || [];
+    const lines = this.DIALOGUE[point.id] || [];
     const completeAt = alreadyDone ? -1 : lines.length - 1;
     this.say(lines, {
       blocking: true,
@@ -268,13 +272,13 @@ class Game {
       this.anomaly.showFar(this.party.shirou, 1);
       this.audio.setMode('hush');
       this.audio.sting();
-      this.say(DIALOGUE.phase2, { blocking: false });
+      this.say(this.DIALOGUE.phase2, { blocking: false });
     }
     if (point.id === 'P5') {
       this.goingHome = true;
       this.anomaly.setPhase(3);
       this.sightIndex = 0;
-      this.say(DIALOGUE.goHome, { blocking: false });
+      this.say(this.DIALOGUE.goHome, { blocking: false });
       this.refreshObjective();
     }
   }
@@ -282,7 +286,7 @@ class Game {
   // ------------------------------------------------------------ 目的地と緑ライン
 
   refreshObjective() {
-    if (this.state.data.case_progress === 'escape') { this.objective = { ...SAFE_ZONE }; return; }
+    if (this.state.data.case_progress === 'escape') { this.objective = { ...this.SAFE_ZONE }; return; }
     if (this.goingHome) { this.objective = HOME; return; }
     this.objective = nextRequired(this.state);
   }
@@ -302,23 +306,23 @@ class Game {
     const px = this.party.shirou.x;
     const a = this.anomaly;
 
-    if (a.phase === 0 && px > TRIGGERS.phase1AtX) {
+    if (a.phase === 0 && px > this.TRIGGERS.phase1AtX) {
       a.setPhase(1);
       this.audio.setMode('hush');
       const near = this.lamps.find(l => Math.abs(l.x - px) < 460 && l.on);
       if (near) near.on = false;
       this.audio.blip(120, 0.5, 0.05, 'sawtooth');
-      this.say(DIALOGUE.phase1, { blocking: false });
+      this.say(this.DIALOGUE.phase1, { blocking: false });
     }
 
     // PHASE 3：帰り道での接近（何度か確認できる）
     if (this.goingHome && a.phase === 3 && this.state.data.case_progress !== 'escape') {
-      const th = TRIGGERS.phase3FromX[this.sightIndex];
+      const th = this.TRIGGERS.phase3FromX[this.sightIndex];
       if (th !== undefined && px < th && !a.visible) {
         a.showNear(this.party.shirou, -1); // 帰る方向の先に立っている
         this.sightingTimer = 3.4;
         this.audio.sting();
-        const lines = DIALOGUE.phase3[this.sightIndex];
+        const lines = this.DIALOGUE.phase3[this.sightIndex];
         if (lines) this.say(lines, { blocking: false });
         this.sightIndex++;
       }
@@ -336,12 +340,12 @@ class Game {
         this.sightingTimer = 0;
         this.audio.blip(64, 0.8, 0.08, 'sawtooth');
         this.r.shake = 0.5;
-        this.say(this.pick(DIALOGUE.vanish, 'vanish'), { blocking: false });
+        this.say(this.pick(this.DIALOGUE.vanish, 'vanish'), { blocking: false });
       }
     }
 
     // PHASE 4：完全出現
-    if (this.goingHome && a.phase < 4 && px < TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
+    if (this.goingHome && a.phase < 4 && px < this.TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
       // 問いかけの場面。近すぎず、画面に二者が収まる距離で向かい合う
       a.appear(this.party.shirou, px - 262);
       // 3人を固めて、全員が女の方を向く（散っていると誰かが画面外に出る）
@@ -356,14 +360,14 @@ class Game {
       this.mode = 'dialogue';
       this.input.setEnabled(false);
       const UNMASK_AT = 4; // 「これでも？」でマスクを外す
-      this.say(DIALOGUE.phase4, {
+      this.say(this.DIALOGUE.phase4, {
         blocking: true,
         onIndex: i => {
           if (i === UNMASK_AT) {
             a.unmask();
             this.audio.reveal();
             this.r.shake = 1.1;
-          } else if (DIALOGUE.phase4[i] && DIALOGUE.phase4[i].who === 'kuchisake') {
+          } else if (this.DIALOGUE.phase4[i] && this.DIALOGUE.phase4[i].who === 'kuchisake') {
             this.audio.voice();
           }
         },
@@ -402,17 +406,17 @@ class Game {
     for (const l of this.lamps) if (l.on && l.x < p.x - 90) { l.on = false; }
 
     // 先回りして道をふさぐ
-    const cut = TRIGGERS.cutAheadAtX[this.chase.cutIndex];
+    const cut = this.TRIGGERS.cutAheadAtX[this.chase.cutIndex];
     if (cut !== undefined && p.x > cut) {
       this.chase.cutAhead(this.anomaly, p, 1, 430);
       this.audio.sting();
       this.r.shake = 0.7;
-      this.say(DIALOGUE.cutAhead, { blocking: false });
+      this.say(this.DIALOGUE.cutAhead, { blocking: false });
     }
 
     if (this.chase.caught) { this.onCaught(); return; }
 
-    if (Math.hypot(p.x - SAFE_ZONE.x, p.y - SAFE_ZONE.y) < 74) this.onSurvive();
+    if (Math.hypot(p.x - this.SAFE_ZONE.x, p.y - this.SAFE_ZONE.y) < 74) this.onSurvive();
   }
 
   onCaught() {
@@ -422,7 +426,7 @@ class Game {
     this.input.setEnabled(false);
     this.audio.caught();
     this.r.shake = 1.2;
-    this.say(DIALOGUE.caught, { blocking: false });
+    this.say(this.DIALOGUE.caught, { blocking: false });
   }
 
   respawn() {
@@ -432,7 +436,7 @@ class Game {
     this.queue = null;
     this.fade = 1;
     if (this.state.data.case_progress === 'escape') {
-      this.lamps = SCENERY.lamps.map(l => ({ ...l, on: l.x < this.party.shirou.x - 90 ? false : l.on }));
+      this.lamps = this.c.SCENERY.lamps.map(l => ({ ...l, on: l.x < this.party.shirou.x - 90 ? false : l.on }));
       this.startEscape(true);
     } else {
       this.mode = 'free';
@@ -445,17 +449,17 @@ class Game {
     this.chase.stop(this.anomaly);
     this.input.setEnabled(false);
     // 3人は鳥居をくぐって境内へ入る。怪異は道の側で止まる（SPEC §32）
-    this.party.shirou = { x: SAFE_ZONE.x + 6, y: 14 };
-    this.party.rei = { x: SAFE_ZONE.x - 36, y: 22 };
-    this.party.yotsuba = { x: SAFE_ZONE.x + 44, y: 26 };
+    this.party.shirou = { x: this.SAFE_ZONE.x + 6, y: 14 };
+    this.party.rei = { x: this.SAFE_ZONE.x - 36, y: 22 };
+    this.party.yotsuba = { x: this.SAFE_ZONE.x + 44, y: 26 };
     this.trail = [];
     this.moving = false;
-    this.anomaly.x = SAFE_ZONE.x - 120;
+    this.anomaly.x = this.SAFE_ZONE.x - 120;
     this.anomaly.y = 96; // 境内には入らず、道の側に立ち止まる
     this.anomaly.chasing = false;
     this.audio.setMode('silent');
     setTimeout(() => { this.audio.setMode('night'); this.audio.relief(); }, 2200);
-    this.say(DIALOGUE.survive, {
+    this.say(this.DIALOGUE.survive, {
       blocking: true,
       onEnd: () => this.startEpilogue(),
     });
@@ -467,7 +471,7 @@ class Game {
     this.bubbles = [];
     $('#hud').hidden = true;
     this.audio.setMode('night');
-    this.say(DIALOGUE.epilogue, {
+    this.say(this.DIALOGUE.epilogue, {
       blocking: true,
       onEnd: () => {
         this.state.markCleared(buildRecord(this.state));
@@ -538,7 +542,7 @@ class Game {
 
   movePlayer(dt) {
     const running = this.state.data.case_progress === 'escape';
-    const sp = running ? SPEED.run : SPEED.walk;
+    const sp = running ? this.SPEED.run : this.SPEED.walk;
     const p = this.party.shirou;
 
     // 入力を直接座標へ流すと動きが硬い。速度を追従させる
@@ -615,7 +619,7 @@ class Game {
       const d = Math.hypot(dx, dy);
       if (d > 1.5) {
         // 逃走中は追いつけないと置き去りになるので上限を上げる
-        const base = escaping ? SPEED.run * 1.9 : SPEED.walk * 1.3;
+        const base = escaping ? this.SPEED.run * 1.9 : this.SPEED.walk * 1.3;
         const sp = Math.min(d * 6.5, base);
         c.x += dx / d * sp * dt;
         c.y += dy / d * sp * dt;
@@ -660,7 +664,7 @@ class Game {
     const p = this.party.shirou;
     let cam = p.x;
     // 生還の瞬間は、鳥居の内と外の両方が同時に見える位置で止める
-    if (this.mode === 'survive') cam = SAFE_ZONE.x - 46;
+    if (this.mode === 'survive') cam = this.SAFE_ZONE.x - 46;
     // 問いかけの場面は、3人と女の両方が画面に入る位置で止める
     else if (this.mode === 'dialogue' && this.anomaly.visible) cam = (p.x + this.anomaly.x) / 2;
     else if (this.camFocus) {
@@ -688,7 +692,7 @@ class Game {
 
     const ratio = this.guideRatio();
     if (ratio > 0 && this.objective && this.mode !== 'caught') {
-      const path = truncate(buildPath(p, this.objective), ratio);
+      const path = truncate(buildPath(p, this.objective, this.c.WAYPOINTS), ratio);
       r.drawGuideLine(path, this.t, this.state.data.case_progress === 'escape' ? 'escape' : 'normal');
     }
 
@@ -749,7 +753,7 @@ class Game {
     const r = this.r;
     r.camX = 4900;
     r.drawSky(); r.drawFar(); r.drawMid(); r.drawRoad();
-    r.drawTorii(SAFE_ZONE.x, SAFE_ZONE.y);
+    r.drawTorii(this.SAFE_ZONE.x, this.SAFE_ZONE.y);
     r.drawVignette(0.5);
   }
 
@@ -861,4 +865,4 @@ class Game {
   }
 }
 
-new Game();
+new Game(CASE01);

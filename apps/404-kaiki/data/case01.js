@@ -43,9 +43,9 @@ export const POINTS = [
   { id: 'P2', area: 'A2', x: 1782, y: 50,  mark: '◎', by: 'shirou',  kind: 'bin',     required: true,  label: 'ベンチ横のゴミ箱' },
   { id: 'O2', area: 'A3', x: 2620, y: 165, mark: '◎', by: 'shirou',  kind: 'vending', required: false, label: '自販機' },
   { id: 'P3', area: 'A3', x: 3060, y: 40,  mark: '◎', by: 'shirou',  kind: 'door',    required: true,  label: 'コンビニ裏口のドア' },
-  { id: 'H1', area: 'A4', x: 3800, y: 64,  mark: '⌕', by: 'yotsuba', kind: 'graffiti',required: false, hidden: true, label: '室外機の裏の落書き' },
+  { id: 'H1', area: 'A4', x: 3800, y: 64,  mark: '⌕', by: 'yotsuba', kind: 'graffiti',required: false, hidden: true, flag: 'saw_graffiti_404', label: '室外機の裏の落書き' },
   { id: 'P4', area: 'A4', x: 4180, y: 95,  mark: '⌕', by: 'yotsuba', kind: 'mirror',  required: true,  label: '路地奥の落とし物' },
-  { id: 'P5', area: 'A5', x: 5250, y: 86,  mark: '◎', by: 'all',     kind: 'torii',   required: true,  label: '鳥居の前' },
+  { id: 'P5', area: 'A5', x: 5250, y: 86,  mark: '◎', by: 'all',     kind: 'torii',   required: true,  flag: 'knows_shrine', label: '鳥居の前' },
 ];
 
 export const SAFE_ZONE = { x: 5320, y: 26, r: 120 }; // 道ではなく境内の入口
@@ -264,3 +264,43 @@ export const PROPS = [
   { kind: 'aircon',   x: 3980, y: 52 },
   { kind: 'shrine',   x: 5150, y: 60,  w: 500 },
 ];
+
+// 記録の中身は CASE 側が持つ（core/log.js は組み立てるだけ）
+export const EVIDENCE = {
+  P1: '電柱の貼り紙（掲示板の写真と同一）',
+  P2: '捨てられていない新品のマスク',
+  P3: 'コンビニ裏口。無人。ノブだけが動いた',
+  P4: '割れた手鏡',
+  P5: '鳥居。内側には入ってこない',
+  O1: '公園のブランコ（レイが漕いだ）',
+  O2: '自販機。肉まんは売り切れ',
+  H1: '室外機の裏の落書き「404」',
+};
+
+export const RECORD = {
+  case: 'CASE 01 / 口裂け女',
+  rumor: '深夜の住宅街、マスクの女に「私、きれい？」と聞かれる',
+  places: ['住宅街入口', '小さな公園', 'コンビニ裏', '細い路地', '神社周辺'],
+  encounter: 'あり。「わたし、きれい？」と聞かれた（鳥居の外で停止）',
+  notes: [
+    ['シロウ', '走れば勝てる'],
+    ['レイ', '鳥居で止まったのは記録通り'],
+    ['ヨツバ', '最初に見たとき、こっちを見ていた'],
+  ],
+  unresolved: [
+    '結局、あれは何て答えるのが正解だったんだ？',
+    'じゃあ、最初の目撃写真を撮ったのは誰？',
+  ],
+  unresolvedIf: {
+    saw_graffiti_404: 'あの落書き、なんでうちらと同じ数字なんだ？',
+  },
+};
+
+// CASE 全体をひとまとめにして core へ注入する
+export const CASE01 = {
+  id: 'case01',
+  title: 'CASE 01 / 口裂け女',
+  mode: 'chase',            // 生還の型。CASE 02 は 'sight' になる
+  WORLD, SPEED, CHARS, AREAS, GATES, POINTS, SAFE_ZONE, WAYPOINTS,
+  SPAWNS, TRIGGERS, DIALOGUE, SCENERY, PROPS, EVIDENCE, RECORD,
+};

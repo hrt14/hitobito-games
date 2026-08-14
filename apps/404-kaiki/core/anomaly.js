@@ -1,14 +1,13 @@
 // Anomaly Spawn System（SPEC §25 §26 §27）
 // 真横へスポーンさせない。必ず「少し遠い場所」から。
-import { SPAWNS, WORLD } from '../data/case01.js';
-
 // 真横は禁止。ただし遠すぎて画面外になると発見できないので、
 // 「見えるが遠い」帯の中から選ぶ。
 const MIN_DISTANCE = 190;
 const MAX_DISTANCE = 296; // これ以上離すと縦画面の外へ出て、発見できなくなる
 
 export class Anomaly {
-  constructor() {
+  constructor(caseData) {
+    this.c = caseData;
     this.phase = 0;
     this.visible = false;
     this.x = 0;
@@ -37,7 +36,7 @@ export class Anomaly {
 
     const away = dir || (pick.x >= player.x ? 1 : -1);
     const dist = MIN_DISTANCE + Math.random() * (MAX_DISTANCE - MIN_DISTANCE);
-    this.x = Math.max(70, Math.min(WORLD.length - 70, player.x + away * dist));
+    this.x = Math.max(70, Math.min(this.c.WORLD.length - 70, player.x + away * dist));
     this.y = pick.y;
     this.high = !!pick.high;
     this.visible = true;
@@ -45,11 +44,11 @@ export class Anomaly {
     return pick;
   }
 
-  showFar(player, dir) { return this.spawn(SPAWNS.phase2, player, dir); }
+  showFar(player, dir) { return this.spawn(this.c.SPAWNS.phase2, player, dir); }
 
   showNear(player, dir) {
     this.sightings++;
-    return this.spawn(SPAWNS.phase3, player, dir);
+    return this.spawn(this.c.SPAWNS.phase3, player, dir);
   }
 
   // 完全出現。プレイヤーの進行方向の先に立ちふさがる。

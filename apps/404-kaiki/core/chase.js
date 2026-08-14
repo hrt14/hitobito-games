@@ -1,12 +1,11 @@
 // Chase System（SPEC §29 §30 §35）
 // 最短距離ではなく、プレイヤーが通った経路を遅れて追う。
-import { SPEED } from '../data/case01.js';
-
 const CONTACT = 34;
 const TRAIL_STEP = 0.06;
 
 export class Chase {
-  constructor() {
+  constructor(caseData) {
+    this.c = caseData;
     this.active = false;
     this.trail = [];
     this.timer = 0;
@@ -77,7 +76,7 @@ export class Chase {
     const dx = target.x - anomaly.x;
     const dy = target.y - anomaly.y;
     const len = Math.hypot(dx, dy) || 1;
-    const step = SPEED.anomaly * dt;
+    const step = this.c.SPEED.anomaly * dt;
     anomaly.x += (dx / len) * step;
     anomaly.y += (dy / len) * step;
 
