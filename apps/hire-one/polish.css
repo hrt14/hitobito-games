@@ -1,13 +1,108 @@
-/* Late-game density pass: keep all 30 hires legible on small screens. */
+/* Quality pass for 「本日の採用、1名。」 */
+[hidden]{display:none!important}
+
+.game-title{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:12px 3px 8px}
+.game-title small{display:block;font-size:8px;font-weight:950;letter-spacing:.16em;color:#8d443b}
+.game-title h1{margin:4px 0 0;font-size:clamp(31px,8vw,48px);line-height:.9;letter-spacing:-.065em}
+.game-title h1 em,.intro-card h2 em{font-style:normal;color:var(--red)}
+.game-title p{margin:0 0 2px;text-align:right;color:var(--muted);font-size:9px;line-height:1.45}
+.game-title p b{color:var(--ink)}
+
+.choice-area{padding-top:16px}
+.choice-title{align-items:center}
+.discard-note b{display:inline-block;margin-bottom:2px;color:var(--ink);font-size:10px}
+.candidate{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:none}
+.candidate:focus-visible{outline:4px solid rgba(53,105,221,.22);outline-offset:2px}
+.candidate:hover{transform:translateY(-2px);box-shadow:4px 6px 0 rgba(24,23,20,.12)}
+.candidate.chosen{opacity:1;filter:none;outline:4px solid rgba(53,105,221,.22);transform:translateY(-4px);box-shadow:5px 7px 0 rgba(53,105,221,.14)}
+.candidate.lost{opacity:.40;filter:grayscale(.85);transform:scale(.97)}
+.candidate.chosen:after,.candidate.lost:after{position:absolute;right:8px;top:8px;z-index:10;border:1px solid var(--ink);border-radius:999px;padding:5px 7px;font-size:8px;font-weight:950;box-shadow:1px 2px 0 rgba(24,23,20,.14)}
+.candidate.chosen:after{content:'採用！';background:#dff4dc;color:#245e37}
+.candidate.lost:after{content:'見送り';background:#eee8df;color:#756e64}
+.candidate.locked{pointer-events:none}
+.candidate-signals .signal span{font-size:7px;letter-spacing:.03em}
+.hire-button{min-height:42px}
+
+.decision-result{margin:14px 0 0;border:1.5px solid var(--ink);border-radius:20px;background:#fffdf7;padding:13px;box-shadow:4px 5px 0 rgba(24,23,20,.10);animation:decisionIn .32s cubic-bezier(.2,.9,.35,1.12)}
+@keyframes decisionIn{from{opacity:0;transform:translateY(13px) scale(.98)}to{opacity:1;transform:none}}
+.decision-result-head{display:flex;align-items:center;gap:11px}
+.decision-stamp{flex:0 0 auto;border:2px solid #b93d34;color:#b93d34;border-radius:6px;padding:6px 8px;font-size:9px;font-weight:950;letter-spacing:.12em;transform:rotate(-4deg)}
+.decision-person{display:flex;align-items:center;gap:8px;min-width:0}
+.decision-person>span{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:1px solid var(--ink);border-radius:14px;background:#f2ece2;font-size:28px;box-shadow:2px 3px 0 rgba(24,23,20,.10)}
+.decision-person small{display:block;color:var(--muted);font-size:8px;font-weight:900}
+.decision-person strong{display:block;margin-top:2px;font-size:15px;line-height:1.1}
+.decision-copy{margin:10px 1px 8px;font-size:10px;font-weight:800;line-height:1.55;color:#514c45}
+.decision-deltas{display:flex;gap:5px;flex-wrap:wrap;min-height:0}
+.decision-delta{display:inline-flex;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:950;border:1px solid transparent}
+.decision-delta.good{background:#e3f1e4;color:#2c6841;border-color:#bcd9c1}
+.decision-delta.bad{background:#f6e3e0;color:#9b3d35;border-color:#e4c0bb}
+.decision-event{margin-top:9px;border-radius:12px;background:#20242a;color:#f7f3ea;padding:9px 10px}
+.decision-event small{display:block;color:#e8c65f;font-size:7px;font-weight:950;letter-spacing:.10em;margin-bottom:3px}
+.decision-event p{margin:0;font-size:9px;line-height:1.5;font-weight:750}
+.continue-button{width:100%;margin-top:10px;min-height:46px;border-radius:13px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:11px;font-weight:950;box-shadow:0 4px 0 #8a8278;cursor:pointer}
+.continue-button b{font-size:18px}
+.continue-button:active:not(:disabled){transform:translateY(3px);box-shadow:none}
+.continue-button:disabled{opacity:.55;cursor:wait}
+
+.office-shell{margin-top:18px}
+.stage-hint{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;margin:-3px 13px 8px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.58);border:1px solid rgba(24,23,20,.18);backdrop-filter:blur(4px)}
+.stage-hint span{font-size:7px;color:#68767b;font-weight:850;letter-spacing:.04em}
+.stage-hint b{font-size:8px;color:#303a3e}
+.office-shell.stage-2{background:#dce9df}
+.office-shell.stage-3{background:#dce4ef;box-shadow:5px 6px 0 rgba(24,23,20,.14),0 0 0 3px rgba(53,105,221,.06)}
+.office-shell.stage-4{background:#e4dfef;box-shadow:6px 7px 0 rgba(24,23,20,.15),0 0 30px rgba(78,71,137,.08)}
+.office-shell.stage-5{background:#efe4cf;box-shadow:7px 8px 0 rgba(24,23,20,.16),0 0 34px rgba(209,154,48,.12)}
+.office-shell.stage-3 .window,.office-shell.stage-4 .window,.office-shell.stage-5 .window{width:128px}
+.office-shell.stage-4 .whiteboard,.office-shell.stage-5 .whiteboard{border-color:#8d877b;box-shadow:0 4px 0 rgba(0,0,0,.08),0 0 0 3px rgba(255,255,255,.35)}
+.office-shell.stage-5 .event-dot{background:#ffd154;box-shadow:0 0 0 4px rgba(255,209,84,.14),0 0 16px rgba(255,209,84,.45)}
+
+/* Late-game density: keep all hires visible on phones. */
 .office-shell.stage-3 .team,
 .office-shell.stage-4 .team,
-.office-shell.stage-5 .team{grid-template-columns:repeat(8,1fr)}
+.office-shell.stage-5 .team{grid-template-columns:repeat(8,1fr);gap:2px}
 .office-shell.stage-4 .employee,
 .office-shell.stage-5 .employee{height:44px}
 .office-shell.stage-4 .person-avatar,
 .office-shell.stage-5 .person-avatar{width:31px;height:31px;font-size:20px}
 .office-shell.stage-4 .employee small,
 .office-shell.stage-5 .employee small{display:none}
+
+.ending-policy{display:inline-block;margin:2px 0 7px;border-radius:999px;background:#efe8db;border:1px solid #d8cdbd;padding:5px 8px;color:#6b6257;font-size:8px;font-weight:950}
+
+@media(max-width:520px){
+  .app{padding-top:9px}
+  .topbar{height:34px}
+  .game-title{padding-top:7px;align-items:flex-start}
+  .game-title h1{font-size:31px}
+  .game-title p{font-size:8px;max-width:132px}
+  .scoreboard{margin-top:4px}
+  .metric{padding:7px 5px;gap:4px}
+  .metric-icon{display:none}
+  .metric small{font-size:7px}
+  .metric strong{font-size:13px}
+  .choice-title h2{font-size:26px}
+  .candidate{padding:9px;border-radius:16px}
+  .candidate-avatar{width:50px;height:50px;flex-basis:50px;font-size:33px}
+  .candidate-name{font-size:13px}
+  .candidate-catch{font-size:9px;min-height:41px;margin:8px 0 7px}
+  .trait{font-size:6.5px;padding:3px 5px}
+  .hire-button{font-size:9px;padding:9px 4px}
+  .decision-result{border-radius:17px}
+  .office-shell{border-radius:19px}
+  .office{height:210px}
+}
+
+@media(max-width:370px){
+  .game-title p{display:none}
+  .candidates{gap:6px}
+  .candidate{padding:8px}
+  .candidate-top{gap:6px;display:block}
+  .candidate-avatar{width:47px;height:47px;margin-bottom:6px}
+  .candidate-catch{min-height:52px}
+  .candidate-signals{gap:2px}
+  .signal b{font-size:8px}
+}
+
 @media(min-width:620px){
   .office-shell.stage-3 .team,
   .office-shell.stage-4 .team,
