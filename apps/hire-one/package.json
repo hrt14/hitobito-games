@@ -1,0 +1,10 @@
+{
+  "name": "hitobito-hire-one",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node smoke-check.mjs",
+    "build": "node smoke-check.mjs && node build.mjs"
+  }
+}
