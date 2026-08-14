@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="時間術を、読むのではなく反射にする。8時間の予定を組み、優先順位・集中・まとめ処理・余白・逆算を身につけるゲーム。" />
+  <title>時間を使え。｜LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" class="app-shell">
+    <section id="titleScreen" class="screen title-screen">
+      <div class="ambient-grid" aria-hidden="true"></div>
+      <header class="title-nav">
+        <a href="https://games.hitobito.jp/" class="back-link">← GAMES</a>
+        <span class="series-badge">LEVEL UP / TIME</span>
+      </header>
+      <div class="title-layout">
+        <div class="title-copy">
+          <p class="kicker">TIME MANAGEMENT TRAINING</p>
+          <h1>時間を<br><em>使え。</em></h1>
+          <p class="lead">8時間は増えない。<br />でも、使い方は鍛えられる。</p>
+          <button id="startBtn" class="btn btn-primary btn-large">1日目を始める <span>→</span></button>
+          <p class="micro-copy">1プレイ 3〜5分 / 全5日 + 実戦モード</p>
+        </div>
+        <div class="clock-board" aria-label="8時間のタイムブロックを表す図">
+          <div class="clock-head"><span>09:00</span><b>8 HOURS</b><span>17:00</span></div>
+          <div class="demo-grid" aria-hidden="true">
+            <i class="demo-block deep d1"></i><i class="demo-block deep d2"></i>
+            <i class="demo-block comm c1"></i><i class="demo-block comm c2"></i>
+            <i class="demo-block admin a1"></i><i class="demo-block buffer b1"></i>
+            <i class="demo-block buffer b2"></i><i class="demo-block buffer b3"></i>
+          </div>
+          <div class="clock-message">
+            <strong>予定を埋めるな。</strong>
+            <span>大事なものに時間を渡せ。</span>
+          </div>
+        </div>
+      </div>
+      <div class="skill-strip">
+        <span>優先順位</span><span>集中時間</span><span>まとめ処理</span><span>余白</span><span>締切逆算</span>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen hidden">
+      <header class="game-header">
+        <button id="homeBtn" class="icon-btn" aria-label="タイトルへ戻る">‹</button>
+        <div class="day-label"><small>LEVEL UP</small><strong id="dayTitle">DAY 1 / 5</strong></div>
+        <div class="skill-level"><small>時間術</small><strong id="skillLevel">Lv.1</strong></div>
+      </header>
+
+      <section class="mission-bar">
+        <div><span id="missionTag">TODAY'S RULE</span><strong id="missionTitle">全部は入らない</strong></div>
+        <p id="missionText">重要な仕事を先に確保して、価値の低い仕事は捨てよう。</p>
+      </section>
+
+      <div class="game-layout">
+        <section class="timeline-panel panel">
+          <div class="panel-head">
+            <div><span class="panel-kicker">YOUR DAY</span><h2>今日の8時間</h2></div>
+            <div id="remainingTime" class="remaining-time"><strong>480</strong><span>min free</span></div>
+          </div>
+          <div class="timeline-wrap">
+            <div class="time-axis" id="timeAxis"></div>
+            <div class="timeline" id="timeline" aria-label="時間割"></div>
+          </div>
+          <div class="timeline-legend">
+            <span><i class="dot deep"></i>深い仕事</span>
+            <span><i class="dot comm"></i>連絡</span>
+            <span><i class="dot admin"></i>事務</span>
+            <span><i class="dot meeting"></i>会議</span>
+          </div>
+          <div id="timelineHint" class="timeline-hint">タスクを選んで、開始時刻をタップ</div>
+        </section>
+
+        <section class="tasks-panel panel">
+          <div class="panel-head compact">
+            <div><span class="panel-kicker">INBOX</span><h2>今日やる候補</h2></div>
+            <div id="inboxCount" class="count-pill">0</div>
+          </div>
+          <div id="taskList" class="task-list"></div>
+          <div id="taskActions" class="task-actions hidden">
+            <div class="selected-summary">
+              <span id="selectedType">選択中</span>
+              <strong id="selectedName">タスク</strong>
+            </div>
+            <div class="action-row">
+              <button id="delegateBtn" class="btn btn-ghost">任せる</button>
+              <button id="dropBtn" class="btn btn-danger">捨てる</button>
+              <button id="restoreBtn" class="btn btn-ghost hidden">戻す</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="game-footer">
+        <div class="live-metrics">
+          <div><span>重要度</span><strong id="impactMetric">0</strong></div>
+          <div><span>切替</span><strong id="switchMetric">0</strong></div>
+          <div><span>余白</span><strong id="bufferMetric">480m</strong></div>
+        </div>
+        <button id="runBtn" class="btn btn-primary run-btn">この予定で1日を走る <span>▶</span></button>
+      </footer>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen hidden">
+      <div class="result-card">
+        <p class="kicker">DAY RESULT</p>
+        <div class="grade-ring" id="gradeRing"><span id="grade">A</span></div>
+        <h2 id="resultHeadline">時間を守った。</h2>
+        <p id="resultSummary">大事な仕事に時間を先に渡せた。</p>
+        <div class="result-metrics">
+          <div><span>重要達成</span><strong id="resultImpact">0</strong></div>
+          <div><span>余白</span><strong id="resultBuffer">0m</strong></div>
+          <div><span>切替</span><strong id="resultSwitches">0</strong></div>
+          <div><span>残業</span><strong id="resultOvertime">0m</strong></div>
+        </div>
+        <div id="coachCard" class="coach-card">
+          <span>TIME COACH</span>
+          <strong id="coachTitle">予定を埋める前に、捨てる。</strong>
+          <p id="coachText">全部やろうとすると、重要な仕事ほど後ろへ追いやられる。</p>
+        </div>
+        <div id="unlockCard" class="unlock-card">
+          <span>NEW SKILL</span>
+          <strong id="unlockTitle">捨ててから入れる</strong>
+          <p id="unlockText">時間管理の最初の一手は、予定を詰めることではなく「やらない」を決めること。</p>
+        </div>
+        <button id="nextBtn" class="btn btn-primary btn-large">次の日へ <span>→</span></button>
+        <button id="retryBtn" class="text-btn">同じ日をもう一度</button>
+      </div>
+    </section>
+
+    <section id="completeScreen" class="screen complete-screen hidden">
+      <div class="complete-card">
+        <p class="kicker">LEVEL UP COMPLETE</p>
+        <div class="master-clock" aria-hidden="true"><span>8</span><i></i></div>
+        <h2>時間は増えていない。<br><em>使い方が変わった。</em></h2>
+        <p>5つの時間術を、知識ではなく「予定を組む反射」として練習しました。</p>
+        <div id="skillBook" class="skill-book"></div>
+        <div class="final-stats"><span>BEST</span><strong id="bestScore">0</strong><small>pts</small></div>
+        <button id="practiceBtn" class="btn btn-primary btn-large">実戦モードを続ける <span>↻</span></button>
+        <button id="resetBtn" class="text-btn">最初からやり直す</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
