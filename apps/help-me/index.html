@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="仕事を抱え込まず、自分・人・AI・上司・外注へ振り分ける反射を鍛えるLEVEL UPゲーム『助けて』。">
+<title>助けて | LEVEL UP / hitobito games</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+<main class="app" id="app">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="hitobito gamesへ戻る">HITOBITO / GAMES</a>
+    <span class="series">LEVEL UP 03</span>
+  </header>
+
+  <section class="title-row">
+    <div>
+      <small>DELEGATION REFLEX TRAINER</small>
+      <h1>助けて<span>。</span></h1>
+    </div>
+    <p>全部、自分でやるな。<br><b>誰がやるのが一番いい？</b></p>
+  </section>
+
+  <section class="hud" aria-label="現在の状態">
+    <div class="metric"><small>TIME</small><strong id="timeValue">09:00</strong></div>
+    <div class="metric"><small>信用</small><strong id="trustValue">75</strong><i class="bar"><b id="trustBar"></b></i></div>
+    <div class="metric"><small>疲労</small><strong id="fatigueValue">8</strong><i class="bar danger"><b id="fatigueBar"></b></i></div>
+    <div class="metric wip"><small>脳内WIP</small><strong><span id="wipValue">0</span><em>/5</em></strong><i class="bar"><b id="wipBar"></b></i></div>
+  </section>
+
+  <section class="workspace" id="workspace">
+    <div class="office-depth" aria-hidden="true">
+      <div class="window-grid"></div>
+      <div class="clock-face"><span id="clockHands">◷</span></div>
+      <div class="plant">⌇</div>
+    </div>
+
+    <div class="team-stage" id="teamStage" aria-label="チームの作業状況"></div>
+
+    <div class="desk" id="desk">
+      <div class="desk-lamp" aria-hidden="true"></div>
+      <div class="clutter" id="clutter" aria-hidden="true"></div>
+      <div class="task-stack" id="taskStack">
+        <article class="task-card" id="taskCard" aria-live="polite">
+          <div class="task-top">
+            <span class="task-type" id="taskType">TASK</span>
+            <span class="task-deadline" id="taskDeadline">今日中</span>
+          </div>
+          <div class="task-icon" id="taskIcon">📄</div>
+          <h2 id="taskTitle">仕事が届きました</h2>
+          <p id="taskDetail">誰に任せるか決めよう。</p>
+          <div class="task-meta">
+            <span id="taskEffort">60分</span>
+            <span id="taskRisk">通常</span>
+          </div>
+          <div class="fit-hint" id="fitHint" hidden></div>
+        </article>
+      </div>
+      <button class="split-button" id="splitButton" type="button" hidden><span>✂</span> この仕事を分解する</button>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite">
+      <span class="feedback-mark">→</span>
+      <div><small id="feedbackLabel">NEXT</small><p id="feedbackText">仕事カードを担当先へ振り分けよう。</p></div>
+    </div>
+  </section>
+
+  <section class="control-zone">
+    <div class="control-head">
+      <div><small>ASSIGN</small><strong>誰に渡す？</strong></div>
+      <button class="help-button" id="helpButton" type="button"><span>!</span> 助けて</button>
+    </div>
+    <div class="agent-dock" id="agentDock" aria-label="担当先"></div>
+    <div class="microcopy" id="microcopy">仕事をタップで振り分け。得意な人ほど速く、正確に終わる。</div>
+  </section>
+
+  <footer class="progress-footer">
+    <div class="progress-copy"><span id="turnLabel">1 / 18</span><b id="phaseLabel">まずは自分でやってみる</b></div>
+    <div class="progress-track"><i id="progressBar"></i></div>
+    <button class="sound-button" id="soundButton" type="button" aria-label="サウンド切替">SOUND ON</button>
+  </footer>
+</main>
+
+<div class="modal show" id="introModal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="intro-card">
+    <span class="intro-kicker">LEVEL UP / WORK REFLEX</span>
+    <div class="intro-visual" aria-hidden="true">
+      <span class="paper p1">資料</span><span class="paper p2">返信</span><span class="paper p3">集計</span>
+      <div class="you-avatar">自</div>
+      <div class="escape e1">AI</div><div class="escape e2">田</div>
+    </div>
+    <h2 id="introTitle">全部、自分で<br>やろうとすると詰まる。</h2>
+    <p>仕事が来たら、<b>「自分でやる」以外</b>も瞬時に考えるゲーム。</p>
+    <button id="startButton" type="button">09:00　仕事開始 <b>→</b></button>
+    <small>説明を覚える必要はありません。仕事を振って、結果を見れば分かります。</small>
+  </div>
+</div>
+
+<div class="modal" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+  <div class="result-card">
+    <span class="result-kicker">TODAY'S WORK STYLE</span>
+    <div class="result-badge" id="resultBadge">↗</div>
+    <small id="resultLabel">働き方タイプ</small>
+    <h2 id="resultTitle">分散型リーダー</h2>
+    <p id="resultText"></p>
+    <div class="result-primary">
+      <div><small>抱え込み度</small><strong id="hoardScore">0%</strong></div>
+      <div><small>最終信用</small><strong id="finalTrust">0</strong></div>
+      <div><small>最終疲労</small><strong id="finalFatigue">0</strong></div>
+    </div>
+    <div class="result-grid" id="resultGrid"></div>
+    <div class="lesson" id="lessonBox"></div>
+    <div class="result-actions">
+      <button id="retryButton" type="button">もう一度やる</button>
+      <button class="ghost" id="shareButton" type="button">結果をコピー</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+<script src="./game.js"></script>
+</body>
+</html>
