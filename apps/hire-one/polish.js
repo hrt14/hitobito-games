@@ -10,11 +10,10 @@
   const continueButton = $('#continueButton');
   const continueLabel = $('#continueLabel');
   const eventText = $('#eventText');
-  const team = $('#team');
-  const officeShell = $('#officeShell');
   const headcount = $('#headcountValue');
   const stageHint = $('#stageHint');
   const endingModal = $('#endingModal');
+  const candidates = $('#candidates');
 
   document.title = '本日の採用、1名。 | hitobito games';
 
@@ -22,6 +21,19 @@
     const m = ($('#dayLabel')?.textContent || '').match(/(\d+)/);
     return m ? Number(m[1]) : 1;
   }
+
+  function clearMetricDeltas() {
+    ['#revenueDelta','#techDelta','#cultureDelta','#chaosDelta'].forEach(sel => {
+      const el = $(sel);
+      if (!el) return;
+      el.textContent = '';
+      el.classList.remove('pop');
+    });
+  }
+
+  candidates?.addEventListener('click', (e) => {
+    if (e.target.closest('.candidate')) clearMetricDeltas();
+  }, true);
 
   function updateStageHint() {
     if (!stageHint || !headcount) return;
@@ -64,6 +76,7 @@
     card.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
         e.preventDefault();
+        clearMetricDeltas();
         choose();
         nativeTimeout(() => {
           if (card.classList.contains('chosen')) showDecision(card);
@@ -143,7 +156,7 @@
     }, 120);
   });
 
-  new MutationObserver(() => polishAllCandidates()).observe($('#candidates'), { childList: true });
+  new MutationObserver(() => polishAllCandidates()).observe(candidates, { childList: true });
   new MutationObserver(() => updateStageHint()).observe(headcount, { childList: true, characterData: true, subtree: true });
   new MutationObserver(() => {
     if (!result.hidden) {
