@@ -10,25 +10,34 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe hosts
+      - name: Final verification
         shell: bash
         run: |
           fetch() { curl -sL -o "$2" -w '%{http_code}' --max-time 20 "$1" || echo ERR; }
           show() {
             code=$(fetch "$1" /tmp/b)
-            title=$(grep -o '<title>[^<]*</title>' /tmp/b | head -1 || true)
             kind=unknown
             grep -q '404怪異調査クラブ' /tmp/b && kind='NEW-GAME'
             grep -q '13番ホーム\|終点のないホーム' /tmp/b && kind='OLD-GAME'
             grep -q 'ワーキングプラネット\|BIG SERIES' /tmp/b && kind='PORTAL'
             grep -q '水、抜いてみた' /tmp/b && kind='DRAIN'
-            printf '%-38s %s %-9s %-9s %s\n' "$1" "$code" "$(wc -c < /tmp/b)B" "$kind" "$title"
+            grep -q '一坪王国' /tmp/b && kind='ONE-TSUBO'
+            printf '%-36s %s %-9s %s\n' "$1" "$code" "$(wc -c < /tmp/b)B" "$kind"
           }
-          echo "name                                   code size      what      title"
-          show https://404-kaiki.vercel.app/
+          ok=0
+          for i in $(seq 1 12); do
+            fetch https://404.hitobito.jp/ /tmp/t >/dev/null
+            if grep -q '404怪異調査クラブ' /tmp/t && ! grep -q '水、抜いてみた' /tmp/t; then
+              echo "404.hitobito.jp serving the game (try $i)"; ok=1; break
+            fi
+            echo "try $i: not yet"; sleep 10
+          done
+          echo "--- final state ---"
           show https://404.hitobito.jp/
+          show https://404-kaiki.vercel.app/
           show https://drain.hitobito.jp/
+          show https://drain.hitobito.jp/one-tsubo/
           show https://drain.hitobito.jp/kaiki/
-          echo "--- redirects (no follow) ---"
-          curl -s -o /dev/null -w '404.hitobito.jp    -> %{http_code} %{redirect_url}\n' --max-time 20 https://404.hitobito.jp/
-          curl -s -o /dev/null -w '404-kaiki.vercel   -> %{http_code} %{redirect_url}\n' --max-time 20 https://404-kaiki.vercel.app/
+          echo "--- redirect (no follow) ---"
+          curl -s -o /dev/null -w '404.hitobito.jp -> %{http_code} %{redirect_url}\n' --max-time 20 https://404.hitobito.jp/
+          [ "$ok" = "1" ] || { echo "NOT READY"; exit 1; }
