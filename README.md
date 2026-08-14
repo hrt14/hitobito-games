@@ -28,6 +28,45 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 - 数字より、画面そのものの変化で進行を感じさせる。
 - ゲーム固有データと共通ロジックを分離し、将来の共通パッケージ化に備える。
 
+## Local Test
+
+Vercel にデプロイしなくても、Node.js だけでローカル確認できます。
+
+```bash
+git pull
+npm run dev
+```
+
+起動後:
+
+- トップ: `http://localhost:4173/`
+- 各ゲーム: `http://localhost:4173/apps/<game-slug>/`
+- 例: `http://localhost:4173/apps/404-kaiki/`
+
+終了はターミナルで `Ctrl+C`。
+
+静的配信の簡易チェックは次で実行できます。
+
+```bash
+npm run check
+```
+
+`apps/*/index.html` がローカルHTTP経由で正常配信できるかを一括確認します。
+
+### Windows で初回だけ必要なもの
+
+1. Git をインストール
+2. Node.js 18 以上をインストール
+3. 任意の作業フォルダでリポジトリを取得
+
+```bash
+git clone https://github.com/hrt14/hitobito-games.git
+cd hitobito-games
+npm run dev
+```
+
+このリポジトリは ES Modules を使うゲームを含むため、HTMLファイルをダブルクリックして `file://` で開くのではなく、必ずローカルHTTPサーバー経由で確認します。
+
 ## Deploy
 
 各ゲームは `apps/<game-slug>` を Vercel の Root Directory に指定して個別プロジェクトとして公開する想定です。
