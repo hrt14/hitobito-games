@@ -36,3 +36,4 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 - CYCLE: `cycle.hitobito.jp`
 - 404怪異調査クラブ: `404.hitobito.jp`（Root Directory: `apps/404-kaiki`）
   - ES Modules を使うため、`file://` では動かない。静的配信（Vercel など）が必要。
+  - ビルド不要。Framework Preset は Other、Build Command / Output Directory は未設定。

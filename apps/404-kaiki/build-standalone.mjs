@@ -1,13 +1,14 @@
 // apps/404-kaiki を1枚のHTMLへ束ねる。
-// 404.hitobito.jp のVercelプロジェクトがGitに繋がっていないため、
-// 稼働中の drain プロジェクト配下へ生成物を置いて公開している。
+// 通常のデプロイには不要（404.hitobito.jp はこのディレクトリをそのまま配信する）。
+// 単体ファイルで配りたい時・オフラインで見せたい時だけ使う。
+// 出力の standalone.html は生成物なので git には入れない。
 // 使い方: node apps/404-kaiki/build-standalone.mjs
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const SRC = dirname(fileURLToPath(import.meta.url));
-const OUT = join(SRC, '../drain/kaiki/index.html');
+const OUT = join(SRC, "standalone.html"); // 生成物。git 管理外
 
 // 依存順に並べる（import を消して連結するため）
 const ORDER = [
