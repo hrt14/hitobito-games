@@ -1,0 +1,19 @@
+(()=>{
+const app=document.getElementById('app'),KEY='tsuzuku_machi_v2',YEAR_DAYS=8,TICK=3000;
+const places=[
+{id:'square',name:'中央広場',icon:'⛲',desc:'町の真ん中。誰かに会いやすい。',scene:'',x:176,y:245},
+{id:'market',name:'市場',icon:'🧺',desc:'商人と買い物客でにぎわう。',scene:'market',x:34,y:354},
+{id:'field',name:'畑',icon:'🌾',desc:'風と土の匂い。農家が働いている。',scene:'field-scene',x:25,y:114},
+{id:'workshop',name:'工房',icon:'🔨',desc:'金槌の音が絶えない職人街。',scene:'workshop',x:298,y:386},
+{id:'school',name:'学校',icon:'🏫',desc:'昼は子どもたちの声がする。',scene:'school',x:296,y:128},
+{id:'tavern',name:'酒場',icon:'🍲',desc:'夕方になると町の話が集まる。',scene:'tavern',x:148,y:470},
+{id:'hill',name:'丘',icon:'🌳',desc:'町を見渡せる静かな場所。',scene:'hill-scene',x:198,y:50}];
+const FN=['アキ','ミナ','ソウ','ハル','リク','ナナ','ケン','ユイ','トウマ','サキ','レン','メイ','コウ','ヒナ','シン','マオ','ユウ','レイ','ノア','カナ','タク','エマ','ルカ','チカ','ジュン','フミ','カイ','アン'];
+const LN=['田中','森','坂本','水野','小川','藤井','井上','原','中村','石井','北川','南','高木','村上','青木','岡'];
+const FACE=['🙂','😊','😌','😄','🤓','😏','🥰','😋','🫡','😎','🧑🏻','👩🏻','🧑🏽','👩🏽'],SHIRT=['#6782a7','#9a6d72','#769066','#b0835f','#766f9d','#58918d','#a28b4c','#65755d'];
+const jobs=['農家','商人','職人'],pers=[['gentle','おだやか','人との距離が縮まりやすい'],['passion','情熱家','恋と競争にまっすぐ'],['serious','まじめ','仕事をこつこつ続ける'],['free','自由人','思いがけない行動が多い']];
+let S=null,view='world',timer=null,creator={name:'ユウ',gender:'m',personality:'gentle',face:'🙂',shirt:'#6782a7'};
+const R=a=>a[Math.floor(Math.random()*a.length)],I=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=(v,a,b)=>Math.max(a,Math.min(b,v)),id=()=>Math.random().toString(36).slice(2,9),P=x=>places.find(p=>p.id===x)||places[0];
+function person(o={}){let age=o.age??I(4,72),g=o.gender??(Math.random()<.5?'m':'f'),first=o.first||R(FN),family=o.family||R(LN);return{id:o.id||id(),first,family,name:`${family} ${first}`,age,gender:g,face:o.face||R(FACE),shirt:o.shirt||R(SHIRT),personality:o.personality||R(pers)[0],job:o.job??(age<15?'学校':R(jobs)),rank:'見習い',location:o.location||R(places).id,home:o.home||R(['square','market','field','workshop']),partnerId:null,married:false,parents:o.parents||[],children:[],rel:{},mem:[],alive:true,isPlayer:!!o.isPlayer,action:'歩いている',bornYear:o.bornYear||1,relationDay:null}}
+function rel(a,b){return a.rel[b.id]||(a.rel[b.id]={bond:I(-2,10),romance:0,trust:0})}function sync(a,b,k,n){rel(a,b)[k]=C(rel(a,b)[k]+n,-100,100);rel(b,a)[k]=C(rel(b,a)[k]+Math.round(n*.7),-100,100)}
+function me(){return S.people.find(p=>p.id===S.playerId)}function gp(i){return S.people.find(p=>p.id===i)}function alive(){return S
