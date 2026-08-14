@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0908">
+  <meta name="description" content="呪物を棚に並べ、午前零時の連鎖で借金を返す配置ローグライト・ホラー。">
+  <title>午前零時の質屋</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="hud">
+      <div class="hud-block day-block">
+        <span class="hud-label">DAY</span>
+        <strong id="dayValue">1</strong><span class="hud-small">/ 7</span>
+      </div>
+      <div class="hud-block money-block">
+        <span class="hud-label">所持金</span>
+        <strong id="moneyValue">¥0</strong>
+      </div>
+      <button id="curseButton" class="curse-meter" type="button" aria-label="呪いの詳細">
+        <span class="curse-head"><span>呪い</span><b id="curseValue">0</b></span>
+        <span class="curse-track"><i id="curseFill"></i></span>
+      </button>
+    </header>
+
+    <main class="game-shell">
+      <section id="shop" class="shop day-phase" aria-label="質屋店内">
+        <div class="ceiling-shadow"></div>
+        <div class="lamp"><i></i><b></b></div>
+        <div class="back-wall">
+          <div class="shop-sign"><span>質</span><small>古物・買入</small></div>
+          <div id="wallClock" class="wall-clock"><i class="hand hour"></i><i class="hand minute"></i><b></b></div>
+          <div id="windowScene" class="window"><span class="rain r1"></span><span class="rain r2"></span><span class="rain r3"></span><i class="outside-shape"></i></div>
+          <div class="wall-stain"></div>
+        </div>
+
+        <div class="shelf-wrap">
+          <div class="shelf-title-row">
+            <div>
+              <span id="phaseKicker" class="phase-kicker">OPEN</span>
+              <h1 id="phaseTitle">今夜、何を置く？</h1>
+            </div>
+            <div class="debt-chip"><span>今夜の返済</span><strong id="debtValue">¥0</strong></div>
+          </div>
+
+          <div id="shelf" class="shelf" aria-label="4×4の呪物棚"></div>
+
+          <div id="nightTicker" class="night-ticker" aria-live="polite">
+            <span class="ticker-time">00:00</span>
+            <span id="tickerText">閉店後、呪物が動き出す。</span>
+          </div>
+        </div>
+
+        <div id="floatLayer" class="float-layer" aria-hidden="true"></div>
+        <div id="anomalyFlash" class="anomaly-flash"><span></span></div>
+      </section>
+
+      <section id="controlPanel" class="control-panel">
+        <div id="instruction" class="instruction"><b>①</b> 品物を選んで、棚の空きへ置く</div>
+
+        <div id="offersArea" class="offers-area">
+          <div class="panel-head">
+            <div><span>本日の持ち込み</span><small id="offerSub">1点だけ仕入れられます</small></div>
+            <button id="skipButton" class="text-button" type="button">見送る</button>
+          </div>
+          <div id="offers" class="offers"></div>
+        </div>
+
+        <div id="selectedPanel" class="selected-panel hidden">
+          <div id="selectedIcon" class="selected-icon"></div>
+          <div class="selected-copy">
+            <div class="selected-name-row"><strong id="selectedName">—</strong><span id="selectedValue">—</span></div>
+            <p id="selectedDesc">—</p>
+            <small id="selectedHint">—</small>
+          </div>
+          <button id="cancelSelection" class="icon-button" type="button" aria-label="選択解除">×</button>
+        </div>
+
+        <button id="closeButton" class="close-button" type="button">
+          <span><small>準備ができたら</small><b>閉 店</b></span>
+          <i>→</i>
+        </button>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status"></div>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div id="modalEyebrow" class="modal-eyebrow">RESULT</div>
+        <div id="modalArt" class="modal-art"></div>
+        <h2 id="modalTitle">—</h2>
+        <p id="modalText">—</p>
+        <div id="modalStats" class="modal-stats"></div>
+        <button id="modalButton" class="modal-button" type="button">次へ</button>
+        <button id="modalSubButton" class="modal-sub hidden" type="button">もう一度</button>
+      </div>
+    </div>
+
+    <div id="startScreen" class="start-screen">
+      <div class="start-shop-mark"><span>質</span></div>
+      <p class="start-kicker">MIDNIGHT PAWN</p>
+      <h1>午前零時の<br>質屋</h1>
+      <p class="start-copy">呪われた品物は、夜ほど高く売れる。</p>
+      <div class="start-rule">
+        <span><b>1</b> 仕入れる</span><i>→</i><span><b>2</b> 棚に置く</span><i>→</i><span><b>0:00</b> 見届ける</span>
+      </div>
+      <button id="startButton" class="start-button" type="button">開 店</button>
+      <small>音なしでも遊べます / 縦画面推奨</small>
+    </div>
+  </div>
+  <script src="./game.js"></script>
+</body>
+</html>
