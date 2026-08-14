@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#151722" />
+  <meta name="description" content="どんな出来事にも別の見方を瞬時に作る反射を鍛えるゲーム。物の見方検定。" />
+  <title>物の見方検定 | Level Up Games</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" class="app-shell">
+    <section id="screen-home" class="screen active" aria-labelledby="game-title">
+      <div class="brand-row">
+        <span class="series-pill">LEVEL UP GAMES</span>
+        <button id="open-dictionary-home" class="icon-button" type="button" aria-label="見方の型図鑑を開く">型</button>
+      </div>
+
+      <div class="hero-prism" aria-hidden="true">
+        <div class="prism-core"><span>見</span></div>
+        <i class="ray ray-1"></i><i class="ray ray-2"></i><i class="ray ray-3"></i>
+        <i class="ray ray-4"></i><i class="ray ray-5"></i><i class="ray ray-6"></i>
+      </div>
+
+      <p class="eyebrow">REFRAME REFLEX TEST</p>
+      <h1 id="game-title">物の見方<br>検定</h1>
+      <p class="tagline">不幸は選べない。<br><strong>見方は選べる。</strong></p>
+      <p class="home-copy">嫌な出来事を消すのではなく、<br>別の見方を<strong>瞬時に何個作れるか</strong>を鍛える。</p>
+
+      <button id="start-game" class="primary-button" type="button">
+        <span>検定をはじめる</span><small>10問・約3分</small>
+      </button>
+      <button id="open-howto" class="text-button" type="button">遊び方</button>
+
+      <div class="record-card" id="record-card">
+        <div><span>自己ベスト</span><strong id="best-score">—</strong></div>
+        <div><span>累計 VIEW</span><strong id="total-views">0</strong></div>
+        <div><span>最高段位</span><strong id="best-rank">未受検</strong></div>
+      </div>
+    </section>
+
+    <section id="screen-game" class="screen" aria-live="polite">
+      <header class="game-header">
+        <button id="quit-game" class="icon-button back" type="button" aria-label="検定をやめる">×</button>
+        <div class="round-block"><span>ROUND</span><strong><b id="round-number">1</b>/10</strong></div>
+        <div class="score-block"><span>SCORE</span><strong id="score">0</strong></div>
+      </header>
+
+      <div class="difficulty-row">
+        <span id="difficulty-badge" class="difficulty-badge">初級</span>
+        <span id="round-rule">違う見方をできるだけ多く拾え</span>
+      </div>
+
+      <div class="timer-wrap" aria-label="残り時間">
+        <div id="timer-bar" class="timer-bar"></div>
+        <span id="timer-text" class="timer-text">10.0</span>
+      </div>
+
+      <article class="event-card">
+        <p class="event-label">起きたこと</p>
+        <h2 id="event-text">雨が降った。</h2>
+        <p id="event-anchor" class="event-anchor">困ることは困る。そのうえで、別の見方も探す。</p>
+      </article>
+
+      <div class="view-meter" aria-label="見方コンボ">
+        <div class="view-count"><strong id="view-count">0</strong><span>VIEW</span></div>
+        <div class="combo-copy"><span id="combo-label">見方を拾え</span><strong id="combo-number">×0</strong></div>
+      </div>
+
+      <div id="options" class="options-grid" role="group" aria-label="見方の候補"></div>
+      <p class="micro-note">正解は1つじゃない。事実を否定する選択肢はハズレ。</p>
+    </section>
+
+    <section id="screen-round" class="screen">
+      <div id="round-result-burst" class="round-result-burst">5 VIEW!</div>
+      <p id="round-result-title" class="eyebrow">ROUND CLEAR</p>
+      <h2 id="round-result-event" class="result-event"></h2>
+      <p id="round-result-copy" class="result-copy"></p>
+
+      <div class="lens-summary">
+        <p>今回使えた「見方の型」</p>
+        <div id="lens-tags" class="lens-tags"></div>
+      </div>
+
+      <div id="missed-box" class="missed-box hidden">
+        <span>まだあった見方</span>
+        <p id="missed-example"></p>
+      </div>
+
+      <div class="round-reflex-note">
+        <span>反射のコツ</span>
+        <p>最初の「最悪だ」の次に、<strong>「でも、他には？」</strong>を1回だけ挟む。</p>
+      </div>
+
+      <button id="next-round" class="primary-button" type="button">次の問題へ</button>
+    </section>
+
+    <section id="screen-result" class="screen">
+      <p class="eyebrow">EXAM RESULT</p>
+      <div id="rank-seal" class="rank-seal"><span>段位</span><strong id="rank-name">見方の達人</strong></div>
+      <h2 class="result-title">あなたの見方は<br><span id="result-level">かなり柔らかい。</span></h2>
+
+      <div class="result-score-card">
+        <div><span>SCORE</span><strong id="final-score">0</strong></div>
+        <div><span>VIEW</span><strong id="final-views">0</strong></div>
+        <div><span>正確さ</span><strong id="final-accuracy">0%</strong></div>
+      </div>
+
+      <div class="growth-panel">
+        <p class="panel-title">今回よく使えた型</p>
+        <div id="strong-lenses" class="growth-list"></div>
+        <p class="panel-title secondary">次に鍛える型</p>
+        <div id="weak-lenses" class="growth-list"></div>
+      </div>
+
+      <div class="meaning-ladder">
+        <div><span>初心者</span><small>出来事には1つの意味</small></div>
+        <div><span>中級</span><small>別の意味も探せる</small></div>
+        <div><span>上級</span><small>複数の意味を持てる</small></div>
+        <div><span>達人</span><small>意味を自分で選べる</small></div>
+      </div>
+
+      <button id="retry-game" class="primary-button" type="button">もう一度受ける</button>
+      <button id="open-dictionary-result" class="secondary-button" type="button">見方の型図鑑</button>
+      <button id="back-home" class="text-button" type="button">トップへ戻る</button>
+    </section>
+  </main>
+
+  <dialog id="howto-dialog" class="sheet-dialog">
+    <div class="sheet-head"><strong>遊び方</strong><button data-close-dialog="howto-dialog" class="icon-button" type="button">×</button></div>
+    <div class="sheet-body">
+      <ol class="howto-list">
+        <li><b>出来事を見る</b><span>嫌なこと自体は否定しない。</span></li>
+        <li><b>10秒で見方を拾う</b><span>同じ出来事への別解釈をできるだけ多く。</span></li>
+        <li><b>型を覚える</b><span>「残ったもの」「時間を伸ばす」など10種類。</span></li>
+      </ol>
+      <div class="rule-card bad"><span>×</span><p><strong>「骨折なんて最高！」</strong><br>痛みや損失をなかったことにするのは違う。</p></div>
+      <div class="rule-card good"><span>○</span><p><strong>「片方は無事だった」</strong><br>事実はそのまま、意味だけ増やす。</p></div>
+    </div>
+  </dialog>
+
+  <dialog id="dictionary-dialog" class="sheet-dialog dictionary-dialog">
+    <div class="sheet-head"><strong>見方の型図鑑</strong><button data-close-dialog="dictionary-dialog" class="icon-button" type="button">×</button></div>
+    <div id="dictionary-list" class="sheet-body dictionary-list"></div>
+  </dialog>
+
+  <script src="./game.js"></script>
+</body>
+</html>
