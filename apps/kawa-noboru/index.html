@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#15261f" />
+  <title>川をのぼる</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" aria-label="川をのぼる">
+    <canvas id="game" aria-label="川の探索と釣り"></canvas>
+    <div id="hud" aria-live="polite">
+      <div class="topbar">
+        <div class="place"><span id="placeName">下流</span><small id="weatherText">晴れ・朝</small></div>
+        <button id="bookBtn" class="iconBtn" aria-label="川の記憶を開く">◌ <span id="caughtCount">0</span></button>
+      </div>
+      <div id="toast" class="toast hidden"></div>
+      <div id="hint" class="hint">上へスワイプして川をのぼる</div>
+      <div id="fightHud" class="fightHud hidden">
+        <div class="fishRow"><span id="fishLabel">魚影</span><span id="fishDist">12m</span></div>
+        <div class="meter"><i id="tensionFill"></i><b id="safeMark"></b></div>
+        <div class="fightHelp">押して巻く　離して糸を出す</div>
+      </div>
+    </div>
+    <section id="book" class="panel hidden" aria-label="川の記憶">
+      <div class="panelHead"><div><small>RIVER MEMORY</small><h2>川の記憶</h2></div><button id="closeBook" class="iconBtn">×</button></div>
+      <p class="sub">釣った場所が、川の地図に残っていく。</p>
+      <div id="memoryMap" class="memoryMap"></div>
+    </section>
+    <section id="catchCard" class="catchCard hidden" aria-live="assertive">
+      <div id="catchNew" class="newTag">NEW</div>
+      <canvas id="fishPortrait" width="260" height="150"></canvas>
+      <h2 id="catchName">オイカワ</h2>
+      <div class="catchMeta"><span id="catchSize">18cm</span><span id="catchPlace">下流・瀬</span></div>
+      <p id="catchNote">きらめく浅瀬に群れる。</p>
+      <button id="catchClose">川へ戻る</button>
+    </section>
+    <section id="ending" class="ending hidden">
+      <small>THE HEADWATERS</small>
+      <h1>川の主</h1>
+      <p>一本の川を、魚の記憶だけでここまでのぼった。</p>
+      <button id="restartBtn">もう一度、河口から</button>
+    </section>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
