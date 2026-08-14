@@ -495,8 +495,12 @@ class Game {
 
     if (this.mode === 'free') {
       this.movePlayer(dt);
-      const hit = findTrigger(this.state, this.party.shirou);
-      if (hit) this.startInvestigation(hit);
+      // 逃走中は調査を発火させない。操作が止まっている間に怪異が歩いて来て、
+      // 3人が棒立ちのまま捕まる（緊張感が消えるどころか理不尽になる）
+      if (this.state.data.case_progress !== 'escape') {
+        const hit = findTrigger(this.state, this.party.shirou);
+        if (hit) this.startInvestigation(hit);
+      }
     }
 
     this.updateFollowers(dt, this.moving);
@@ -548,7 +552,10 @@ class Game {
   // 3人一緒に動く。重ねない。狭い道では自然に一列になる（SPEC §49）
   updateFollowers(dt, moving) {
     const order = ['rei', 'yotsuba'];
-    const gaps = [95, 180];
+    const escaping = this.state.data.case_progress === 'escape';
+    // 逃走中は隊列を詰める。探索時の間隔のままだと、後ろの2人が
+    // 常に怪異とプレイヤーの間に居ることになり、必ず追い越される
+    const gaps = escaping ? [30, 56] : [95, 180];
     order.forEach((who, i) => {
       const c = this.party[who];
       let target;
@@ -586,11 +593,30 @@ class Game {
       const dx = tx - c.x, dy = ty - c.y;
       const d = Math.hypot(dx, dy);
       if (d > 1.5) {
-        const sp = Math.min(d * 5.5, (this.state.data.case_progress === 'escape' ? SPEED.run : SPEED.walk) * 1.3);
+        // 逃走中は追いつけないと置き去りになるので上限を上げる
+        const base = escaping ? SPEED.run * 1.9 : SPEED.walk * 1.3;
+        const sp = Math.min(d * 6.5, base);
         c.x += dx / d * sp * dt;
         c.y += dy / d * sp * dt;
         if (Math.abs(dx) > 2) this.facing[who] = dx > 0 ? 1 : -1;
       }
+
+      // 追ってくる怪異より後ろへは絶対に残さない。
+      // 追い越されると絵として破綻し、緊張感も消える
+      if (escaping && a.chasing && a.visible) {
+        const dir = Math.sign(this.objective.x - a.x) || 1;
+        const behind = (c.x - a.x) * dir;
+        if (behind < 58) {
+          c.x = a.x + dir * 58;
+          if (this.nearMissT <= 0) {
+            this.nearMissT = 3.4;
+            this.r.shake = 0.5;
+            this.audio.sting();
+            this.say([{ who, text: who === 'rei' ? '無理無理無理！' : '置いてかないで！' }], { blocking: false });
+          }
+        }
+      }
+
       const area = this.state.areaAt(c.x);
       c.y = Math.max(area.bandTop + 4, Math.min(area.bandBottom - 2, c.y));
     });
@@ -643,9 +669,12 @@ class Game {
       r.drawGuideLine(path, this.t, this.state.data.case_progress === 'escape' ? 'escape' : 'normal');
     }
 
-    for (const pt of visiblePoints(this.state, p)) {
-      const near = Math.hypot(pt.x - p.x, pt.y - p.y);
-      r.drawMark(pt, this.t, pt.hidden ? Math.min(1, (150 - near) / 60) : 1);
+    // 逃走中は調査できないので、マークも出さない
+    if (this.state.data.case_progress !== 'escape') {
+      for (const pt of visiblePoints(this.state, p)) {
+        const near = Math.hypot(pt.x - p.x, pt.y - p.y);
+        r.drawMark(pt, this.t, pt.hidden ? Math.min(1, (150 - near) / 60) : 1);
+      }
     }
 
     // 奥から手前へ並べて描く

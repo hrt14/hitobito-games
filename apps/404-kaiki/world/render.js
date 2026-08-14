@@ -698,14 +698,22 @@ export class Renderer {
       ctx.moveTo(3.4 * s, bodyTop); ctx.lineTo(3.4 * s, bodyTop + bodyH - 2 * s); ctx.stroke();
     }
     if (who === 'rei') {
-      // 下ろしたフードと胸の紐
+      // 男子。パーカーの下ろしたフードと紐、裾のポケット
       ctx.fillStyle = '#33405a';
-      ctx.beginPath(); ctx.ellipse(0, bodyTop + 3 * s, 9.6 * s, 5.4 * s, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = ink; ctx.lineWidth = 1.2 * s; ctx.stroke();
-      ctx.strokeStyle = '#dfe6f2'; ctx.lineWidth = 1.3 * s;
       ctx.beginPath();
-      ctx.moveTo(-2.4 * s, bodyTop + 6 * s); ctx.lineTo(-2.4 * s, bodyTop + 12 * s);
-      ctx.moveTo(2.4 * s, bodyTop + 6 * s); ctx.lineTo(2.4 * s, bodyTop + 12 * s);
+      ctx.moveTo(-8.4 * s, bodyTop + 1 * s);
+      ctx.quadraticCurveTo(0, bodyTop + 11 * s, 8.4 * s, bodyTop + 1 * s);
+      ctx.quadraticCurveTo(0, bodyTop - 3 * s, -8.4 * s, bodyTop + 1 * s);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.2 * s; ctx.stroke();
+      ctx.strokeStyle = '#dfe6f2'; ctx.lineWidth = 1.4 * s;
+      ctx.beginPath();
+      ctx.moveTo(-2.6 * s, bodyTop + 8 * s); ctx.lineTo(-2.6 * s, bodyTop + 14 * s);
+      ctx.moveTo(2.6 * s, bodyTop + 8 * s); ctx.lineTo(2.6 * s, bodyTop + 14 * s);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(5,7,12,0.55)'; ctx.lineWidth = 1.2 * s;
+      ctx.beginPath();
+      ctx.moveTo(-6 * s, bodyTop + bodyH * 0.68); ctx.lineTo(6 * s, bodyTop + bodyH * 0.68);
       ctx.stroke();
     }
     if (who === 'yotsuba') {
@@ -792,19 +800,25 @@ export class Renderer {
       ctx.closePath(); ctx.fill(); ctx.stroke();
     }
     if (who === 'rei') {
+      // 男子。短めの重い髪で、前髪が片目にかかる程度に留める
       ctx.beginPath();
-      ctx.moveTo(-headR * 1.14, top + headR * 3.5);
-      ctx.lineTo(-headR * 1.14, top + headR * 0.8);
-      ctx.quadraticCurveTo(-headR * 1.2, top - headR * 0.42, 0, top - headR * 0.4);
-      ctx.quadraticCurveTo(headR * 1.2, top - headR * 0.42, headR * 1.14, top + headR * 0.8);
-      ctx.lineTo(headR * 1.14, top + headR * 3.5);
-      ctx.lineTo(headR * 0.62, top + headR * 3.3);
-      ctx.lineTo(headR * 0.62, top + headR * 1.0);
-      // 片目を隠す長い前髪
-      ctx.lineTo(headR * 0.1, top + headR * 1.5);
-      ctx.lineTo(-headR * 0.3, top + headR * 0.5);
-      ctx.lineTo(-headR * 0.62, top + headR * 1.1);
-      ctx.lineTo(-headR * 0.62, top + headR * 3.3);
+      ctx.moveTo(-headR * 1.1, top + headR * 1.24);
+      ctx.quadraticCurveTo(-headR * 1.22, top - headR * 0.34, 0, top - headR * 0.36);
+      ctx.quadraticCurveTo(headR * 1.22, top - headR * 0.34, headR * 1.1, top + headR * 1.24);
+      ctx.lineTo(headR * 0.86, top + headR * 1.3);
+      ctx.lineTo(headR * 0.92, top + headR * 0.66);
+      // 目にかかる重い前髪
+      ctx.lineTo(headR * 0.36, top + headR * 1.42);
+      ctx.lineTo(headR * 0.04, top + headR * 0.62);
+      ctx.lineTo(-headR * 0.42, top + headR * 1.3);
+      ctx.lineTo(-headR * 0.78, top + headR * 0.6);
+      ctx.lineTo(-headR * 0.9, top + headR * 1.3);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // 襟足を少しだけ
+      ctx.beginPath();
+      ctx.moveTo(-headR * 1.06, top + headR * 1.0);
+      ctx.quadraticCurveTo(-headR * 1.24, top + headR * 1.9, -headR * 0.72, top + headR * 1.96);
+      ctx.lineTo(-headR * 0.66, top + headR * 1.1);
       ctx.closePath(); ctx.fill(); ctx.stroke();
     }
     if (who === 'yotsuba') {
