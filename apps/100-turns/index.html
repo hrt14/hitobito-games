@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#08090d" />
+  <meta name="description" content="残り100ターン。何をしても、迷っても、ひとつ減る。有限な人生を2周して、選び方の変化を体験するゲーム。" />
+  <title>死ぬまでに、あと100ターン</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <section id="intro" class="screen intro-screen">
+      <div class="grain"></div>
+      <div class="intro-inner">
+        <div class="series">LEVEL UP / FINITE LIFE</div>
+        <p class="pretitle">人生は、止められない。</p>
+        <h1>死ぬまでに、<br><span>あと100ターン</span></h1>
+        <div class="intro-count" aria-label="残り100ターン">100</div>
+        <p class="intro-copy">お金を稼いでも、休んでも、悩んでも、人の目を気にしても。<br>何をしても、1ターン減る。</p>
+        <p class="intro-note">正解を当てるゲームではありません。あなたが何に命を使ったかを見るゲームです。</p>
+        <button id="startBtn" class="primary-btn">100ターンを始める</button>
+        <a class="games-link" href="../../">hitobito gamesへ戻る</a>
+      </div>
+    </section>
+
+    <section id="game" class="screen game-screen hidden">
+      <div class="grain"></div>
+      <header class="hud">
+        <div class="hud-left">
+          <span id="lapBadge" class="lap-badge">1周目</span>
+          <span id="phaseLabel" class="phase-label">まだ、たくさんある気がする。</span>
+        </div>
+        <button id="soundBtn" class="sound-btn" aria-label="音のオンオフ">♪</button>
+      </header>
+
+      <div class="life-counter-wrap">
+        <div class="remaining-label">残り</div>
+        <div id="remaining" class="remaining">100</div>
+        <div class="turn-label">TURNS</div>
+      </div>
+
+      <div class="life-line" aria-hidden="true"><div id="lifeLineFill" class="life-line-fill"></div></div>
+
+      <section id="sceneCard" class="scene-card">
+        <div class="scene-meta">
+          <span id="sceneNo">TURN 001</span>
+          <span id="sceneTag">TODAY</span>
+        </div>
+        <div id="sceneIcon" class="scene-icon">☀️</div>
+        <p id="sceneText" class="scene-text"></p>
+        <div id="choices" class="choices"></div>
+        <div class="timer-track"><div id="timerFill" class="timer-fill"></div></div>
+        <div id="previousHint" class="previous-hint hidden"></div>
+      </section>
+
+      <div class="ledger" aria-label="人生の現在値">
+        <div><span>¥</span><strong id="moneyStat">5</strong><small>余白</small></div>
+        <div><span>♡</span><strong id="bondStat">5</strong><small>つながり</small></div>
+        <div><span>✦</span><strong id="storyStat">0</strong><small>物語</small></div>
+        <div><span>◌</span><strong id="bodyStat">5</strong><small>体力</small></div>
+      </div>
+
+      <div id="turnToast" class="turn-toast" role="status"></div>
+      <div id="milestone" class="milestone hidden" role="dialog" aria-modal="true">
+        <div class="milestone-inner">
+          <div id="milestoneNumber" class="milestone-number"></div>
+          <p id="milestoneText"></p>
+          <button id="milestoneBtn">続ける</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="result" class="screen result-screen hidden">
+      <div class="grain"></div>
+      <div class="result-scroll">
+        <div class="result-kicker" id="resultKicker">1周目が終わった。</div>
+        <h2 id="resultTitle">100ターン、なくなりました。</h2>
+        <p id="resultLead" class="result-lead"></p>
+
+        <div id="resultHero" class="result-hero"></div>
+        <div id="resultBreakdown" class="breakdown"></div>
+        <div id="compareBlock" class="compare-block hidden"></div>
+
+        <div class="question-card">
+          <span>QUESTION</span>
+          <p id="resultQuestion"></p>
+        </div>
+
+        <button id="nextLapBtn" class="primary-btn"></button>
+        <button id="restartBtn" class="secondary-btn hidden">新しい100ターンを始める</button>
+        <a class="games-link" href="../../">hitobito gamesへ戻る</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
