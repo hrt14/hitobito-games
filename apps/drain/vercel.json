@@ -1,10 +1,13 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [{ "type": "host", "value": "404.hitobito.jp" }],
-      "destination": "/kaiki/index.html"
-    },
+      "destination": "/kaiki/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "404.hitobito.jp" }],

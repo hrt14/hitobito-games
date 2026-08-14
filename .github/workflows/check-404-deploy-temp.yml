@@ -13,7 +13,6 @@ jobs:
       - name: Probe hosts
         shell: bash
         run: |
-          # curl を grep へパイプすると SIGPIPE + pipefail で誤判定するので使わない
           fetch() { curl -sL -o "$2" -w '%{http_code}' --max-time 20 "$1" || echo ERR; }
           show() {
             code=$(fetch "$1" /tmp/b)
@@ -22,26 +21,22 @@ jobs:
           }
 
           ok=0
-          for i in $(seq 1 12); do
+          for i in $(seq 1 15); do
             fetch https://404.hitobito.jp/ /tmp/t >/dev/null
             if grep -q '404怪異調査クラブ' /tmp/t; then echo "404.hitobito.jp LIVE (try $i)"; ok=1; break; fi
-            echo "try $i: 404.hitobito.jp not the game yet"
+            echo "try $i: not yet"
             sleep 10
           done
 
-          echo "--- state ---"
+          echo "--- state (following redirects) ---"
           show https://404.hitobito.jp/
+          show https://404.hitobito.jp/kaiki/
           show https://drain.hitobito.jp/
           show https://drain.hitobito.jp/kaiki/
           show https://drain.hitobito.jp/one-tsubo/
 
-          if [ "$ok" = "1" ]; then
-            echo "--- markers on 404.hitobito.jp ---"
-            fetch https://404.hitobito.jp/ /tmp/g >/dev/null
-            for m in 'CASE 01 をはじめる' 'id="stage"' '404調査記録' 'drawAnomaly' 'banter'; do
-              if grep -q "$m" /tmp/g; then echo "  ok: $m"; else echo "  MISSING: $m"; fi
-            done
-          else
-            echo "404.hitobito.jp is NOT serving the game"
-            exit 1
-          fi
+          echo "--- redirect check (no follow) ---"
+          curl -s -o /dev/null -w '404 root      -> %{http_code} %{redirect_url}\n' --max-time 20 https://404.hitobito.jp/
+          curl -s -o /dev/null -w 'drain root    -> %{http_code} %{redirect_url}\n' --max-time 20 https://drain.hitobito.jp/
+
+          [ "$ok" = "1" ] || { echo "404.hitobito.jp NOT serving the game"; exit 1; }
