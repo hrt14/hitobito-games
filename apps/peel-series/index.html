@@ -3,37 +3,58 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-<meta name="theme-color" content="#0b0f16" />
-<title>PEEL — めくる世界</title>
-<link rel="stylesheet" href="./style.css">
+<meta name="theme-color" content="#090c12" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>PEEL — 世界をめくる</title>
+<link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-<div class="app" id="app">
+<main class="app" id="app">
   <section class="screen hub active" id="hub">
-    <div class="hero">
-      <div class="kicker">PEEL SERIES</div>
-      <h1>世界は、<br>何層ある？</h1>
-      <p>上へスワイプして、一枚ずつめくる。地面も、人体も、東京も、記憶も。奥にあるものを見つけよう。</p>
-    </div>
-    <div class="grid" id="themeGrid"></div>
+    <header class="hero">
+      <div class="kicker">PEEL SERIES / EXPERIMENT 02</div>
+      <h1>世界の表面を、<br>一枚ずつ。</h1>
+      <p>同じスワイプでも、剥がれるものは全部ちがう。地層をはがす。皮膚をめくる。東京の地下へ潜る。時間を逆行する。</p>
+    </header>
+    <div class="theme-grid" id="themeGrid"></div>
   </section>
 
   <section class="screen play" id="play">
-    <div class="topbar">
-      <button class="iconbtn" id="backBtn" aria-label="テーマ一覧へ">‹</button>
-      <div class="topcopy"><span class="eyebrow" id="seriesLabel">PEEL</span><strong id="themeTitle">地球をめくる</strong></div>
-      <button class="iconbtn" id="collectionBtn" aria-label="発見物">◇</button>
-      <div class="progress"><small id="depthText">0 / 8</small><div class="bar"><i id="progressBar"></i></div></div>
-    </div>
-    <div class="scene" id="scene">
-      <div class="atmos"></div><div class="ambient"></div>
-      <div class="stack" id="stack"></div>
-      <div class="hint" id="hint"><span class="arrow">↑</span><b>上へめくる</b><small>ゆっくりめくると PERFECT</small></div>
-      <div class="toast" id="toast"><div class="badge" id="toastIcon"></div><div><small id="toastTag">FOUND</small><b id="toastTitle"></b><p id="toastNote"></p></div></div>
-    </div>
-    <div class="ending" id="ending"><div class="endcard"><div class="endicon" id="endIcon"></div><div class="kicker">DEEPEST LAYER</div><h2 id="endTitle"></h2><p id="endText"></p><div class="stats"><div class="stat"><small>発見</small><b id="foundStat">0 / 8</b></div><div class="stat"><small>PERFECT</small><b id="perfectStat">0</b></div></div><button class="primary" id="againBtn">もう一度めくる</button><button class="secondary" id="otherBtn">別の世界をめくる</button></div></div>
-    <aside class="collection" id="collection"><div class="collection-head"><button class="iconbtn" id="closeCollection">×</button><div><span class="eyebrow">DISCOVERIES</span><h2 id="collectionTitle">発見したもの</h2></div></div><div class="collection-grid" id="collectionGrid"></div></aside>
+    <header class="topbar">
+      <button class="round-btn" id="backBtn" aria-label="テーマ一覧へ">‹</button>
+      <div class="topcopy"><small id="seriesLabel">PEEL</small><strong id="themeTitle">地球をめくる</strong></div>
+      <button class="round-btn discovery-btn" id="collectionBtn" aria-label="発見物"><span></span><b id="collectionCount">0</b></button>
+      <div class="progress-wrap"><span id="depthText">LAYER 1 / 8</span><div class="progress"><i id="progressBar"></i></div></div>
+    </header>
+
+    <section class="scene" id="scene" aria-live="polite">
+      <div class="scene-backdrop"></div>
+      <div class="world-view" id="worldView"></div>
+      <div class="active-surface" id="activeSurface"></div>
+      <div class="scene-fx" id="sceneFx"></div>
+      <div class="depth-readout" id="depthReadout"></div>
+      <div class="gesture-hint" id="gestureHint"><i></i><b id="gestureLabel">上へめくる</b><small id="gestureSub">ゆっくり剥がすと PERFECT</small></div>
+      <div class="discovery-toast" id="toast"><div class="toast-mark" id="toastMark"></div><div><small id="toastTag">FOUND</small><strong id="toastTitle"></strong><p id="toastNote"></p></div></div>
+    </section>
+
+    <section class="ending" id="ending" aria-hidden="true">
+      <div class="end-visual" id="endVisual"></div>
+      <div class="end-card">
+        <div class="kicker">DEEPEST LAYER</div>
+        <h2 id="endTitle"></h2>
+        <p id="endText"></p>
+        <div class="stats"><div><small>発見</small><strong id="foundStat">0 / 8</strong></div><div><small>PERFECT</small><strong id="perfectStat">0</strong></div></div>
+        <button class="primary" id="againBtn">もう一度</button>
+        <button class="secondary" id="otherBtn">別の世界をめくる</button>
+      </div>
+    </section>
+
+    <aside class="collection" id="collection" aria-hidden="true">
+      <div class="collection-head"><button class="round-btn" id="closeCollection">×</button><div><small>DISCOVERIES</small><h2 id="collectionTitle">発見したもの</h2></div></div>
+      <div class="collection-grid" id="collectionGrid"></div>
+    </aside>
   </section>
-</div>
+</main>
 <script src="./game.js"></script>
-</body></html>
+</body>
+</html>
