@@ -496,9 +496,55 @@ export class Renderer {
     const stx = this.sx(4460, 60);
     ctx.fillStyle = '#252a33';
     for (let i = 0; i < 6; i++) ctx.fillRect(stx - 40 + i * 3, y - 4 - i * 5, 80 - i * 6, 5);
-    // 参道の灯籠
-    for (const lx of [4900, 5060]) {
-      const x = this.sx(lx, 55), ly = this.sy(55), s = this.scaleAt(55);
+
+    // 境内。道の奥側にあり、鳥居は道路ではなくこの入口に立つ
+    const gx0 = this.sx(5060, 20), gx1 = this.sx(5700, 20);
+    const gyFar = this.sy(-30), gyNear = this.sy(54);
+    const gg = ctx.createLinearGradient(0, gyFar, 0, gyNear);
+    gg.addColorStop(0, '#191c22');
+    gg.addColorStop(1, '#23262c');
+    ctx.fillStyle = gg;
+    ctx.fillRect(gx0, gyFar, gx1 - gx0, gyNear - gyFar);
+    // 玉砂利
+    ctx.fillStyle = 'rgba(200,206,214,0.07)';
+    for (let i = 0; i < 120; i++) {
+      const rx = gx0 + ((i * 137) % Math.max(1, gx1 - gx0));
+      const ry = gyFar + ((i * 53) % Math.max(1, gyNear - gyFar));
+      ctx.fillRect(rx, ry, 2, 1.5);
+    }
+    // 境内の杜
+    ctx.fillStyle = '#0f1414';
+    for (const tx of [5090, 5160, 5560, 5650]) {
+      const px = this.sx(tx, -26);
+      ctx.beginPath(); ctx.ellipse(px, gyFar - 22, 34, 40, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(px - 4, gyFar - 26, 8, 30);
+    }
+    // 境内を囲う低い石垣。上がり口だけ途切れる
+    const apx0 = this.sx(5258, 54), apx1 = this.sx(5390, 54);
+    ctx.fillStyle = '#333944';
+    ctx.fillRect(gx0, gyNear - 9, apx0 - gx0, 11);
+    ctx.fillRect(apx1, gyNear - 9, gx1 - apx1, 11);
+    ctx.fillStyle = '#454c58';
+    ctx.fillRect(gx0, gyNear - 11, apx0 - gx0, 3);
+    ctx.fillRect(apx1, gyNear - 11, gx1 - apx1, 3);
+    // 上がり口の短い石段
+    ctx.fillStyle = '#3d434e';
+    for (let i = 0; i < 3; i++) {
+      ctx.fillRect(apx0 + i * 3, gyNear - 2 - i * 3, (apx1 - apx0) - i * 6, 4);
+    }
+    // 奥の社殿の影
+    ctx.fillStyle = '#12161a';
+    const hx = this.sx(5460, -20);
+    ctx.fillRect(hx - 52, gyFar - 46, 104, 50);
+    ctx.beginPath();
+    ctx.moveTo(hx - 68, gyFar - 44);
+    ctx.lineTo(hx, gyFar - 70);
+    ctx.lineTo(hx + 68, gyFar - 44);
+    ctx.closePath(); ctx.fill();
+
+    // 参道の灯籠（鳥居の手前、道から境内へ入る両脇）
+    for (const lx of [5240, 5400]) {
+      const x = this.sx(lx, 48), ly = this.sy(48), s = this.scaleAt(48);
       ctx.fillStyle = '#31353f';
       ctx.fillRect(x - 4 * s, ly - 26 * s, 8 * s, 26 * s);
       ctx.fillStyle = '#ffd9a0';
@@ -865,80 +911,173 @@ export class Renderer {
     ctx.restore();
   }
 
+  // 口裂け女。遠景でも分かるよう、記号を強く出す。
+  // 長い黒髪の塊 / 白いマスク / ベージュのコート / ハサミ。
   drawAnomaly(a) {
     if (a.fade <= 0.02) return;
     const { ctx } = this;
-    const wy = a.high ? a.y : a.y;
+    const wy = a.y;
     const x = this.sx(a.x, wy);
     const y = a.high ? this.sy(wy) - 108 : this.sy(wy);
     // 遠いほど小さく。遠景に立っているのが一目で分かるようにする
     const far = Math.max(0.34, 1 - Math.abs(a.x - this.camX) / 780);
-    const s = this.scaleAt(wy) * 1.5 * far;
-    const H = 66 * s;
-    const sway = Math.sin(a.sway * 1.4) * 1.2 * s;
+    const s = this.scaleAt(wy) * 1.62 * far;
+    const H = 70 * s;
+    const sway = Math.sin(a.sway * 1.3) * (a.chasing ? 2.4 : 1.1) * s;
+    const ink = 'rgba(4,5,9,0.92)';
 
     ctx.save();
-    ctx.globalAlpha = a.fade * (a.chasing ? 1 : 0.92);
+    ctx.globalAlpha = a.fade;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
 
     if (!a.high) {
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.beginPath(); ctx.ellipse(x, y, 14 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.beginPath(); ctx.ellipse(x, y, 15 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
     }
 
     const top = y - H;
-    const headR = 9 * s;
+    const headR = 9.6 * s;
+    const shoulder = top + headR * 2.0;
 
-    // コート
-    ctx.fillStyle = '#cfc5b6';
-    ctx.beginPath();
-    ctx.moveTo(x - 11 * s + sway, top + headR * 1.8);
-    ctx.lineTo(x + 11 * s + sway, top + headR * 1.8);
-    ctx.lineTo(x + 14 * s, y);
-    ctx.lineTo(x - 14 * s, y);
-    ctx.closePath(); ctx.fill();
-
-    // 腕
-    ctx.strokeStyle = '#c3b9aa';
+    // 足元（コートの裾から覗く）
+    ctx.strokeStyle = '#1a1a20';
     ctx.lineWidth = 3.4 * s;
-    ctx.lineCap = 'round';
-    const arm = a.chasing ? Math.sin(a.sway * 9) * 6 * s : 0;
+    const step = a.chasing ? Math.sin(a.sway * 11) * 4 * s : 0;
     ctx.beginPath();
-    ctx.moveTo(x - 10 * s, top + headR * 2.2); ctx.lineTo(x - 12 * s + arm, y - 16 * s);
-    ctx.moveTo(x + 10 * s, top + headR * 2.2); ctx.lineTo(x + 12 * s - arm, y - 16 * s);
+    ctx.moveTo(-3 * s + x, y - 12 * s); ctx.lineTo(x - 3 * s + step, y - 1 * s);
+    ctx.moveTo(3 * s + x, y - 12 * s);  ctx.lineTo(x + 3 * s - step, y - 1 * s);
     ctx.stroke();
 
-    // 頭と長い髪
-    ctx.fillStyle = '#e8d9c6';
-    ctx.beginPath(); ctx.arc(x + sway, top + headR, headR, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#0b0a0c';
+    // コート（細長く。子どもたちより明らかに背が高い）
     ctx.beginPath();
-    ctx.moveTo(x - headR * 1.25 + sway, top + headR * 0.6);
-    ctx.quadraticCurveTo(x + sway, top - headR * 0.9, x + headR * 1.25 + sway, top + headR * 0.6);
-    ctx.lineTo(x + headR * 1.35 + sway, top + headR * 4.4);
-    ctx.lineTo(x - headR * 1.35 + sway, top + headR * 4.4);
+    ctx.moveTo(x - 10.5 * s + sway, shoulder);
+    ctx.lineTo(x + 10.5 * s + sway, shoulder);
+    ctx.lineTo(x + 13.5 * s, y - 2 * s);
+    ctx.lineTo(x - 13.5 * s, y - 2 * s);
+    ctx.closePath();
+    ctx.fillStyle = '#b9ae99';
+    ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.6 * s; ctx.stroke();
+    // 前合わせ
+    ctx.strokeStyle = 'rgba(4,5,9,0.4)'; ctx.lineWidth = 1.2 * s;
+    ctx.beginPath();
+    ctx.moveTo(x + sway * 0.5, shoulder + 2 * s); ctx.lineTo(x, y - 3 * s);
+    ctx.stroke();
+
+    // 腕
+    ctx.strokeStyle = '#b1a692';
+    ctx.lineWidth = 3.8 * s;
+    const arm = a.chasing ? Math.sin(a.sway * 11) * 7 * s : 1.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(x - 9.5 * s, shoulder + 2 * s); ctx.lineTo(x - 12 * s + arm, y - 22 * s);
+    ctx.moveTo(x + 9.5 * s, shoulder + 2 * s); ctx.lineTo(x + 12 * s - arm, y - 22 * s);
+    ctx.stroke();
+
+    // ハサミ（口裂け女の記号。近いときだけ見える）
+    if (s > 0.62) {
+      const hx = x + 12 * s - arm, hy = y - 22 * s;
+      ctx.save();
+      ctx.translate(hx, hy);
+      ctx.rotate(0.5 + (a.chasing ? Math.sin(a.sway * 9) * 0.12 : 0));
+      ctx.strokeStyle = '#cdd4dd';
+      ctx.lineWidth = 1.7 * s;
+      ctx.beginPath();
+      ctx.moveTo(-1.5 * s, 0); ctx.lineTo(2 * s, 15 * s);
+      ctx.moveTo(1.5 * s, 0);  ctx.lineTo(-2 * s, 15 * s);
+      ctx.stroke();
+      ctx.strokeStyle = '#3d434f';
+      ctx.lineWidth = 1.5 * s;
+      ctx.beginPath();
+      ctx.arc(-2.6 * s, -3 * s, 2.6 * s, 0, Math.PI * 2);
+      ctx.arc(2.6 * s, -3 * s, 2.6 * s, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 後ろ髪。肩にかかる程度に留める。
+    // 長くしすぎるとコートが隠れて、全身が黒い板になって何だか分からなくなる
+    ctx.fillStyle = '#08070a';
+    ctx.beginPath();
+    ctx.moveTo(x - headR * 1.28 + sway, top + headR * 0.4);
+    ctx.quadraticCurveTo(x - headR * 1.62 + sway, top + headR * 2.0, x - headR * 1.34, top + headR * 3.3);
+    ctx.lineTo(x - headR * 0.6, top + headR * 3.1);
+    ctx.lineTo(x + headR * 0.6, top + headR * 3.1);
+    ctx.lineTo(x + headR * 1.34, top + headR * 3.3);
+    ctx.quadraticCurveTo(x + headR * 1.62 + sway, top + headR * 2.0, x + headR * 1.28 + sway, top + headR * 0.4);
     ctx.closePath(); ctx.fill();
 
+    // 顔
+    ctx.beginPath();
+    ctx.arc(x + sway, top + headR, headR, 0, Math.PI * 2);
+    ctx.fillStyle = '#efe3d4'; ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.4 * s; ctx.stroke();
+
+    // 目（見えていることが怖さの中心）
+    ctx.fillStyle = '#0a0a0e';
+    ctx.beginPath();
+    ctx.ellipse(x - headR * 0.42 + sway, top + headR * 0.86, 1.5 * s, 2.1 * s, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + headR * 0.42 + sway, top + headR * 0.86, 1.5 * s, 2.1 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 前髪（額を覆う重い一直線）
+    ctx.fillStyle = '#08070a';
+    ctx.beginPath();
+    ctx.moveTo(x - headR * 1.12 + sway, top + headR * 0.62);
+    ctx.quadraticCurveTo(x + sway, top - headR * 0.5, x + headR * 1.12 + sway, top + headR * 0.62);
+    ctx.lineTo(x + headR * 1.02 + sway, top + headR * 0.42);
+    ctx.lineTo(x - headR * 1.02 + sway, top + headR * 0.42);
+    ctx.closePath(); ctx.fill();
+    ctx.fillRect(x - headR * 1.12 + sway, top - headR * 0.1, headR * 2.24, headR * 0.62);
+
     if (a.masked) {
-      ctx.fillStyle = '#f2f4f7';
-      ctx.fillRect(x - headR * 0.78 + sway, top + headR * 0.95, headR * 1.56, headR * 0.95);
-    } else {
-      ctx.strokeStyle = '#8d1d24';
-      ctx.lineWidth = 2.2 * s;
+      // マスク（耳ひも付き。白の面積を大きく取る）
+      ctx.fillStyle = '#f7f8fa';
       ctx.beginPath();
-      ctx.moveTo(x - headR * 0.95 + sway, top + headR * 1.25);
-      ctx.lineTo(x + headR * 0.95 + sway, top + headR * 1.25);
+      ctx.roundRect(x - headR * 0.86 + sway, top + headR * 1.12, headR * 1.72, headR * 0.92, 2 * s);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(4,5,9,0.5)'; ctx.lineWidth = 1.1 * s; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - headR * 0.86 + sway, top + headR * 1.3); ctx.lineTo(x - headR * 1.3 + sway, top + headR * 1.1);
+      ctx.moveTo(x + headR * 0.86 + sway, top + headR * 1.3); ctx.lineTo(x + headR * 1.3 + sway, top + headR * 1.1);
       ctx.stroke();
-      ctx.strokeStyle = 'rgba(141,29,36,0.55)';
-      ctx.lineWidth = 1.4 * s;
+    } else {
+      // 裂けた口。顔幅を越えて広がる
+      const my = top + headR * 1.34;
+      ctx.fillStyle = '#7d1119';
       ctx.beginPath();
-      ctx.moveTo(x - headR * 0.95 + sway, top + headR * 1.25); ctx.lineTo(x - headR * 1.5 + sway, top + headR * 0.5);
-      ctx.moveTo(x + headR * 0.95 + sway, top + headR * 1.25); ctx.lineTo(x + headR * 1.5 + sway, top + headR * 0.5);
+      ctx.moveTo(x - headR * 1.34 + sway, my - headR * 0.34);
+      ctx.lineTo(x + headR * 1.34 + sway, my - headR * 0.34);
+      ctx.lineTo(x + headR * 0.9 + sway, my + headR * 0.58);
+      ctx.lineTo(x - headR * 0.9 + sway, my + headR * 0.58);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#4a0a10'; ctx.lineWidth = 1.2 * s; ctx.stroke();
+      // 歯
+      ctx.fillStyle = '#f2ece2';
+      for (let i = -3; i <= 3; i++) {
+        ctx.fillRect(x + i * headR * 0.34 + sway - headR * 0.11, my - headR * 0.32, headR * 0.22, headR * 0.26);
+      }
+      // 口角から伸びる裂け目
+      ctx.strokeStyle = '#7d1119'; ctx.lineWidth = 1.6 * s;
+      ctx.beginPath();
+      ctx.moveTo(x - headR * 1.32 + sway, my - headR * 0.3); ctx.lineTo(x - headR * 1.9 + sway, my - headR * 0.86);
+      ctx.moveTo(x + headR * 1.32 + sway, my - headR * 0.3); ctx.lineTo(x + headR * 1.9 + sway, my - headR * 0.86);
       ctx.stroke();
     }
+
+    // 暗い道から浮かせる縁の光
+    ctx.save();
+    ctx.globalAlpha = a.fade * 0.3;
+    ctx.strokeStyle = '#dfe8ff';
+    ctx.lineWidth = 1.3 * s;
+    ctx.beginPath();
+    ctx.moveTo(x - 10.5 * s + sway, shoulder + 1 * s);
+    ctx.lineTo(x - 13.5 * s, y - 3 * s);
+    ctx.stroke();
+    ctx.restore();
+
     ctx.restore();
   }
-
-  // ---------------------------------------------------------------- 緑ライン
 
   drawGuideLine(path, t, mode) {
     if (!path || path.length < 2) return;

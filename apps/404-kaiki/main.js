@@ -423,14 +423,14 @@ class Game {
     this.mode = 'survive';
     this.chase.stop(this.anomaly);
     this.input.setEnabled(false);
-    // 3人は鳥居をくぐり切る。怪異は外側で止まる（SPEC §32）
-    this.party.shirou = { x: SAFE_ZONE.x + 46, y: 118 };
-    this.party.rei = { x: SAFE_ZONE.x + 6, y: 92 };
-    this.party.yotsuba = { x: SAFE_ZONE.x + 22, y: 152 };
+    // 3人は鳥居をくぐって境内へ入る。怪異は道の側で止まる（SPEC §32）
+    this.party.shirou = { x: SAFE_ZONE.x + 6, y: 14 };
+    this.party.rei = { x: SAFE_ZONE.x - 36, y: 22 };
+    this.party.yotsuba = { x: SAFE_ZONE.x + 44, y: 26 };
     this.trail = [];
     this.moving = false;
-    this.anomaly.x = SAFE_ZONE.x - 168;
-    this.anomaly.y = 62;
+    this.anomaly.x = SAFE_ZONE.x - 120;
+    this.anomaly.y = 96; // 境内には入らず、道の側に立ち止まる
     this.anomaly.chasing = false;
     this.audio.setMode('silent');
     setTimeout(() => { this.audio.setMode('night'); this.audio.relief(); }, 2200);
@@ -639,7 +639,7 @@ class Game {
     const p = this.party.shirou;
     let cam = p.x;
     // 生還の瞬間は、鳥居の内と外の両方が同時に見える位置で止める
-    if (this.mode === 'survive') cam = SAFE_ZONE.x - 58;
+    if (this.mode === 'survive') cam = SAFE_ZONE.x - 46;
     else if (this.camFocus) {
       const k = 1 - Math.abs(this.camFocus.t - 0.85) / 0.85;
       cam = p.x + (this.camFocus.x - p.x) * Math.max(0, Math.min(1, k));

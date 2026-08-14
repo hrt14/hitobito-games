@@ -43,10 +43,10 @@ export const POINTS = [
   { id: 'P3', area: 'A3', x: 3060, y: 40,  mark: '◎', by: 'shirou',  kind: 'door',    required: true,  label: 'コンビニ裏口のドア' },
   { id: 'H1', area: 'A4', x: 3800, y: 64,  mark: '⌕', by: 'yotsuba', kind: 'graffiti',required: false, hidden: true, label: '室外機の裏の落書き' },
   { id: 'P4', area: 'A4', x: 4180, y: 95,  mark: '⌕', by: 'yotsuba', kind: 'mirror',  required: true,  label: '路地奥の落とし物' },
-  { id: 'P5', area: 'A5', x: 5240, y: 120, mark: '◎', by: 'all',     kind: 'torii',   required: true,  label: '鳥居の前' },
+  { id: 'P5', area: 'A5', x: 5250, y: 86,  mark: '◎', by: 'all',     kind: 'torii',   required: true,  label: '鳥居の前' },
 ];
 
-export const SAFE_ZONE = { x: 5320, y: 110, r: 120 };
+export const SAFE_ZONE = { x: 5320, y: 26, r: 120 }; // 道ではなく境内の入口
 
 // 緑ラインが道なりに曲がるための経路点（SPEC §16）
 export const WAYPOINTS = [
@@ -54,7 +54,8 @@ export const WAYPOINTS = [
   { x: 1300, y: 145 }, { x: 1650, y: 120 }, { x: 2050, y: 140 },
   { x: 2400, y: 120 }, { x: 2800, y: 100 }, { x: 3150, y: 85  },
   { x: 3400, y: 105 }, { x: 3750, y: 100 }, { x: 4050, y: 95  },
-  { x: 4350, y: 110 }, { x: 4700, y: 125 }, { x: 5050, y: 115 },
+  { x: 4350, y: 110 }, { x: 4700, y: 125 }, { x: 5060, y: 110 },
+  { x: 5230, y: 74 }, // 道から逸れて参道へ入る
 ];
 
 // 怪異出現候補地点（SPEC §26/§27）。プレイヤーから最低 400px 離れた地点のみ選ぶ
