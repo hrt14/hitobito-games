@@ -1,0 +1,1 @@
+(async()=>{const b=Uint8Array.from(atob(self.__Y.join("")),c=>c.charCodeAt(0)),s=new DecompressionStream("gzip"),h=await new Response(new Blob([b]).stream().pipeThrough(s)).text();document.open();document.write(h);document.close()})()
