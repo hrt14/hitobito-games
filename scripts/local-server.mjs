@@ -24,13 +24,37 @@ const MIME_TYPES = {
   '.txt': 'text/plain; charset=utf-8',
 };
 
-export function createLocalServer({ root = process.cwd(), port = Number(process.env.PORT || 4173) } = {}) {
+function sendVirtualRoute(res, route) {
+  const normalized = typeof route === 'string'
+    ? { content: route, type: 'text/html; charset=utf-8', status: 200 }
+    : route;
+
+  res.writeHead(normalized.status || 200, {
+    'content-type': normalized.type || 'text/plain; charset=utf-8',
+    'cache-control': 'no-store',
+    ...(normalized.headers || {}),
+  });
+  res.end(normalized.content ?? '');
+}
+
+export function createLocalServer({
+  root = process.cwd(),
+  port = Number(process.env.PORT || 4173),
+  host = '127.0.0.1',
+  virtualRoutes = {},
+} = {}) {
   const absoluteRoot = path.resolve(root);
 
   const server = http.createServer((req, res) => {
     try {
       const requestUrl = new URL(req.url || '/', 'http://localhost');
-      let pathname = decodeURIComponent(requestUrl.pathname);
+      const pathname = decodeURIComponent(requestUrl.pathname);
+
+      if (Object.prototype.hasOwnProperty.call(virtualRoutes, pathname)) {
+        sendVirtualRoute(res, virtualRoutes[pathname]);
+        return;
+      }
+
       let candidate = path.resolve(absoluteRoot, `.${pathname}`);
 
       if (!candidate.startsWith(absoluteRoot + path.sep) && candidate !== absoluteRoot) {
@@ -65,10 +89,11 @@ export function createLocalServer({ root = process.cwd(), port = Number(process.
   return {
     server,
     port,
+    host,
     start() {
       return new Promise((resolve, reject) => {
         server.once('error', reject);
-        server.listen(port, '127.0.0.1', () => {
+        server.listen(port, host, () => {
           server.off('error', reject);
           resolve();
         });
