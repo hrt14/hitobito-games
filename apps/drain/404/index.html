@@ -1,0 +1,2642 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#05070c" />
+<title>404怪異調査クラブ — CASE 01</title>
+<meta name="description" content="中学生3人組「404部」で夜の町を歩き、都市伝説を確かめに行く探索型ホラー。近づくだけで調査が進む。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305070c'/%3E%3Ctext x='16' y='22' font-size='13' font-family='monospace' font-weight='bold' fill='%235fe09b' text-anchor='middle'%3E404%3C/text%3E%3C/svg%3E" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070c;overflow:hidden;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  color:#e8eef8;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+#hud{position:fixed;top:0;right:0;padding:calc(env(safe-area-inset-top) + 10px) 12px 0 0;z-index:5}
+#btnPause{width:40px;height:40px;border:1px solid rgba(200,220,245,.22);border-radius:11px;
+  background:rgba(8,12,20,.55);color:rgba(220,232,248,.75);font-size:12px;letter-spacing:1px}
+
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:rgba(4,6,11,.82);backdrop-filter:blur(7px)}
+.overlay[hidden]{display:none}
+
+.title-inner{text-align:center;max-width:340px}
+.eyebrow{display:block;font:700 10px/1 ui-monospace,monospace;letter-spacing:.22em;color:#5fe09b;margin-bottom:18px}
+.title-inner h1{font-size:36px;line-height:1.15;letter-spacing:.04em;text-shadow:0 0 26px rgba(95,224,155,.28)}
+.title-inner h1 span{font-size:24px;opacity:.75}
+.lead{margin:16px 0 20px;font-size:13px;line-height:1.9;color:rgba(226,236,250,.62)}
+.members{display:flex;gap:8px;justify-content:center;margin-bottom:26px}
+.members span{flex:1;padding:9px 4px;border:1px solid rgba(150,180,215,.18);border-radius:10px;
+  background:rgba(10,16,26,.5);font:700 20px/1 ui-monospace,monospace;color:#6fe6a6}
+.members b{display:block;font:600 10px/1 sans-serif;color:rgba(220,232,248,.55);margin-bottom:6px}
+.title-btns{display:flex;flex-direction:column;gap:9px}
+.hint{display:block;margin-top:18px;font-size:11px;color:rgba(200,215,235,.35)}
+
+button{font-family:inherit;cursor:pointer;font-weight:700}
+.primary{padding:15px;border:0;border-radius:12px;background:linear-gradient(180deg,#3ddb8b,#25a869);
+  color:#04120a;font-size:14px;letter-spacing:.05em;box-shadow:0 8px 24px rgba(45,190,120,.22)}
+.ghost{padding:13px;border:1px solid rgba(180,205,235,.24);border-radius:12px;
+  background:rgba(12,18,28,.6);color:rgba(226,236,250,.8);font-size:13px}
+
+.sheet{width:100%;max-width:300px;text-align:center;display:flex;flex-direction:column;gap:10px}
+.sheet h2{font-size:15px;margin-bottom:8px;color:rgba(226,236,250,.7);letter-spacing:.1em}
+
+.note{width:100%;max-width:360px;max-height:86vh;overflow-y:auto;border-radius:14px;padding:20px;
+  background:#f3efe4;color:#26221c;box-shadow:0 20px 60px rgba(0,0,0,.6);
+  background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(80,70,55,.09) 27px 28px)}
+.note-head{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:2px solid rgba(60,50,40,.5);padding-bottom:8px;margin-bottom:14px}
+.note-head b{font-size:15px;letter-spacing:.06em}
+.note-head span{font-size:10px;color:rgba(50,42,34,.6)}
+.rec-line{display:flex;gap:10px;font-size:12px;line-height:1.75;margin-bottom:9px}
+.rec-line span{flex:0 0 62px;color:rgba(60,50,40,.55);font-weight:700;font-size:10.5px;padding-top:2px}
+.rec-line b{font-weight:600;flex:1}
+.rec-notes{margin:14px 0;padding:11px 12px;border-left:3px solid rgba(60,50,40,.35);
+  background:rgba(255,255,255,.4);font-size:12px;line-height:1.95}
+.rec-notes i{font-style:normal;font-weight:700;margin-right:2px;color:#5a4b38}
+.rec-open{margin-top:12px;padding:11px 12px;border:1px dashed rgba(150,40,40,.5);border-radius:8px;
+  background:rgba(190,70,60,.07)}
+.rec-open span{display:block;font-size:10px;font-weight:700;color:#a03a32;letter-spacing:.12em;margin-bottom:6px}
+.rec-open p{font-size:12.5px;line-height:1.8;font-weight:600}
+.note-btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.note-btns .ghost{background:rgba(60,50,40,.08);border-color:rgba(60,50,40,.3);color:#3a3227}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div id="hud" hidden>
+  <button id="btnPause" aria-label="一時停止">❙❙</button>
+</div>
+
+<section id="title" class="overlay">
+  <div class="title-inner">
+    <span class="eyebrow">URBAN LEGEND / INVESTIGATION</span>
+    <h1>404怪異調査<br><span>クラブ</span></h1>
+    <p class="lead">ネットで怖い噂を見つける。<br>3人で確かめに行く。</p>
+    <div class="members">
+      <span><b>四郎</b>4</span><span><b>零</b>0</span><span><b>四葉</b>4</span>
+    </div>
+    <div class="title-btns">
+      <button id="btnContinue" class="ghost">続きから</button>
+      <button id="btnNew" class="primary">CASE 01 をはじめる</button>
+    </div>
+    <small class="hint">スワイプで移動。それだけ。</small>
+  </div>
+</section>
+
+<section id="pause" class="overlay" hidden>
+  <div class="sheet">
+    <h2>一時停止</h2>
+    <button id="btnRecord" class="ghost">404調査記録</button>
+    <button id="btnResume" class="primary">もどる</button>
+  </div>
+</section>
+
+<section id="record" class="overlay" hidden>
+  <div class="note">
+    <div class="note-head"><b>404調査記録</b><span>404部のノート</span></div>
+    <div id="recBody"></div>
+    <div class="note-btns">
+      <button id="btnRestart" class="ghost" hidden>もう一度調べる</button>
+      <button id="btnRecordClose" class="primary">閉じる</button>
+    </div>
+  </div>
+</section>
+<script type="module">
+/* ---- data/case01.js ---- */
+// CASE 01「口裂け女」 5エリア縦切り版のデータ
+// 仕様: ../CASE01_SLICE.md
+const WORLD = {
+  length: 5700,
+  bandTop: 0,      // 道の奥側
+  bandBottom: 200, // 道の手前側
+};
+const SPEED = {
+  walk: 132,
+  run: 205,
+  anomaly: 189, // run * 0.92
+};
+const CHARS = {
+  shirou: { name: '四郎', label: 'シロウ', color: '#f08a45', hair: '#1a1414', scale: 1.06 },
+  rei:    { name: '零',   label: 'レイ',   color: '#5f96e0', hair: '#141018', scale: 0.94 },
+  yotsuba:{ name: '四葉', label: 'ヨツバ', color: '#49c98c', hair: '#1d1512', scale: 1.0 },
+};
+const AREAS = [
+  { id: 'A1', name: '住宅街入口', x0: 0,    x1: 1100, bandTop: 10, bandBottom: 200 },
+  { id: 'A2', name: '小さな公園', x0: 1100, x1: 2200, bandTop: 0,  bandBottom: 200 },
+  { id: 'A3', name: 'コンビニ裏', x0: 2200, x1: 3300, bandTop: 10, bandBottom: 195 },
+  { id: 'A4', name: '細い路地',   x0: 3300, x1: 4400, bandTop: 60, bandBottom: 150 }, // 狭い＝一列になる
+  { id: 'A5', name: '神社周辺',   x0: 4400, x1: 5700, bandTop: 0,  bandBottom: 200 },
+];
+
+// エリア境界。開放時は「文字」ではなく世界の見た目が変わる（SPEC §20）
+const GATES = [
+  { id: 'G1', x: 1100, unlockedBy: 'P1', opens: 'A2', kind: 'gate',   note: '公園の門が開く' },
+  { id: 'G2', x: 2200, unlockedBy: 'P2', opens: 'A3', kind: 'crates', note: '積まれたカゴがどく' },
+  { id: 'G3', x: 3300, unlockedBy: 'P3', opens: 'A4', kind: 'door',   note: '裏口のドアが開いたままになる' },
+  { id: 'G4', x: 4400, unlockedBy: 'P4', opens: 'A5', kind: 'steps',  note: '突き当たりに石段が見つかる' },
+];
+const POINTS = [
+  { id: 'P1', area: 'A1', x: 850,  y: 88,  mark: '？', by: 'rei',     kind: 'poster',  required: true,  label: '電柱の貼り紙' },
+  { id: 'O1', area: 'A2', x: 1460, y: 45,  mark: '◎', by: 'shirou',  kind: 'swing',   required: false, label: 'ブランコ' },
+  { id: 'P2', area: 'A2', x: 1782, y: 50,  mark: '◎', by: 'shirou',  kind: 'bin',     required: true,  label: 'ベンチ横のゴミ箱' },
+  { id: 'O2', area: 'A3', x: 2620, y: 165, mark: '◎', by: 'shirou',  kind: 'vending', required: false, label: '自販機' },
+  { id: 'P3', area: 'A3', x: 3060, y: 40,  mark: '◎', by: 'shirou',  kind: 'door',    required: true,  label: 'コンビニ裏口のドア' },
+  { id: 'H1', area: 'A4', x: 3800, y: 64,  mark: '⌕', by: 'yotsuba', kind: 'graffiti',required: false, hidden: true, label: '室外機の裏の落書き' },
+  { id: 'P4', area: 'A4', x: 4180, y: 95,  mark: '⌕', by: 'yotsuba', kind: 'mirror',  required: true,  label: '路地奥の落とし物' },
+  { id: 'P5', area: 'A5', x: 5240, y: 120, mark: '◎', by: 'all',     kind: 'torii',   required: true,  label: '鳥居の前' },
+];
+const SAFE_ZONE = { x: 5320, y: 110, r: 120 };
+
+// 緑ラインが道なりに曲がるための経路点（SPEC §16）
+const WAYPOINTS = [
+  { x: 300,  y: 130 }, { x: 700,  y: 100 }, { x: 1000, y: 120 },
+  { x: 1300, y: 145 }, { x: 1650, y: 120 }, { x: 2050, y: 140 },
+  { x: 2400, y: 120 }, { x: 2800, y: 100 }, { x: 3150, y: 85  },
+  { x: 3400, y: 105 }, { x: 3750, y: 100 }, { x: 4050, y: 95  },
+  { x: 4350, y: 110 }, { x: 4700, y: 125 }, { x: 5050, y: 115 },
+];
+
+// 怪異出現候補地点（SPEC §26/§27）。プレイヤーから最低 400px 離れた地点のみ選ぶ
+const SPAWNS = {
+  phase2: [
+    { x: 4380, y: 30, at: '路地の突き当たり' },
+    { x: 3120, y: 10, at: 'コンビニ二階の窓', high: true },
+    { x: 2140, y: 15, at: '公園の奥のフェンス際' },
+  ],
+  phase3: [
+    { x: 4980, y: 25, at: '参道の端' },
+    { x: 3980, y: 55, at: '曲がり角' },
+    { x: 3040, y: 12, at: 'コンビニの窓の中', high: true },
+    { x: 1180, y: 30, at: '道の奥' },
+    { x: 2280, y: 20, at: '団地前の暗がり' },
+  ],
+};
+const TRIGGERS = {
+  phase1AtX: 1180,       // A2 到達
+  phase3FromX: [4300, 3400, 2500], // 帰り道での接近（3回まで）
+  phase4AtX: 1500,       // 完全出現。ここから鳥居まで逃げ戻る
+  cutAheadAtX: [2650, 4150], // 逃走中に先回りして道をふさぐ地点
+};
+
+const L = (who, text, dur) => ({ who, text, dur: dur || null });
+const DIALOGUE = {
+  intro: [
+    L('rei', 'この先の住宅街、深夜にマスクの女が出るって書き込みが三つある'),
+    L('shirou', '三つもあれば本物だろ'),
+    L('yotsuba', '一つでも嘘なら、全部嘘だと思うけど'),
+    L('shirou', 'じゃあ確かめに行くしかないな'),
+  ],
+  P1: [
+    L('rei', '……これ、掲示板に貼られてた写真と同じ貼り紙だ'),
+    L('yotsuba', '本当にあるんだ'),
+    L('shirou', '公園の門、開いたぞ'),
+  ],
+  O1: [
+    L('shirou', '乗る？'),
+    L('yotsuba', '乗らない'),
+    L('rei', '（漕いでる）'),
+  ],
+  P2: [
+    L('shirou', 'うわ、マスクだらけ'),
+    L('rei', '新品もある。捨ててるんじゃなくて、置いてる'),
+    L('yotsuba', '……誰が？'),
+  ],
+  O2: [
+    L('shirou', '肉まん買って帰ろうぜ'),
+    L('rei', 'コンビニは逆方向'),
+    L('yotsuba', 'じゃあ帰りにすれば？'),
+    L('shirou', '怪異より肉まんが先だろ'),
+  ],
+  P3: [
+    L('shirou', '……誰もいない'),
+    L('yotsuba', '今、ノブ動いたよね'),
+    L('rei', '風だろ。たぶん'),
+  ],
+  H1: [
+    L('yotsuba', '……ここ、404って書いてある'),
+    L('rei', '誰かが先に来てる'),
+  ],
+  P4: [
+    L('yotsuba', '手鏡。割れてる'),
+    L('rei', '口裂け女は、鏡を見せると逃げるって話がある'),
+    L('yotsuba', '……ねえ。'),
+  ],
+  P5: [
+    L('yotsuba', 'ここだけ静かだね。'),
+    L('rei', '昔から神社の中には入ってこないって話はある。'),
+    L('shirou', 'じゃあ怪異出たらここ集合な。'),
+    L('yotsuba', '出る前提なの？'),
+  ],
+  phase1: [ L('rei', '今の、聞こえた？') ],
+  phase2: [ L('shirou', '……人、だろ') ],
+  goHome: [ L('shirou', 'よし、帰ろうぜ'), L('yotsuba', '肉まん買うんでしょ') ],
+  phase3: [
+    [ L('shirou', 'い、いや別に普通の人だろ') ],
+    [ L('yotsuba', 'さっきより近い') ],
+    [ L('rei', '三回目。同じ人だ') ],
+  ],
+  phase4: [
+    L('yotsuba', '走って'),
+    L('shirou', '鳥居！鳥居まで走れ！'),
+  ],
+  cutAhead: [ L('rei', '前！前にいる！') ],
+  survive: [
+    L('rei', '……止まった'),
+    L('yotsuba', '振り返らないで'),
+    L('shirou', '……肉まん、買えなかったな'),
+  ],
+  caught: [ L('yotsuba', '——') ],
+  epilogue: [
+    L('shirou', '昨日のやつさ'),
+    L('yotsuba', 'もう行かないからね。'),
+    L('rei', '次なんだけど。'),
+    L('yotsuba', '聞いてた？'),
+  ],
+};
+
+// 家・電柱などの背景物。乱数は固定シードで毎回同じ町にする
+function rng(seed) {
+  let s = seed >>> 0;
+  return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+}
+
+function buildScenery() {
+  const r = rng(40404);
+  const houses = [];
+  const poles = [];
+  const lamps = [];
+
+  for (let x = -100; x < WORLD.length + 200; x += 150 + r() * 90) {
+    const area = AREAS.find(a => x >= a.x0 && x < a.x1);
+    const id = area ? area.id : 'A1';
+    if (id === 'A2' && x > 1200 && x < 2050) continue; // 公園
+    if (id === 'A5' && x > 4700) continue;             // 参道
+    houses.push({
+      x: Math.round(x),
+      w: 130 + r() * 105,
+      h: 150 + r() * 150,
+      roof: r() < 0.5 ? 'gable' : 'flat',
+      lit: r() < 0.42,
+      windows: 2 + Math.floor(r() * 3),
+      tone: 0.7 + r() * 0.5,
+      side: 'far',
+    });
+  }
+  for (let x = 120; x < WORLD.length; x += 300) {
+    poles.push({ x, h: 168 + ((x * 7) % 40) });
+  }
+  for (let x = 200; x < WORLD.length; x += 430) {
+    lamps.push({ x, y: 14, on: true });
+  }
+  // 塀ぎわの自転車・植木・ゴミ袋。道端の生活感を出す
+  const clutter = [];
+  for (let x = 90; x < WORLD.length; x += 90 + r() * 140) {
+    const area = AREAS.find(a => x >= a.x0 && x < a.x1);
+    if (area && area.id === 'A5' && x > 4700) continue;
+    const k = r();
+    clutter.push({
+      x: Math.round(x),
+      kind: k < 0.34 ? 'bike' : k < 0.62 ? 'plant' : k < 0.82 ? 'bin' : 'sign',
+      flip: r() < 0.5,
+    });
+  }
+  return { houses, poles, lamps, clutter };
+}
+const SCENERY = buildScenery();
+const PROPS = [
+  { kind: 'danchi',   x: 620,  y: -220, w: 300, h: 250 },
+  { kind: 'watertower', x: 1900, y: -260, w: 90, h: 220 },
+  { kind: 'park',     x: 1300, y: 30,  w: 760 },
+  { kind: 'bench',    x: 1715, y: 44 },
+  { kind: 'store',    x: 2820, y: -10, w: 380, h: 200 },
+  { kind: 'alleywall',x: 3300, y: 0,   w: 1100 },
+  { kind: 'aircon',   x: 3760, y: 52 },
+  { kind: 'aircon',   x: 3980, y: 52 },
+  { kind: 'shrine',   x: 5150, y: 60,  w: 500 },
+];
+
+/* ---- core/case.js ---- */
+// Case System / Checkpoint System（SPEC §63 §64 §36）
+
+const KEY = 'hitobito_404_case01_slice_v1';
+
+const FRESH = () => ({
+  current_case: 'case01',
+  case_progress: 'investigation', // investigation | escape | cleared
+  unlocked_areas: ['A1'],
+  investigated_points: [],
+  optional_points: [],
+  checkpoint: null,
+  case_completed: false,
+  case_records: {},
+  story_flags: {},
+});
+class CaseState {
+  constructor() {
+    this.data = FRESH();
+    this.checkpointPos = null;
+  }
+
+  static hasSave() {
+    try { return !!localStorage.getItem(KEY); } catch { return false; }
+  }
+
+  load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) this.data = { ...FRESH(), ...JSON.parse(raw) };
+    } catch { this.data = FRESH(); }
+    return this;
+  }
+
+  save() {
+    try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch { /* 保存できなくても進行は止めない */ }
+  }
+
+  reset() {
+    this.data = FRESH();
+    this.checkpointPos = null;
+    this.save();
+  }
+
+  get flags() { return this.data.story_flags; }
+
+  isUnlocked(areaId) { return this.data.unlocked_areas.includes(areaId); }
+
+  isDone(pointId) {
+    return this.data.investigated_points.includes(pointId)
+        || this.data.optional_points.includes(pointId);
+  }
+
+  // 調査完了。開放したエリアIDを返す（無ければ null）
+  complete(point) {
+    const list = point.required ? this.data.investigated_points : this.data.optional_points;
+    if (!list.includes(point.id)) list.push(point.id);
+
+    const gate = GATES.find(g => g.unlockedBy === point.id);
+    let opened = null;
+    if (gate && !this.isUnlocked(gate.opens)) {
+      this.data.unlocked_areas.push(gate.opens);
+      opened = gate;
+    }
+    if (point.id === 'P5') this.flags.knows_shrine = true;
+    if (point.id === 'H1') this.flags.saw_graffiti_404 = true;
+    this.save();
+    return opened;
+  }
+
+  // 開放済みエリアの右端。ここより先へは歩けない
+  frontier() {
+    let x = 0;
+    for (const a of AREAS) if (this.isUnlocked(a.id)) x = Math.max(x, a.x1);
+    return x;
+  }
+
+  areaAt(x) {
+    return AREAS.find(a => x >= a.x0 && x < a.x1) || AREAS[AREAS.length - 1];
+  }
+
+  gateAt(x) {
+    return GATES.find(g => Math.abs(g.x - x) < 60) || null;
+  }
+
+  isGateOpen(gate) { return this.isUnlocked(gate.opens); }
+
+  setCheckpoint(id, pos, extra) {
+    this.data.checkpoint = id;
+    this.checkpointPos = { x: pos.x, y: pos.y, ...(extra || {}) };
+    this.data.story_flags.checkpoint_pos = this.checkpointPos;
+    this.save();
+  }
+
+  restoreCheckpoint() {
+    return this.checkpointPos || this.data.story_flags.checkpoint_pos || null;
+  }
+
+  requiredDone() {
+    return POINTS.filter(p => p.required && this.isDone(p.id)).length;
+  }
+
+  optionalTotal() { return POINTS.filter(p => !p.required).length; }
+  optionalDone() { return this.data.optional_points.length; }
+
+  markCleared(record) {
+    this.data.case_progress = 'cleared';
+    this.data.case_completed = true;
+    this.data.case_records.case01 = record;
+    this.save();
+  }
+}
+
+/* ---- core/investigation.js ---- */
+// Investigation System（SPEC §12 §14）
+// 「調べる」ボタンは作らない。近づくだけで発火する。
+
+// 道は横に長いので判定は楕円にする。奥行き方向にも十分な余裕を持たせ、
+// 「マークの近くまで歩いたのに何も起きない」を作らない。
+const RADIUS_X = 74;
+const RADIUS_Y = 58;
+const HIDDEN_REVEAL = 150; // 隠し調査のマークが見え始める距離
+function distance(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y;
+  return Math.hypot(dx, dy);
+}
+
+function inRange(p, player) {
+  const dx = (p.x - player.x) / RADIUS_X;
+  const dy = (p.y - player.y) / RADIUS_Y;
+  return dx * dx + dy * dy <= 1;
+}
+
+// マークを描画すべき調査ポイント
+function visiblePoints(state, player) {
+  return POINTS.filter(p => {
+    if (state.isDone(p.id)) return false;
+    if (!state.isUnlocked(p.area)) return false;
+    if (p.hidden && distance(p, player) > HIDDEN_REVEAL) return false;
+    return true;
+  });
+}
+
+// 発火すべき調査ポイント（無ければ null）
+function findTrigger(state, player) {
+  for (const p of POINTS) {
+    if (state.isDone(p.id)) continue;
+    if (!state.isUnlocked(p.area)) continue;
+    if (inRange(p, player)) return p;
+  }
+  return null;
+}
+
+// 次の必須目的地。緑ラインはここへ伸びる
+function nextRequired(state) {
+  return POINTS.find(p => p.required && !state.isDone(p.id) && state.isUnlocked(p.area)) || null;
+}
+
+/* ---- core/anomaly.js ---- */
+// Anomaly Spawn System（SPEC §25 §26 §27）
+// 真横へスポーンさせない。必ず「少し遠い場所」から。
+
+// 真横は禁止。ただし遠すぎて画面外になると発見できないので、
+// 「見えるが遠い」帯の中から選ぶ。
+const MIN_DISTANCE = 190;
+const MAX_DISTANCE = 296; // これ以上離すと縦画面の外へ出て、発見できなくなる
+class Anomaly {
+  constructor() {
+    this.phase = 0;
+    this.visible = false;
+    this.x = 0;
+    this.y = 0;
+    this.high = false;      // 窓・屋上など高所
+    this.masked = true;     // PHASE 4 で外れる
+    this.lastSpawn = null;
+    this.sightings = 0;
+    this.sway = 0;
+    this.fade = 0;          // 0..1 表示の濃さ
+    this.chasing = false;
+  }
+
+  setPhase(n) {
+    this.phase = n;
+    if (n === 4) this.masked = false;
+  }
+
+  // どの候補地点かをランダムに選び（＝どこに出るかは毎回変わる）、
+  // 実際の位置は「画面内だが遠い」帯に置く。
+  // 候補の絶対座標をそのまま使うと縦画面の外に出てしまい、
+  // プレイヤーが先に発見する余地が消えるため。
+  spawn(list, player, dir) {
+    const fresh = list.filter(s => s.at !== this.lastSpawn);
+    const pool = fresh.length ? fresh : list;
+    if (!pool.length) return null;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    this.lastSpawn = pick.at;
+
+    const away = dir || (pick.x >= player.x ? 1 : -1);
+    const dist = MIN_DISTANCE + Math.random() * (MAX_DISTANCE - MIN_DISTANCE);
+    this.x = Math.max(70, Math.min(WORLD.length - 70, player.x + away * dist));
+    this.y = pick.y;
+    this.high = !!pick.high;
+    this.visible = true;
+    this.fade = 0;
+    return pick;
+  }
+
+  showFar(player, dir) { return this.spawn(SPAWNS.phase2, player, dir); }
+
+  showNear(player, dir) {
+    this.sightings++;
+    return this.spawn(SPAWNS.phase3, player, dir);
+  }
+
+  // 完全出現。プレイヤーの進行方向の先に立ちふさがる
+  appear(player, towardX) {
+    this.visible = true;
+    this.high = false;
+    this.masked = false;
+    this.chasing = false;
+    this.fade = 0;
+    this.x = towardX;
+    this.y = 105;
+    this.setPhase(4);
+  }
+
+  hide() { this.visible = false; this.chasing = false; }
+
+  update(dt) {
+    this.sway += dt;
+    const target = this.visible ? 1 : 0;
+    this.fade += (target - this.fade) * Math.min(1, dt * 3.2);
+  }
+}
+
+/* ---- core/chase.js ---- */
+// Chase System（SPEC §29 §30 §35）
+// 最短距離ではなく、プレイヤーが通った経路を遅れて追う。
+
+const CONTACT = 34;
+const TRAIL_STEP = 0.06;
+class Chase {
+  constructor() {
+    this.active = false;
+    this.trail = [];
+    this.timer = 0;
+    this.caught = false;
+    this.cutIndex = 0;
+    this.block = 0;
+    this.elapsed = 0;
+  }
+
+  start(anomaly, player, behind) {
+    this.active = true;
+    this.caught = false;
+    this.trail = [];
+    this.timer = 0;
+    this.elapsed = 0;
+    this.cutIndex = 0;
+    this.block = 0;
+    anomaly.chasing = true;
+    anomaly.visible = true;
+    anomaly.x = player.x + behind;
+    anomaly.y = 105;
+  }
+
+  stop(anomaly) {
+    this.active = false;
+    if (anomaly) anomaly.chasing = false;
+  }
+
+  // 先回り。追尾ではなく「立ちふさがる」。
+  // 正面から突っ込んでくると避けようがなく理不尽になるため、一定時間その場に止まる。
+  cutAhead(anomaly, player, dir, distance) {
+    anomaly.x = player.x + dir * distance;
+    anomaly.y = 100;
+    anomaly.chasing = false;
+    this.trail = [];
+    this.block = 2.6;
+    this.cutIndex++;
+    return true;
+  }
+
+  update(dt, anomaly, player) {
+    if (!this.active) return;
+    this.elapsed += dt;
+
+    // ふさいでいる間は動かない。プレイヤーは横に回り込んで抜ける
+    if (this.block > 0) {
+      this.block -= dt;
+      if (this.block <= 0) { anomaly.chasing = true; this.trail = []; }
+      if (Math.hypot(player.x - anomaly.x, player.y - anomaly.y) < CONTACT) this.caught = true;
+      return;
+    }
+
+    this.timer += dt;
+    if (this.timer >= TRAIL_STEP) {
+      this.timer = 0;
+      this.trail.push({ x: player.x, y: player.y });
+      if (this.trail.length > 240) this.trail.shift();
+    }
+
+    // 追う先はプレイヤー本人ではなく、少し前の足跡
+    const lag = Math.min(this.trail.length - 1, 8);
+    const target = this.trail.length ? this.trail[Math.max(0, this.trail.length - 1 - lag)] : player;
+
+    const dx = target.x - anomaly.x;
+    const dy = target.y - anomaly.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const step = SPEED.anomaly * dt;
+    anomaly.x += (dx / len) * step;
+    anomaly.y += (dy / len) * step;
+
+    if (Math.hypot(player.x - anomaly.x, player.y - anomaly.y) < CONTACT) {
+      this.caught = true;
+    }
+  }
+}
+
+/* ---- core/log.js ---- */
+// Investigation Log（SPEC §38 §39 §40）
+// Wikipedia的な説明画面にしない。404部が書いたノートにする。
+
+const EVIDENCE = {
+  P1: '電柱の貼り紙（掲示板の写真と同一）',
+  P2: '捨てられていない新品のマスク',
+  P3: 'コンビニ裏口。無人。ノブだけが動いた',
+  P4: '割れた手鏡',
+  P5: '鳥居。内側には入ってこない',
+  O1: '公園のブランコ（レイが漕いだ）',
+  O2: '自販機。肉まんは売り切れ',
+  H1: '室外機の裏の落書き「404」',
+};
+function buildRecord(state) {
+  const found = POINTS
+    .filter(p => state.isDone(p.id))
+    .map(p => EVIDENCE[p.id])
+    .filter(Boolean);
+
+  const unresolved = ['じゃあ、最初の目撃写真を撮ったのは誰？'];
+  if (state.flags.saw_graffiti_404) {
+    unresolved.push('あの落書き、なんでうちらと同じ数字なんだ？');
+  }
+
+  return {
+    case: 'CASE 01 / 口裂け女',
+    rumor: '深夜の住宅街、マスクの女に「私、きれい？」と聞かれる',
+    places: ['住宅街入口', '小さな公園', 'コンビニ裏', '細い路地', '神社周辺'],
+    encounter: 'あり（鳥居の外で停止）',
+    evidence: found,
+    optional: `${state.optionalDone()} / ${state.optionalTotal()}`,
+    notes: [
+      ['シロウ', '走れば勝てる'],
+      ['レイ', '鳥居で止まったのは記録通り'],
+      ['ヨツバ', '最初に見たとき、こっちを見ていた'],
+    ],
+    unresolved,
+  };
+}
+
+/* ---- world/path.js ---- */
+// 緑のガイドライン用の経路（SPEC §15 §16 §17）
+
+// プレイヤーから目的地まで、道なりに折れる折線を作る
+function buildPath(from, to) {
+  if (!to) return [];
+  const forward = to.x >= from.x;
+  const mid = WAYPOINTS.filter(w =>
+    forward ? (w.x > from.x + 40 && w.x < to.x - 40)
+            : (w.x < from.x - 40 && w.x > to.x + 40));
+  if (!forward) mid.reverse();
+  return [{ x: from.x, y: from.y }, ...mid.map(w => ({ x: w.x, y: w.y })), { x: to.x, y: to.y }];
+}
+
+// 手前から一定割合だけ描く（怪異接近時に途切れさせる）
+function truncate(path, ratio) {
+  if (ratio >= 1 || path.length < 2) return path;
+  const lens = [];
+  let total = 0;
+  for (let i = 1; i < path.length; i++) {
+    const d = Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y);
+    lens.push(d); total += d;
+  }
+  let want = total * ratio;
+  const out = [path[0]];
+  for (let i = 0; i < lens.length; i++) {
+    if (want <= 0) break;
+    if (lens[i] <= want) { out.push(path[i + 1]); want -= lens[i]; }
+    else {
+      const t = want / lens[i];
+      out.push({
+        x: path[i].x + (path[i + 1].x - path[i].x) * t,
+        y: path[i].y + (path[i + 1].y - path[i].y) * t,
+      });
+      break;
+    }
+  }
+  return out;
+}
+
+/* ---- world/input.js ---- */
+// 操作は「移動」だけ（SPEC §11）。触った場所に出る可変スティック。
+class Input {
+  constructor(canvas) {
+    this.vx = 0;
+    this.vy = 0;
+    this.active = false;
+    this.origin = { x: 0, y: 0 };
+    this.point = { x: 0, y: 0 };
+    this.enabled = true;
+    this.tapped = false;
+    this.keys = new Set();
+    this._attach(canvas);
+  }
+
+  setEnabled(v) {
+    this.enabled = v;
+    if (!v) { this.vx = 0; this.vy = 0; this.active = false; }
+  }
+
+  consumeTap() { const t = this.tapped; this.tapped = false; return t; }
+
+  _attach(canvas) {
+    const R = 56;
+    const start = (x, y) => {
+      this.tapped = true;
+      if (!this.enabled) return;
+      this.active = true;
+      this.origin = { x, y };
+      this.point = { x, y };
+    };
+    const move = (x, y) => {
+      if (!this.active || !this.enabled) return;
+      this.point = { x, y };
+      let dx = x - this.origin.x, dy = y - this.origin.y;
+      const d = Math.hypot(dx, dy);
+      if (d > R) { dx = dx / d * R; dy = dy / d * R; this.origin = { x: x - dx, y: y - dy }; }
+      const dead = 6;
+      const m = Math.hypot(dx, dy);
+      if (m < dead) { this.vx = 0; this.vy = 0; return; }
+      const k = Math.min(1, (m - dead) / (R - dead));
+      this.vx = (dx / m) * k;
+      this.vy = (dy / m) * k;
+    };
+    const end = () => { this.active = false; this.vx = 0; this.vy = 0; };
+
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      start(t.clientX, t.clientY);
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      move(t.clientX, t.clientY);
+    }, { passive: false });
+    canvas.addEventListener('touchend', e => { e.preventDefault(); end(); }, { passive: false });
+    canvas.addEventListener('touchcancel', () => end());
+
+    canvas.addEventListener('mousedown', e => start(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+    window.addEventListener('mouseup', () => end());
+
+    window.addEventListener('keydown', e => {
+      this.keys.add(e.key);
+      if (e.key === ' ' || e.key === 'Enter') this.tapped = true;
+      this._fromKeys();
+    });
+    window.addEventListener('keyup', e => { this.keys.delete(e.key); this._fromKeys(); });
+  }
+
+  _fromKeys() {
+    if (!this.enabled) return;
+    const k = this.keys;
+    let x = 0, y = 0;
+    if (k.has('ArrowLeft') || k.has('a')) x -= 1;
+    if (k.has('ArrowRight') || k.has('d')) x += 1;
+    if (k.has('ArrowUp') || k.has('w')) y -= 1;
+    if (k.has('ArrowDown') || k.has('s')) y += 1;
+    if (x || y) {
+      const m = Math.hypot(x, y);
+      this.vx = x / m; this.vy = y / m;
+    } else if (!this.active) { this.vx = 0; this.vy = 0; }
+  }
+}
+
+/* ---- world/audio.js ---- */
+// 音（SPEC §51 §52）
+// 怪異専用BGMは流さない。日常音を先に作り、それが「なくなる」ことを恐怖に使う。
+class Ambience {
+  constructor() {
+    this.ctx = null;
+    this.ok = false;
+    this.mode = 'night';
+    this.nodes = {};
+  }
+
+  start() {
+    if (this.ok) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      this.ctx = ctx;
+
+      const master = ctx.createGain();
+      master.gain.value = 0.5;
+      master.connect(ctx.destination);
+
+      // 虫の音：ホワイトノイズを高域だけ通す
+      const noise = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      noise.buffer = buf;
+      noise.loop = true;
+
+      const bug = ctx.createBiquadFilter();
+      bug.type = 'bandpass';
+      bug.frequency.value = 4600;
+      bug.Q.value = 8;
+      const bugGain = ctx.createGain();
+      bugGain.gain.value = 0.05;
+      noise.connect(bug).connect(bugGain).connect(master);
+      noise.start();
+
+      // 遠くの車・電線のうなり
+      const hum = ctx.createOscillator();
+      hum.type = 'sawtooth';
+      hum.frequency.value = 54;
+      const humFilter = ctx.createBiquadFilter();
+      humFilter.type = 'lowpass';
+      humFilter.frequency.value = 180;
+      const humGain = ctx.createGain();
+      humGain.gain.value = 0.035;
+      hum.connect(humFilter).connect(humGain).connect(master);
+      hum.start();
+
+      this.nodes = { master, bugGain, humGain, hum };
+      this.ok = true;
+    } catch { this.ok = false; }
+  }
+
+  resume() { if (this.ok && this.ctx.state === 'suspended') this.ctx.resume(); }
+
+  ramp(node, value, time) {
+    if (!node) return;
+    const t = this.ctx.currentTime;
+    node.gain.cancelScheduledValues(t);
+    node.gain.setValueAtTime(node.gain.value, t);
+    node.gain.linearRampToValueAtTime(value, t + time);
+  }
+
+  // night: 日常音あり / hush: 減る / silent: 消える（＝いる）
+  setMode(mode) {
+    if (!this.ok || this.mode === mode) return;
+    this.mode = mode;
+    if (mode === 'night')  { this.ramp(this.nodes.bugGain, 0.05, 1.4); this.ramp(this.nodes.humGain, 0.035, 1.4); }
+    if (mode === 'hush')   { this.ramp(this.nodes.bugGain, 0.014, 1.0); this.ramp(this.nodes.humGain, 0.02, 1.0); }
+    if (mode === 'silent') { this.ramp(this.nodes.bugGain, 0.0, 0.5);  this.ramp(this.nodes.humGain, 0.0, 0.5); }
+  }
+
+  blip(freq, dur, gain, type) {
+    if (!this.ok) return;
+    try {
+      const ctx = this.ctx;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type || 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(gain, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      o.connect(g).connect(this.nodes.master);
+      o.start();
+      o.stop(ctx.currentTime + dur + 0.02);
+    } catch { /* 音は演出。失敗しても進行は止めない */ }
+  }
+
+  step()      { this.blip(90 + Math.random() * 30, 0.07, 0.05, 'triangle'); }
+  doorKnob()  { this.blip(180, 0.12, 0.07, 'square'); }
+  doorOpen()  { this.blip(70, 0.6, 0.06, 'sawtooth'); }
+  found()     { this.blip(520, 0.18, 0.05); setTimeout(() => this.blip(690, 0.22, 0.045), 90); }
+  unlock()    { this.blip(300, 0.3, 0.06, 'triangle'); setTimeout(() => this.blip(420, 0.4, 0.05, 'triangle'), 140); }
+  sting()     { this.blip(48, 1.1, 0.09, 'sawtooth'); }
+  caught()    { this.blip(60, 0.9, 0.12, 'square'); }
+  relief()    { this.blip(392, 0.5, 0.05); setTimeout(() => this.blip(523, 0.7, 0.045), 220); }
+}
+
+/* ---- world/render.js ---- */
+// 描画（SPEC §45 §46 §47 §48）
+// 前景 / プレイ層 / 背景 の3レイヤーを持ち、平面的なタイル地図にしない。
+
+const FAR_P = 0.05;
+const MID_P = 0.35;
+const FORE_P = 1.24;
+class Renderer {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.W = 0; this.H = 0; this.dpr = 1;
+    this.camX = 0;
+    this.shake = 0;
+    this.dark = 0;    // 逃走時の暗さ 0..1
+    this.stars = [];
+    this.resize();
+    for (let i = 0; i < 60; i++) {
+      this.stars.push({ x: Math.random(), y: Math.random() * 0.45, r: Math.random() * 1.2 + 0.3, a: Math.random() * 0.6 + 0.2 });
+    }
+  }
+
+  resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const w = this.canvas.clientWidth || window.innerWidth;
+    const h = this.canvas.clientHeight || window.innerHeight;
+    this.canvas.width = Math.round(w * dpr);
+    this.canvas.height = Math.round(h * dpr);
+    this.dpr = dpr; this.W = w; this.H = h;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.groundTop = h * 0.60;
+    this.groundBottom = h * 0.92;
+  }
+
+  depth(y) { return Math.max(-0.6, Math.min(1.4, y / WORLD.bandBottom)); }
+  scaleAt(y) { return 0.78 + this.depth(y) * 0.36; }
+
+  // 道を広く見せる。狭いと遠景の怪異が画面外に出てしまい、
+  // 「プレイヤーが先に発見する」余地がなくなる（SPEC §26）
+  sx(x, y) {
+    const hs = 0.62 + this.depth(y) * 0.10;
+    return this.W / 2 + (x - this.camX) * hs;
+  }
+  sy(y) { return this.groundTop + this.depth(y) * (this.groundBottom - this.groundTop); }
+  layerX(x, p) { return this.W / 2 + (x - this.camX * p); }
+
+  // ---------------------------------------------------------------- 背景
+
+  drawSky() {
+    const { ctx, W, H } = this;
+    const g = ctx.createLinearGradient(0, 0, 0, this.groundTop + 40);
+    g.addColorStop(0, '#070912');
+    g.addColorStop(0.45, '#101527');
+    g.addColorStop(1, '#232a3d');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    for (const s of this.stars) {
+      ctx.globalAlpha = s.a * (1 - this.dark * 0.5);
+      ctx.fillStyle = '#cdd7ff';
+      ctx.fillRect(s.x * W, s.y * H, s.r, s.r);
+    }
+    ctx.restore();
+  }
+
+  drawFar() {
+    const { ctx } = this;
+    const base = this.groundTop + 26;
+    // 遠い山
+    ctx.fillStyle = '#0d1020';
+    ctx.beginPath();
+    ctx.moveTo(0, base);
+    for (let i = 0; i <= 12; i++) {
+      const x = (i / 12) * this.W;
+      ctx.lineTo(x, base - 150 - Math.sin(i * 1.7) * 62 - Math.cos(i * 0.9) * 38);
+    }
+    ctx.lineTo(this.W, base);
+    ctx.closePath();
+    ctx.fill();
+
+    // 丘の上の赤い鳥居（A1からも見えるランドマーク・SPEC §47）
+    const tx = this.layerX(SAFE_ZONE.x, FAR_P) - this.W / 2 + this.W * 0.72;
+    const ty = base - 46;
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = '#b3363f';
+    ctx.fillStyle = '#b3363f';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(tx - 9, ty); ctx.lineTo(tx - 8, ty - 16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx + 9, ty); ctx.lineTo(tx + 8, ty - 16); ctx.stroke();
+    ctx.fillRect(tx - 13, ty - 19, 26, 2.6);
+    ctx.fillRect(tx - 10, ty - 13, 20, 2);
+    ctx.globalAlpha = 0.28;
+    ctx.beginPath(); ctx.arc(tx, ty - 12, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  drawMid() {
+    const { ctx } = this;
+    const base = this.groundTop + 30;
+    ctx.fillStyle = '#12162a';
+    for (let i = -2; i < 40; i++) {
+      const wx = i * 210;
+      const x = this.layerX(wx, MID_P);
+      if (x < -220 || x > this.W + 220) continue;
+      const h = 120 + ((i * 71) % 150);
+      ctx.fillRect(x - 55, base - h, 110, h);
+      ctx.fillStyle = 'rgba(255,214,150,0.12)';
+      for (let r = 0; r < Math.floor(h / 22); r++) {
+        for (let c = 0; c < 3; c++) {
+          if (((i + r + c) * 7) % 5 === 0) ctx.fillRect(x - 40 + c * 28, base - h + 12 + r * 22, 9, 9);
+        }
+      }
+      ctx.fillStyle = '#12162a';
+    }
+    // 給水塔と団地
+    for (const p of PROPS) {
+      if (p.kind === 'watertower') {
+        const x = this.layerX(p.x, MID_P);
+        ctx.fillStyle = '#161b30';
+        ctx.fillRect(x - 4, base - 78, 4, 78);
+        ctx.fillRect(x + 12, base - 78, 4, 78);
+        ctx.beginPath(); ctx.ellipse(x + 6, base - 84, 26, 15, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      if (p.kind === 'danchi') {
+        const x = this.layerX(p.x, MID_P);
+        ctx.fillStyle = '#141a2e';
+        ctx.fillRect(x - 80, base - 104, 160, 104);
+        ctx.fillStyle = 'rgba(255,214,150,0.16)';
+        for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) {
+          if (((r * 6 + c) * 3) % 4 === 0) ctx.fillRect(x - 70 + c * 24, base - 96 + r * 19, 11, 10);
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- 道
+
+  drawRoad() {
+    const { ctx, W } = this;
+    // 歩道。塀と車道のあいだを埋める
+    ctx.fillStyle = '#262a33';
+    ctx.fillRect(0, this.sy(-16), W, this.sy(0) - this.sy(-16) + 2);
+
+    const yTop = this.sy(0);
+    const yBot = this.sy(230);
+    const g = ctx.createLinearGradient(0, yTop, 0, yBot);
+    g.addColorStop(0, '#1b1e26');
+    g.addColorStop(0.5, '#23262f');
+    g.addColorStop(1, '#171a21');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, yTop, W, yBot - yTop);
+
+    // 縁石
+    ctx.fillStyle = '#2f333d';
+    ctx.fillRect(0, this.sy(0) - 5, W, 6);
+    ctx.fillStyle = '#3a3f4b';
+    ctx.fillRect(0, this.sy(0) - 7, W, 2.5);
+    ctx.fillStyle = '#2b2f39';
+    ctx.fillRect(0, this.sy(200), W, 7);
+
+    // 白線
+    ctx.strokeStyle = 'rgba(220,228,245,0.15)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([28, 32]);
+    ctx.beginPath();
+    ctx.moveTo(0, this.sy(104)); ctx.lineTo(W, this.sy(104));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(220,228,245,0.07)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, this.sy(28)); ctx.lineTo(W, this.sy(28)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, this.sy(178)); ctx.lineTo(W, this.sy(178)); ctx.stroke();
+
+    // マンホールと路面の荒れ
+    for (let i = 0; i < 30; i++) {
+      const wx = i * 420 + 180;
+      const x = this.sx(wx, 90);
+      if (x < -40 || x > W + 40) continue;
+      ctx.fillStyle = 'rgba(10,12,17,0.75)';
+      ctx.beginPath(); ctx.ellipse(x, this.sy(90), 19, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(150,165,190,0.13)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(x, this.sy(90), 19, 8, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(x, this.sy(90), 12, 5, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    for (let i = 0; i < 80; i++) {
+      const wy = 30 + (i * 53) % 155;
+      const wx = i * 150 + 55;
+      const x = this.sx(wx, wy);
+      if (x < -30 || x > W + 30) continue;
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.fillRect(x, this.sy(wy), 40 + (i % 5) * 14, 1.8);
+    }
+    // 電柱の影を道へ落として、平らな灰色にしない
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 7;
+    for (const p of SCENERY.poles) {
+      const x = this.sx(p.x, 24);
+      if (x < -80 || x > W + 80) continue;
+      ctx.beginPath();
+      ctx.moveTo(x, this.sy(24));
+      ctx.lineTo(x + 74, this.sy(190));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawLampPools(lamps) {
+    const { ctx } = this;
+    ctx.save();
+    for (const l of lamps) {
+      if (!l.on) continue;
+      const x = this.sx(l.x, 40), y = this.sy(70);
+      if (x < -160 || x > this.W + 160) continue;
+      const g = ctx.createRadialGradient(x, y, 4, x, y, 116);
+      g.addColorStop(0, 'rgba(255,222,164,0.20)');
+      g.addColorStop(1, 'rgba(255,222,164,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.ellipse(x, y, 116, 52, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 道の奥に建物を高く積んで、空だけの画面にしない
+  drawHouses() {
+    const { ctx } = this;
+    const baseY = this.sy(-14);
+    for (const h of SCENERY.houses) {
+      const x = this.sx(h.x, -14);
+      if (x < -320 || x > this.W + 320) continue;
+      const w = h.w * 0.86, hh = h.h;
+      const t = h.tone;
+      ctx.fillStyle = `rgb(${Math.round(21 * t)},${Math.round(25 * t)},${Math.round(38 * t)})`;
+      ctx.fillRect(x, baseY - hh, w, hh);
+      if (h.roof === 'gable') {
+        ctx.beginPath();
+        ctx.moveTo(x - 9, baseY - hh);
+        ctx.lineTo(x + w / 2, baseY - hh - 30);
+        ctx.lineTo(x + w + 9, baseY - hh);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillRect(x - 5, baseY - hh - 7, w + 10, 7);
+      }
+      if (h.lit) {
+        for (let i = 0; i < h.windows; i++) {
+          const wy = baseY - hh * 0.78 + i * (hh * 0.24);
+          ctx.fillStyle = i % 2 ? 'rgba(255,206,132,0.20)' : 'rgba(190,214,255,0.13)';
+          ctx.fillRect(x + w * 0.18, wy, w * 0.26, hh * 0.12);
+          ctx.fillRect(x + w * 0.58, wy, w * 0.22, hh * 0.1);
+        }
+      }
+      ctx.fillStyle = 'rgba(4,6,10,0.55)';
+      ctx.fillRect(x, baseY - 5, w, 5);
+    }
+    // 道沿いのブロック塀。道を囲って奥行きを作る
+    ctx.fillStyle = '#12161f';
+    ctx.fillRect(0, baseY - 30, this.W, 30);
+    ctx.fillStyle = 'rgba(120,140,170,0.05)';
+    for (let i = -1; i < 60; i++) {
+      const x = this.sx(i * 110 - 40, -14);
+      if (x < -80 || x > this.W + 80) continue;
+      ctx.fillRect(x, baseY - 30, 1.5, 30);
+    }
+    ctx.fillStyle = 'rgba(140,160,190,0.11)';
+    ctx.fillRect(0, baseY - 31, this.W, 2.5);
+    this.drawClutter(baseY);
+  }
+
+  // 塀ぎわの自転車・植木・ゴミ袋
+  drawClutter(baseY) {
+    const { ctx } = this;
+    for (const c of SCENERY.clutter) {
+      const x = this.sx(c.x, -10);
+      if (x < -60 || x > this.W + 60) continue;
+      const y = baseY + 3;
+      if (c.kind === 'bike') {
+        ctx.strokeStyle = 'rgba(150,170,200,0.30)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(x - 8, y - 6, 6, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x + 8, y - 6, 6, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - 8, y - 6); ctx.lineTo(x - 1, y - 15);
+        ctx.lineTo(x + 8, y - 6); ctx.moveTo(x - 1, y - 15); ctx.lineTo(x + 4, y - 18);
+        ctx.stroke();
+      } else if (c.kind === 'plant') {
+        ctx.fillStyle = '#2a2118';
+        ctx.fillRect(x - 5, y - 8, 10, 8);
+        ctx.fillStyle = '#1e3a28';
+        ctx.beginPath(); ctx.ellipse(x, y - 14, 8, 8, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(x - 5, y - 10, 5, 5, 0, 0, Math.PI * 2); ctx.fill();
+      } else if (c.kind === 'bin') {
+        ctx.fillStyle = '#252b36';
+        ctx.fillRect(x - 7, y - 14, 14, 14);
+        ctx.fillStyle = '#323a48';
+        ctx.fillRect(x - 9, y - 16, 18, 3);
+      } else {
+        ctx.fillStyle = '#2b3140';
+        ctx.fillRect(x - 1, y - 22, 2, 22);
+        ctx.fillStyle = 'rgba(190,205,230,0.22)';
+        ctx.fillRect(x - 7, y - 30, 14, 9);
+      }
+    }
+  }
+
+  // 電線。日本の住宅街らしさと画面上部の密度を同時に作る
+  drawPowerLines() {
+    const { ctx } = this;
+    const y0 = this.sy(24);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(8,10,16,0.85)';
+    ctx.lineWidth = 1.6;
+    for (let i = 0; i < SCENERY.poles.length - 1; i++) {
+      const a = SCENERY.poles[i], b = SCENERY.poles[i + 1];
+      const ax = this.sx(a.x, 24), bx = this.sx(b.x, 24);
+      if (bx < -80 || ax > this.W + 80) continue;
+      for (const off of [0, 9, 18]) {
+        ctx.beginPath();
+        ctx.moveTo(ax, y0 - a.h + off);
+        ctx.quadraticCurveTo((ax + bx) / 2, y0 - (a.h + b.h) / 2 + off + 20, bx, y0 - b.h + off);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  drawPoles() {
+    const { ctx } = this;
+    const y = this.sy(24);
+    for (const p of SCENERY.poles) {
+      const x = this.sx(p.x, 24);
+      if (x < -40 || x > this.W + 40) continue;
+      ctx.fillStyle = '#0b0e15';
+      ctx.fillRect(x - 3.5, y - p.h, 7, p.h);
+      ctx.fillRect(x - 15, y - p.h + 4, 30, 3.5);
+      ctx.fillRect(x - 11, y - p.h + 16, 22, 3);
+      ctx.fillStyle = '#131824';
+      ctx.fillRect(x - 8, y - p.h * 0.55, 16, 22);
+    }
+  }
+
+  drawLampPosts(lamps) {
+    const { ctx } = this;
+    for (const l of lamps) {
+      const x = this.sx(l.x, 40), y = this.sy(40);
+      if (x < -60 || x > this.W + 60) continue;
+      ctx.fillStyle = '#0f1218';
+      ctx.fillRect(x - 2.5, y - 140, 5, 140);
+      ctx.fillRect(x - 2.5, y - 140, 26, 3.5);
+      ctx.beginPath();
+      ctx.fillStyle = l.on ? '#ffe6b0' : '#2a2e38';
+      ctx.ellipse(x + 22, y - 135, 7, 4.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (l.on) {
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        const g = ctx.createRadialGradient(x + 22, y - 135, 1, x + 22, y - 135, 46);
+        g.addColorStop(0, 'rgba(255,225,168,0.6)');
+        g.addColorStop(1, 'rgba(255,225,168,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x + 22, y - 135, 46, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        ctx.save();
+        ctx.globalAlpha = 0.05;
+        ctx.fillStyle = '#ffe1a8';
+        ctx.beginPath();
+        ctx.moveTo(x + 17, y - 132); ctx.lineTo(x + 27, y - 132);
+        ctx.lineTo(x + 52, y); ctx.lineTo(x - 4, y);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- プロップ
+
+  drawProps(state) {
+    const { ctx } = this;
+    for (const p of PROPS) {
+      const x = this.sx(p.x, p.y);
+      if (x < -560 || x > this.W + 560) continue;
+      switch (p.kind) {
+        case 'park': this.drawPark(p); break;
+        case 'bench': this.drawBench(p); break;
+        case 'store': this.drawStore(p); break;
+        case 'alleywall': this.drawAlley(p); break;
+        case 'aircon': this.drawAircon(p); break;
+        case 'shrine': this.drawShrine(p); break;
+      }
+    }
+    for (const g of GATES) this.drawGate(g, state.isUnlocked(g.opens));
+  }
+
+  drawPark(p) {
+    const { ctx } = this;
+    // 公園は道の奥側だけ。道の上まで塗りつぶさない
+    const yFar = this.sy(-16), yNear = this.sy(66);
+    const x0 = this.sx(p.x, 20), x1 = this.sx(p.x + p.w, 20);
+    ctx.fillStyle = '#141b17';
+    ctx.fillRect(x0, yFar, x1 - x0, yNear - yFar);
+    ctx.fillStyle = 'rgba(90,130,100,0.05)';
+    ctx.fillRect(x0, yFar, x1 - x0, (yNear - yFar) * 0.45);
+    // 奥のフェンス
+    ctx.strokeStyle = 'rgba(150,170,190,0.18)';
+    ctx.lineWidth = 1.4;
+    for (let x = x0; x < x1; x += 15) {
+      ctx.beginPath(); ctx.moveTo(x, yFar - 34); ctx.lineTo(x, yFar); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(x0, yFar - 34); ctx.lineTo(x1, yFar - 34); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, yFar - 8); ctx.lineTo(x1, yFar - 8); ctx.stroke();
+    // 縁石
+    ctx.fillStyle = '#2c313a';
+    ctx.fillRect(x0, yNear - 3, x1 - x0, 5);
+    // ブランコ
+    const bx = this.sx(1460, 45), by = this.sy(45);
+    ctx.strokeStyle = '#3a4050'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(bx - 26, by); ctx.lineTo(bx - 16, by - 52); ctx.lineTo(bx + 16, by - 52); ctx.lineTo(bx + 26, by); ctx.stroke();
+    ctx.strokeStyle = 'rgba(220,230,245,0.5)'; ctx.lineWidth = 1.4;
+    const sw = Math.sin(Date.now() / 900) * 5;
+    ctx.beginPath(); ctx.moveTo(bx - 6, by - 50); ctx.lineTo(bx - 6 + sw, by - 20); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx + 6, by - 50); ctx.lineTo(bx + 6 + sw, by - 20); ctx.stroke();
+    ctx.fillStyle = '#e8ecf5';
+    ctx.fillRect(bx - 9 + sw, by - 21, 18, 3);
+  }
+
+  drawBench(p) {
+    const { ctx } = this;
+    const x = this.sx(p.x, p.y), y = this.sy(p.y), s = this.scaleAt(p.y);
+    ctx.fillStyle = '#2d3342';
+    ctx.fillRect(x - 26 * s, y - 16 * s, 52 * s, 5 * s);
+    ctx.fillRect(x - 26 * s, y - 26 * s, 52 * s, 4 * s);
+    ctx.fillRect(x - 22 * s, y - 16 * s, 4 * s, 16 * s);
+    ctx.fillRect(x + 18 * s, y - 16 * s, 4 * s, 16 * s);
+  }
+
+  drawStore(p) {
+    const { ctx } = this;
+    const y = this.sy(-8);
+    const x = this.sx(p.x, -8);
+    ctx.fillStyle = '#1a2030';
+    ctx.fillRect(x - 150, y - 210, 300, 210);
+    // 明るいガラス面と看板
+    ctx.fillStyle = 'rgba(150,240,200,0.22)';
+    ctx.fillRect(x - 140, y - 132, 280, 118);
+    ctx.fillStyle = 'rgba(220,255,240,0.10)';
+    for (let i = 0; i < 5; i++) ctx.fillRect(x - 136 + i * 56, y - 128, 3, 110);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillRect(x - 142, y - 176, 284, 26);
+    ctx.fillStyle = 'rgba(70,200,150,0.9)';
+    ctx.fillRect(x - 142, y - 150, 284, 8);
+    ctx.fillStyle = 'rgba(45,120,200,0.85)';
+    ctx.fillRect(x - 142, y - 158, 284, 8);
+    ctx.fillStyle = 'rgba(20,40,60,0.9)';
+    ctx.font = '700 13px ui-sans-serif, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('24H OPEN', x, y - 158);
+    const g = ctx.createRadialGradient(x, y - 60, 10, x, y - 20, 190);
+    g.addColorStop(0, 'rgba(150,240,200,0.14)');
+    g.addColorStop(1, 'rgba(150,240,200,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(x, y + 30, 190, 78, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  drawAlley(p) {
+    const { ctx } = this;
+    const yTop = this.sy(45);
+    const x0 = this.sx(p.x, 45), x1 = this.sx(p.x + p.w, 45);
+    ctx.fillStyle = '#10131b';
+    ctx.fillRect(x0, this.sy(-60), x1 - x0, yTop - this.sy(-60));
+    ctx.fillStyle = '#0d1016';
+    ctx.fillRect(x0, this.sy(165), x1 - x0, this.sy(240) - this.sy(165));
+    ctx.strokeStyle = 'rgba(120,140,170,0.08)';
+    ctx.lineWidth = 1;
+    for (let x = x0; x < x1; x += 46) {
+      ctx.beginPath(); ctx.moveTo(x, this.sy(-40)); ctx.lineTo(x, yTop); ctx.stroke();
+    }
+  }
+
+  drawAircon(p) {
+    const { ctx } = this;
+    const x = this.sx(p.x, p.y), y = this.sy(p.y), s = this.scaleAt(p.y);
+    ctx.fillStyle = '#2a2f3a';
+    ctx.fillRect(x - 15 * s, y - 26 * s, 30 * s, 22 * s);
+    ctx.strokeStyle = 'rgba(160,175,195,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(x, y - 15 * s, 8 * s, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  drawShrine(p) {
+    const { ctx } = this;
+    const y = this.sy(60);
+    // 石段
+    const stx = this.sx(4460, 60);
+    ctx.fillStyle = '#252a33';
+    for (let i = 0; i < 6; i++) ctx.fillRect(stx - 40 + i * 3, y - 4 - i * 5, 80 - i * 6, 5);
+    // 参道の灯籠
+    for (const lx of [4900, 5060]) {
+      const x = this.sx(lx, 55), ly = this.sy(55), s = this.scaleAt(55);
+      ctx.fillStyle = '#31353f';
+      ctx.fillRect(x - 4 * s, ly - 26 * s, 8 * s, 26 * s);
+      ctx.fillStyle = '#ffd9a0';
+      ctx.fillRect(x - 7 * s, ly - 36 * s, 14 * s, 10 * s);
+      ctx.save();
+      ctx.globalAlpha = 0.4;
+      const g = ctx.createRadialGradient(x, ly - 31 * s, 2, x, ly - 31 * s, 42);
+      g.addColorStop(0, 'rgba(255,205,140,0.5)');
+      g.addColorStop(1, 'rgba(255,205,140,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, ly - 31 * s, 42, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    // 鳥居（安全地点）
+    this.drawTorii(SAFE_ZONE.x, SAFE_ZONE.y);
+  }
+
+  drawTorii(wx, wy) {
+    const { ctx } = this;
+    const x = this.sx(wx, wy), y = this.sy(wy), s = this.scaleAt(wy) * 1.5;
+    ctx.save();
+    ctx.fillStyle = '#c0424b';
+    ctx.fillRect(x - 42 * s, y - 96 * s, 9 * s, 96 * s);
+    ctx.fillRect(x + 33 * s, y - 96 * s, 9 * s, 96 * s);
+    ctx.fillRect(x - 56 * s, y - 108 * s, 112 * s, 9 * s);
+    ctx.fillRect(x - 60 * s, y - 112 * s, 120 * s, 5 * s);
+    ctx.fillRect(x - 46 * s, y - 84 * s, 92 * s, 6 * s);
+    ctx.globalAlpha = 0.22;
+    const g = ctx.createRadialGradient(x, y - 60 * s, 6, x, y - 40 * s, 150);
+    g.addColorStop(0, 'rgba(255,120,130,0.35)');
+    g.addColorStop(1, 'rgba(255,120,130,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y - 50 * s, 150, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  drawGate(g, open) {
+    const { ctx } = this;
+    const x = this.sx(g.x, 60), y = this.sy(60), s = this.scaleAt(60);
+    if (x < -200 || x > this.W + 200) return;
+
+    if (g.kind === 'gate') {
+      ctx.strokeStyle = open ? 'rgba(150,170,190,0.25)' : 'rgba(190,205,225,0.55)';
+      ctx.lineWidth = 3;
+      const w = 42 * s, h = 56 * s;
+      ctx.save();
+      if (open) {
+        ctx.translate(x - w, y);
+        ctx.rotate(-0.75);
+        ctx.strokeRect(0, -h, w, h);
+      } else {
+        ctx.strokeRect(x - w, y - h, w, h);
+        ctx.strokeRect(x, y - h, w, h);
+      }
+      ctx.restore();
+    }
+    if (g.kind === 'crates' && !open) {
+      ctx.fillStyle = '#3b4150';
+      for (let i = 0; i < 3; i++) ctx.fillRect(x - 28 * s, y - (i + 1) * 20 * s, 56 * s, 18 * s);
+    }
+    if (g.kind === 'door') {
+      ctx.fillStyle = open ? '#05070b' : '#2c3242';
+      ctx.fillRect(x - 20 * s, y - 62 * s, 40 * s, 62 * s);
+      if (open) {
+        ctx.fillStyle = 'rgba(10,14,20,0.95)';
+        ctx.fillRect(x - 18 * s, y - 60 * s, 36 * s, 60 * s);
+        ctx.fillStyle = '#2c3242';
+        ctx.save();
+        ctx.translate(x - 20 * s, y - 62 * s);
+        ctx.transform(1, 0, -0.55, 1, 0, 0);
+        ctx.fillRect(-6 * s, 0, 8 * s, 62 * s);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#c9cfdb';
+        ctx.beginPath(); ctx.arc(x + 12 * s, y - 30 * s, 2.6 * s, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    if (g.kind === 'steps' && !open) {
+      ctx.fillStyle = '#171b24';
+      ctx.fillRect(x - 46 * s, y - 88 * s, 92 * s, 88 * s);
+      ctx.strokeStyle = 'rgba(140,160,185,0.14)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x - 46 * s, y - 18 * s * i - 8);
+        ctx.lineTo(x + 46 * s, y - 18 * s * i - 8);
+        ctx.stroke();
+      }
+    }
+  }
+
+  drawForeground() {
+    const { ctx } = this;
+    const y = this.sy(215);
+
+    // ガードレール。手前を横切らせて奥行きを作る
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(0, y + 4, this.W, 7);
+    ctx.fillRect(0, y + 20, this.W, 5);
+    for (let i = -1; i < 46; i++) {
+      const x = this.layerX(i * 150 + 40, FORE_P);
+      if (x < -40 || x > this.W + 40) continue;
+      ctx.fillStyle = '#080b11';
+      ctx.fillRect(x - 3, y + 4, 6, 34);
+    }
+
+    // 手前の電柱・植木
+    for (let i = -1; i < 26; i++) {
+      const wx = i * 560 + 60;
+      const x = this.layerX(wx, FORE_P);
+      if (x < -140 || x > this.W + 140) continue;
+      ctx.fillStyle = '#04060a';
+      ctx.fillRect(x - 11, y - 120, 22, this.H - y + 140);
+      ctx.fillRect(x - 32, y - 112, 64, 9);
+      const bx = this.layerX(wx + 260, FORE_P);
+      ctx.beginPath();
+      ctx.ellipse(bx, this.H - 18, 52, 40, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // 画面下の暗い縁
+    const g = ctx.createLinearGradient(0, this.H * 0.84, 0, this.H);
+    g.addColorStop(0, 'rgba(4,5,9,0)');
+    g.addColorStop(1, 'rgba(4,5,9,0.75)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, this.H * 0.84, this.W, this.H * 0.16);
+  }
+
+  // ---------------------------------------------------------------- 人物
+
+  drawPerson(who, wx, wy, phase, facing, opts = {}) {
+    const { ctx } = this;
+    const def = CHARS[who];
+    const x = this.sx(wx, wy), y = this.sy(wy);
+    const s = this.scaleAt(wy) * def.scale * 1.24;
+    const H = 54 * s;
+    const swing = Math.sin(phase) * (opts.moving ? 1 : 0);
+    const bob = opts.moving ? Math.abs(Math.sin(phase)) * 1.6 * s : 0;
+
+    ctx.save();
+    // 影
+    ctx.fillStyle = 'rgba(0,0,0,0.42)';
+    ctx.beginPath(); ctx.ellipse(x, y, 13 * s, 4.6 * s, 0, 0, Math.PI * 2); ctx.fill();
+
+    const top = y - H - bob;
+    const headR = 8.2 * s;
+    const bodyTop = top + headR * 2.0;
+    const bodyH = H - headR * 2.0 - 15 * s;
+
+    // 脚
+    ctx.strokeStyle = '#1a1f2b';
+    ctx.lineWidth = 4.2 * s;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x - 2.6 * s, y - 15 * s); ctx.lineTo(x - 2.6 * s + swing * 5 * s, y - 1 * s);
+    ctx.moveTo(x + 2.6 * s, y - 15 * s); ctx.lineTo(x + 2.6 * s - swing * 5 * s, y - 1 * s);
+    ctx.stroke();
+
+    // 胴
+    ctx.fillStyle = def.color;
+    ctx.beginPath();
+    ctx.roundRect(x - 8 * s, bodyTop, 16 * s, bodyH, 3.4 * s);
+    ctx.fill();
+
+    if (who === 'shirou') {
+      // 開けたジャケットの前身頃
+      ctx.fillStyle = '#1e2532';
+      ctx.fillRect(x - 3 * s, bodyTop, 6 * s, bodyH);
+      ctx.fillStyle = def.color;
+      ctx.fillRect(x - 9.6 * s, bodyTop, 3.6 * s, bodyH * 0.94);
+      ctx.fillRect(x + 6 * s, bodyTop, 3.6 * s, bodyH * 0.94);
+    }
+    if (who === 'rei') {
+      // パーカーのフード
+      ctx.fillStyle = '#2b3446';
+      ctx.beginPath(); ctx.ellipse(x, bodyTop + 2 * s, 9.4 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    if (who === 'yotsuba') {
+      // スカートとバッグ
+      ctx.fillStyle = '#20272f';
+      ctx.beginPath();
+      ctx.moveTo(x - 9 * s, bodyTop + bodyH - 2 * s);
+      ctx.lineTo(x + 9 * s, bodyTop + bodyH - 2 * s);
+      ctx.lineTo(x + 11 * s, bodyTop + bodyH + 7 * s);
+      ctx.lineTo(x - 11 * s, bodyTop + bodyH + 7 * s);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#c7a34a'; ctx.lineWidth = 1.8 * s;
+      ctx.beginPath(); ctx.moveTo(x - 6 * s, bodyTop + 1 * s); ctx.lineTo(x + 7 * s, bodyTop + bodyH * 0.7); ctx.stroke();
+      ctx.fillStyle = '#8a6f34';
+      ctx.fillRect(x + 5 * s, bodyTop + bodyH * 0.6, 8 * s, 7 * s);
+    }
+
+    // 腕
+    ctx.strokeStyle = def.color;
+    ctx.lineWidth = 3.6 * s;
+    ctx.beginPath();
+    if (who === 'shirou' && !opts.moving) {
+      ctx.moveTo(x - 8 * s, bodyTop + 4 * s); ctx.lineTo(x - 6 * s, bodyTop + bodyH * 0.72);
+      ctx.moveTo(x + 8 * s, bodyTop + 4 * s); ctx.lineTo(x + 6 * s, bodyTop + bodyH * 0.72);
+    } else {
+      ctx.moveTo(x - 8 * s, bodyTop + 4 * s); ctx.lineTo(x - 9 * s - swing * 3 * s, bodyTop + bodyH * 0.85);
+      ctx.moveTo(x + 8 * s, bodyTop + 4 * s); ctx.lineTo(x + 9 * s + swing * 3 * s, bodyTop + bodyH * 0.85);
+    }
+    ctx.stroke();
+
+    // 頭
+    ctx.fillStyle = '#e6c9a8';
+    ctx.beginPath(); ctx.arc(x, top + headR, headR, 0, Math.PI * 2); ctx.fill();
+
+    // 髪（シルエットで見分ける・SPEC §48）
+    ctx.fillStyle = def.hair;
+    if (who === 'shirou') {
+      ctx.beginPath();
+      ctx.arc(x, top + headR * 0.92, headR * 1.03, Math.PI, 0);
+      ctx.lineTo(x + headR, top + headR * 0.5);
+      for (let i = 0; i < 5; i++) {
+        ctx.lineTo(x + headR - i * headR * 0.42, top - headR * (i % 2 ? 0.05 : 0.42));
+      }
+      ctx.closePath(); ctx.fill();
+    }
+    if (who === 'rei') {
+      ctx.beginPath();
+      ctx.ellipse(x, top + headR * 1.15, headR * 1.12, headR * 1.35, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(x - headR * 1.12, top + headR * 0.9, headR * 2.24, headR * 1.5);
+      ctx.fillRect(x - headR * 0.2, top + headR * 0.3, headR * 1.3, headR * 1.0);
+    }
+    if (who === 'yotsuba') {
+      ctx.beginPath();
+      ctx.arc(x, top + headR * 0.98, headR * 1.06, Math.PI, 0);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x - headR * 1.35, top + headR * 1.5, headR * 0.5, headR * 1.15, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // レイの携帯の光
+    if (who === 'rei' && opts.phone !== false) {
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      const g = ctx.createRadialGradient(x + 9 * s, bodyTop + bodyH * 0.6, 1, x + 9 * s, bodyTop + bodyH * 0.6, 16 * s);
+      g.addColorStop(0, 'rgba(150,205,255,0.75)');
+      g.addColorStop(1, 'rgba(150,205,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x + 9 * s, bodyTop + bodyH * 0.6, 16 * s, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    // 立ち止まって振り返る（怪異のヒント・SPEC §28）
+    if (opts.lookBack) {
+      ctx.strokeStyle = 'rgba(230,240,255,0.5)';
+      ctx.lineWidth = 1.4 * s;
+      ctx.beginPath();
+      ctx.arc(x, top + headR, headR * 1.5, -0.5, 0.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawAnomaly(a) {
+    if (a.fade <= 0.02) return;
+    const { ctx } = this;
+    const wy = a.high ? a.y : a.y;
+    const x = this.sx(a.x, wy);
+    const y = a.high ? this.sy(wy) - 108 : this.sy(wy);
+    // 遠いほど小さく。遠景に立っているのが一目で分かるようにする
+    const far = Math.max(0.34, 1 - Math.abs(a.x - this.camX) / 780);
+    const s = this.scaleAt(wy) * 1.5 * far;
+    const H = 66 * s;
+    const sway = Math.sin(a.sway * 1.4) * 1.2 * s;
+
+    ctx.save();
+    ctx.globalAlpha = a.fade * (a.chasing ? 1 : 0.92);
+
+    if (!a.high) {
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.beginPath(); ctx.ellipse(x, y, 14 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    const top = y - H;
+    const headR = 9 * s;
+
+    // コート
+    ctx.fillStyle = '#cfc5b6';
+    ctx.beginPath();
+    ctx.moveTo(x - 11 * s + sway, top + headR * 1.8);
+    ctx.lineTo(x + 11 * s + sway, top + headR * 1.8);
+    ctx.lineTo(x + 14 * s, y);
+    ctx.lineTo(x - 14 * s, y);
+    ctx.closePath(); ctx.fill();
+
+    // 腕
+    ctx.strokeStyle = '#c3b9aa';
+    ctx.lineWidth = 3.4 * s;
+    ctx.lineCap = 'round';
+    const arm = a.chasing ? Math.sin(a.sway * 9) * 6 * s : 0;
+    ctx.beginPath();
+    ctx.moveTo(x - 10 * s, top + headR * 2.2); ctx.lineTo(x - 12 * s + arm, y - 16 * s);
+    ctx.moveTo(x + 10 * s, top + headR * 2.2); ctx.lineTo(x + 12 * s - arm, y - 16 * s);
+    ctx.stroke();
+
+    // 頭と長い髪
+    ctx.fillStyle = '#e8d9c6';
+    ctx.beginPath(); ctx.arc(x + sway, top + headR, headR, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0b0a0c';
+    ctx.beginPath();
+    ctx.moveTo(x - headR * 1.25 + sway, top + headR * 0.6);
+    ctx.quadraticCurveTo(x + sway, top - headR * 0.9, x + headR * 1.25 + sway, top + headR * 0.6);
+    ctx.lineTo(x + headR * 1.35 + sway, top + headR * 4.4);
+    ctx.lineTo(x - headR * 1.35 + sway, top + headR * 4.4);
+    ctx.closePath(); ctx.fill();
+
+    if (a.masked) {
+      ctx.fillStyle = '#f2f4f7';
+      ctx.fillRect(x - headR * 0.78 + sway, top + headR * 0.95, headR * 1.56, headR * 0.95);
+    } else {
+      ctx.strokeStyle = '#8d1d24';
+      ctx.lineWidth = 2.2 * s;
+      ctx.beginPath();
+      ctx.moveTo(x - headR * 0.95 + sway, top + headR * 1.25);
+      ctx.lineTo(x + headR * 0.95 + sway, top + headR * 1.25);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(141,29,36,0.55)';
+      ctx.lineWidth = 1.4 * s;
+      ctx.beginPath();
+      ctx.moveTo(x - headR * 0.95 + sway, top + headR * 1.25); ctx.lineTo(x - headR * 1.5 + sway, top + headR * 0.5);
+      ctx.moveTo(x + headR * 0.95 + sway, top + headR * 1.25); ctx.lineTo(x + headR * 1.5 + sway, top + headR * 0.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ---------------------------------------------------------------- 緑ライン
+
+  drawGuideLine(path, t, mode) {
+    if (!path || path.length < 2) return;
+    const { ctx } = this;
+    const escape = mode === 'escape';
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    for (let pass = 0; pass < 2; pass++) {
+      ctx.beginPath();
+      ctx.moveTo(this.sx(path[0].x, path[0].y), this.sy(path[0].y) - 1);
+      for (let i = 1; i < path.length; i++) {
+        ctx.lineTo(this.sx(path[i].x, path[i].y), this.sy(path[i].y) - 1);
+      }
+      if (pass === 0) {
+        ctx.strokeStyle = escape ? 'rgba(130,255,190,0.16)' : 'rgba(90,230,150,0.13)';
+        ctx.lineWidth = escape ? 20 : 15;
+        ctx.setLineDash([]);
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = escape ? 'rgba(190,255,215,0.95)' : 'rgba(96,240,158,0.82)';
+        ctx.lineWidth = escape ? 6.5 : 4.5;
+        ctx.setLineDash(escape ? [20, 13] : [15, 13]);
+        ctx.lineDashOffset = -t * (escape ? 150 : 62);
+        ctx.shadowColor = escape ? 'rgba(160,255,205,0.85)' : 'rgba(80,235,150,0.6)';
+        ctx.shadowBlur = escape ? 16 : 9;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  drawMark(p, t, alpha = 1) {
+    const { ctx } = this;
+    const x = this.sx(p.x, p.y), y = this.sy(p.y);
+    const s = this.scaleAt(p.y);
+    const bob = Math.sin(t * 2.4 + p.x) * 3.4;
+    const my = y - 56 * s + bob;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const pulse = 0.5 + Math.sin(t * 3) * 0.5;
+    ctx.strokeStyle = `rgba(120,235,255,${0.16 + pulse * 0.2})`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.ellipse(x, y - 2, (16 + pulse * 8) * s, (5.5 + pulse * 3) * s, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(120,235,255,0.28)';
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x, my + 9); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(8,16,22,0.82)';
+    ctx.beginPath(); ctx.arc(x, my, 13 * s, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(140,242,255,0.9)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(x, my, 13 * s, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#c9f6ff';
+    ctx.font = `${Math.round(15 * s)}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.mark, x, my + 0.5);
+    ctx.restore();
+  }
+
+  // ---------------------------------------------------------------- 吹き出し
+
+  drawBubble(text, who, wx, wy) {
+    const { ctx, W } = this;
+    const def = CHARS[who] || { label: '', color: '#dfe6f2' };
+    const x = this.sx(wx, wy);
+    const y = this.sy(wy) - 76 * this.scaleAt(wy);
+
+    ctx.save();
+    ctx.font = '600 14px ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif';
+    const maxW = Math.min(W - 44, 300);
+    const words = [...text];
+    const lines = [];
+    let line = '';
+    for (const ch of words) {
+      if (ctx.measureText(line + ch).width > maxW - 26) { lines.push(line); line = ch; }
+      else line += ch;
+    }
+    if (line) lines.push(line);
+
+    const tw = Math.max(...lines.map(l => ctx.measureText(l).width)) + 26;
+    const th = lines.length * 20 + 26;
+    let bx = Math.max(12, Math.min(W - tw - 12, x - tw / 2));
+    let by = Math.max(56, y - th);
+
+    ctx.fillStyle = 'rgba(9,12,18,0.93)';
+    ctx.strokeStyle = def.color;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.roundRect(bx, by, tw, th, 10); ctx.fill(); ctx.stroke();
+
+    ctx.beginPath();
+    const tipX = Math.max(bx + 14, Math.min(bx + tw - 14, x));
+    ctx.moveTo(tipX - 6, by + th);
+    ctx.lineTo(tipX, by + th + 9);
+    ctx.lineTo(tipX + 6, by + th);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(9,12,18,0.93)'; ctx.fill();
+
+    ctx.fillStyle = def.color;
+    ctx.font = '700 10px ui-sans-serif, system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(def.label, bx + 12, by + 13);
+
+    ctx.fillStyle = '#e9eef7';
+    ctx.font = '600 14px ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif';
+    lines.forEach((l, i) => ctx.fillText(l, bx + 12, by + 32 + i * 20));
+    ctx.restore();
+  }
+
+  drawStick(input) {
+    if (!input.active) return;
+    const { ctx } = this;
+    ctx.save();
+    ctx.globalAlpha = 0.32;
+    ctx.strokeStyle = '#8ef0b8';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(input.origin.x, input.origin.y, 46, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(142,240,184,0.5)';
+    ctx.beginPath();
+    ctx.arc(input.origin.x + input.vx * 46, input.origin.y + input.vy * 46, 17, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawVignette(strength) {
+    if (strength <= 0) return;
+    const { ctx, W, H } = this;
+    const g = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.22, W / 2, H * 0.55, H * 0.78);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, `rgba(0,0,0,${0.85 * strength})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  drawAreaName(name, alpha) {
+    if (alpha <= 0.01) return;
+    const { ctx, W } = this;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(230,240,255,0.85)';
+    ctx.font = '700 13px ui-sans-serif, system-ui, sans-serif';
+    ctx.fillText(name, W / 2, 84);
+    ctx.strokeStyle = 'rgba(230,240,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(W / 2 - 34, 92); ctx.lineTo(W / 2 + 34, 92); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ---- main.js ---- */
+// 404怪異調査クラブ / CASE 01 縦切り版
+
+
+
+
+
+
+
+
+
+
+const $ = s => document.querySelector(s);
+const HOME = { x: 220, y: 130 };
+
+class Game {
+  constructor() {
+    this.canvas = $('#stage');
+    this.r = new Renderer(this.canvas);
+    this.input = new Input(this.canvas);
+    this.audio = new Ambience();
+    this.state = new CaseState();
+    this.anomaly = new Anomaly();
+    this.chase = new Chase();
+
+    this.scene = 'title';
+    this.mode = 'free';        // free | investigate | dialogue | caught | survive
+    this.t = 0;
+    this.last = performance.now();
+
+    this.party = {
+      shirou: { x: 150, y: 130 },
+      rei: { x: 118, y: 118 },
+      yotsuba: { x: 92, y: 142 },
+    };
+    this.trail = [];
+    this.walkPhase = 0;
+    this.moving = false;
+
+    this.bubbles = [];         // {who, text, until}
+    this.queue = null;
+    this.pending = null;
+    this.objective = null;
+    this.areaLabel = { name: '', a: 0 };
+    this.camFocus = null;
+    this.sightingTimer = 0;
+    this.sightIndex = 0;
+    this.goingHome = false;
+    this.escapeStarted = 0;
+    this.caughtT = 0;
+    this.fade = 0;
+    this.lamps = SCENERY.lamps.map(l => ({ ...l }));
+
+    window.addEventListener('resize', () => this.r.resize());
+    window.game = this; // デバッグ・テストプレイ用
+    this.bindUI();
+    requestAnimationFrame(t => this.loop(t));
+  }
+
+  // ------------------------------------------------------------ UI
+
+  bindUI() {
+    $('#btnNew').onclick = () => { this.state.reset(); this.begin(false); };
+    $('#btnContinue').onclick = () => { this.state.load(); this.begin(true); };
+    $('#btnPause').onclick = () => this.togglePause(true);
+    $('#btnResume').onclick = () => this.togglePause(false);
+    $('#btnRecord').onclick = () => this.showRecord();
+    $('#btnRecordClose').onclick = () => { $('#record').hidden = true; if (this.scene === 'done') $('#title').hidden = false; };
+    $('#btnRestart').onclick = () => { $('#record').hidden = true; this.state.reset(); this.begin(false); };
+    if (!CaseState.hasSave()) $('#btnContinue').hidden = true;
+  }
+
+  togglePause(on) {
+    if (this.scene !== 'play') return;
+    this.paused = on;
+    $('#pause').hidden = !on;
+    this.input.setEnabled(!on && this.mode === 'free');
+  }
+
+  begin(cont) {
+    $('#title').hidden = true;
+    $('#record').hidden = true;
+    $('#hud').hidden = false;
+    $('#btnRestart').hidden = true;
+    this.audio.start();
+    this.audio.resume();
+    this.audio.setMode('night');
+    this.scene = 'play';
+    this.paused = false;
+    this.fade = 0;
+
+    // クリア済みのセーブから「続きから」を選んだ場合は、
+    // 途中のチェックポイントへ戻さず最初から調べ直す
+    if (cont && this.state.data.case_completed) { this.state.reset(); cont = false; }
+
+    const cp = cont ? this.state.restoreCheckpoint() : null;
+    if (cp) {
+      this.setPartyAt(cp.x, cp.y);
+      if (this.state.data.case_progress === 'escape') this.startEscape(true);
+    } else {
+      this.setPartyAt(150, 130);
+      this.say(DIALOGUE.intro, { blocking: false });
+    }
+    this.goingHome = this.state.isDone('P5');
+    if (this.goingHome && this.state.data.case_progress !== 'escape') this.anomaly.setPhase(3);
+    this.input.setEnabled(true);
+    this.refreshObjective();
+  }
+
+  setPartyAt(x, y) {
+    this.party.shirou = { x, y };
+    this.party.rei = { x: x - 38, y: y - 22 };
+    this.party.yotsuba = { x: x - 66, y: y + 24 };
+    this.trail = [];
+  }
+
+  // ------------------------------------------------------------ 会話
+
+  say(lines, opts = {}) {
+    this.queue = {
+      lines: lines.slice(),
+      i: -1,
+      blocking: !!opts.blocking,
+      onEnd: opts.onEnd || null,
+      onIndex: opts.onIndex || null,
+      timer: 0,
+    };
+    if (this.queue.blocking) this.input.setEnabled(false);
+    this.nextLine();
+  }
+
+  nextLine() {
+    const q = this.queue;
+    if (!q) return;
+    q.i++;
+    if (q.i >= q.lines.length) {
+      this.queue = null;
+      this.bubbles = [];
+      if (q.onEnd) q.onEnd();
+      else if (q.blocking) { this.mode = 'free'; this.input.setEnabled(true); }
+      return;
+    }
+    const line = q.lines[q.i];
+    if (q.onIndex) q.onIndex(q.i);
+    q.timer = line.dur || Math.max(1.5, [...line.text].length * 0.105);
+    this.bubbles = [{ who: line.who, text: line.text }];
+    this.audio.blip(430 + Math.random() * 60, 0.04, 0.02, 'sine');
+  }
+
+  updateDialogue(dt) {
+    const q = this.queue;
+    if (!q) return;
+    q.timer -= dt;
+    if (this.input.consumeTap() && q.timer < 9) q.timer = 0;
+    if (q.timer <= 0) this.nextLine();
+  }
+
+  // ------------------------------------------------------------ 調査
+
+  startInvestigation(point) {
+    this.mode = 'investigate';
+    this.input.setEnabled(false);
+    const actors = point.by === 'all' ? ['shirou', 'rei', 'yotsuba'] : [point.by];
+    this.pending = { point, actors, phase: 'approach', t: 0 };
+    this.audio.found();
+  }
+
+  updateInvestigation(dt) {
+    const p = this.pending;
+    if (!p) return;
+    p.t += dt;
+
+    if (p.phase === 'approach') {
+      let done = true;
+      p.actors.forEach((who, i) => {
+        const c = this.party[who];
+        const tx = p.point.x + (i - (p.actors.length - 1) / 2) * 26;
+        const ty = p.point.y + 26;
+        const dx = tx - c.x, dy = ty - c.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 4) {
+          const step = Math.min(d, 130 * dt);
+          c.x += dx / d * step; c.y += dy / d * step;
+          done = false;
+        }
+      });
+      this.walkPhase += dt * 9;
+      if (done || p.t > 1.6) {
+        p.phase = p.point.kind === 'door' ? 'door' : 'talk';
+        p.t = 0;
+        if (p.phase === 'talk') this.runPointDialogue(p.point);
+      }
+      return;
+    }
+
+    // ドア演出（SPEC §22）: 止まる → ノブが動く → 少し遅れて開く
+    if (p.phase === 'door') {
+      if (!p.knob && p.t > 1.2) { p.knob = true; this.audio.doorKnob(); this.r.shake = 0.25; }
+      if (!p.open && p.t > 1.8) {
+        p.open = true;
+        this.audio.doorOpen();
+        this.applyCompletion(p.point);
+      }
+      if (p.t > 2.6) { p.phase = 'talk'; p.t = 0; this.runPointDialogue(p.point, true); }
+      return;
+    }
+  }
+
+  runPointDialogue(point, alreadyDone) {
+    const lines = DIALOGUE[point.id] || [];
+    const completeAt = alreadyDone ? -1 : lines.length - 1;
+    this.say(lines, {
+      blocking: true,
+      onIndex: i => { if (i === completeAt) this.applyCompletion(point); },
+      onEnd: () => {
+        this.pending = null;
+        this.mode = 'free';
+        this.input.setEnabled(true);
+        this.afterCompletion(point);
+      },
+    });
+  }
+
+  applyCompletion(point) {
+    const opened = this.state.complete(point);
+    if (opened) {
+      this.audio.unlock();
+      this.camFocus = { x: opened.x, t: 1.7 };
+      this.r.shake = 0.4;
+    }
+    if (point.id === 'P1') this.state.setCheckpoint('CP1', this.party.shirou);
+    if (point.id === 'P3') this.state.setCheckpoint('CP2', this.party.shirou);
+    if (point.id === 'P5') this.state.setCheckpoint('CP3', this.party.shirou);
+    this.refreshObjective();
+  }
+
+  afterCompletion(point) {
+    if (point.id === 'P4') {
+      // PHASE 2：遠景（SPEC §25）
+      this.anomaly.setPhase(2);
+      this.anomaly.showFar(this.party.shirou, 1);
+      this.audio.setMode('hush');
+      this.audio.sting();
+      this.say(DIALOGUE.phase2, { blocking: false });
+    }
+    if (point.id === 'P5') {
+      this.goingHome = true;
+      this.anomaly.setPhase(3);
+      this.sightIndex = 0;
+      this.say(DIALOGUE.goHome, { blocking: false });
+      this.refreshObjective();
+    }
+  }
+
+  // ------------------------------------------------------------ 目的地と緑ライン
+
+  refreshObjective() {
+    if (this.state.data.case_progress === 'escape') { this.objective = { ...SAFE_ZONE }; return; }
+    if (this.goingHome) { this.objective = HOME; return; }
+    this.objective = nextRequired(this.state);
+  }
+
+  guideRatio() {
+    if (this.state.data.case_progress === 'escape') return 1;
+    const ph = this.anomaly.phase;
+    if (ph >= 4) return 0;
+    if (ph === 3) return Math.sin(this.t * 2.2) > -0.3 ? 0.45 : 0; // 途切れる
+    if (ph === 2) return 0.72;
+    return 1;
+  }
+
+  // ------------------------------------------------------------ 怪異の段階
+
+  updatePhases(dt) {
+    const px = this.party.shirou.x;
+    const a = this.anomaly;
+
+    if (a.phase === 0 && px > TRIGGERS.phase1AtX) {
+      a.setPhase(1);
+      this.audio.setMode('hush');
+      const near = this.lamps.find(l => Math.abs(l.x - px) < 460 && l.on);
+      if (near) near.on = false;
+      this.audio.blip(120, 0.5, 0.05, 'sawtooth');
+      this.say(DIALOGUE.phase1, { blocking: false });
+    }
+
+    // PHASE 3：帰り道での接近（何度か確認できる）
+    if (this.goingHome && a.phase === 3 && this.state.data.case_progress !== 'escape') {
+      const th = TRIGGERS.phase3FromX[this.sightIndex];
+      if (th !== undefined && px < th && !a.visible) {
+        a.showNear(this.party.shirou, -1); // 帰る方向の先に立っている
+        this.sightingTimer = 3.4;
+        this.audio.sting();
+        const lines = DIALOGUE.phase3[this.sightIndex];
+        if (lines) this.say(lines, { blocking: false });
+        this.sightIndex++;
+      }
+      if (a.visible) {
+        this.sightingTimer -= dt;
+        if (this.sightingTimer <= 0) a.hide();
+      }
+    }
+
+    // PHASE 4：完全出現
+    if (this.goingHome && a.phase < 4 && px < TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
+      a.appear(this.party.shirou, px - 430);
+      this.audio.setMode('silent');
+      this.audio.sting();
+      this.r.shake = 0.9;
+      this.mode = 'dialogue';
+      this.input.setEnabled(false);
+      this.say(DIALOGUE.phase4, {
+        blocking: true,
+        onEnd: () => { this.startEscape(false); },
+      });
+    }
+  }
+
+  // ------------------------------------------------------------ 逃走
+
+  startEscape(restored) {
+    this.state.data.case_progress = 'escape';
+    this.state.setCheckpoint('CP4', this.party.shirou);
+    this.state.save();
+    this.mode = 'free';
+    this.input.setEnabled(true);
+    this.anomaly.setPhase(4);
+    this.chase.start(this.anomaly, this.party.shirou, -430);
+    this.escapeStarted = this.t;
+    this.audio.setMode('silent');
+    this.refreshObjective();
+    if (restored) this.anomaly.visible = true;
+  }
+
+  updateEscape(dt) {
+    if (this.state.data.case_progress !== 'escape' || this.mode === 'caught' || this.mode === 'survive') return;
+    const p = this.party.shirou;
+
+    this.chase.update(dt, this.anomaly, p);
+
+    // 通り過ぎた街灯から順に消えていく
+    for (const l of this.lamps) if (l.on && l.x < p.x - 90) { l.on = false; }
+
+    // 先回りして道をふさぐ
+    const cut = TRIGGERS.cutAheadAtX[this.chase.cutIndex];
+    if (cut !== undefined && p.x > cut) {
+      this.chase.cutAhead(this.anomaly, p, 1, 430);
+      this.audio.sting();
+      this.r.shake = 0.7;
+      this.say(DIALOGUE.cutAhead, { blocking: false });
+    }
+
+    if (this.chase.caught) { this.onCaught(); return; }
+
+    if (Math.hypot(p.x - SAFE_ZONE.x, p.y - SAFE_ZONE.y) < 74) this.onSurvive();
+  }
+
+  onCaught() {
+    this.mode = 'caught';
+    this.caughtT = 0;
+    this.chase.stop(this.anomaly);
+    this.input.setEnabled(false);
+    this.audio.caught();
+    this.r.shake = 1.2;
+    this.say(DIALOGUE.caught, { blocking: false });
+  }
+
+  respawn() {
+    const cp = this.state.restoreCheckpoint();
+    this.setPartyAt(cp ? cp.x : 150, cp ? cp.y : 130);
+    this.bubbles = [];
+    this.queue = null;
+    this.fade = 1;
+    if (this.state.data.case_progress === 'escape') {
+      this.lamps = SCENERY.lamps.map(l => ({ ...l, on: l.x < this.party.shirou.x - 90 ? false : l.on }));
+      this.startEscape(true);
+    } else {
+      this.mode = 'free';
+      this.input.setEnabled(true);
+    }
+  }
+
+  onSurvive() {
+    this.mode = 'survive';
+    this.chase.stop(this.anomaly);
+    this.input.setEnabled(false);
+    // 3人は鳥居をくぐり切る。怪異は外側で止まる（SPEC §32）
+    this.party.shirou = { x: SAFE_ZONE.x + 46, y: 118 };
+    this.party.rei = { x: SAFE_ZONE.x + 6, y: 92 };
+    this.party.yotsuba = { x: SAFE_ZONE.x + 22, y: 152 };
+    this.trail = [];
+    this.moving = false;
+    this.anomaly.x = SAFE_ZONE.x - 168;
+    this.anomaly.y = 62;
+    this.anomaly.chasing = false;
+    this.audio.setMode('silent');
+    setTimeout(() => { this.audio.setMode('night'); this.audio.relief(); }, 2200);
+    this.say(DIALOGUE.survive, {
+      blocking: true,
+      onEnd: () => this.startEpilogue(),
+    });
+  }
+
+  startEpilogue() {
+    this.scene = 'epilogue';
+    this.epiT = 0;
+    this.bubbles = [];
+    $('#hud').hidden = true;
+    this.audio.setMode('night');
+    this.say(DIALOGUE.epilogue, {
+      blocking: true,
+      onEnd: () => {
+        this.state.markCleared(buildRecord(this.state));
+        this.scene = 'done';
+        this.showRecord();
+      },
+    });
+  }
+
+  // ------------------------------------------------------------ 調査記録
+
+  showRecord() {
+    const rec = this.state.data.case_records.case01 || buildRecord(this.state);
+    $('#recBody').innerHTML = `
+      <div class="rec-line"><span>CASE</span><b>${rec.case}</b></div>
+      <div class="rec-line"><span>噂</span><b>${rec.rumor}</b></div>
+      <div class="rec-line"><span>調査場所</span><b>${rec.places.join(' / ')}</b></div>
+      <div class="rec-line"><span>遭遇</span><b>${rec.encounter}</b></div>
+      <div class="rec-line"><span>証拠</span><b>${rec.evidence.length ? rec.evidence.join('<br>') : '—'}</b></div>
+      <div class="rec-line"><span>任意調査</span><b>${rec.optional}</b></div>
+      <div class="rec-notes">${rec.notes.map(n => `<p><i>${n[0]}</i>「${n[1]}」</p>`).join('')}</div>
+      <div class="rec-open"><span>未解決</span>${rec.unresolved.map(u => `<p>${u}</p>`).join('')}</div>`;
+    $('#record').hidden = false;
+    $('#btnRestart').hidden = this.scene !== 'done';
+  }
+
+  // ------------------------------------------------------------ 更新
+
+  update(dt) {
+    this.t += dt;
+    if (this.r.shake > 0) this.r.shake = Math.max(0, this.r.shake - dt * 1.8);
+    if (this.fade > 0) this.fade = Math.max(0, this.fade - dt * 0.9);
+    this.anomaly.update(dt);
+    this.updateDialogue(dt);
+
+    if (this.scene === 'epilogue') { this.epiT += dt; return; }
+    if (this.scene !== 'play' || this.paused) return;
+
+    if (this.mode === 'caught') {
+      this.caughtT += dt;
+      if (this.caughtT > 1.9) this.respawn();
+      return;
+    }
+
+    if (this.mode === 'investigate') { this.updateInvestigation(dt); this.updateFollowers(dt, false); return; }
+
+    if (this.mode === 'free') {
+      this.movePlayer(dt);
+      const hit = findTrigger(this.state, this.party.shirou);
+      if (hit) this.startInvestigation(hit);
+    }
+
+    this.updateFollowers(dt, this.moving);
+    this.updatePhases(dt);
+    this.updateEscape(dt);
+    this.updateArea(dt);
+
+    if (this.camFocus) {
+      this.camFocus.t -= dt;
+      if (this.camFocus.t <= 0) this.camFocus = null;
+    }
+  }
+
+  movePlayer(dt) {
+    const running = this.state.data.case_progress === 'escape';
+    const sp = running ? SPEED.run : SPEED.walk;
+    const p = this.party.shirou;
+    const vx = this.input.vx, vy = this.input.vy;
+    this.moving = Math.hypot(vx, vy) > 0.05;
+
+    if (this.moving) {
+      p.x += vx * sp * dt;
+      p.y += vy * sp * dt * 0.62;
+      this.walkPhase += dt * (running ? 15 : 10);
+      if (Math.sin(this.walkPhase) > 0.94) this.audio.step();
+    }
+
+    const limit = this.state.frontier();
+    p.x = Math.max(40, Math.min(limit - 26, p.x));
+    const area = this.state.areaAt(p.x);
+    p.y = Math.max(area.bandTop + 6, Math.min(area.bandBottom - 4, p.y));
+
+    // 実際に動いたときだけ記録する。止まっている間に同じ点を積むと
+    // 後続の2人が先頭へ吸い寄せられて3人が重なる（SPEC §49）
+    const tail = this.trail[this.trail.length - 1];
+    if (!tail || Math.hypot(p.x - tail.x, p.y - tail.y) > 2.5) {
+      this.trail.push({ x: p.x, y: p.y });
+      if (this.trail.length > 400) this.trail.shift();
+    }
+  }
+
+  // 3人一緒に動く。重ねない。狭い道では自然に一列になる（SPEC §49）
+  updateFollowers(dt, moving) {
+    const order = ['rei', 'yotsuba'];
+    const gaps = [95, 180];
+    order.forEach((who, i) => {
+      const c = this.party[who];
+      let target;
+      if (this.trail.length > 2) {
+        let acc = 0, idx = this.trail.length - 1;
+        while (idx > 0 && acc < gaps[i]) {
+          acc += Math.hypot(this.trail[idx].x - this.trail[idx - 1].x, this.trail[idx].y - this.trail[idx - 1].y);
+          idx--;
+        }
+        target = this.trail[idx];
+      } else {
+        target = { x: this.party.shirou.x - gaps[i], y: this.party.shirou.y };
+      }
+      const offY = moving ? 0 : (i === 0 ? -30 : 34);
+      const tx = target.x, ty = target.y + offY;
+      const dx = tx - c.x, dy = ty - c.y;
+      const d = Math.hypot(dx, dy);
+      if (d > 1.5) {
+        const sp = Math.min(d * 5.5, (this.state.data.case_progress === 'escape' ? SPEED.run : SPEED.walk) * 1.25);
+        c.x += dx / d * sp * dt;
+        c.y += dy / d * sp * dt;
+      }
+      const area = this.state.areaAt(c.x);
+      c.y = Math.max(area.bandTop + 4, Math.min(area.bandBottom - 2, c.y));
+    });
+  }
+
+  updateArea(dt) {
+    const a = this.state.areaAt(this.party.shirou.x);
+    if (a.name !== this.areaLabel.name) { this.areaLabel = { name: a.name, a: 1.6 }; }
+    else this.areaLabel.a = Math.max(0, this.areaLabel.a - dt * 0.45);
+  }
+
+  // ------------------------------------------------------------ 描画
+
+  draw() {
+    const r = this.r, ctx = r.ctx;
+    if (this.scene === 'title') { this.drawTitleBg(); return; }
+    if (this.scene === 'epilogue') { this.drawEpilogue(); return; }
+
+    const p = this.party.shirou;
+    let cam = p.x;
+    // 生還の瞬間は、鳥居の内と外の両方が同時に見える位置で止める
+    if (this.mode === 'survive') cam = SAFE_ZONE.x - 58;
+    else if (this.camFocus) {
+      const k = 1 - Math.abs(this.camFocus.t - 0.85) / 0.85;
+      cam = p.x + (this.camFocus.x - p.x) * Math.max(0, Math.min(1, k));
+    }
+    r.camX = cam;
+    r.dark = this.state.data.case_progress === 'escape' ? 0.7 : 0;
+
+    ctx.save();
+    if (r.shake > 0) {
+      ctx.translate((Math.random() - 0.5) * 9 * r.shake, (Math.random() - 0.5) * 9 * r.shake);
+    }
+
+    r.drawSky();
+    r.drawFar();
+    r.drawMid();
+    r.drawHouses();
+    r.drawRoad();
+    r.drawPoles();
+    r.drawPowerLines();
+    r.drawLampPools(this.lamps);
+    r.drawProps(this.state);
+    r.drawLampPosts(this.lamps);
+
+    const ratio = this.guideRatio();
+    if (ratio > 0 && this.objective && this.mode !== 'caught') {
+      const path = truncate(buildPath(p, this.objective), ratio);
+      r.drawGuideLine(path, this.t, this.state.data.case_progress === 'escape' ? 'escape' : 'normal');
+    }
+
+    for (const pt of visiblePoints(this.state, p)) {
+      const near = Math.hypot(pt.x - p.x, pt.y - p.y);
+      r.drawMark(pt, this.t, pt.hidden ? Math.min(1, (150 - near) / 60) : 1);
+    }
+
+    // 奥から手前へ並べて描く
+    const ents = [
+      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, 1, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, 1, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, 1, { moving: this.moving }) },
+    ];
+    if (this.anomaly.fade > 0.02) ents.push({ y: this.anomaly.high ? -50 : this.anomaly.y, f: () => r.drawAnomaly(this.anomaly) });
+    ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
+
+    r.drawForeground();
+    r.drawVignette(this.state.data.case_progress === 'escape' ? 0.55 : 0.25);
+    ctx.restore();
+
+    r.drawAreaName(this.areaLabel.name, Math.min(1, this.areaLabel.a));
+
+    for (const b of this.bubbles) {
+      const c = this.party[b.who] || p;
+      r.drawBubble(b.text, b.who, c.x, c.y);
+    }
+
+    if (this.mode === 'free') r.drawStick(this.input);
+
+    if (this.mode === 'caught') {
+      const k = Math.min(1, this.caughtT / 1.5);
+      ctx.fillStyle = `rgba(0,0,0,${k})`;
+      ctx.fillRect(0, 0, r.W, r.H);
+    }
+    if (this.fade > 0) {
+      ctx.fillStyle = `rgba(0,0,0,${this.fade})`;
+      ctx.fillRect(0, 0, r.W, r.H);
+    }
+    this.drawHud();
+  }
+
+  drawHud() {
+    const r = this.r, ctx = r.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(220,232,248,0.5)';
+    ctx.font = '700 11px ui-monospace, SFMono-Regular, monospace';
+    ctx.textAlign = 'left';
+    const label = this.state.data.case_progress === 'escape' ? 'CASE 01 / ESCAPE' : 'CASE 01';
+    ctx.fillText(label, 16, 26);
+    ctx.restore();
+  }
+
+  drawTitleBg() {
+    const r = this.r;
+    r.camX = 4900;
+    r.drawSky(); r.drawFar(); r.drawMid(); r.drawRoad();
+    r.drawTorii(SAFE_ZONE.x, SAFE_ZONE.y);
+    r.drawVignette(0.5);
+  }
+
+  drawEpilogue() {
+    const r = this.r, ctx = r.ctx, { W, H } = r;
+    // 翌日の教室。夜との温度差を出す（SPEC §37）
+    const wallY = H * 0.62;
+    const g = ctx.createLinearGradient(0, 0, 0, wallY);
+    g.addColorStop(0, '#dceaf4');
+    g.addColorStop(1, '#f2f6f9');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, wallY);
+
+    // 床
+    const fg = ctx.createLinearGradient(0, wallY, 0, H);
+    fg.addColorStop(0, '#d8cdba');
+    fg.addColorStop(1, '#b9ad98');
+    ctx.fillStyle = fg; ctx.fillRect(0, wallY, W, H - wallY);
+    ctx.strokeStyle = 'rgba(120,105,85,0.18)';
+    ctx.lineWidth = 1.4;
+    for (let i = -3; i < 12; i++) {
+      ctx.beginPath();
+      ctx.moveTo(W * 0.5 + (i - 4.5) * 26, wallY);
+      ctx.lineTo(W * 0.5 + (i - 4.5) * 150, H);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#a99c86';
+    ctx.fillRect(0, wallY - 7, W, 8);
+
+    // 窓と外の光
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(W * 0.04, H * 0.14, W * 0.44, H * 0.40);
+    const sun = ctx.createLinearGradient(W * 0.04, H * 0.14, W * 0.48, H * 0.54);
+    sun.addColorStop(0, 'rgba(255,246,214,0.9)');
+    sun.addColorStop(1, 'rgba(198,228,246,0.75)');
+    ctx.fillStyle = sun;
+    ctx.fillRect(W * 0.04, H * 0.14, W * 0.44, H * 0.40);
+    ctx.strokeStyle = '#8f9fae'; ctx.lineWidth = 3.5;
+    ctx.strokeRect(W * 0.04, H * 0.14, W * 0.44, H * 0.40);
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.26, H * 0.14); ctx.lineTo(W * 0.26, H * 0.54);
+    ctx.moveTo(W * 0.04, H * 0.30); ctx.lineTo(W * 0.48, H * 0.30);
+    ctx.stroke();
+    // 窓の外の校庭
+    ctx.fillStyle = 'rgba(150,180,140,0.5)';
+    ctx.fillRect(W * 0.05, H * 0.44, W * 0.42, H * 0.09);
+
+    // 黒板
+    ctx.fillStyle = '#3c5347';
+    ctx.fillRect(W * 0.56, H * 0.18, W * 0.40, H * 0.22);
+    ctx.strokeStyle = '#b9a06a'; ctx.lineWidth = 5;
+    ctx.strokeRect(W * 0.56, H * 0.18, W * 0.40, H * 0.22);
+    ctx.strokeStyle = 'rgba(235,240,235,0.30)'; ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(W * 0.60, H * (0.23 + i * 0.045));
+      ctx.lineTo(W * (0.60 + 0.2 + i * 0.05), H * (0.23 + i * 0.045));
+      ctx.stroke();
+    }
+
+    // 光の帯
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    const beam = ctx.createLinearGradient(W * 0.1, H * 0.3, W * 0.75, H);
+    beam.addColorStop(0, 'rgba(255,250,225,0.9)');
+    beam.addColorStop(1, 'rgba(255,250,225,0)');
+    ctx.fillStyle = beam;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.06, H * 0.56); ctx.lineTo(W * 0.48, H * 0.56);
+    ctx.lineTo(W * 0.95, H); ctx.lineTo(W * 0.18, H);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // 机
+    const desk = (dx, dy, s) => {
+      ctx.fillStyle = '#c9a978';
+      ctx.fillRect(dx - 30 * s, dy - 20 * s, 60 * s, 7 * s);
+      ctx.fillStyle = '#a98d61';
+      ctx.fillRect(dx - 30 * s, dy - 14 * s, 60 * s, 3 * s);
+      ctx.fillStyle = '#8d9aa6';
+      ctx.fillRect(dx - 26 * s, dy - 12 * s, 4 * s, 13 * s);
+      ctx.fillRect(dx + 22 * s, dy - 12 * s, 4 * s, 13 * s);
+    };
+    desk(W * 0.14, H * 0.76, 1.0);
+    desk(W * 0.86, H * 0.79, 1.1);
+    desk(W * 0.10, H * 0.95, 1.5);
+    desk(W * 0.92, H * 0.99, 1.6);
+
+    const POS = { rei: [214, 86], shirou: [300, 122], yotsuba: [382, 158] };
+    r.groundTop = H * 0.60; r.groundBottom = H * 0.90;
+    r.camX = 300;
+    ['rei', 'shirou', 'yotsuba'].forEach(who => {
+      r.drawPerson(who, POS[who][0], POS[who][1], 0, 1, { moving: false, phone: who !== 'rei' });
+    });
+    for (const b of this.bubbles) {
+      const pos = POS[b.who] || POS.shirou;
+      r.drawBubble(b.text, b.who, pos[0], pos[1]);
+    }
+    r.groundTop = H * 0.60; r.groundBottom = H * 0.92;
+  }
+
+  loop(now) {
+    const dt = Math.min(0.05, (now - this.last) / 1000);
+    this.last = now;
+    this.update(dt);
+    this.draw();
+    requestAnimationFrame(t => this.loop(t));
+  }
+}
+
+new Game();
+
+</script>
+</body>
+</html>
