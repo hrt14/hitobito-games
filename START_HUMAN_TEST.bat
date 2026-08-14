@@ -62,8 +62,17 @@ echo.
 echo 初回に Windows Defender Firewall が表示された場合は、
 echo 「プライベート ネットワーク」を許可してください。
 echo.
+echo テスト環境の起動中はPCのスリープを自動で防止します。
+echo 画面が自動で消える設定はそのまま有効です。
+echo.
 
-call npm run human-test
+where powershell >nul 2>nul
+if errorlevel 1 (
+  echo [WARN] PowerShell が見つからないため、スリープ防止なしで起動します。
+  call npm run human-test
+) else (
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\human-test-windows.ps1"
+)
 
 if errorlevel 1 (
   echo.
