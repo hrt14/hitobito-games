@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101a24"><title>星渡りの黎明 — Astral Dawn</title><link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div id="game"></div><div id="vignette"></div><div id="letterbox"><i></i><i></i></div><div id="flash"></div>
+<header id="hud" class="glass"><div class="brand"><span class="sigil">✦</span><div><small>CHAPTER I</small><strong>星渡りの黎明</strong></div></div><div class="stats"><div><span>HP</span><b id="hpText">118 / 118</b><em><i id="hpBar"></i></em></div><div><span>MP</span><b id="mpText">42 / 42</b><em class="mp"><i id="mpBar"></i></em></div></div></header>
+<aside id="quest" class="glass"><small>現在の目的</small><b id="questTitle">薄明の祠へ向かう</b><p id="questDetail">村の東、青い灯が揺れる古道を進む</p></aside>
+<div id="areaTitle"><small>星環地方</small><strong id="areaName">ミレア草原</strong></div>
+<div id="interaction" class="glass hidden"><span>○</span><b id="interactionText">話す</b></div><div id="toast" class="glass hidden"></div>
+<div id="dialogue" class="hidden"><div id="speaker">リナ</div><div id="dialogueText"></div><button id="dialogueNext">つづける <span>›</span></button></div>
+<div id="battleHud" class="hidden"><div id="enemyCard" class="glass"><small>ENEMY</small><b id="enemyName">灰角のヴァルグ</b><em><i id="enemyHpBar"></i></em></div><div id="commandPanel" class="glass"><div class="battleHero"><small>星渡りの剣士</small><b>アレン</b><span id="battleStats">HP 118　MP 42</span></div><div class="commands"><button data-command="attack"><span>⚔</span><b>こうげき</b><small>確実な一撃</small></button><button data-command="skill"><span>✦</span><b>星断ち</b><small>MP 8 / 高威力</small></button><button data-command="guard"><span>◆</span><b>まもる</b><small>次のダメージ軽減</small></button><button data-command="item"><span>✚</span><b>薬草雫</b><small id="itemCount">2 個</small></button></div></div><div id="battleLog"></div></div>
+<div id="bossBanner" class="hidden"><small>古代種</small><b>星喰らいのオルグ</b><span>THE WARDEN OF TWILIGHT</span></div>
+<div id="touchControls"><div id="joystick"><div id="stick"></div></div><button id="actionBtn">○<small>調べる</small></button><button id="runBtn">R<small>走る</small></button></div>
+<div id="startScreen"><canvas id="startStars"></canvas><div class="startPanel"><div class="crest">✦</div><p>THREE.JS JRPG VERTICAL SLICE</p><h1>星渡りの黎明</h1><h2>ASTRAL DAWN</h2><button id="startBtn">冒険をはじめる</button><small>WASD / 矢印キーで移動・Shiftで走る・Eで調べる<br>スマートフォンは左スティックで操作</small></div></div>
+<div id="loading"><div class="spinner"></div><b>世界を描いています…</b></div><div id="fatal" class="hidden"><b>3Dエンジンを読み込めませんでした</b><p>ネットワーク接続を確認して再読み込みしてください。</p></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"}}</script><script type="module" src="./game.js"></script>
+</body></html>
