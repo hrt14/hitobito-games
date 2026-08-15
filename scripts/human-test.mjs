@@ -226,11 +226,11 @@ function buildToolsGames(lanHost, toolsReady) {
 
 function buildHubHtml({ lanUrl, games, qrSvg, lanAddress, toolsReady }) {
   const cards = games.map((game) => `
-      <a class="game" href="${escapeHtml(game.href)}">
+      <a class="game" href="${escapeHtml(game.href)}" target="_blank" rel="noopener noreferrer">
         <span class="source">${escapeHtml(game.source)}</span>
         <span class="game-title">${escapeHtml(game.title)}</span>
         <span class="game-slug">${escapeHtml(game.slug)}</span>
-        <span class="play">遊ぶ →</span>
+        <span class="play">別ウインドウで遊ぶ ↗</span>
       </a>`).join('');
 
   const networkStatus = lanAddress
@@ -300,7 +300,7 @@ function buildHubHtml({ lanUrl, games, qrSvg, lanAddress, toolsReady }) {
         <div class="steps">
           <div class="step"><span class="num">1</span><div><strong>PCとスマホを同じWi-Fiへ</strong><small>ゲストWi-Fiなど端末同士を分離するネットワークでは接続できない場合があります。</small></div></div>
           <div class="step"><span class="num">2</span><div><strong>右のQRをスマホで読む</strong><small>スマホではこの試遊ハブが開きます。</small></div></div>
-          <div class="step"><span class="num">3</span><div><strong>下からゲームを選んで遊ぶ</strong><small>起動時にGitHubの最新版を取り込みます。</small></div></div>
+          <div class="step"><span class="num">3</span><div><strong>下からゲームを選んで遊ぶ</strong><small>起動時にGitHubの最新版を取り込みます。ゲームは別ウインドウで開きます。</small></div></div>
         </div>
         <div class="status">${networkStatus}${toolsStatus}</div>
         <div class="url">${escapeHtml(lanUrl)}</div>
