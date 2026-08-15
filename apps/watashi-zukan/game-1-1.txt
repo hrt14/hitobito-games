@@ -1,0 +1,35 @@
+(() => {
+  'use strict';
+
+  const params = new URLSearchParams(location.search);
+  const TEST_MODE = params.get('test') === '1';
+  const TOTAL_DAYS = TEST_MODE ? 2 : 24;
+  const DECISIONS_PER_DAY = 6;
+  const TOTAL_TURNS = TOTAL_DAYS * DECISIONS_PER_DAY;
+
+  const AXES = {
+    challenge: { left: '安定', right: '挑戦', color: '挑戦', descriptions: ['確実さを積み上げる', '未知にも踏み込む'] },
+    social: { left: '一人', right: '仲間', color: '仲間', descriptions: ['自分の裁量で進める', '人と組んで広げる'] },
+    time: { left: 'お金', right: '時間', color: '時間', descriptions: ['資金効率を取りにいく', '余白や時間を守る'] },
+    freedom: { left: '称賛', right: '自由', color: '自由', descriptions: ['評価や反応を取りにいく', '自分の裁量を守る'] },
+    spontaneity: { left: '計画', right: '即興', color: '即興', descriptions: ['先に段取りを組む', 'その場で合わせる'] },
+    depth: { left: '広く', right: '深く', color: '深く', descriptions: ['いくつも試して広げる', '一つを掘り下げる'] }
+  };
+
+  const axisOrder = Object.keys(AXES);
+
+  const material = {
+    places: ['旧倉庫','灯台通り','北の桟橋','市場裏','丘の畑','海辺の広場','船大工通り','旧駅跡','南の浜','時計台前','石畳横丁','防波堤'],
+    projects: ['夜市','海辺の本棚','子ども工房','朝市','音楽ステージ','案内所','渡し船','屋台村','写真展','小さなホテル','海上テラス','灯りの道'],
+    people: ['漁師組合','高校生チーム','古参の商店主','移住者グループ','船大工たち','料理人チーム','観光案内の学生','写真家たち','子ども会','港の清掃チーム','若手店主会','音楽家たち'],
+    opportunities: ['人気作家の急な来訪','テレビ取材の打診','大口スポンサーの提案','珍しい渡り鳥の飛来','海外船の臨時寄港','有名シェフの参加希望','空き倉庫の格安開放','競合町のイベント中止','古い海図の発見','人気バンドの空き日','市場の臨時スペース','大型クルーズ船の寄港'],
+    crises: ['強風予報','資材の値上がり','スタッフ欠員','船便の遅れ','機材トラブル','予約の急増','雨予報','仕入れ不足','SNS上の誤解','道路工事','会場の一部閉鎖','電源設備の不調']
+  };
+
+  const storage = {
+    get(key){ try { return localStorage.getItem(key); } catch { return null; } },
+    set(key,value){ try { localStorage.setItem(key,value); return true; } catch { return false; } },
+    remove(key){ try { localStorage.removeItem(key); } catch {} }
+  };
+
+  cons
