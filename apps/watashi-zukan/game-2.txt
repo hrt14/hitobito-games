@@ -1,0 +1,97 @@
+:'修理の方法',b:`自分で直すなら部品代だけ。職人に頼めば費用はかかるが、作業は止まらない。`,a:['自分で直す','職人に任せる']},
+      {t:'印刷物の選択',b:`町で印刷すれば安い。即日便を使えば高いが、明日の予定を空けられる。`,a:['安く自分で手配','即日便で時間を買う']},
+      {t:'会場の片付け',b:`夜まで残れば追加費用はかからない。清掃会社なら今すぐ次の仕事へ移れる。`,a:['自分たちで片付ける','清掃会社に任せる']}
+    ]; const v=variants[(day-1)%variants.length];
+    return {axis:'time',context:contextFor('time',day),title:v.t,body:v.b,choices:[
+      choice(v.a[0],'資金を守る代わりに、時間を使う',-1,{coin:+5,time:-5,people:-1,festival:+1}),
+      choice(v.a[1],'費用を払って、余白を残す',+1,{coin:-5,time:+5,people:+1,festival:+1})
+    ]};
+  }
+
+  function makeFreedom(day){
+    const project=pick(material.projects,day,9),opp=pick(material.opportunities,day,10),people=pick(material.people,day,11);
+    const variants=[
+      {t:`${project}の見せ方`,b:`来場者に受ける形はだいたい読めている。一方で、自分たちが本当にやりたい見せ方は少し尖っている。`,a:['反応が取れる形に寄せる','自分たちの形を通す']},
+      {t:opp,b:`注目が集まりそうだ。ただし相手側から「こう見せてほしい」という条件が付いている。`,a:['条件を飲んで露出を取る','露出より裁量を守る']},
+      {t:`${people}からの推薦`,b:`推薦枠に入れば評価は上がりそう。ただし内容は少し変える必要がある。`,a:['推薦に合わせて整える','推薦を断ってそのまま出す']},
+      {t:'ポスターの最終案',b:`投票では分かりやすい案が圧勝。あなたは少数案のほうが町らしいと感じている。`,a:['投票結果を採用する','少数案を選ぶ']},
+      {t:'SNSで急上昇',b:`ある企画だけが急に伸びている。そこに町全体を寄せればさらに数字は取れそうだ。`,a:['伸びている企画に寄せる','数字を追わず全体を守る']},
+      {t:'審査員の助言',b:`有名な審査員から、受賞しやすい修正案をもらった。採用すれば評価は上がりそうだ。`,a:['助言を採用する','自分たちの意図を残す']}
+    ];const v=variants[(day-1)%variants.length];
+    return {axis:'freedom',context:contextFor('freedom',day),title:v.t,body:v.b,choices:[
+      choice(v.a[0],'外からの評価を力に変える',-1,{coin:+2,people:+2,discovery:-1,festival:+4}),
+      choice(v.a[1],'評価より、自分たちの裁量を残す',+1,{coin:-1,time:+1,people:-1,discovery:+4,festival:+2})
+    ]};
+  }
+
+  function makeSpontaneity(day){
+    const crisis=pick(material.crises,day,12),place=pick(material.places,day,13),project=pick(material.projects,day,14);
+    const variants=[
+      {t:`${crisis}への備え`,b:`明日の動きが読みにくい。いま細かく手順を決めることも、その場の判断余地を残すこともできる。`,a:['手順を先に決める','余白を残して当日決める']},
+      {t:`${project}の進行表`,b:`担当から進行表を作るか聞かれた。決めれば安心だが、当日の空気で変えにくくなる。`,a:['進行表を固める','大枠だけ決める']},
+      {t:`${place}の人流`,b:`昨日と客の流れが違う。計画通り配置するか、今見えている流れに合わせて変えるか。`,a:['予定通りに配置','その場で配置を変える']},
+      {t:'朝一番の会議',b:`今日やることを30分かけて全員で詰める案と、まず動いて昼に調整する案がある。`,a:['朝に段取りを詰める','まず動いてから合わせる']},
+      {t:'余った資材',b:`使い道は計画にない。保管して次回使うか、目の前の装飾に即興で使うか。`,a:['保管して計画に戻す','今ここで使ってみる']},
+      {t:'来場者の列',b:`想定と違う場所に長い列ができた。設計を守るか、現場で導線を作り替えるか。`,a:['設計通りに誘導する','現場で導線を変える']}
+    ];const v=variants[(day-1)%variants.length];
+    return {axis:'spontaneity',context:contextFor('spontaneity',day),title:v.t,body:v.b,choices:[
+      choice(v.a[0],'先に決めて、ブレを減らす',-1,{time:-2,people:+2,coin:+1,festival:+2}),
+      choice(v.a[1],'状況を見て、動きながら決める',+1,{time:+1,people:-1,discovery:+3,festival:+2})
+    ]};
+  }
+
+  function makeDepth(day){
+    const p1=pick(material.projects,day,15),p2=pick(material.projects,day+5,16),place=pick(material.places,day,17);
+    const variants=[
+      {t:'残りの企画予算',b:`予算は一つの企画をかなり良くするか、複数の小企画を追加するくらい。`,a:['小企画をいくつか増やす','一つの企画を磨き込む']},
+      {t:`${p1}と${p2}`,b:`両方を少し進めることもできる。ただ、片方に絞れば完成度はかなり上げられそうだ。`,a:['両方を少しずつ進める','片方に集中する']},
+      {t:`${place}の展示`,b:`いろいろ見られる展示と、一つのテーマを掘り下げる展示。使える面積は同じだ。`,a:['種類を増やす','一テーマを深く見せる']},
+      {t:'今日の改善枠',b:`6つの小さな不満が見つかった。一つずつ軽く直すか、一番大きい問題を徹底的に直すか。`,a:['6つ全部に手を入れる','最大の1つを潰す']},
+      {t:'取材記事の構成',b:`町全体を広く紹介するか、一人の職人を徹底的に追うか。記事の長さは同じ。`,a:['町全体を紹介する','一人を深く追う']},
+      {t:'新メニュー開発',b:`試作品を何種類も出して反応を見るか、一品だけ何度も作り直すか。`,a:['種類をたくさん試す','一品を磨き続ける']}
+    ];const v=variants[(day-1)%variants.length];
+    return {axis:'depth',context:contextFor('depth',day),title:v.t,body:v.b,choices:[
+      choice(v.a[0],'可能性を広げて、面を増やす',-1,{coin:-2,time:-2,people:+1,discovery:+4,festival:+2}),
+      choice(v.a[1],'範囲を絞って、完成度を上げる',+1,{coin:+1,time:-2,people:-1,discovery:+2,festival:+4})
+    ]};
+  }
+
+  const factories={challenge:makeChallenge,social:makeSocial,time:makeTime,freedom:makeFreedom,spontaneity:makeSpontaneity,depth:makeDepth};
+
+  function buildDayQueue(day){ return shuffled(axisOrder,day).map(a => factories[a](day)); }
+
+  function showScreen(name){ Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active'); window.scrollTo({top:0,behavior:'smooth'}); }
+
+  function resetState(){
+    state.day=1;state.turn=0;state.resources={coin:60,time:60,people:50,discovery:15};state.festival=0;state.logs=[];state.queue=[];state.current=null;state.locked=false;
+    state.scores=Object.fromEntries(axisOrder.map(k=>[k,{sum:0,count:0,records:[]}]))
+  }
+
+  function startGame(){ storage.remove('watashiZukanProgress'); resetState(); showScreen('game'); state.queue=buildDayQueue(1); nextEvent(); renderHud(); renderTown(); }
+
+  function nextEvent(){
+    if(state.turn >= TOTAL_TURNS){ finishGame(); return; }
+    if(!state.queue.length){ state.day++; state.queue=buildDayQueue(state.day); const chapter=[7,13,19].includes(state.day)?`新章：${phaseName(state.day)}`:`DAY ${state.day} — 祭まであと${TOTAL_DAYS-state.day+1}日`; milestone(chapter); }
+    state.current=state.queue.shift(); renderEvent(state.current); renderHud(); saveProgress();
+  }
+
+  function renderEvent(e){
+    $('eventMeta').firstElementChild.textContent = categoryName(e.axis);
+    const pressure=resourceBand(); $('pressureTag').textContent=pressure;
+    $('eventTitle').textContent=e.title; $('eventBody').textContent=e.body;
+    const list=$('choiceList');list.innerHTML='';
+    e.choices.forEach((c,i)=>{
+      const btn=document.createElement('button');btn.className='choice';btn.type='button';btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub}</span><span class="choice-arrow">→</span>`;btn.addEventListener('click',()=>choose(i,btn));list.appendChild(btn);
+    });
+  }
+
+  function categoryName(axis){ return ({challenge:'町の一手',social:'チームの動き',time:'資源の使い方',freedom:'見せ方の判断',spontaneity:'現場の判断',depth:'育て方'})[axis]; }
+
+  function choose(index,button){
+    if(state.locked)return;state.locked=true;
+    const e=state.current,c=e.choices[index];
+    const all=[...$('choiceList').children];all.forEach((b,i)=>b.classList.add(i===index?'selected':'rejected'));
+    const before={...state.resources};
+    Object.entries(c.effects).forEach(([k,v])=>{if(k==='festival')state.festival+=v;else state.resources[k]=clamp(state.resources[k]+v);});
+    const score=state.scores[e.axis];score.sum+=c.score;score.count++;score.records.push({value:c.score,context:e.context,day:state.day,title:e.title,choice:c.label,resources:before});
+    state.logs.push({day:state.day,axis:e.axis,title:e.title,choice:c.label,score:
