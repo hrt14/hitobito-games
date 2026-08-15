@@ -1,80 +1,140 @@
-// 404怪異調査クラブ / CASE 01 縦切り版
+// 404怪異調査クラブ 縦切り版
+// Game は「歩く・近づいて調べる・3人で喋る」だけを持つ。
+// 怪異ごとの型（追われる / 見てしまう）は modes/ 側に閉じる（SPEC §32 §63）。
 import { CASE01 } from './data/case01.js';
+import { CASE02 } from './data/case02.js';
 import { CaseState } from './core/case.js';
-import { Anomaly } from './core/anomaly.js';
-import { Chase } from './core/chase.js';
 import { findTrigger, visiblePoints, nextRequired } from './core/investigation.js';
 import { buildRecord } from './core/log.js';
 import { Renderer } from './world/render.js';
+import { FieldRenderer } from './world/render-field.js';
+import { ChaseMode } from './modes/chase-mode.js';
+import { SightMode } from './modes/sight-mode.js';
 import { Input } from './world/input.js';
 import { Ambience } from './world/audio.js';
 import { buildPath, truncate } from './world/path.js';
 
 const $ = s => document.querySelector(s);
-const HOME = { x: 220, y: 130 };
+
+const CASES = [CASE01, CASE02];
+const MODES = { chase: ChaseMode, sight: SightMode };
+const RENDERERS = { field: FieldRenderer };
 
 class Game {
-  constructor(caseData) {
-    this.c = caseData;
-    const { SPEED, SAFE_ZONE, DIALOGUE, TRIGGERS } = caseData;
-    this.SPEED = SPEED; this.SAFE_ZONE = SAFE_ZONE;
-    this.DIALOGUE = DIALOGUE; this.TRIGGERS = TRIGGERS;
+  constructor() {
     this.canvas = $('#stage');
-    this.r = new Renderer(this.canvas);
     this.input = new Input(this.canvas);
     this.audio = new Ambience();
-    this.state = new CaseState(caseData);
-    this.anomaly = new Anomaly(caseData);
-    this.chase = new Chase(caseData);
 
     this.scene = 'title';
     this.mode = 'free';        // free | investigate | dialogue | caught | survive
     this.t = 0;
     this.last = performance.now();
+    this.paused = false;
+    this.bubbles = [];         // {who, text}
+    this.queue = null;
 
-    this.party = {
-      shirou: { x: 150, y: 130 },
-      rei: { x: 118, y: 118 },
-      yotsuba: { x: 92, y: 142 },
-    };
+    window.addEventListener('resize', () => this.r.resize());
+    window.game = this; // デバッグ・テストプレイ用
+    this.buildBoard();
+    this.bindUI();
+    this.setCase(CASES[0]);
+    requestAnimationFrame(t => this.loop(t));
+  }
+
+  // ------------------------------------------------------------ CASE の読み込み
+
+  setCase(caseData) {
+    this.c = caseData;
+    const R = RENDERERS[caseData.renderer] || Renderer;
+    this.r = new R(this.canvas, caseData);
+    this.state = new CaseState(caseData);
+    this.dir = new MODES[caseData.mode](this);
+    this.lamps = (caseData.SCENERY.lamps || []).map(l => ({ ...l }));
+
+    this.scene = 'title';
+    this.mode = 'free';
+    this.party = { shirou: { x: 150, y: 130 }, rei: { x: 118, y: 118 }, yotsuba: { x: 92, y: 142 } };
     this.trail = [];
     this.walkPhase = 0;
     this.moving = false;
     this.facing = { shirou: 1, rei: 1, yotsuba: 1 };
-    this.vel = { x: 0, y: 0 };   // 入力を均して動きを硬くしない
-    this.nearMissT = 0;          // 仲間が怪異にかすった時のクールダウン
-
-    this.bubbles = [];         // {who, text, until}
+    this.vel = { x: 0, y: 0 };
     this.queue = null;
+    this.bubbles = [];
     this.pending = null;
     this.objective = null;
     this.areaLabel = { name: '', a: 0 };
     this.camFocus = null;
-    this.sightingTimer = 0;
-    this.sightIndex = 0;
-    this.goingHome = false;
-    this.escapeStarted = 0;
     this.caughtT = 0;
     this.fade = 0;
-    this.lamps = caseData.SCENERY.lamps.map(l => ({ ...l }));
-
-    window.addEventListener('resize', () => this.r.resize());
-    window.game = this; // デバッグ・テストプレイ用
-    this.bindUI();
-    requestAnimationFrame(t => this.loop(t));
+    this._picked = {};
+    this.banterT = undefined;
   }
 
   // ------------------------------------------------------------ UI
 
+  // §69 調査ボード。CASE を足したら勝手に並ぶようにしておく
+  buildBoard() {
+    const board = $('#caseBoard');
+    board.innerHTML = CASES.map(c => {
+      const saved = CaseState.hasSave(c.id);
+      return `<article class="case" data-case="${c.id}">
+        <header><b>${c.no}</b><span class="tag" data-tag="${c.id}"></span></header>
+        <h3>${c.name}</h3>
+        <p>${c.RECORD.rumor}</p>
+        <div class="case-btns">
+          <button class="ghost" data-act="continue" data-case="${c.id}"${saved ? '' : ' hidden'}>続きから</button>
+          <button class="primary" data-act="new" data-case="${c.id}">調べに行く</button>
+        </div>
+      </article>`;
+    }).join('');
+    board.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      const c = CASES.find(x => x.id === btn.dataset.case);
+      if (!c) return;
+      this.setCase(c);
+      if (btn.dataset.act === 'continue') { this.state.load(); this.begin(true); }
+      else { this.state.reset(); this.begin(false); }
+    });
+    this.refreshBoard();
+  }
+
+  refreshBoard() {
+    for (const c of CASES) {
+      const tag = document.querySelector(`.tag[data-tag="${c.id}"]`);
+      const cont = document.querySelector(`button[data-act="continue"][data-case="${c.id}"]`);
+      let label = '未調査';
+      let saved = false;
+      try {
+        const raw = localStorage.getItem(`hitobito_404_${c.id}_slice_v1`);
+        if (raw) {
+          saved = true;
+          label = JSON.parse(raw).case_completed ? '調査済み' : '調査中';
+        }
+      } catch { /* localStorage が無くても遊べる */ }
+      if (tag) { tag.textContent = label; tag.className = `tag ${label === '調査済み' ? 'done' : ''}`; }
+      if (cont) cont.hidden = !saved;
+    }
+  }
+
   bindUI() {
-    $('#btnNew').onclick = () => { this.state.reset(); this.begin(false); };
-    $('#btnContinue').onclick = () => { this.state.load(); this.begin(true); };
     $('#btnPause').onclick = () => this.togglePause(true);
     $('#btnResume').onclick = () => this.togglePause(false);
     $('#btnRecord').onclick = () => this.showRecord();
-    $('#btnRecordClose').onclick = () => { $('#record').hidden = true; if (this.scene === 'done') $('#title').hidden = false; };
+    $('#btnRecordClose').onclick = () => {
+      $('#record').hidden = true;
+      if (this.scene === 'done') { this.refreshBoard(); $('#title').hidden = false; }
+    };
     $('#btnRestart').onclick = () => { $('#record').hidden = true; this.state.reset(); this.begin(false); };
-    if (!CaseState.hasSave(this.c.id)) $('#btnContinue').hidden = true;
+    $('#btnQuit').onclick = () => {
+      this.togglePause(false);
+      this.scene = 'title';
+      $('#hud').hidden = true;
+      this.refreshBoard();
+      $('#title').hidden = false;
+    };
   }
 
   togglePause(on) {
@@ -95,21 +155,21 @@ class Game {
     this.scene = 'play';
     this.paused = false;
     this.fade = 0;
+    this.mode = 'free';
+    this.pending = null;
+    this.camFocus = null;
 
     // クリア済みのセーブから「続きから」を選んだ場合は、
     // 途中のチェックポイントへ戻さず最初から調べ直す
     if (cont && this.state.data.case_completed) { this.state.reset(); cont = false; }
 
     const cp = cont ? this.state.restoreCheckpoint() : null;
-    if (cp) {
-      this.setPartyAt(cp.x, cp.y);
-      if (this.state.data.case_progress === 'escape') this.startEscape(true);
-    } else {
+    if (cp) this.setPartyAt(cp.x, cp.y);
+    else {
       this.setPartyAt(150, 130);
-      this.say(this.DIALOGUE.intro, { blocking: false });
+      this.say(this.c.DIALOGUE.intro, { blocking: false });
     }
-    this.goingHome = this.state.isDone('P5');
-    if (this.goingHome && this.state.data.case_progress !== 'escape') this.anomaly.setPhase(3);
+    this.dir.begin(!!cp);
     this.input.setEnabled(true);
     this.refreshObjective();
   }
@@ -137,13 +197,13 @@ class Game {
   // 歩いている最中の雑談。3人の会話そのものを見せる（SPEC §4③ §9）
   updateBanter(dt) {
     if (this.queue || this.mode !== 'free') return;
-    if (this.state.data.case_progress === 'escape') return;
+    if (this.dir.running()) return;
     if (!this.moving) return;
     this.banterT = (this.banterT === undefined ? 9 : this.banterT) - dt;
     if (this.banterT > 0) return;
     this.banterT = 17 + Math.random() * 13;
     const area = this.state.areaAt(this.party.shirou.x);
-    const sets = this.DIALOGUE.banter[area.id];
+    const sets = this.c.DIALOGUE.banter[area.id];
     if (sets && sets.length) this.say(this.pick(sets, 'banter-' + area.id), { blocking: false });
   }
 
@@ -238,7 +298,7 @@ class Game {
   }
 
   runPointDialogue(point, alreadyDone) {
-    const lines = this.DIALOGUE[point.id] || [];
+    const lines = this.c.DIALOGUE[point.id] || [];
     const completeAt = alreadyDone ? -1 : lines.length - 1;
     this.say(lines, {
       blocking: true,
@@ -247,7 +307,7 @@ class Game {
         this.pending = null;
         this.mode = 'free';
         this.input.setEnabled(true);
-        this.afterCompletion(point);
+        this.dir.after(point);
       },
     });
   }
@@ -259,243 +319,14 @@ class Game {
       this.camFocus = { x: opened.x, t: 1.7 };
       this.r.shake = 0.4;
     }
-    if (point.id === 'P1') this.state.setCheckpoint('CP1', this.party.shirou);
-    if (point.id === 'P3') this.state.setCheckpoint('CP2', this.party.shirou);
-    if (point.id === 'P5') this.state.setCheckpoint('CP3', this.party.shirou);
+    this.dir.checkpoint(point);
     this.refreshObjective();
-  }
-
-  afterCompletion(point) {
-    if (point.id === 'P4') {
-      // PHASE 2：遠景（SPEC §25）
-      this.anomaly.setPhase(2);
-      this.anomaly.showFar(this.party.shirou, 1);
-      this.audio.setMode('hush');
-      this.audio.sting();
-      this.say(this.DIALOGUE.phase2, { blocking: false });
-    }
-    if (point.id === 'P5') {
-      this.goingHome = true;
-      this.anomaly.setPhase(3);
-      this.sightIndex = 0;
-      this.say(this.DIALOGUE.goHome, { blocking: false });
-      this.refreshObjective();
-    }
   }
 
   // ------------------------------------------------------------ 目的地と緑ライン
 
   refreshObjective() {
-    if (this.state.data.case_progress === 'escape') { this.objective = { ...this.SAFE_ZONE }; return; }
-    if (this.goingHome) { this.objective = HOME; return; }
-    this.objective = nextRequired(this.state);
-  }
-
-  guideRatio() {
-    if (this.state.data.case_progress === 'escape') return 1;
-    const ph = this.anomaly.phase;
-    if (ph >= 4) return 0;
-    if (ph === 3) return Math.sin(this.t * 2.2) > -0.3 ? 0.45 : 0; // 途切れる
-    if (ph === 2) return 0.72;
-    return 1;
-  }
-
-  // ------------------------------------------------------------ 怪異の段階
-
-  updatePhases(dt) {
-    const px = this.party.shirou.x;
-    const a = this.anomaly;
-
-    if (a.phase === 0 && px > this.TRIGGERS.phase1AtX) {
-      a.setPhase(1);
-      this.audio.setMode('hush');
-      const near = this.lamps.find(l => Math.abs(l.x - px) < 460 && l.on);
-      if (near) near.on = false;
-      this.audio.blip(120, 0.5, 0.05, 'sawtooth');
-      this.say(this.DIALOGUE.phase1, { blocking: false });
-    }
-
-    // PHASE 3：帰り道での接近（何度か確認できる）
-    if (this.goingHome && a.phase === 3 && this.state.data.case_progress !== 'escape') {
-      const th = this.TRIGGERS.phase3FromX[this.sightIndex];
-      if (th !== undefined && px < th && !a.visible) {
-        a.showNear(this.party.shirou, -1); // 帰る方向の先に立っている
-        this.sightingTimer = 3.4;
-        this.audio.sting();
-        const lines = this.DIALOGUE.phase3[this.sightIndex];
-        if (lines) this.say(lines, { blocking: false });
-        this.sightIndex++;
-      }
-      if (a.visible) {
-        this.sightingTimer -= dt;
-        if (this.sightingTimer <= 0) a.hide();
-      }
-    }
-
-    // 遠くの人影に近づくと消える。触れて無反応だと緊張感が消える
-    if (a.visible && !a.chasing && this.state.data.case_progress !== 'escape') {
-      const d = Math.hypot(px - a.x, this.party.shirou.y - a.y);
-      if (d < 150) {
-        a.hide();
-        this.sightingTimer = 0;
-        this.audio.blip(64, 0.8, 0.08, 'sawtooth');
-        this.r.shake = 0.5;
-        this.say(this.pick(this.DIALOGUE.vanish, 'vanish'), { blocking: false });
-      }
-    }
-
-    // PHASE 4：完全出現
-    if (this.goingHome && a.phase < 4 && px < this.TRIGGERS.phase4AtX && this.state.data.case_progress !== 'escape') {
-      // 問いかけの場面。近すぎず、画面に二者が収まる距離で向かい合う
-      a.appear(this.party.shirou, px - 262);
-      // 3人を固めて、全員が女の方を向く（散っていると誰かが画面外に出る）
-      this.party.rei = { x: px + 46, y: this.party.shirou.y - 26 };
-      this.party.yotsuba = { x: px + 26, y: this.party.shirou.y + 30 };
-      this.trail = [];
-      this.moving = false;
-      this.facing = { shirou: -1, rei: -1, yotsuba: -1 };
-      this.audio.setMode('silent');
-      this.audio.sting();
-      this.r.shake = 0.9;
-      this.mode = 'dialogue';
-      this.input.setEnabled(false);
-      const UNMASK_AT = 4; // 「これでも？」でマスクを外す
-      this.say(this.DIALOGUE.phase4, {
-        blocking: true,
-        onIndex: i => {
-          if (i === UNMASK_AT) {
-            a.unmask();
-            this.audio.reveal();
-            this.r.shake = 1.1;
-          } else if (this.DIALOGUE.phase4[i] && this.DIALOGUE.phase4[i].who === 'kuchisake') {
-            this.audio.voice();
-          }
-        },
-        onEnd: () => { this.startEscape(false); },
-      });
-    }
-  }
-
-  // ------------------------------------------------------------ 逃走
-
-  startEscape(restored) {
-    this.state.data.case_progress = 'escape';
-    this.state.setCheckpoint('CP4', this.party.shirou);
-    this.state.save();
-    this.mode = 'free';
-    this.input.setEnabled(true);
-    this.anomaly.setPhase(4);
-    this.anomaly.unmask();
-    // 対峙の直後はその場から追い始める。復帰時だけ距離を作り直す
-    this.chase.start(this.anomaly, this.party.shirou, restored ? -320 : null);
-    // 会話が終わった瞬間に詰められると反応できない。一拍だけ動かない
-    if (!restored) this.chase.block = 0.9;
-    this.escapeStarted = this.t;
-    this.audio.setMode('silent');
-    this.refreshObjective();
-    if (restored) this.anomaly.visible = true;
-  }
-
-  updateEscape(dt) {
-    if (this.state.data.case_progress !== 'escape' || this.mode === 'caught' || this.mode === 'survive') return;
-    const p = this.party.shirou;
-
-    this.chase.update(dt, this.anomaly, p);
-
-    // 通り過ぎた街灯から順に消えていく
-    for (const l of this.lamps) if (l.on && l.x < p.x - 90) { l.on = false; }
-
-    // 先回りして道をふさぐ
-    const cut = this.TRIGGERS.cutAheadAtX[this.chase.cutIndex];
-    if (cut !== undefined && p.x > cut) {
-      this.chase.cutAhead(this.anomaly, p, 1, 430);
-      this.audio.sting();
-      this.r.shake = 0.7;
-      this.say(this.DIALOGUE.cutAhead, { blocking: false });
-    }
-
-    if (this.chase.caught) { this.onCaught(); return; }
-
-    if (Math.hypot(p.x - this.SAFE_ZONE.x, p.y - this.SAFE_ZONE.y) < 74) this.onSurvive();
-  }
-
-  onCaught() {
-    this.mode = 'caught';
-    this.caughtT = 0;
-    this.chase.stop(this.anomaly);
-    this.input.setEnabled(false);
-    this.audio.caught();
-    this.r.shake = 1.2;
-    this.say(this.DIALOGUE.caught, { blocking: false });
-  }
-
-  respawn() {
-    const cp = this.state.restoreCheckpoint();
-    this.setPartyAt(cp ? cp.x : 150, cp ? cp.y : 130);
-    this.bubbles = [];
-    this.queue = null;
-    this.fade = 1;
-    if (this.state.data.case_progress === 'escape') {
-      this.lamps = this.c.SCENERY.lamps.map(l => ({ ...l, on: l.x < this.party.shirou.x - 90 ? false : l.on }));
-      this.startEscape(true);
-    } else {
-      this.mode = 'free';
-      this.input.setEnabled(true);
-    }
-  }
-
-  onSurvive() {
-    this.mode = 'survive';
-    this.chase.stop(this.anomaly);
-    this.input.setEnabled(false);
-    // 3人は鳥居をくぐって境内へ入る。怪異は道の側で止まる（SPEC §32）
-    this.party.shirou = { x: this.SAFE_ZONE.x + 6, y: 14 };
-    this.party.rei = { x: this.SAFE_ZONE.x - 36, y: 22 };
-    this.party.yotsuba = { x: this.SAFE_ZONE.x + 44, y: 26 };
-    this.trail = [];
-    this.moving = false;
-    this.anomaly.x = this.SAFE_ZONE.x - 120;
-    this.anomaly.y = 96; // 境内には入らず、道の側に立ち止まる
-    this.anomaly.chasing = false;
-    this.audio.setMode('silent');
-    setTimeout(() => { this.audio.setMode('night'); this.audio.relief(); }, 2200);
-    this.say(this.DIALOGUE.survive, {
-      blocking: true,
-      onEnd: () => this.startEpilogue(),
-    });
-  }
-
-  startEpilogue() {
-    this.scene = 'epilogue';
-    this.epiT = 0;
-    this.bubbles = [];
-    $('#hud').hidden = true;
-    this.audio.setMode('night');
-    this.say(this.DIALOGUE.epilogue, {
-      blocking: true,
-      onEnd: () => {
-        this.state.markCleared(buildRecord(this.state));
-        this.scene = 'done';
-        this.showRecord();
-      },
-    });
-  }
-
-  // ------------------------------------------------------------ 調査記録
-
-  showRecord() {
-    const rec = this.state.data.case_records.case01 || buildRecord(this.state);
-    $('#recBody').innerHTML = `
-      <div class="rec-line"><span>CASE</span><b>${rec.case}</b></div>
-      <div class="rec-line"><span>噂</span><b>${rec.rumor}</b></div>
-      <div class="rec-line"><span>調査場所</span><b>${rec.places.join(' / ')}</b></div>
-      <div class="rec-line"><span>遭遇</span><b>${rec.encounter}</b></div>
-      <div class="rec-line"><span>証拠</span><b>${rec.evidence.length ? rec.evidence.join('<br>') : '—'}</b></div>
-      <div class="rec-line"><span>任意調査</span><b>${rec.optional}</b></div>
-      <div class="rec-notes">${rec.notes.map(n => `<p><i>${n[0]}</i>「${n[1]}」</p>`).join('')}</div>
-      <div class="rec-open"><span>未解決</span>${rec.unresolved.map(u => `<p>${u}</p>`).join('')}</div>`;
-    $('#record').hidden = false;
-    $('#btnRestart').hidden = this.scene !== 'done';
+    this.objective = this.dir.objective() || nextRequired(this.state);
   }
 
   // ------------------------------------------------------------ 更新
@@ -504,7 +335,6 @@ class Game {
     this.t += dt;
     if (this.r.shake > 0) this.r.shake = Math.max(0, this.r.shake - dt * 1.8);
     if (this.fade > 0) this.fade = Math.max(0, this.fade - dt * 0.9);
-    this.anomaly.update(dt);
     this.updateDialogue(dt);
 
     if (this.scene === 'epilogue') { this.epiT += dt; return; }
@@ -516,13 +346,18 @@ class Game {
       return;
     }
 
-    if (this.mode === 'investigate') { this.updateInvestigation(dt); this.updateFollowers(dt, false); return; }
+    if (this.mode === 'investigate') {
+      this.updateInvestigation(dt);
+      this.updateFollowers(dt, false);
+      this.dir.update(dt);
+      return;
+    }
 
     if (this.mode === 'free') {
       this.movePlayer(dt);
       // 逃走中は調査を発火させない。操作が止まっている間に怪異が歩いて来て、
       // 3人が棒立ちのまま捕まる（緊張感が消えるどころか理不尽になる）
-      if (this.state.data.case_progress !== 'escape') {
+      if (!this.dir.running()) {
         const hit = findTrigger(this.state, this.party.shirou);
         if (hit) this.startInvestigation(hit);
       }
@@ -530,8 +365,7 @@ class Game {
 
     this.updateFollowers(dt, this.moving);
     this.updateBanter(dt);
-    this.updatePhases(dt);
-    this.updateEscape(dt);
+    this.dir.update(dt);
     this.updateArea(dt);
 
     if (this.camFocus) {
@@ -540,9 +374,21 @@ class Game {
     }
   }
 
+  respawn() {
+    const cp = this.state.restoreCheckpoint();
+    this.setPartyAt(cp ? cp.x : 150, cp ? cp.y : 130);
+    this.bubbles = [];
+    this.queue = null;
+    this.fade = 1;
+    if (!this.dir.restore()) {
+      this.mode = 'free';
+      this.input.setEnabled(true);
+    }
+  }
+
   movePlayer(dt) {
-    const running = this.state.data.case_progress === 'escape';
-    const sp = running ? this.SPEED.run : this.SPEED.walk;
+    const running = this.dir.running();
+    const sp = running ? this.c.SPEED.run : this.c.SPEED.walk;
     const p = this.party.shirou;
 
     // 入力を直接座標へ流すと動きが硬い。速度を追従させる
@@ -577,10 +423,10 @@ class Game {
   // 3人一緒に動く。重ねない。狭い道では自然に一列になる（SPEC §49）
   updateFollowers(dt, moving) {
     const order = ['rei', 'yotsuba'];
-    const escaping = this.state.data.case_progress === 'escape';
-    // 逃走中は隊列を詰める。探索時の間隔のままだと、後ろの2人が
-    // 常に怪異とプレイヤーの間に居ることになり、必ず追い越される
-    const gaps = escaping ? [30, 56] : [95, 180];
+    const running = this.dir.running();
+    // 山場では隊列を詰める。探索時の間隔のままだと、後ろの2人が
+    // 置いていかれる（CASE 01 では必ず怪異に追い越された）
+    const gaps = running ? [30, 56] : [95, 180];
     order.forEach((who, i) => {
       const c = this.party[who];
       let target;
@@ -594,58 +440,28 @@ class Game {
       } else {
         target = { x: this.party.shirou.x - gaps[i], y: this.party.shirou.y };
       }
-      const offY = moving ? 0 : (i === 0 ? -30 : 34);
-      let tx = target.x, ty = target.y + offY;
+      // 山場で止まっている時は3人を寄せる。CASE 02 では散っていると
+      // 誰かが遮蔽の陰からはみ出して、絵が「隠れている」に見えない
+      const offY = moving ? 0 : (running ? (i === 0 ? -15 : 17) : (i === 0 ? -30 : 34));
+      const t = { tx: target.x, ty: target.y + offY };
+      this.dir.followerAdjust(who, c, t);
 
-      // 怪異をよける。素通りさせると絵として壊れるし、緊張感も消える
-      const a = this.anomaly;
-      if (a.visible && a.fade > 0.3 && !a.high) {
-        const ax = c.x - a.x, ay = c.y - a.y;
-        const ad = Math.hypot(ax, ay);
-        if (ad < 76) {
-          const push = (76 - ad) / 76;
-          tx += (ax / (ad || 1)) * push * 120;
-          ty += (ay / (ad || 1)) * push * 90;
-          if (ad < 46 && this.nearMissT <= 0 && this.state.data.case_progress === 'escape') {
-            this.nearMissT = 3.2;
-            this.r.shake = 0.55;
-            this.audio.sting();
-            this.say([{ who, text: who === 'rei' ? 'うわっ、来た！' : 'こっち来ないで！' }], { blocking: false });
-          }
-        }
-      }
-
-      const dx = tx - c.x, dy = ty - c.y;
+      const dx = t.tx - c.x, dy = t.ty - c.y;
       const d = Math.hypot(dx, dy);
       if (d > 1.5) {
-        // 逃走中は追いつけないと置き去りになるので上限を上げる
-        const base = escaping ? this.SPEED.run * 1.9 : this.SPEED.walk * 1.3;
+        // 山場では追いつけないと置き去りになるので上限を上げる
+        const base = running ? this.c.SPEED.run * 1.9 : this.c.SPEED.walk * 1.3;
         const sp = Math.min(d * 6.5, base);
         c.x += dx / d * sp * dt;
         c.y += dy / d * sp * dt;
         if (Math.abs(dx) > 2) this.facing[who] = dx > 0 ? 1 : -1;
       }
 
-      // 追ってくる怪異より後ろへは絶対に残さない。
-      // 追い越されると絵として破綻し、緊張感も消える
-      if (escaping && a.chasing && a.visible) {
-        const dir = Math.sign(this.objective.x - a.x) || 1;
-        const behind = (c.x - a.x) * dir;
-        if (behind < 58) {
-          c.x = a.x + dir * 58;
-          if (this.nearMissT <= 0) {
-            this.nearMissT = 3.4;
-            this.r.shake = 0.5;
-            this.audio.sting();
-            this.say([{ who, text: who === 'rei' ? '無理無理無理！' : '置いてかないで！' }], { blocking: false });
-          }
-        }
-      }
+      this.dir.followerClamp(who, c);
 
       const area = this.state.areaAt(c.x);
       c.y = Math.max(area.bandTop + 4, Math.min(area.bandBottom - 2, c.y));
     });
-    if (this.nearMissT > 0) this.nearMissT -= dt;
   }
 
   updateArea(dt) {
@@ -654,50 +470,73 @@ class Game {
     else this.areaLabel.a = Math.max(0, this.areaLabel.a - dt * 0.45);
   }
 
+  // ------------------------------------------------------------ 調査記録
+
+  showRecord() {
+    const rec = this.state.data.case_records[this.c.id] || buildRecord(this.state);
+    $('#recBody').innerHTML = `
+      <div class="rec-line"><span>CASE</span><b>${rec.case}</b></div>
+      <div class="rec-line"><span>噂</span><b>${rec.rumor}</b></div>
+      <div class="rec-line"><span>調査場所</span><b>${rec.places.join(' / ')}</b></div>
+      <div class="rec-line"><span>遭遇</span><b>${rec.encounter}</b></div>
+      <div class="rec-line"><span>証拠</span><b>${rec.evidence.length ? rec.evidence.join('<br>') : '—'}</b></div>
+      <div class="rec-line"><span>任意調査</span><b>${rec.optional}</b></div>
+      <div class="rec-notes">${rec.notes.map(n => `<p><i>${n[0]}</i>「${n[1]}」</p>`).join('')}</div>
+      <div class="rec-open"><span>未解決</span>${rec.unresolved.map(u => `<p>${u}</p>`).join('')}</div>`;
+    $('#record').hidden = false;
+    $('#btnRestart').hidden = this.scene !== 'done';
+  }
+
+  startEpilogue() {
+    this.scene = 'epilogue';
+    this.epiT = 0;
+    this.bubbles = [];
+    $('#hud').hidden = true;
+    this.audio.setMode('night');
+    this.say(this.c.DIALOGUE.epilogue, {
+      blocking: true,
+      onEnd: () => {
+        this.state.markCleared(buildRecord(this.state));
+        this.scene = 'done';
+        this.refreshBoard();
+        this.showRecord();
+      },
+    });
+  }
+
   // ------------------------------------------------------------ 描画
 
   draw() {
     const r = this.r, ctx = r.ctx;
-    if (this.scene === 'title') { this.drawTitleBg(); return; }
+    if (this.scene === 'title') { this.dir.titleBg(r); return; }
     if (this.scene === 'epilogue') { this.drawEpilogue(); return; }
 
     const p = this.party.shirou;
-    let cam = p.x;
-    // 生還の瞬間は、鳥居の内と外の両方が同時に見える位置で止める
-    if (this.mode === 'survive') cam = this.SAFE_ZONE.x - 46;
-    // 問いかけの場面は、3人と女の両方が画面に入る位置で止める
-    else if (this.mode === 'dialogue' && this.anomaly.visible) cam = (p.x + this.anomaly.x) / 2;
-    else if (this.camFocus) {
-      const k = 1 - Math.abs(this.camFocus.t - 0.85) / 0.85;
-      cam = p.x + (this.camFocus.x - p.x) * Math.max(0, Math.min(1, k));
+    let cam = this.dir.camera(p);
+    if (cam === null) {
+      cam = p.x;
+      if (this.camFocus) {
+        const k = 1 - Math.abs(this.camFocus.t - 0.85) / 0.85;
+        cam = p.x + (this.camFocus.x - p.x) * Math.max(0, Math.min(1, k));
+      }
     }
     r.camX = cam;
-    r.dark = this.state.data.case_progress === 'escape' ? 0.7 : 0;
+    r.dark = this.dir.dark();
 
     ctx.save();
     if (r.shake > 0) {
       ctx.translate((Math.random() - 0.5) * 9 * r.shake, (Math.random() - 0.5) * 9 * r.shake);
     }
 
-    r.drawSky();
-    r.drawFar();
-    r.drawMid();
-    r.drawHouses();
-    r.drawRoad();
-    r.drawPoles();
-    r.drawPowerLines();
-    r.drawLampPools(this.lamps);
-    r.drawProps(this.state);
-    r.drawLampPosts(this.lamps);
+    r.drawWorldBack(this);
 
-    const ratio = this.guideRatio();
+    const ratio = this.dir.guideRatio();
     if (ratio > 0 && this.objective && this.mode !== 'caught') {
       const path = truncate(buildPath(p, this.objective, this.c.WAYPOINTS), ratio);
-      r.drawGuideLine(path, this.t, this.state.data.case_progress === 'escape' ? 'escape' : 'normal');
+      r.drawGuideLine(path, this.t, this.dir.running() ? 'escape' : 'normal');
     }
 
-    // 逃走中と、女と対峙している間はマークを出さない
-    if (this.state.data.case_progress !== 'escape' && !(this.mode === 'dialogue' && this.anomaly.visible)) {
+    if (this.dir.showMarks()) {
       for (const pt of visiblePoints(this.state, p)) {
         const near = Math.hypot(pt.x - p.x, pt.y - p.y);
         r.drawMark(pt, this.t, pt.hidden ? Math.min(1, (150 - near) / 60) : 1);
@@ -705,30 +544,34 @@ class Game {
     }
 
     // 奥から手前へ並べて描く
+    const lookBack = this.dir.lookBack();
     const ents = [
-      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, this.facing.rei, { moving: this.moving, lookBack: this.anomaly.visible }) },
-      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, this.facing.yotsuba, { moving: this.moving, lookBack: this.anomaly.visible }) },
+      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, this.facing.rei, { moving: this.moving, lookBack }) },
+      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, this.facing.yotsuba, { moving: this.moving, lookBack }) },
       { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, this.facing.shirou, { moving: this.moving }) },
+      ...this.dir.entities(r),
     ];
-    if (this.anomaly.fade > 0.02) ents.push({ y: this.anomaly.high ? -50 : this.anomaly.y, f: () => r.drawAnomaly(this.anomaly) });
     ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
 
-    r.drawForeground();
-    r.drawVignette(this.state.data.case_progress === 'escape' ? 0.55 : 0.25);
+    r.drawWorldFront(this);
+    this.dir.overlay(r);
+    r.drawVignette(this.dir.vignette());
     ctx.restore();
 
     r.drawAreaName(this.areaLabel.name, Math.min(1, this.areaLabel.a));
+    this.dir.screen(r);
 
     for (const b of this.bubbles) {
-      const c = b.who === 'kuchisake' ? this.anomaly : (this.party[b.who] || p);
-      r.drawBubble(b.text, b.who, c.x, c.y, b.who === 'kuchisake' ? 62 : 0);
+      const a = this.dir.anchor(b.who);
+      const c = a || this.party[b.who] || p;
+      r.drawBubble(b.text, b.who, c.x, c.y, a ? a.lift : 0);
     }
 
     if (this.mode === 'free') r.drawStick(this.input);
 
     if (this.mode === 'caught') {
       const k = Math.min(1, this.caughtT / 1.5);
-      ctx.fillStyle = `rgba(0,0,0,${k})`;
+      ctx.fillStyle = `rgba(${this.dir.caughtColor()},${k})`;
       ctx.fillRect(0, 0, r.W, r.H);
     }
     if (this.fade > 0) {
@@ -744,21 +587,13 @@ class Game {
     ctx.fillStyle = 'rgba(220,232,248,0.5)';
     ctx.font = '700 11px ui-monospace, SFMono-Regular, monospace';
     ctx.textAlign = 'left';
-    const label = this.state.data.case_progress === 'escape' ? 'CASE 01 / ESCAPE' : 'CASE 01';
-    ctx.fillText(label, 16, 26);
+    ctx.fillText(this.dir.hud(), 16, 26);
     ctx.restore();
-  }
-
-  drawTitleBg() {
-    const r = this.r;
-    r.camX = 4900;
-    r.drawSky(); r.drawFar(); r.drawMid(); r.drawRoad();
-    r.drawTorii(this.SAFE_ZONE.x, this.SAFE_ZONE.y);
-    r.drawVignette(0.5);
   }
 
   drawEpilogue() {
     const r = this.r, ctx = r.ctx, { W, H } = r;
+    const gt = r.groundTop, gb = r.groundBottom;
     // 翌日の教室。夜との温度差を出す（SPEC §37）
     const wallY = H * 0.62;
     const g = ctx.createLinearGradient(0, 0, 0, wallY);
@@ -853,7 +688,7 @@ class Game {
       const pos = POS[b.who] || POS.shirou;
       r.drawBubble(b.text, b.who, pos[0], pos[1]);
     }
-    r.groundTop = H * 0.60; r.groundBottom = H * 0.92;
+    r.groundTop = gt; r.groundBottom = gb;
   }
 
   loop(now) {
@@ -865,4 +700,4 @@ class Game {
   }
 }
 
-new Game(CASE01);
+new Game();

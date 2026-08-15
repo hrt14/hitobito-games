@@ -12,26 +12,42 @@ const OUT = join(SRC, "standalone.html"); // 生成物。git 管理外
 
 // 依存順に並べる（import を消して連結するため）
 const ORDER = [
-  'data/case01.js',
+  'data/chars.js',
   'core/case.js',
   'core/investigation.js',
   'core/anomaly.js',
   'core/chase.js',
+  'core/sight.js',
+  'core/kunekune.js',
   'core/log.js',
   'world/path.js',
   'world/input.js',
   'world/audio.js',
   'world/render.js',
+  'world/render-field.js',
+  'modes/chase-mode.js',
+  'modes/sight-mode.js',
   'main.js',
 ];
+
+// CASE データは同じ名前（WORLD, SPEED, POINTS …）を並べて持つので、
+// そのまま連結すると衝突する。1本ずつブロックに閉じて集約だけを外へ出す
+const CASE_FILES = [['data/case01.js', 'CASE01'], ['data/case02.js', 'CASE02']];
 
 const strip = src => src
   .replace(/^\s*import\s+[^;]*?from\s*['"][^'"]+['"]\s*;?\s*$/gm, '')
   .replace(/^\s*export\s+(?=(const|let|var|class|function|async))/gm, '');
 
-const js = ORDER
-  .map(f => `/* ---- ${f} ---- */\n${strip(readFileSync(join(SRC, f), 'utf8'))}`)
+const cases = CASE_FILES
+  .map(([f, name]) => `/* ---- ${f} ---- */\nconst ${name} = (() => {\n`
+    + `${strip(readFileSync(join(SRC, f), 'utf8'))}\nreturn ${name};\n})();`)
   .join('\n');
+
+const js = [
+  `/* ---- ${ORDER[0]} ---- */\n${strip(readFileSync(join(SRC, ORDER[0]), 'utf8'))}`,
+  cases,
+  ...ORDER.slice(1).map(f => `/* ---- ${f} ---- */\n${strip(readFileSync(join(SRC, f), 'utf8'))}`),
+].join('\n');
 
 const leftover = js.split('\n').filter(l => /^\s*(import|export)\s/.test(l));
 if (leftover.length) {

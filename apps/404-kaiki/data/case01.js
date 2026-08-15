@@ -13,11 +13,11 @@ export const SPEED = {
   anomaly: 219, // run * 0.92
 };
 
-export const CHARS = {
-  shirou: { name: '四郎', label: 'シロウ', color: '#f08a45', hair: '#1a1414', scale: 1.06 },
-  rei:    { name: '零',   label: 'レイ',   color: '#5f96e0', hair: '#141018', scale: 0.94 },
-  yotsuba:{ name: '四葉', label: 'ヨツバ', color: '#49c98c', hair: '#1d1512', scale: 1.0 },
-  // 吹き出し専用。ここまで喋るのは3人だけなので、初めて別の声が出る
+import { CHARS } from './chars.js';
+
+// この CASE だけの話者。ここまで喋るのは3人だけなので、初めて別の声が出る
+export const SPEAKERS = {
+  ...CHARS,
   kuchisake: { name: '女', label: '女', color: '#c9505a', hair: '#08070a', scale: 1.3 },
 };
 
@@ -300,7 +300,10 @@ export const RECORD = {
 export const CASE01 = {
   id: 'case01',
   title: 'CASE 01 / 口裂け女',
-  mode: 'chase',            // 生還の型。CASE 02 は 'sight' になる
+  no: 'CASE 01',
+  name: '口裂け女',
+  mode: 'chase',            // 生還の型。CASE 02 は 'sight'
+  renderer: 'street',
   WORLD, SPEED, CHARS, AREAS, GATES, POINTS, SAFE_ZONE, WAYPOINTS,
-  SPAWNS, TRIGGERS, DIALOGUE, SCENERY, PROPS, EVIDENCE, RECORD,
+  SPAWNS, TRIGGERS, DIALOGUE, SCENERY, PROPS, EVIDENCE, RECORD, SPEAKERS,
 };

@@ -1,13 +1,14 @@
 // 描画（SPEC §45 §46 §47 §48）
 // 前景 / プレイ層 / 背景 の3レイヤーを持ち、平面的なタイル地図にしない。
-import { WORLD, AREAS, GATES, SCENERY, PROPS, CHARS, SAFE_ZONE } from '../data/case01.js';
+import { CHARS } from '../data/chars.js';
 
 const FAR_P = 0.05;
 const MID_P = 0.35;
 const FORE_P = 1.24;
 
 export class Renderer {
-  constructor(canvas) {
+  constructor(canvas, caseData) {
+    this.c = caseData;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.W = 0; this.H = 0; this.dpr = 1;
@@ -15,6 +16,7 @@ export class Renderer {
     this.shake = 0;
     this.dark = 0;    // 逃走時の暗さ 0..1
     this.stars = [];
+    this.speakers = caseData.SPEAKERS || CHARS;   // CASE 固有の話者を足せる
     this.resize();
     for (let i = 0; i < 60; i++) {
       this.stars.push({ x: Math.random(), y: Math.random() * 0.45, r: Math.random() * 1.2 + 0.3, a: Math.random() * 0.6 + 0.2 });
@@ -33,7 +35,7 @@ export class Renderer {
     this.groundBottom = h * 0.92;
   }
 
-  depth(y) { return Math.max(-0.6, Math.min(1.4, y / WORLD.bandBottom)); }
+  depth(y) { return Math.max(-0.6, Math.min(1.4, y / this.c.WORLD.bandBottom)); }
   scaleAt(y) { return 0.78 + this.depth(y) * 0.36; }
 
   // 道を広く見せる。狭いと遠景の怪異が画面外に出てしまい、
@@ -44,6 +46,22 @@ export class Renderer {
   }
   sy(y) { return this.groundTop + this.depth(y) * (this.groundBottom - this.groundTop); }
   layerX(x, p) { return this.W / 2 + (x - this.camX * p); }
+
+  // 世界の描画はここにまとめる。CASE ごとにレンダラを差し替えるための継ぎ目
+  drawWorldBack(g) {
+    this.drawSky();
+    this.drawFar();
+    this.drawMid();
+    this.drawHouses();
+    this.drawRoad();
+    this.drawPoles();
+    this.drawPowerLines();
+    this.drawLampPools(g.lamps);
+    this.drawProps(g.state);
+    this.drawLampPosts(g.lamps);
+  }
+
+  drawWorldFront() { this.drawForeground(); }
 
   // ---------------------------------------------------------------- 背景
 
@@ -80,7 +98,7 @@ export class Renderer {
     ctx.fill();
 
     // 丘の上の赤い鳥居（A1からも見えるランドマーク・SPEC §47）
-    const tx = this.layerX(SAFE_ZONE.x, FAR_P) - this.W / 2 + this.W * 0.72;
+    const tx = this.layerX(this.c.SAFE_ZONE.x, FAR_P) - this.W / 2 + this.W * 0.72;
     const ty = base - 46;
     ctx.save();
     ctx.globalAlpha = 0.85;
@@ -115,7 +133,7 @@ export class Renderer {
       ctx.fillStyle = '#12162a';
     }
     // 給水塔と団地
-    for (const p of PROPS) {
+    for (const p of this.c.PROPS) {
       if (p.kind === 'watertower') {
         const x = this.layerX(p.x, MID_P);
         ctx.fillStyle = '#161b30';
@@ -198,7 +216,7 @@ export class Renderer {
     ctx.globalAlpha = 0.5;
     ctx.strokeStyle = 'rgba(0,0,0,0.5)';
     ctx.lineWidth = 7;
-    for (const p of SCENERY.poles) {
+    for (const p of this.c.SCENERY.poles) {
       const x = this.sx(p.x, 24);
       if (x < -80 || x > W + 80) continue;
       ctx.beginPath();
@@ -229,7 +247,7 @@ export class Renderer {
   drawHouses() {
     const { ctx } = this;
     const baseY = this.sy(-14);
-    for (const h of SCENERY.houses) {
+    for (const h of this.c.SCENERY.houses) {
       const x = this.sx(h.x, -14);
       if (x < -320 || x > this.W + 320) continue;
       const w = h.w * 0.86, hh = h.h;
@@ -273,7 +291,7 @@ export class Renderer {
   // 塀ぎわの自転車・植木・ゴミ袋
   drawClutter(baseY) {
     const { ctx } = this;
-    for (const c of SCENERY.clutter) {
+    for (const c of this.c.SCENERY.clutter) {
       const x = this.sx(c.x, -10);
       if (x < -60 || x > this.W + 60) continue;
       const y = baseY + 3;
@@ -313,8 +331,8 @@ export class Renderer {
     ctx.save();
     ctx.strokeStyle = 'rgba(8,10,16,0.85)';
     ctx.lineWidth = 1.6;
-    for (let i = 0; i < SCENERY.poles.length - 1; i++) {
-      const a = SCENERY.poles[i], b = SCENERY.poles[i + 1];
+    for (let i = 0; i < this.c.SCENERY.poles.length - 1; i++) {
+      const a = this.c.SCENERY.poles[i], b = this.c.SCENERY.poles[i + 1];
       const ax = this.sx(a.x, 24), bx = this.sx(b.x, 24);
       if (bx < -80 || ax > this.W + 80) continue;
       for (const off of [0, 9, 18]) {
@@ -330,7 +348,7 @@ export class Renderer {
   drawPoles() {
     const { ctx } = this;
     const y = this.sy(24);
-    for (const p of SCENERY.poles) {
+    for (const p of this.c.SCENERY.poles) {
       const x = this.sx(p.x, 24);
       if (x < -40 || x > this.W + 40) continue;
       ctx.fillStyle = '#0b0e15';
@@ -379,7 +397,7 @@ export class Renderer {
 
   drawProps(state) {
     const { ctx } = this;
-    for (const p of PROPS) {
+    for (const p of this.c.PROPS) {
       const x = this.sx(p.x, p.y);
       if (x < -560 || x > this.W + 560) continue;
       switch (p.kind) {
@@ -391,7 +409,7 @@ export class Renderer {
         case 'shrine': this.drawShrine(p); break;
       }
     }
-    for (const g of GATES) this.drawGate(g, state.isUnlocked(g.opens));
+    for (const g of this.c.GATES) this.drawGate(g, state.isUnlocked(g.opens));
   }
 
   drawPark(p) {
@@ -559,7 +577,7 @@ export class Renderer {
       ctx.restore();
     }
     // 鳥居（安全地点）
-    this.drawTorii(SAFE_ZONE.x, SAFE_ZONE.y);
+    this.drawTorii(this.c.SAFE_ZONE.x, this.c.SAFE_ZONE.y);
   }
 
   drawTorii(wx, wy) {
@@ -1146,7 +1164,7 @@ export class Renderer {
   // lift: 背の高い相手の顔を隠さないための持ち上げ量
   drawBubble(text, who, wx, wy, lift = 0) {
     const { ctx, W } = this;
-    const def = CHARS[who] || { label: '', color: '#dfe6f2' };
+    const def = this.speakers[who] || CHARS[who] || { label: '', color: '#dfe6f2' };
     const x = this.sx(wx, wy);
     const y = this.sy(wy) - (76 + lift) * this.scaleAt(wy);
 
