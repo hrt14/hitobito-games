@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/local-server.mjs",
     "start": "node scripts/local-server.mjs",
-    "human-test": "node scripts/human-test.mjs",
+    "human-test": "node scripts/human-test-organized.mjs",
     "check": "node scripts/smoke-check.mjs"
   },
   "dependencies": {
