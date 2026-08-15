@@ -1,0 +1,53 @@
+c.forEach(r=>(groups[r.context]??=[]).push(r));const entries=Object.entries(groups).filter(([,x])=>x.length>=2);
+      if(entries.length>=2){entries.sort((a,b)=>avgRecord(a[1])-avgRecord(b[1]));const lo=entries[0],hi=entries[entries.length-1],diff=avgRecord(hi[1])-avgRecord(lo[1]);if(diff>=.55){const a=AXES[k];insights.push({diff,title:`${contextLabels[hi[0]]}では「${a.right}」側へ動く`,copy:`${contextLabels[lo[0]]}と比べると、${a.right}側の選択が明確に増えました。あなたは状況によって同じ軸を使い分けています。`})}}
+    });
+    insights.sort((a,b)=>b.diff-a.diff);const el=$('contextInsights');el.innerHTML='';
+    (insights.slice(0,4).length?insights.slice(0,4):[{title:'条件による大きな反転は少なめ',copy:'今回のプレイでは、状況が変わっても選び方の方向が比較的一貫していました。'}]).forEach(x=>el.insertAdjacentHTML('beforeend',`<div class="insight"><strong>${x.title}</strong><p>${x.copy}</p></div>`));
+  }
+
+  function renderPatterns(scores){
+    const patterns=[];
+    if(scores.challenge>61&&scores.freedom>58)patterns.push(['⛵','自分で決めて、未知へ行く','裁量がある場面ほど、新しい選択肢を取りにいきやすい組み合わせ。']);
+    if(scores.challenge>58&&scores.social>58)patterns.push(['⚑','仲間がいると前へ出る','一人の賭けより、チームで挑戦する場面で踏み込みやすい。']);
+    if(scores.time>60&&scores.depth>58)patterns.push(['⌛','時間を買って、一点に使う','余白を守ったうえで、選んだ一つに深く使う傾向。']);
+    if(scores.spontaneity>60&&scores.depth<45)patterns.push(['✦','動きながら、広く拾う','計画で絞るより、現場で見つけた可能性を増やしやすい。']);
+    if(scores.spontaneity<42&&scores.challenge>58)patterns.push(['△','準備してから飛ぶ','挑戦はする。ただし段取りを作ってから踏み込むタイプの選択。']);
+    if(scores.freedom<43&&scores.social>58)patterns.push(['◎','反応を力に変える','周囲の評価や声を取り込み、それをチームの推進力にしやすい。']);
+    if(scores.depth>62&&scores.social<45)patterns.push(['⌁','一人で深く潜る','人を増やすより、自分の裁量で一つを掘る場面が多い。']);
+    if(!patterns.length)patterns.push(['↔','切り替え型','一方向に振り切るより、町の状況に合わせて複数の選び方を使っています。'],['◌','平均だけでは読めない','強い一本軸より、場面ごとの判断差が今回の特徴です。']);
+    const el=$('patternInsights');el.innerHTML='';patterns.slice(0,4).forEach(p=>el.insertAdjacentHTML('beforeend',`<div class="pattern"><div class="pattern-icon">${p[0]}</div><strong>${p[1]}</strong><p>${p[2]}</p></div>`));
+  }
+
+  function renderDecisionLog(){
+    const logs=[...state.logs].sort((a,b)=>Math.abs(b.score)-Math.abs(a.score));const picks=[];const used=new Set();for(const l of logs){if(!used.has(l.axis)){picks.push(l);used.add(l.axis)}if(picks.length===6)break}
+    const el=$('decisionLog');el.innerHTML='';picks.forEach(l=>el.insertAdjacentHTML('beforeend',`<div class="log-item"><div class="log-day">DAY ${l.day}</div><div><strong>${l.title} → ${l.choice}</strong><p>${AXES[l.axis].left} / ${AXES[l.axis].right} の軸に残った判断。</p></div></div>`));
+  }
+
+  function renderComparison(scores){
+    const card=$('compareCard');if(!state.previous){card.classList.add('hidden');return}card.classList.remove('hidden');const el=$('comparison');el.innerHTML='';axisOrder.forEach(k=>{const d=scores[k]-(state.previous.scores?.[k]??50);const toward=d===0?'変化なし':`${d>0?AXES[k].right:AXES[k].left}へ ${Math.abs(d)}pt`;el.insertAdjacentHTML('beforeend',`<div class="compare-row"><strong>${AXES[k].left} ↔ ${AXES[k].right}</strong><span>前回 ${state.previous.scores?.[k]??'-'}</span><span class="compare-delta">${toward}</span></div>`)})
+  }
+
+  function resultText(){
+    const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');const r=hist[0];if(!r)return '';
+    const lines=['【わたし図鑑】',`灯台祭：${r.festival.grade} ${r.festival.name}`];axisOrder.forEach(k=>{const p=r.scores[k],a=AXES[k];lines.push(`${a.left} ${100-p} : ${p} ${a.right}`)});lines.push('※ゲーム内の意思決定傾向');return lines.join('\n');
+  }
+
+  async function copyResult(){const txt=resultText();try{await navigator.clipboard.writeText(txt);$('copyBtn').textContent='コピーしました';setTimeout(()=>$('copyBtn').textContent='図鑑をコピー',1200)}catch{$('copyBtn').textContent='コピーできませんでした'}}
+
+  function showLatest(){const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');if(!hist.length)return;state.previous=hist[1]||null;state.logs=hist[0].logs||[];state.scores=Object.fromEntries(axisOrder.map(k=>[k,{sum:0,count:0,records:[]}]))
+    // Saved result view uses stored scores; contextual detail requires the current session, so only high-level view is restored.
+    const saved=hist[0];$('resultHeadline').textContent='前回のプレイで残った、あなたの選び方です。';$('festivalResult').innerHTML=`<strong>灯台祭 ${saved.festival.grade}</strong><span>${saved.festival.name}</span>`;
+    const axisEl=$('axisResults');axisEl.innerHTML='';Object.entries(AXES).forEach(([k,a])=>{const p=saved.scores[k];axisEl.insertAdjacentHTML('beforeend',`<div class="axis-item"><div class="axis-labels"><span>${a.left}</span><span>${a.right}</span></div><div class="axis-track"><span class="axis-marker" style="left:${p}%"></span></div><div class="axis-copy">前回の位置：${p} / 100</div></div>`)})
+    $('contextInsights').innerHTML='<div class="insight"><strong>状況別の詳しい読み取りはプレイ直後に表示されます</strong><p>もう一度遊ぶと、前回との変化も比較できます。</p></div>';$('patternInsights').innerHTML='';$('decisionLog').innerHTML='';renderComparison(saved.scores);showScreen('result');
+  }
+
+  function init(){
+    const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');$('historyBtn').classList.toggle('hidden',!hist.length);
+    let progress=null;try{progress=JSON.parse(storage.get('watashiZukanProgress')||'null')}catch{}
+    if(progress && progress.version===1 && progress.turn<TOTAL_TURNS){$('resumeBtn').classList.remove('hidden');$('resumeBtn').textContent=`つづきから（DAY ${progress.day}）`;}
+    $('startBtn').addEventListener('click',startGame);$('resumeBtn').addEventListener('click',resumeGame);$('historyBtn').addEventListener('click',showLatest);$('replayBtn').addEventListener('click',startGame);$('copyBtn').addEventListener('click',copyResult);
+  }
+
+  window.__watashiZukanTest={
+    simulate(strategy='alternate'){
+      resetState();state.queue=buildDayQueue(1);for(let i=0;i<TOTAL_TURNS;i++){if(!state.queue.length){state.day++;state.queue=buildDayQueue(state.day)}const e=state.queue.shift();let idx=strategy==='right'?1:strategy==='left'?0:i%2;if(strategy==='balance'){const value=c=>{const next={...state.resources};Object.entries(c.effects).forEach(([k,v])=>{if(k!=='festival')next[k]=clamp(next[k]+v)});return Math.min(...Object.values(next))*3+(c.effects.festival||0)+(c.effects.discovery||0)*.3};idx=value(e.choices[1])>value(e.choices[0])?1:0;}state.current=e;const c=e.choices[idx],before={...state.resources};Object.entries(c.effects).forEach(([k,v])=>{if(k==='festival')state.festival+=v;else state.resources[k]=clamp(state.resources[k]+v)});const s=state.scores[e.axis];s.sum+=c.score;s.count++;s.records.push({value:c.sc
