@@ -1,0 +1,6 @@
+ore,context:e.context,day:state.day,title:e.title,choice:c.label,resources:before});state.logs.push({day:state.day,axis:e.axis,title:e.title,choice:c.label,score:c.score,context:e.context,effects:c.effects});state.turn++}return {turns:state.turn,scores:Object.fromEntries(axisOrder.map(k=>[k,scorePct(k)])),resources:state.resources,festival:festivalGrade()};
+    }
+  };
+
+  init();
+})();
