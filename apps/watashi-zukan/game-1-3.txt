@@ -1,0 +1,30 @@
+[k]) bits.push(`${map[k]}${v > 0 ? '+' : ''}${v}`); });
+    return bits.join('・');
+  }
+
+  function choice(label, sub, score, effects){ return { label, sub, score, effects }; }
+
+  function makeChallenge(day){
+    const group = contextFor('challenge',day) === 'group';
+    const place = pick(material.places, day, 1), opp = pick(material.opportunities, day, 2), crisis = pick(material.crises, day, 3);
+    const variants = [
+      {t:`${place}の空き地`,b:`祭までに使える場所が一つ増えた。ただし整備の見積もりには幅がある。${group?'仲間たちはあなたの判断を待っている。':''}`,a:['実績のある小さな広場にする','未知の使い方まで試す']},
+      {t:opp,b:`予定外のチャンスが舞い込んだ。うまくいけば町の景色が一気に変わるが、読めない部分も多い。`,a:['今の計画を守る','枠を開けて取りにいく']},
+      {t:`${crisis}のあと`,b:`一度予定が崩れたことで、逆に新しいルートが見えている。残り時間は十分ではない。`,a:['確実に戻せる案へ戻す','新ルートをそのまま進む']},
+      {t:'試作船の申し出',b:`船大工が新型の小舟を祭に出したいと言う。完成例はないが、成功すれば名物になりそうだ。`,a:['実績のある船を使う','試作船に場所を渡す']},
+      {t:'雨の日の集客案',b:`雨でも人を呼べる案が二つある。一方は地味だが読める。もう一方は当たれば大きい。`,a:['屋内企画を厚くする','雨そのものを演出にする']},
+      {t:'最後の一枠',b:`目玉企画の枠が一つだけ残った。確実に客を呼ぶ定番か、町でまだ誰もやっていない案か。`,a:['定番企画で埋める','未経験の企画に賭ける']}
+    ];
+    const v = variants[(day-1)%variants.length];
+    const socialTag = group ? 'group' : 'solo';
+    return {axis:'challenge',context:socialTag,title:v.t,body:v.b, choices:[
+      choice(v.a[0],'読みやすい結果を取りにいく',-1,{coin:+3,time:+2,people:+1,discovery:-1,festival:+1}),
+      choice(v.a[1],'振れ幅はあるが、新しい景色を狙う',+1,{coin:-3,time:-2,people:group?-1:0,discovery:+5,festival:+3})
+    ]};
+  }
+
+  function makeSocial(day){
+    const place = pick(material.places, day, 4), people = pick(material.people, day, 5), project = pick(material.projects, day, 6);
+    const variants = [
+      {t:`${project}の設計`,b:`方向性が割れている。自分で一本にまとめれば早いが、${people}の案を混ぜる余地もある。`,a:['自分で決め切る','みんなで案を組む']},
+      {t:`${place}の作業日`,b:`細かな作業が山積み。自分なら静かに進められる。声をかければ人数は増えるが調整も必要だ。`,a:['一人で片付ける','人を集めて進める'
