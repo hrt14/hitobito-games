@@ -1,0 +1,6 @@
+);$('resumeBtn').addEventListener('click',resumeGame);$('historyBtn').addEventListener('click',showLatest);$('replayBtn').addEventListener('click',startGame);$('copyBtn').addEventListener('click',copyResult);
+  }
+
+  window.__watashiZukanTest={
+    simulate(strategy='alternate'){
+      resetState();state.queue=buildDayQueue(1);for(let i=0;i<TOTAL_TURNS;i++){if(!state.queue.length){state.day++;state.queue=buildDayQueue(state.day)}const e=state.queue.shift();let idx=strategy==='right'?1:strategy==='left'?0:i%2;if(strategy==='balance'){const value=c=>{const next={...state.resources};Object.entries(c.effects).forEach(([k,v])=>{if(k!=='festival')next[k]=clamp(next[k]+v)});return Math.min(...Object.values(next))*3+(c.effects.festival||0)+(c.effects.discovery||0)*.3};idx=value(e.choices[1])>value(e.choices[0])?1:0;}state.current=e;const c=e.choices[idx],before={...state.resources};Object.entries(c.effects).forEach(([k,v])=>{if(k==='festival')state.festival+=v;else state.resources[k]=clamp(state.resources[k]+v)});const s=state.scores[e.axis];s.sum+=c.score;s.count++;s.records.push({value:c.sc
