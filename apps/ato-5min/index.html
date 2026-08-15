@@ -31,14 +31,19 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="burst" class="burst" aria-hidden="true"></div>
-  <script src="game-part1.js"></script>
-  <script src="game-part2.js"></script>
-  <script src="game-part3.js"></script>
-  <script src="game-part4.js"></script>
-  <script src="game-part5.js"></script>
-  <script src="game-part6.js"></script>
-  <script src="game-part7.js"></script>
-  <script src="game-part8.js"></script>
-  <script src="game-loader.js"></script>
+  <script>
+  (async()=>{
+    try{
+      const [a,b]=await Promise.all(['game-a.bin','game-b.bin'].map(u=>fetch(u).then(r=>{if(!r.ok)throw new Error(u);return r.arrayBuffer()})));
+      const ua=new Uint8Array(a),ub=new Uint8Array(b),all=new Uint8Array(ua.length+ub.length);all.set(ua);all.set(ub,ua.length);
+      if(!('DecompressionStream' in window))throw new Error('このブラウザはDecompressionStreamに対応していません');
+      const stream=new Blob([all]).stream().pipeThrough(new DecompressionStream('gzip'));
+      const code=await new Response(stream).text();
+      (0,eval)(code);
+    }catch(e){
+      document.getElementById('main').innerHTML='<section class="card" style="padding:20px"><h2>ゲームを読み込めませんでした</h2><p style="color:var(--muted);line-height:1.6">Chrome / Edge / Safari の新しいバージョンで開いてください。</p><pre style="white-space:pre-wrap;color:#ff9d9d">'+String(e)+'</pre></section>';
+    }
+  })();
+  </script>
 </body>
 </html>
