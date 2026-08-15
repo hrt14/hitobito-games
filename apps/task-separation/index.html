@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#101628" />
+  <meta name="description" content="『それ、誰の課題？』— 課題の分離を反射で練習するLEVEL UPゲーム" />
+  <title>それ、誰の課題？ | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell" id="app">
+    <header class="topbar">
+      <a class="brand" href="../../" aria-label="hitobito GAMESへ戻る">
+        <span class="brand-mark">↗</span>
+        <span><b>LEVEL UP</b><small>thinking reflex game</small></span>
+      </a>
+      <button class="icon-button" id="soundBtn" type="button" aria-label="効果音のオンオフ">♪</button>
+    </header>
+
+    <section class="hero" id="heroScreen">
+      <div class="hero-copy">
+        <p class="eyebrow">課題の分離 TRAINING</p>
+        <h1>それ、<br><span>誰の課題？</span></h1>
+        <p class="lead">抱えなくていいものを、持ち主へ返す。<br>自分ができることだけ、手元に残す。</p>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="orbit orbit-a"></div>
+        <div class="orbit orbit-b"></div>
+        <div class="person-core">
+          <div class="head"></div><div class="body"></div>
+        </div>
+        <span class="float-card c1">上司の機嫌</span>
+        <span class="float-card c2">自分の準備</span>
+        <span class="float-card c3">相手の評価</span>
+        <span class="float-card c4">明日の天気</span>
+      </div>
+
+      <div class="hero-actions">
+        <button class="primary-button" id="startBtn" type="button">仕分けをはじめる <span>→</span></button>
+        <button class="text-button" id="howBtn" type="button">遊び方を見る</button>
+      </div>
+      <p class="microcopy">1プレイ約3分・18問</p>
+    </section>
+
+    <section class="game-screen hidden" id="gameScreen" aria-live="polite">
+      <div class="hud">
+        <div class="progress-wrap" aria-label="進捗">
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <span id="progressText">1 / 18</span>
+        </div>
+        <div class="combo-pill" id="comboPill">COMBO <b id="comboValue">0</b></div>
+      </div>
+
+      <div class="stage-label" id="stageLabel">LEVEL 1 · 明確な境界線</div>
+
+      <div class="arena" id="arena">
+        <div class="zone zone-self" data-zone="self"><span>←</span><b>自分</b><small>自分が選び、引き受ける</small></div>
+        <div class="zone zone-joint" data-zone="joint"><span>↑</span><b>共同</b><small>合意して決める</small></div>
+        <div class="zone zone-other" data-zone="other"><span>→</span><b>相手</b><small>相手が選び、引き受ける</small></div>
+        <div class="zone zone-outside" data-zone="outside"><span>↓</span><b>外</b><small>誰にも決めきれない</small></div>
+
+        <div class="situation" id="situationText">友人から返信がない。</div>
+
+        <div class="card-stack" id="cardStack">
+          <div class="task-card" id="taskCard" role="button" tabindex="0" aria-label="課題カード。スワイプして分類してください">
+            <div class="card-grip"></div>
+            <p class="card-kicker">これは誰の課題？</p>
+            <h2 id="taskText">返信するかどうか</h2>
+            <p class="drag-hint" id="dragHint">カードを4方向へスワイプ</p>
+          </div>
+        </div>
+
+        <div class="feedback-burst hidden" id="feedbackBurst"><b id="feedbackTitle">SEPARATED!</b><span id="feedbackBody"></span></div>
+      </div>
+
+      <div class="weight-panel">
+        <div class="weight-person" id="weightPerson" aria-hidden="true">
+          <div class="mini-head"></div><div class="mini-body"></div>
+          <div class="backpack" id="backpack"><span id="weightCount">0</span></div>
+        </div>
+        <div class="weight-copy">
+          <b>背負っている他人の課題</b>
+          <span id="weightLabel">0個 — 身軽</span>
+        </div>
+      </div>
+
+      <div class="tap-controls" aria-label="タップ操作">
+        <button type="button" data-answer="self">← 自分</button>
+        <button type="button" data-answer="joint">↑ 共同</button>
+        <button type="button" data-answer="other">→ 相手</button>
+        <button type="button" data-answer="outside">↓ 外</button>
+      </div>
+    </section>
+
+    <section class="result-screen hidden" id="resultScreen">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <h1>手元に残すものが、<br><span>見えてきた。</span></h1>
+
+      <div class="result-hero">
+        <span>今日、背負わなくてよかった課題</span>
+        <strong id="releasedCount">0</strong><b>個</b>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-card"><span>境界線精度</span><b id="accuracyScore">0%</b><small>正しく仕分けた率</small></div>
+        <div class="score-card"><span>自分課題回収</span><b id="selfScore">0%</b><small>逃げずに拾えた率</small></div>
+        <div class="score-card"><span>侵入率</span><b id="intrusionScore">0%</b><small>相手側へ入り込んだ率</small></div>
+        <div class="score-card"><span>背負い込み率</span><b id="burdenScore">0%</b><small>相手を自分側へ持った率</small></div>
+      </div>
+
+      <div class="takeaway">
+        <span>今日の反射</span>
+        <blockquote>「誰が、その選択の結果を引き受ける？」</blockquote>
+        <p id="resultMessage">相手の課題は相手へ。自分の一手だけ残そう。</p>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary-button" id="retryBtn" type="button">もう1セッション <span>↻</span></button>
+        <button class="text-button" id="homeBtn" type="button">タイトルへ戻る</button>
+      </div>
+      <p class="disclaimer">※ 実際の人間関係では役割・責任・合意によって境界が変わることがあります。このゲームは判断の練習用です。</p>
+    </section>
+  </main>
+
+  <dialog id="howDialog">
+    <div class="dialog-card">
+      <button class="dialog-close" id="closeHowBtn" type="button" aria-label="閉じる">×</button>
+      <p class="eyebrow">HOW TO PLAY</p>
+      <h2>悩みを4つに仕分ける。</h2>
+      <div class="how-grid">
+        <div><b>← 自分</b><span>自分が選び、結果を引き受ける</span></div>
+        <div><b>↑ 共同</b><span>双方の合意が必要</span></div>
+        <div><b>→ 相手</b><span>相手が選び、結果を引き受ける</span></div>
+        <div><b>↓ 外</b><span>誰にも完全にはコントロールできない</span></div>
+      </div>
+      <p class="dialog-note">正解したら境界線が切れる。間違って他人の課題を自分側へ持つと、背中の荷物が増える。</p>
+      <button class="primary-button" id="dialogStartBtn" type="button">やってみる <span>→</span></button>
+    </div>
+  </dialog>
+
+  <script src="./game.js"></script>
+</body>
+</html>

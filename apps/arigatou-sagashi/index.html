@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="何もありがたく見えない日常から、10秒で見えない支えを掘り当てる観察ゲーム。" />
+  <title>ありがとう探し | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-kicker">LEVEL UP</span>
+        <strong>ありがとう探し</strong>
+      </div>
+      <button id="soundButton" class="icon-button" type="button" aria-label="音を切り替える">♪</button>
+    </header>
+
+    <section id="startScreen" class="screen screen--active start-screen" aria-labelledby="gameTitle">
+      <div class="start-glow" aria-hidden="true"></div>
+      <div class="eyebrow">THANKS HUNT</div>
+      <h1 id="gameTitle">見えない支えを、<br><em>10秒</em>で見つけろ。</h1>
+      <p class="lead">水道、電車、コンビニ。<br>「当たり前」の後ろにいるものを高速で探す。</p>
+      <div class="demo-chain" aria-label="例: 水道から雨までの支えの連鎖">
+        <span>水道</span><i>→</i><span>水道局</span><i>→</i><span>浄水場</span><i>→</i><span>雨</span>
+      </div>
+      <p class="rule-note">ありがたいと思わなくていい。<strong>見つければOK。</strong></p>
+      <button id="startButton" class="primary-button" type="button">
+        <span>10秒ラッシュを始める</span>
+        <small>3 ROUND / 約1分</small>
+      </button>
+      <div class="start-stats" aria-label="これまでの記録">
+        <div><b id="startBest">0</b><span>BEST SCORE</span></div>
+        <div><b id="startTotal">0</b><span>累計発見</span></div>
+        <div><b id="startLens">1/6</b><span>LENS</span></div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-live="polite">
+      <div class="hud">
+        <div class="round-label">ROUND <b id="roundNumber">1</b><span>/3</span></div>
+        <div class="timer" id="timerWrap">
+          <svg viewBox="0 0 44 44" aria-hidden="true">
+            <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+            <circle id="timerRing" class="timer-ring" cx="22" cy="22" r="18"></circle>
+          </svg>
+          <b id="timerText">10.0</b>
+        </div>
+        <div class="score"><span>SCORE</span><b id="scoreText">0</b></div>
+      </div>
+
+      <div id="comboBadge" class="combo-badge" aria-live="assertive">
+        <span>THANKS COMBO</span>
+        <b>×<em id="comboText">0</em></b>
+      </div>
+
+      <section id="constellation" class="constellation" aria-label="見つけた支えの星座">
+        <svg id="lineLayer" class="line-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="scene-orb" id="sceneOrb">
+          <span id="sceneIcon" class="scene-icon">🚰</span>
+          <strong id="sceneTitle">水道をひねる</strong>
+          <small id="scenePrompt">これを支えているものは？</small>
+        </div>
+        <div id="nodeLayer" class="node-layer" aria-hidden="true"></div>
+        <div id="sparkLayer" class="spark-layer" aria-hidden="true"></div>
+      </section>
+
+      <div class="lens-strip">
+        <span>いまのLENS</span>
+        <div id="lensChips" class="lens-chips"></div>
+      </div>
+
+      <div class="choice-area">
+        <p id="microFeedback" class="micro-feedback">支えているものをタップ</p>
+        <div id="choices" class="choices"></div>
+      </div>
+    </section>
+
+    <section id="roundScreen" class="screen result-screen" aria-labelledby="roundResultTitle">
+      <div class="result-kicker">ROUND CLEAR</div>
+      <h2 id="roundResultTitle">普通の水道の後ろに、<br><em><span id="roundFound">0</span>個</em>の支えがあった。</h2>
+      <div id="roundMiniMap" class="mini-map"></div>
+      <div class="result-grid">
+        <div><span>発見</span><b id="roundFoundStat">0</b></div>
+        <div><span>BEST COMBO</span><b id="roundComboStat">×0</b></div>
+        <div><span>観察幅</span><b id="roundBreadthStat">0/6</b></div>
+        <div><span>深い支え</span><b id="roundDeepStat">0</b></div>
+      </div>
+      <div id="roundInsight" class="insight-card"></div>
+      <button id="nextRoundButton" class="primary-button" type="button">次の日常を見る</button>
+    </section>
+
+    <section id="finalScreen" class="screen final-screen" aria-labelledby="finalTitle">
+      <div class="rank-orbit">
+        <span>RANK</span>
+        <b id="finalRank">A</b>
+      </div>
+      <p class="result-kicker">3 ROUND COMPLETE</p>
+      <h2 id="finalTitle">見えなかったものが、<br>少し見えるようになった。</h2>
+      <div class="final-score"><span>TOTAL SCORE</span><b id="finalScore">0</b></div>
+      <div class="final-stats">
+        <div><b id="finalFound">0</b><span>発見</span></div>
+        <div><b id="finalCombo">×0</b><span>BEST COMBO</span></div>
+        <div><b id="finalBreadth">0</b><span>最大カテゴリ</span></div>
+      </div>
+      <div id="lensUnlock" class="lens-unlock"></div>
+      <p class="transfer-copy">次に水道をひねったとき、<br>前より1個多く「後ろ」が見えたらクリア。</p>
+      <button id="replayButton" class="primary-button" type="button">もう3ラウンド</button>
+      <button id="homeButton" class="secondary-button" type="button">タイトルへ</button>
+    </section>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>

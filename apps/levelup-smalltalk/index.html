@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="LEVEL UP 雑談力アップ — 次の一言が自然に出る反射を鍛える会話トレーニングゲーム。" />
+  <title>雑談力アップ | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">▲</span><span>LEVEL UP</span></div>
+      <button id="soundBtn" class="icon-btn" type="button" aria-label="効果音の切り替え">♪</button>
+    </header>
+
+    <section id="startScreen" class="screen start-screen active" aria-labelledby="gameTitle">
+      <div class="hero-card">
+        <div class="series-label">SOCIAL SKILL / 01</div>
+        <div class="hero-orbit" aria-hidden="true">
+          <span class="bubble b1">旅行</span><span class="bubble b2">食事</span><span class="bubble b3">仕事</span>
+          <div class="hero-face">🙂</div>
+          <span class="bubble b4">趣味</span><span class="bubble b5">休日</span><span class="bubble b6">最近</span>
+        </div>
+        <h1 id="gameTitle">雑談力<br><em>アップ</em></h1>
+        <p class="lead">相手の一言から、会話の枝を見つける。<br>「何を話そう」を「どれを選ぼう」に変える。</p>
+
+        <div class="mini-stats" aria-label="現在の成長">
+          <div><b id="homeLevel">1</b><span>LEVEL</span></div>
+          <div><b id="homeBest">0</b><span>BEST FLOW</span></div>
+          <div><b id="homePlays">0</b><span>PLAYS</span></div>
+        </div>
+
+        <button id="startBtn" class="primary-btn" type="button">30秒、話してみる <span>→</span></button>
+        <button id="topicRushBtn" class="secondary-btn" type="button">話題発見ラッシュ</button>
+        <p class="tiny-note">正解は1つじゃない。返しの「型」を増やすゲームです。</p>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-live="polite">
+      <div class="hud">
+        <div class="round-pill"><span id="roundNow">1</span>/<span id="roundMax">8</span></div>
+        <div class="progress-track"><i id="progressBar"></i></div>
+        <div class="flow-pill">FLOW <b id="flowCount">0</b></div>
+      </div>
+
+      <section class="scene-card">
+        <div class="scene-meta"><span id="sceneIcon">☕</span><span id="sceneName">休憩室</span></div>
+        <div class="npc-wrap">
+          <div id="npcFace" class="npc-face" data-mood="neutral"><span id="npcEmoji">🙂</span><i class="mood-ring"></i></div>
+          <div class="npc-info"><b id="npcName">佐藤さん</b><span id="npcType">同僚</span></div>
+        </div>
+
+        <div class="speech-wrap">
+          <div id="speech" class="speech">最近コーヒーにハマってて。</div>
+          <div id="reaction" class="reaction" aria-live="assertive"></div>
+        </div>
+
+        <div class="fire-wrap" aria-label="会話の温度">
+          <span>会話の火</span>
+          <div class="fire-track"><i id="fireBar"></i></div>
+          <b id="fireValue">50</b>
+        </div>
+      </section>
+
+      <section id="branchesBox" class="branches-box">
+        <div class="section-label"><span>会話の枝</span><small id="branchHint">言葉の中から話題を拾う</small></div>
+        <div id="branchChips" class="branch-chips"></div>
+      </section>
+
+      <section class="answers-box">
+        <div class="section-label"><span>どう返す？</span><small id="timerLabel">3秒で選ぶ</small></div>
+        <div id="answerCards" class="answer-cards"></div>
+      </section>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen">
+      <div class="result-head">
+        <div class="result-badge">TALK RESULT</div>
+        <h2><span id="resultRank">B</span> RANK</h2>
+        <p id="resultSummary">会話を自然につなげられました。</p>
+      </div>
+
+      <div class="score-card">
+        <div class="score-main"><b id="resultScore">0</b><span>/ 100</span></div>
+        <div class="score-row"><span>BEST FLOW</span><b id="resultFlow">0</b></div>
+        <div class="score-row"><span>会話の火</span><b id="resultFire">0</b></div>
+      </div>
+
+      <div class="skill-card">
+        <h3>今回使った会話の型</h3>
+        <div id="skillBars" class="skill-bars"></div>
+      </div>
+
+      <div class="coach-card">
+        <span>COACH</span>
+        <p id="coachText"></p>
+      </div>
+
+      <div class="xp-card"><span>LEVEL <b id="resultLevel">1</b></span><div><i id="xpBar"></i></div><small id="xpText">0 / 100 XP</small></div>
+
+      <button id="retryBtn" class="primary-btn" type="button">もう一度話す <span>↻</span></button>
+      <button id="homeBtn" class="secondary-btn" type="button">トップへ</button>
+    </section>
+
+    <section id="rushScreen" class="screen rush-screen">
+      <div class="hud">
+        <div class="round-pill"><span id="rushRound">1</span>/5</div>
+        <div class="progress-track"><i id="rushProgress"></i></div>
+        <div class="flow-pill">TOPICS <b id="rushScore">0</b></div>
+      </div>
+      <div class="rush-card">
+        <div class="result-badge">TOPIC RUSH</div>
+        <p>この一言から、話を広げられる言葉を全部見つけろ。</p>
+        <div id="rushSpeech" class="rush-speech">週末、新しくできたラーメン屋に行ったんですよ。</div>
+        <div id="rushChoices" class="rush-choices"></div>
+        <div id="rushFeedback" class="rush-feedback"></div>
+      </div>
+      <button id="rushNextBtn" class="primary-btn hidden" type="button">次へ <span>→</span></button>
+    </section>
+
+    <section id="rushResultScreen" class="screen result-screen">
+      <div class="result-head">
+        <div class="result-badge">TOPIC RUSH RESULT</div>
+        <h2><span id="rushResultScore">0</span> TOPICS</h2>
+        <p>一つの発言を、一つの話題で終わらせない。</p>
+      </div>
+      <div class="coach-card"><span>TIP</span><p id="rushCoach">相手の言葉には、次の会話の入口がいくつもあります。</p></div>
+      <button id="rushRetryBtn" class="primary-btn" type="button">もう一度 <span>↻</span></button>
+      <button id="rushHomeBtn" class="secondary-btn" type="button">トップへ</button>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="./game.js" defer></script>
+</body>
+</html>

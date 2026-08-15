@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>もう終わった。｜反芻を止めるゲーム</title>
+  <meta name="description" content="事実と想像を分け、次にできることを1つだけ残して終わらせる。クヨクヨを長引かせないための反射訓練ゲーム。" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" class="app-shell" aria-live="polite">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="hitobito gamesへ戻る">hitobito games</a>
+      <div class="hud" id="hud" hidden>
+        <div class="hud-item"><span>STAGE</span><strong id="stageNo">1</strong><small>/ 10</small></div>
+        <div class="hud-item focus"><span>思考スロット</span><div class="slot-dots" id="slotDots"></div></div>
+      </div>
+    </header>
+
+    <section id="startScreen" class="screen start-screen active">
+      <div class="start-visual" aria-hidden="true">
+        <div class="thought-orbit orbit-a">嫌われた？</div>
+        <div class="thought-orbit orbit-b">あの言い方…</div>
+        <div class="thought-orbit orbit-c">また失敗した</div>
+        <button class="replay-core demo" tabindex="-1">↻</button>
+        <div class="stop-slash"></div>
+      </div>
+      <p class="eyebrow">LEVEL UP / 思考の終了動作</p>
+      <h1>もう終わった。</h1>
+      <p class="lead">反省は残す。<br>反芻は捨てる。</p>
+      <div class="rule-strip">
+        <span>事実を分ける</span><b>→</b><span>次の一手を1つ</span><b>→</b><span>終了</span>
+      </div>
+      <button id="startBtn" class="primary-btn">訓練をはじめる</button>
+      <p class="microcopy">約3〜5分・全10ステージ</p>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen">
+      <div class="scene-card" id="sceneCard">
+        <div class="scene-meta"><span id="sceneCategory">仕事</span><span id="sceneDifficulty">LEVEL 1</span></div>
+        <div class="scene-illustration" id="sceneIllustration" aria-hidden="true"></div>
+        <h2 id="sceneTitle">会議で言い間違えた</h2>
+        <p id="sceneFact" class="scene-fact">会議中、数字を1つ言い間違えて、その場で訂正した。</p>
+      </div>
+
+      <div class="phase-head">
+        <p class="phase-kicker" id="phaseKicker">STEP 1</p>
+        <h3 id="phaseTitle">頭の中を仕分ける</h3>
+        <p id="phaseHelp">出てきた言葉を「事実 / 想像 / 次にできること」に分けよう。</p>
+      </div>
+
+      <div id="classifyPhase" class="phase-panel active">
+        <div class="thought-card-wrap">
+          <article id="thoughtCard" class="thought-card">
+            <span class="thought-label">頭の中</span>
+            <p id="thoughtText">能力がないと思われたかもしれない</p>
+          </article>
+          <div class="progress-line"><span id="thoughtProgress"></span></div>
+        </div>
+        <div class="classify-buttons">
+          <button class="choice-btn fact" data-type="fact"><span>●</span>事実</button>
+          <button class="choice-btn guess" data-type="guess"><span>◇</span>想像</button>
+          <button class="choice-btn action" data-type="action"><span>→</span>次にできること</button>
+        </div>
+        <div id="feedback" class="feedback" role="status"></div>
+      </div>
+
+      <div id="controlPhase" class="phase-panel">
+        <div class="control-object" id="controlObject"></div>
+        <p class="big-question">これは、今から変えられる？</p>
+        <div class="stack-buttons" id="controlButtons"></div>
+      </div>
+
+      <div id="savePhase" class="phase-panel">
+        <div class="save-card">
+          <span class="save-icon">✓</span>
+          <p class="save-label">今回、残すものは1つだけ</p>
+          <h4 id="savedAction"></h4>
+          <p id="saveReason"></p>
+        </div>
+        <button id="toReplayBtn" class="primary-btn">これだけ保存する</button>
+      </div>
+
+      <div id="replayPhase" class="phase-panel replay-phase">
+        <div class="replay-zone" id="replayZone">
+          <div class="noise-ring ring1"></div><div class="noise-ring ring2"></div>
+          <button id="replayBtn" class="replay-core" aria-label="もう一度考える">↻</button>
+          <div class="replay-copy">
+            <span>また考えたくなってきた</span>
+            <strong id="replayThought">でも、あの言い方はまずかったかも…</strong>
+          </div>
+        </div>
+        <div class="replay-actions">
+          <button id="stopBtn" class="stop-btn">■ 再生停止</button>
+          <button id="againBtn" class="ghost-btn">↻ もう一度考える</button>
+        </div>
+        <p id="replayHint" class="replay-hint">同じ情報しか増えないなら、ここで止める。</p>
+      </div>
+
+      <div id="closePhase" class="phase-panel close-phase">
+        <div class="close-mark">✓</div>
+        <p class="close-small">学ぶものは取った。</p>
+        <h3>これはもう終わった。</h3>
+        <p id="closeSummary"></p>
+        <button id="nextBtn" class="primary-btn">次へ</button>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen">
+      <p class="eyebrow">TRAINING COMPLETE</p>
+      <h2>終了する速さが、<br>少し上がった。</h2>
+      <div class="result-ring">
+        <span id="scoreValue">86</span><small>終了力</small>
+      </div>
+      <div class="result-grid">
+        <div><span>事実を見抜いた</span><strong id="factScore">0 / 0</strong></div>
+        <div><span>再生を止めた</span><strong id="stopScore">0 回</strong></div>
+        <div><span>余計な再生</span><strong id="replayScore">0 回</strong></div>
+      </div>
+      <div class="mantra-card">
+        <span>現実で使う4手</span>
+        <ol>
+          <li><b>何が起きた？</b><small>事実だけ</small></li>
+          <li><b>今から変えられる？</b><small>過去と他人は外す</small></li>
+          <li><b>次回の1個は？</b><small>具体的に保存</small></li>
+          <li><b>終了。</b><small>新情報がなければ再生しない</small></li>
+        </ol>
+      </div>
+      <blockquote>「学ぶものは取った。これはもう終わった。」</blockquote>
+      <button id="retryBtn" class="primary-btn">もう10回やる</button>
+    </section>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>

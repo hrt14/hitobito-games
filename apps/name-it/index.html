@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0a12">
+<meta name="description" content="『名前をつけろ』— モヤモヤに感情の名前をつける反射を鍛えるLEVEL UPゲーム。">
+<title>名前をつけろ — LEVEL UP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand"><i class="brand-dot"></i>LEVEL UP <span>/ 感情認識</span></div>
+    <button class="icon-btn" id="dexTopBtn" type="button">感情図鑑</button>
+  </header>
+
+  <section class="screen active" id="homeScreen">
+    <div class="hero">
+      <div class="kicker">NAME WHAT YOU FEEL</div>
+      <h1>名前を<br>つけろ。</h1>
+      <p>「なんか嫌」で終わらせない。<strong>モヤモヤの正体を、瞬時に言葉にする。</strong> 感情を消すゲームではなく、見つけるゲーム。</p>
+    </div>
+    <div class="mini-demo" aria-label="感情に名前がつくデモ">
+      <span class="demo-word">なんか、落ち着かない。</span>
+      <div class="blob-wrap"><div class="blob" id="demoBlob"><span class="blob-mouth"></span></div><div class="blob-name" id="demoName">不安</div></div>
+      <span class="demo-hint">モヤ → 名前 → 扱える</span>
+    </div>
+    <div class="mode-title"><h2>TRAINING</h2><span>好きなところから遊べます</span></div>
+    <div class="mode-grid">
+      <button class="mode-card" data-mode="basic" style="--glow:rgba(88,188,255,.17)"><span class="num">01 / BASIC</span><h3>3秒で名前</h3><p>出来事と身体サインから、まず感情の大分類を見抜く。</p><span class="arrow">→</span></button>
+      <button class="mode-card" data-mode="precise" style="--glow:rgba(255,194,92,.16)"><span class="num">02 / PRECISE</span><h3>見分けろ</h3><p>不安と恐怖、恥と罪悪感。似ている感情を細かく区別する。</p><span class="arrow">→</span></button>
+      <button class="mode-card" data-mode="deep" style="--glow:rgba(181,132,255,.18)"><span class="num">03 / DEEP</span><h3>その奥は？</h3><p>表面の怒りだけで止まらず、その下の寂しさや不安まで探す。</p><span class="arrow">→</span></button>
+      <button class="mode-card" data-mode="rush" style="--glow:rgba(255,91,116,.18)"><span class="num">10 SEC / RUSH</span><h3>感情ラッシュ</h3><p>10秒間、名前をつけ続ける。考える前に出る反射をつくる。</p><span class="arrow">⚡</span></button>
+    </div>
+    <div class="history-strip"><div class="left">図鑑 <strong id="homeDexCount">0 / 18</strong> ・ ベスト <strong id="homeBest">0</strong></div><button id="homeDexBtn" type="button">見る →</button></div>
+    <p class="notice">※ 心理状態を診断するものではありません。感情語の認識と区別を、ゲームとして練習するためのツールです。</p>
+  </section>
+
+  <section class="screen" id="gameScreen">
+    <div class="game-shell">
+      <div class="game-head">
+        <button class="close-btn" id="quitBtn" type="button" aria-label="ゲームをやめる">×</button>
+        <div class="game-meta"><div class="game-row"><span class="stage-name" id="stageName">BASIC / 3秒で名前</span><span class="q-count" id="qCount">1 / 10</span></div><div class="progress"><i id="progressBar"></i></div></div>
+      </div>
+      <div class="scorebar"><span class="score-pill">SCORE <strong id="scoreText">0</strong></span><span class="score-pill combo">COMBO <strong id="comboText">0</strong></span><span class="score-pill" id="clockPill">TIME <strong id="timeText">3.0</strong></span></div>
+      <article class="scene-card" id="sceneCard">
+        <span class="prompt-label" id="promptLabel">いま、何を感じている？</span>
+        <div class="scene" id="sceneText"></div>
+        <div class="clue" id="clueText"></div>
+        <div class="deep-banner" id="deepBanner">表面の感情には名前がついた。<strong>その奥にあるものは？</strong></div>
+        <div class="game-blob-zone">
+          <span class="moya">モヤ</span><span class="moya">なんか嫌</span><span class="moya">？</span>
+          <div class="blob-wrap"><div class="blob" id="gameBlob"><span class="blob-mouth"></span></div><div class="blob-name" id="gameBlobName"></div></div>
+        </div>
+        <div class="timer" id="timerBar"><i></i></div>
+      </article>
+      <div class="answer-label" id="answerLabel">名前をつけろ。</div>
+      <div class="answer-grid" id="answers"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="resultScreen">
+    <div class="result-head"><div class="rank">SESSION COMPLETE</div><h2 id="resultTitle">名前が<br>見えてきた。</h2><p id="resultLead">モヤモヤを、言葉に変えました。</p></div>
+    <div class="score-orb"><div><strong id="finalScore">0</strong><span>TOTAL SCORE</span></div></div>
+    <div class="metrics">
+      <div class="metric"><span>SPEED / 速さ</span><b id="metricSpeed">0</b></div>
+      <div class="metric"><span>PRECISION / 精度</span><b id="metricPrecision">0%</b></div>
+      <div class="metric"><span>RANGE / 種類</span><b id="metricRange">0</b></div>
+      <div class="metric"><span>DEEP / 奥行き</span><b id="metricDepth">—</b></div>
+    </div>
+    <div class="result-note" id="resultNote"></div>
+    <div class="cta-row"><button class="cta" id="resultHomeBtn" type="button">終了</button><button class="cta primary" id="againBtn" type="button">もう一回</button></div>
+  </section>
+
+  <section class="screen" id="dexScreen">
+    <div class="subhead"><div class="ey">EMOTION DEX</div><h2>感情図鑑</h2><p>ゲームで名前をつけた感情が残ります。数が多いほど「良い」わけではなく、使える感情語の幅を見るための記録です。</p></div>
+    <div class="dex-summary"><div><span>見つけた感情</span><br><b id="dexCount">0 / 18</b></div><div style="text-align:right"><span>プレイ回数</span><br><b id="playCount">0</b></div></div>
+    <div class="dex-grid" id="dexGrid"></div>
+    <button class="cta back" id="dexBackBtn" type="button">← 戻る</button>
+  </section>
+</div>
+<div class="feedback" id="feedback"><div class="big" id="feedbackBig">NAMED!</div><div class="sub" id="feedbackSub">不安</div></div>
+<script src="./game.js"></script>
+</body>
+</html>
