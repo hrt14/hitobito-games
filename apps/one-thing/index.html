@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#0b0d13" />
+  <meta name="description" content="WIPを増やさず、一個を最後まで終える集中力ゲーム。" />
+  <title>一個だけやれ。</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" class="app" aria-live="polite">
+    <section id="titleScreen" class="screen title-screen active">
+      <div class="grain" aria-hidden="true"></div>
+      <div class="title-mark" aria-hidden="true">
+        <span class="mark-card mark-card-a"></span>
+        <span class="mark-card mark-card-b"></span>
+        <span class="mark-card mark-card-main">1</span>
+      </div>
+      <p class="eyebrow">FOCUS TRAINING / WIP = 1</p>
+      <h1>一個だけ<br><strong>やれ。</strong></h1>
+      <p class="lead">気になるものは、消えない。<br>でも、いま触る必要はない。</p>
+      <button id="startBtn" class="primary-btn">集中を始める</button>
+      <button id="howBtn" class="text-btn">遊び方</button>
+      <p id="bestScore" class="best-score"></p>
+    </section>
+
+    <section id="howScreen" class="screen how-screen">
+      <div class="how-card">
+        <span class="rule-number">01</span>
+        <h2>一個、選ぶ。</h2>
+        <p>仕事は同時に始めない。最初に選んだ一個だけをWIPにする。</p>
+      </div>
+      <div class="how-card">
+        <span class="rule-number">02</span>
+        <h2>終わるまで、戻る。</h2>
+        <p>中央の一個を押し続ける。通知、宝箱、NPC、緊急イベントに触るとWIPが増える。</p>
+      </div>
+      <div class="how-card">
+        <span class="rule-number">03</span>
+        <h2>完了させる。</h2>
+        <p>全部気にしなくていい。一個を終えると、画面も頭も片づく。</p>
+      </div>
+      <button id="howStartBtn" class="primary-btn">わかった</button>
+    </section>
+
+    <section id="pickScreen" class="screen pick-screen">
+      <header class="mini-header">
+        <button id="quitFromPick" class="icon-btn" aria-label="タイトルに戻る">×</button>
+        <div>
+          <p class="mini-label">ROUND <span id="pickRound">1</span>/6</p>
+          <h2>どれか一個だけ選べ。</h2>
+        </div>
+      </header>
+      <div id="taskChoices" class="task-choices"></div>
+      <p class="pick-hint">選ばなかったものは、あとでいい。</p>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen">
+      <header class="game-hud">
+        <div class="hud-group">
+          <span class="hud-label">ROUND</span>
+          <strong><span id="roundNumber">1</span>/6</strong>
+        </div>
+        <div class="hud-group hud-center">
+          <span class="hud-label">WIP</span>
+          <strong id="wipCount" class="wip-count">1</strong>
+        </div>
+        <div class="hud-group hud-right">
+          <span class="hud-label">完遂</span>
+          <strong id="clearCount">0</strong>
+        </div>
+      </header>
+
+      <div id="focusArena" class="focus-arena">
+        <div class="ambient-grid" aria-hidden="true"></div>
+        <div id="temptationLayer" class="temptation-layer" aria-hidden="false"></div>
+
+        <article id="mainTask" class="main-task-card">
+          <div class="task-topline">
+            <span class="focus-dot"></span>
+            <span>いまやる一個</span>
+          </div>
+          <div class="task-icon-wrap"><span id="mainTaskIcon" class="task-icon">✦</span></div>
+          <h2 id="mainTaskTitle">企画書を1枚仕上げる</h2>
+          <p id="mainTaskStep" class="task-step">まず骨子を置く</p>
+
+          <div class="progress-shell" aria-label="作業進捗">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="progressLabel">0%</span>
+            <span id="comboLabel">集中 ×1.0</span>
+          </div>
+
+          <button id="workBtn" class="work-btn">
+            <span class="work-btn-icon">●</span>
+            <span id="workBtnText">この一個を押し続ける</span>
+          </button>
+          <p class="work-caption">指を離しても止まるだけ。ほかを触るとWIP +1</p>
+        </article>
+
+        <aside id="wipTray" class="wip-tray" aria-label="開いてしまった別作業">
+          <div class="tray-title"><span>OPEN WIP</span><b id="trayBadge">1</b></div>
+          <div id="wipChips" class="wip-chips"></div>
+        </aside>
+
+        <div id="toast" class="toast" role="status"></div>
+      </div>
+    </section>
+
+    <section id="roundClearScreen" class="screen clear-screen">
+      <div id="clearBurst" class="clear-burst" aria-hidden="true"></div>
+      <p class="eyebrow">DONE. WIP CLOSED.</p>
+      <div class="done-ring"><span>✓</span></div>
+      <h2 id="clearTitle">一個、終わった。</h2>
+      <p id="clearMessage" class="clear-message">終わらせたから、次を開ける。</p>
+      <div class="clear-stats">
+        <div><span>今回の最大WIP</span><b id="roundMaxWip">1</b></div>
+        <div><span>無視した誘惑</span><b id="ignoredCount">0</b></div>
+      </div>
+      <button id="nextRoundBtn" class="primary-btn">次の一個へ</button>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen">
+      <p class="eyebrow">FOCUS REPORT</p>
+      <h2>一個ずつなら、<br>ちゃんと終わる。</h2>
+      <div class="result-orbit" aria-hidden="true">
+        <span class="orbit-core">1</span>
+        <span class="orbit-dot dot1"></span><span class="orbit-dot dot2"></span><span class="orbit-dot dot3"></span>
+      </div>
+      <div class="result-card">
+        <div class="result-row"><span>完遂した仕事</span><b id="resultClears">6</b></div>
+        <div class="result-row"><span>最大WIP</span><b id="resultMaxWip">1</b></div>
+        <div class="result-row"><span>無視できた誘惑</span><b id="resultIgnored">0</b></div>
+        <div class="result-row emphasis"><span>集中スコア</span><b id="resultScore">100</b></div>
+      </div>
+      <p id="resultCopy" class="result-copy">集中力は、全部を無視する力じゃない。<br><strong>終わるまで、増やさない力だ。</strong></p>
+      <button id="retryBtn" class="primary-btn">もう一度</button>
+      <button id="backTitleBtn" class="text-btn">タイトルへ</button>
+    </section>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>
