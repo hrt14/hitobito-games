@@ -9,6 +9,7 @@ export const CATEGORIES = [
 ];
 
 export const GAME_META = {
+  '3sec-action': ['levelup', '3秒以内に「やる・捨てる・任せる」を決め、考え込む前に動く即着手の反射を鍛える。'],
   '100-turns': ['levelup', '残り100ターンの人生で何に時間を使うかを選ぶ。有限な時間の使い方を体で覚える。'],
   '404-kaiki': ['horror', '夜の町を歩いて怪異を調査する都市伝説ホラー。怪異を見つけたら戦わず神社まで逃げる。'],
   'arigatou-sagashi': ['levelup', '何気ない日常を支えているものを次々に見つける。感謝を観察ゲームとして鍛える。'],
