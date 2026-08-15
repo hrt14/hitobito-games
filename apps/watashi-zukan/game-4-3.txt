@@ -1,0 +1,14 @@
+ピーしました';setTimeout(()=>$('copyBtn').textContent='図鑑をコピー',1200)}catch{$('copyBtn').textContent='コピーできませんでした'}}
+
+  function showLatest(){const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');if(!hist.length)return;state.previous=hist[1]||null;state.logs=hist[0].logs||[];state.scores=Object.fromEntries(axisOrder.map(k=>[k,{sum:0,count:0,records:[]}]))
+    // Saved result view uses stored scores; contextual detail requires the current session, so only high-level view is restored.
+    const saved=hist[0];$('resultHeadline').textContent='前回のプレイで残った、あなたの選び方です。';$('festivalResult').innerHTML=`<strong>灯台祭 ${saved.festival.grade}</strong><span>${saved.festival.name}</span>`;
+    const axisEl=$('axisResults');axisEl.innerHTML='';Object.entries(AXES).forEach(([k,a])=>{const p=saved.scores[k];axisEl.insertAdjacentHTML('beforeend',`<div class="axis-item"><div class="axis-labels"><span>${a.left}</span><span>${a.right}</span></div><div class="axis-track"><span class="axis-marker" style="left:${p}%"></span></div><div class="axis-copy">前回の位置：${p} / 100</div></div>`)});
+    $('contextInsights').innerHTML='<div class="insight"><strong>状況別の詳しい読み取りはプレイ直後に表示されます</strong><p>もう一度遊ぶと、前回との変化も比較できます。</p></div>';$('patternInsights').innerHTML='';$('decisionLog').innerHTML='';renderComparison(saved.scores);showScreen('result');
+  }
+
+  function init(){
+    const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');$('historyBtn').classList.toggle('hidden',!hist.length);
+    let progress=null;try{progress=JSON.parse(storage.get('watashiZukanProgress')||'null')}catch{}
+    if(progress && progress.version===1 && progress.turn<TOTAL_TURNS){$('resumeBtn').classList.remove('hidden');$('resumeBtn').textContent=`つづきから（DAY ${progress.day}）`;}
+    $('startBtn').addEventListener('click',startGame
