@@ -71,7 +71,7 @@
   let locked = false;
   let pointer = null;
 
-  function makeStats(){ return {correct:0,total:0,selfCorrect:0,selfTotal:0,intrusion:0,burdenMistakes:0,released:0}; }
+  function makeStats(){ return {correct:0,total:0,selfCorrect:0,selfTotal:0,intrusion:0,burdenMistakes:0,released:0,mistakes:[]}; }
   function shuffled(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
   function makeDeck(){
@@ -126,6 +126,7 @@
       if(burden>0 && (q.a==='other'||q.a==='outside')) burden--;
     }else{
       combo=0;
+      stats.mistakes.push({s:q.s,t:q.t,chosen:zone,answer:q.a,why:q.why});
       if(zone==='other' && q.a==='self') stats.intrusion++;
       if(zone==='self' && (q.a==='other'||q.a==='outside')){ stats.burdenMistakes++; burden++; }
     }
@@ -169,6 +170,94 @@
     els.weightPerson.querySelector('.mini-body').style.transform=`rotate(${Math.min(burden,4)*2.2}deg) translateY(${Math.min(burden,4)}px)`;
   }
 
+  function ensureReviewStyle(){
+    if(document.getElementById('mistakeReviewStyle')) return;
+    const style=document.createElement('style');
+    style.id='mistakeReviewStyle';
+    style.textContent=`
+      .mistake-review{margin:24px 0 20px;text-align:left}
+      .mistake-review-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:12px}
+      .mistake-review-head span{font-size:11px;letter-spacing:.12em;color:#8e99ad;font-weight:800}
+      .mistake-review-head b{font-size:15px;color:#f2f4f7}
+      .mistake-list{display:grid;gap:10px}
+      .mistake-card{border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:15px 16px;background:rgba(8,13,26,.58)}
+      .mistake-card .situation-review{font-size:11px;color:#8792a8;margin:0 0 7px}
+      .mistake-card h3{font-size:16px;line-height:1.45;margin:0 0 12px;color:#f3f5f8}
+      .mistake-answer-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;margin-bottom:9px}
+      .mistake-answer-row .mine{color:#ff8da8;background:rgba(255,101,137,.10);border:1px solid rgba(255,101,137,.20);border-radius:999px;padding:6px 9px}
+      .mistake-answer-row .right{color:#8de5df;background:rgba(86,211,204,.10);border:1px solid rgba(86,211,204,.22);border-radius:999px;padding:6px 9px;font-weight:800}
+      .mistake-answer-row .arrow{color:#778197}
+      .mistake-card .why-review{font-size:12px;line-height:1.65;color:#aeb7c8;margin:0}
+      .mistake-perfect{border:1px solid rgba(144,236,157,.22);border-radius:18px;padding:16px;text-align:center;color:#9fe6a9;background:rgba(74,170,89,.07);font-size:13px}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function renderMistakeReview(){
+    ensureReviewStyle();
+    let wrap=document.getElementById('mistakeReview');
+    if(!wrap){
+      wrap=document.createElement('section');
+      wrap.id='mistakeReview';
+      wrap.className='mistake-review';
+      const actions=els.result.querySelector('.result-actions');
+      els.result.insertBefore(wrap,actions);
+    }
+    wrap.replaceChildren();
+
+    const head=document.createElement('div');
+    head.className='mistake-review-head';
+    const label=document.createElement('span');
+    label.textContent='REVIEW';
+    const title=document.createElement('b');
+    title.textContent=stats.mistakes.length ? `間違えた問題 ${stats.mistakes.length}問` : '間違えた問題 0問';
+    head.append(label,title);
+    wrap.appendChild(head);
+
+    if(!stats.mistakes.length){
+      const perfect=document.createElement('div');
+      perfect.className='mistake-perfect';
+      perfect.textContent='全問正解。今回の境界線はきれいに仕分けられた。';
+      wrap.appendChild(perfect);
+      return;
+    }
+
+    const list=document.createElement('div');
+    list.className='mistake-list';
+    stats.mistakes.forEach((m,i)=>{
+      const card=document.createElement('article');
+      card.className='mistake-card';
+
+      const situation=document.createElement('p');
+      situation.className='situation-review';
+      situation.textContent=`${i+1}. ${m.s}`;
+
+      const task=document.createElement('h3');
+      task.textContent=m.t;
+
+      const answers=document.createElement('div');
+      answers.className='mistake-answer-row';
+      const mine=document.createElement('span');
+      mine.className='mine';
+      mine.textContent=`あなた：${ZONE_LABELS[m.chosen]}`;
+      const arrow=document.createElement('span');
+      arrow.className='arrow';
+      arrow.textContent='→';
+      const right=document.createElement('span');
+      right.className='right';
+      right.textContent=`正解：${ZONE_LABELS[m.answer]}`;
+      answers.append(mine,arrow,right);
+
+      const why=document.createElement('p');
+      why.className='why-review';
+      why.textContent=m.why;
+
+      card.append(situation,task,answers,why);
+      list.appendChild(card);
+    });
+    wrap.appendChild(list);
+  }
+
   function finishGame(){
     const pct=(n,d)=>d?Math.round(n/d*100):0;
     const accuracy=pct(stats.correct,stats.total);
@@ -181,6 +270,7 @@
     if(accuracy>=90) els.resultMessage.textContent=`境界線がかなりクリア。最大${maxCombo}コンボ。次は迷う問題ほど「結果を引き受けるのは誰？」で切ろう。`;
     else if(accuracy>=70) els.resultMessage.textContent=`かなり仕分けられた。最大${maxCombo}コンボ。相手の結果ではなく、自分の一手へ戻ろう。`;
     else els.resultMessage.textContent='迷ったら「自分にできること」と「相手が決めること」を2つに割る。それだけで軽くなる。';
+    renderMistakeReview();
     show('result'); playFinish();
   }
 
