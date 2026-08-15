@@ -1,0 +1,18 @@
+ights');el.innerHTML='';patterns.slice(0,4).forEach(p=>el.insertAdjacentHTML('beforeend',`<div class="pattern"><div class="pattern-icon">${p[0]}</div><strong>${p[1]}</strong><p>${p[2]}</p></div>`));
+  }
+
+  function renderDecisionLog(){
+    const logs=[...state.logs].sort((a,b)=>Math.abs(b.score)-Math.abs(a.score));const picks=[];const used=new Set();for(const l of logs){if(!used.has(l.axis)){picks.push(l);used.add(l.axis)}if(picks.length===6)break}
+    const el=$('decisionLog');el.innerHTML='';picks.forEach(l=>el.insertAdjacentHTML('beforeend',`<div class="log-item"><div class="log-day">DAY ${l.day}</div><div><strong>${l.title} → ${l.choice}</strong><p>${AXES[l.axis].left} / ${AXES[l.axis].right} の軸に残った判断。</p></div></div>`));
+  }
+
+  function renderComparison(scores){
+    const card=$('compareCard');if(!state.previous){card.classList.add('hidden');return}card.classList.remove('hidden');const el=$('comparison');el.innerHTML='';axisOrder.forEach(k=>{const d=scores[k]-(state.previous.scores?.[k]??50);const toward=d===0?'変化なし':`${d>0?AXES[k].right:AXES[k].left}へ ${Math.abs(d)}pt`;el.insertAdjacentHTML('beforeend',`<div class="compare-row"><strong>${AXES[k].left} ↔ ${AXES[k].right}</strong><span>前回 ${state.previous.scores?.[k]??'-'}</span><span class="compare-delta">${toward}</span></div>`)});
+  }
+
+  function resultText(){
+    const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');const r=hist[0];if(!r)return '';
+    const lines=['【わたし図鑑】',`灯台祭：${r.festival.grade} ${r.festival.name}`];axisOrder.forEach(k=>{const p=r.scores[k],a=AXES[k];lines.push(`${a.left} ${100-p} : ${p} ${a.right}`)});lines.push('※ゲーム内の意思決定傾向');return lines.join('\n');
+  }
+
+  async function copyResult(){const txt=resultText();try{await navigator.clipboard.writeText(txt);$('copyBtn').textContent='コ
