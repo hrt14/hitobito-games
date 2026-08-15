@@ -705,11 +705,20 @@ export class Renderer {
     const headR = 10.2 * s;
     const ink = 'rgba(5,7,12,0.9)';
 
+    // 高さ（CASE 03）。台の上に立っている時は、影も台の上に落とす。
+    // 足元に影が無いと「浮いている」に見えて、乗ったことが伝わらない
+    const lift = (opts.z || 0) * this.scaleAt(wy);
+
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.beginPath(); ctx.ellipse(x, y, 13 * s, 4.6 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x, y - lift, 13 * s, 4.6 * s, 0, 0, Math.PI * 2); ctx.fill();
+    if (lift > 6) {
+      // 地面側にも薄く落としておくと、どれだけ上がっているかが分かる
+      ctx.fillStyle = 'rgba(0,0,0,0.16)';
+      ctx.beginPath(); ctx.ellipse(x, y, 11 * s, 3.8 * s, 0, 0, Math.PI * 2); ctx.fill();
+    }
 
-    ctx.translate(x, -bob);
+    ctx.translate(x, -bob - lift);
     if (facing < 0) ctx.scale(-1, 1);
 
     const top = y - H;

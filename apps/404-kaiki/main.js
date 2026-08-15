@@ -3,22 +3,25 @@
 // 怪異ごとの型（追われる / 見てしまう）は modes/ 側に閉じる（SPEC §32 §63）。
 import { CASE01 } from './data/case01.js';
 import { CASE02 } from './data/case02.js';
+import { CASE03 } from './data/case03.js';
 import { CaseState } from './core/case.js';
 import { findTrigger, visiblePoints, nextRequired } from './core/investigation.js';
 import { buildRecord } from './core/log.js';
 import { Renderer } from './world/render.js';
 import { FieldRenderer } from './world/render-field.js';
+import { SchoolRenderer } from './world/render-school.js';
 import { ChaseMode } from './modes/chase-mode.js';
 import { SightMode } from './modes/sight-mode.js';
+import { PassMode } from './modes/pass-mode.js';
 import { Input } from './world/input.js';
 import { Ambience } from './world/audio.js';
 import { buildPath, truncate } from './world/path.js';
 
 const $ = s => document.querySelector(s);
 
-const CASES = [CASE01, CASE02];
-const MODES = { chase: ChaseMode, sight: SightMode };
-const RENDERERS = { field: FieldRenderer };
+const CASES = [CASE01, CASE02, CASE03];
+const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode };
+const RENDERERS = { field: FieldRenderer, school: SchoolRenderer };
 
 class Game {
   constructor() {
@@ -54,7 +57,7 @@ class Game {
 
     this.scene = 'title';
     this.mode = 'free';
-    this.party = { shirou: { x: 150, y: 130 }, rei: { x: 118, y: 118 }, yotsuba: { x: 92, y: 142 } };
+    this.party = { shirou: { x: 150, y: 130, z: 0 }, rei: { x: 118, y: 118, z: 0 }, yotsuba: { x: 92, y: 142, z: 0 } };
     this.trail = [];
     this.walkPhase = 0;
     this.moving = false;
@@ -175,9 +178,9 @@ class Game {
   }
 
   setPartyAt(x, y) {
-    this.party.shirou = { x, y };
-    this.party.rei = { x: x - 38, y: y - 22 };
-    this.party.yotsuba = { x: x - 66, y: y + 24 };
+    this.party.shirou = { x, y, z: 0 };
+    this.party.rei = { x: x - 38, y: y - 22, z: 0 };
+    this.party.yotsuba = { x: x - 66, y: y + 24, z: 0 };
     this.trail = [];
   }
 
@@ -546,9 +549,9 @@ class Game {
     // 奥から手前へ並べて描く
     const lookBack = this.dir.lookBack();
     const ents = [
-      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, this.facing.rei, { moving: this.moving, lookBack }) },
-      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, this.facing.yotsuba, { moving: this.moving, lookBack }) },
-      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, this.facing.shirou, { moving: this.moving }) },
+      { y: this.party.rei.y, f: () => r.drawPerson('rei', this.party.rei.x, this.party.rei.y, this.walkPhase - 0.7, this.facing.rei, { moving: this.moving, lookBack, z: this.party.rei.z }) },
+      { y: this.party.yotsuba.y, f: () => r.drawPerson('yotsuba', this.party.yotsuba.x, this.party.yotsuba.y, this.walkPhase - 1.4, this.facing.yotsuba, { moving: this.moving, lookBack, z: this.party.yotsuba.z }) },
+      { y: p.y, f: () => r.drawPerson('shirou', p.x, p.y, this.walkPhase, this.facing.shirou, { moving: this.moving, z: p.z }) },
       ...this.dir.entities(r),
     ];
     ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
