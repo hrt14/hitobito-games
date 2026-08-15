@@ -1,5 +1,10 @@
 (() => {
-  const parts = ['game-1.txt','game-2.txt','game-3.txt','game-4.txt','game-5.txt'];
+  const parts = [
+    'game-1-1.txt','game-1-2.txt','game-1-3.txt','game-1-4.txt',
+    'game-2.txt','game-3.txt',
+    'game-4-1.txt','game-4-2.txt','game-4-3.txt','game-4-4.txt',
+    'game-5.txt'
+  ];
   Promise.all(parts.map(async (name) => {
     const response = await fetch(`./${name}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
