@@ -1,0 +1,45 @@
+t state = {
+    day: 1,
+    turn: 0,
+    resources: { coin: 60, time: 60, people: 50, discovery: 15 },
+    festival: 0,
+    scores: Object.fromEntries(axisOrder.map(k => [k, { sum: 0, count: 0, records: [] }])),
+    logs: [],
+    queue: [],
+    current: null,
+    locked: false,
+    previous: null
+  };
+
+  const $ = id => document.getElementById(id);
+  const screens = { start: $('startScreen'), game: $('gameScreen'), result: $('resultScreen') };
+
+  function clamp(v, min = 0, max = 100){ return Math.max(min, Math.min(max, v)); }
+  function pick(arr, i, salt = 0){ return arr[(i * 7 + salt * 3) % arr.length]; }
+  function shuffled(arr, seed){
+    const out = [...arr]; let x = seed * 9301 + 49297;
+    for(let i = out.length - 1; i > 0; i--){ x = (x * 233280 + 49297) % 233280; const j = x % (i + 1); [out[i], out[j]] = [out[j], out[i]]; }
+    return out;
+  }
+  function resourceBand(){
+    const r = state.resources;
+    if(r.coin < 26) return '資金が少ない';
+    if(r.time < 26) return '余白が少ない';
+    if(r.people < 26) return '仲間が疲れている';
+    if(r.discovery > 72) return '発見が続いている';
+    return '';
+  }
+  function contextFor(axis, day){
+    const r = state.resources;
+    if(axis === 'challenge') return day % 2 ? 'solo' : 'group';
+    if(axis === 'social') return day % 3 === 0 ? 'timePressure' : (r.people < 35 ? 'fatigue' : 'normal');
+    if(axis === 'time') return r.coin < 38 ? 'scarcity' : (day % 4 === 0 ? 'opportunity' : 'normal');
+    if(axis === 'freedom') return day % 2 ? 'public' : 'private';
+    if(axis === 'spontaneity') return day % 3 === 1 ? 'crisis' : 'normal';
+    return day % 2 ? 'success' : 'uncertain';
+  }
+
+  function effectText(e){
+    const map = { coin:'資金', time:'余白', people:'仲間', discovery:'発見' };
+    const bits = [];
+    Object.entries(e).forEach(([k,v]) => { if(v && map
