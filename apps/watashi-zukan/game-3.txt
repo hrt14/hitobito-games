@@ -1,0 +1,96 @@
+c.score,context:e.context,effects:c.effects});
+    state.turn++;
+    renderHud();renderTown();animateResources(before);showFeedback(effectText(c.effects));
+    setTimeout(()=>{state.locked=false;nextEvent();},TEST_MODE?80:460);
+  }
+
+  function phaseName(day){
+    if(day<=6)return '土台づくり';
+    if(day<=12)return '町をひらく';
+    if(day<=18)return '人を招く';
+    return '祭を仕上げる';
+  }
+
+  function saveProgress(){
+    storage.set('watashiZukanProgress', JSON.stringify({
+      version:1, day:state.day, turn:state.turn, resources:state.resources, festival:state.festival,
+      scores:state.scores, logs:state.logs, queue:state.queue, current:state.current
+    }));
+  }
+
+  function resumeGame(){
+    let saved=null; try{ saved=JSON.parse(storage.get('watashiZukanProgress')||'null'); }catch{}
+    if(!saved || saved.version!==1 || saved.turn>=TOTAL_TURNS){ startGame(); return; }
+    state.day=saved.day;state.turn=saved.turn;state.resources=saved.resources;state.festival=saved.festival;
+    state.scores=saved.scores;state.logs=saved.logs;state.queue=saved.queue||[];state.current=saved.current;state.locked=false;
+    showScreen('game');renderHud();renderTown();if(state.current)renderEvent(state.current);else nextEvent();
+  }
+
+  function renderHud(){
+    $('dayLabel').textContent=`DAY ${Math.min(state.day,TOTAL_DAYS)} · ${phaseName(state.day)}`;$('turnLabel').textContent=`${Math.min(state.turn+1,TOTAL_TURNS)} / ${TOTAL_TURNS}`;
+    $('progressBar').style.width=`${(state.turn/TOTAL_TURNS)*100}%`;
+    Object.entries(state.resources).forEach(([k,v])=>{ $(`${k}Value`).textContent=Math.round(v); const el=document.querySelector(`[data-resource="${k}"]`); el.classList.toggle('danger',k!=='discovery' && v<20); });
+  }
+
+  function animateResources(before){Object.entries(state.resources).forEach(([k,v])=>{if(v!==before[k]){const el=document.querySelector(`[data-resource="${k}"]`);el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')}})}
+  function showFeedback(txt){const el=$('feedback');el.textContent=txt;el.classList.add('show');clearTimeout(showFeedback.t);showFeedback.t=setTimeout(()=>el.classList.remove('show'),1100)}
+  function milestone(txt){const el=$('milestone');el.textContent=txt;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1700)}
+
+  function renderTown(){
+    const progress=state.turn/TOTAL_TURNS;const avg=(state.resources.coin+state.resources.time+state.resources.people+state.resources.discovery)/4;let stage=0;
+    if(progress>.15||avg>58)stage=1;if(progress>.38||state.festival>70)stage=2;if(progress>.66||state.festival>150)stage=3;if(progress>.9)stage=4;
+    $('townScene').dataset.stage=stage;
+    const crowd=$('crowd');const n=Math.round(3+state.resources.people/9+state.festival/40);let html='';
+    for(let i=0;i<Math.min(18,n);i++){const x=36+(i*31)%370,y=215+(i%3)*12;html+=`<circle cx="${x}" cy="${y}" r="${4+(i%2)}" opacity="${.55+(i%3)*.12}"/>`;}
+    crowd.innerHTML=html;
+  }
+
+  function scorePct(key){const s=state.scores[key];return s.count?Math.round(50+(s.sum/s.count)*42):50}
+  function avgRecord(records){return records.length?records.reduce((a,b)=>a+b.value,0)/records.length:0}
+
+  function finishGame(){
+    storage.remove('watashiZukanProgress');
+    const result={date:new Date().toISOString(),scores:Object.fromEntries(axisOrder.map(k=>[k,scorePct(k)])),festival:festivalGrade(),logs:state.logs.slice(-TOTAL_TURNS),resources:{...state.resources}};
+    const hist=JSON.parse(storage.get('watashiZukanHistory')||'[]');state.previous=hist[0]||null;hist.unshift(result);storage.set('watashiZukanHistory',JSON.stringify(hist.slice(0,5)));
+    renderResults(result);showScreen('result');
+  }
+
+  function festivalGrade(){
+    const balance=Math.min(...Object.values(state.resources));
+    const total=state.festival+state.resources.discovery+state.resources.people*.5+balance*.4;
+    if(balance<10)return {grade:'C',name:'ぎりぎりで灯した灯台祭',copy:'一つを使い切るほど走った。その偏り自体が、今回のあなたの選び方でもある。'};
+    if(balance<22)return {grade:'B',name:'尖った灯台祭',copy:'余裕は少なかったが、何を優先したかがはっきり残る祭になった。'};
+    if(total>285)return {grade:'S',name:'町じゅうが灯る、大成功',copy:'数字だけでなく、町のあちこちに次の種が残った。'};
+    if(total>220)return {grade:'A',name:'記憶に残る灯台祭',copy:'十分な熱と余白を残して、祭の日を迎えた。'};
+    if(total>165)return {grade:'B',name:'小さく強い灯台祭',copy:'全部は取らず、選んだものが町の色になった。'};
+    return {grade:'C',name:'手づくりの灯台祭',copy:'綱渡りもあった。でも、あなたの選択で最後まで町は動いた。'};
+  }
+
+  function renderResults(result){
+    const scores=result.scores;const dominant=[...axisOrder].sort((a,b)=>Math.abs(scores[b]-50)-Math.abs(scores[a]-50)).slice(0,2);
+    $('resultHeadline').textContent=makeHeadline(dominant,scores);
+    $('festivalResult').innerHTML=`<strong>灯台祭 ${result.festival.grade}</strong><span>${result.festival.name}</span>`;
+    const axisEl=$('axisResults');axisEl.innerHTML='';
+    Object.entries(AXES).forEach(([k,a])=>{const p=scores[k],right=p>=50,conf=Math.abs(p-50);const copy=conf<8?`今回は${a.left}と${a.right}をかなり使い分けました。`:right?`${a.right}側を選ぶ場面が多め。${a.descriptions[1]}傾向が出ています。`:`${a.left}側を選ぶ場面が多め。${a.descriptions[0]}傾向が出ています。`;
+      axisEl.insertAdjacentHTML('beforeend',`<div class="axis-item"><div class="axis-labels"><span class="${!right?'active-side':''}">${a.left}</span><span class="${right?'active-side':''}">${a.right}</span></div><div class="axis-track"><span class="axis-marker" style="left:${p}%"></span></div><div class="axis-copy">${copy}</div></div>`);
+    });
+    renderContexts();renderPatterns(scores);renderDecisionLog();renderComparison(scores);
+  }
+
+  function makeHeadline(dom,scores){
+    const phrase=k=>{const a=AXES[k],right=scores[k]>=50;return right?a.right:a.left};
+    const templates={
+      challenge:`${phrase('challenge')}を選ぶときも、${phrase(dom[1])}を確保してから踏み込む。`,
+      social:`${phrase('social')}で力を出しつつ、${phrase(dom[1])}は手放しにくい。`,
+      time:`${phrase('time')}を守る判断が多く、そのぶん${phrase(dom[1])}に振り切れる。`,
+      freedom:`${phrase('freedom')}を守るほど、${phrase(dom[1])}の選択がはっきりする。`,
+      spontaneity:`${phrase('spontaneity')}で動きながら、${phrase(dom[1])}に自分の軸が出る。`,
+      depth:`${phrase('depth')}を選ぶと、${phrase(dom[1])}まで一気に決める。`
+    };return templates[dom[0]];
+  }
+
+  const contextLabels={group:'人が絡む場面',solo:'自分だけで決める場面',timePressure:'時間に追われた場面',fatigue:'仲間に余裕がない場面',scarcity:'資金が少ない場面',opportunity:'好機が来た場面',public:'人に見られる場面',private:'内輪で決める場面',crisis:'予定外が起きた場面',normal:'通常時',success:'手応えがある場面',uncertain:'先が読めない場面'};
+  function renderContexts(){
+    const insights=[];
+    axisOrder.forEach(k=>{
+      const rec=state.scores[k].records;const groups={};re
