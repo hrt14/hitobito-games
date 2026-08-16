@@ -1,0 +1,85 @@
+name: Audit all LEVEL UP back links
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-levelup-backlinks-all-files.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Point all LEVEL UP navigation back to LEVEL UP home
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          levelup_url = "https://levelup.hitobito.jp/"
+          slugs = {
+              "3sec-action", "ato-5min", "one-thing", "timecraft", "100-turns",
+              "task-separation", "levelup-control", "expect-nothing", "dont-change-people",
+              "help-me", "levelup-mood", "mou-owatta", "name-it", "viewpoint-exam",
+              "jinsei-title", "main-character", "arigatou-sagashi", "levelup-smalltalk",
+              "watashi-zukan",
+          }
+          extensions = {".html", ".js", ".mjs", ".ts", ".tsx", ".jsx"}
+
+          replacements = [
+              (r'href="/"', f'href="{levelup_url}"'),
+              (r"href='/'", f"href='{levelup_url}'"),
+              (r'href="/index\.html"', f'href="{levelup_url}"'),
+              (r"href='/index\.html'", f"href='{levelup_url}'"),
+              (r'href="https://games\.hitobito\.jp/?"', f'href="{levelup_url}"'),
+              (r"href='https://games\.hitobito\.jp/?'", f"href='{levelup_url}'"),
+              (r'(?:window\.)?location\.href\s*=\s*"/"', f'location.href="{levelup_url}"'),
+              (r"(?:window\.)?location\.href\s*=\s*'/'", f"location.href='{levelup_url}'"),
+              (r'(?:window\.)?location\s*=\s*"/"', f'location="{levelup_url}"'),
+              (r"(?:window\.)?location\s*=\s*'/'", f"location='{levelup_url}'"),
+              (r'location\.assign\(\s*"/"\s*\)', f'location.assign("{levelup_url}")'),
+              (r"location\.assign\(\s*'/'\s*\)", f"location.assign('{levelup_url}')"),
+              (r'location\.replace\(\s*"/"\s*\)', f'location.replace("{levelup_url}")'),
+              (r"location\.replace\(\s*'/'\s*\)", f"location.replace('{levelup_url}')"),
+              (r'(?:window\.)?location\.href\s*=\s*"https://games\.hitobito\.jp/?"', f'location.href="{levelup_url}"'),
+              (r"(?:window\.)?location\.href\s*=\s*'https://games\.hitobito\.jp/?'", f"location.href='{levelup_url}'"),
+          ]
+
+          changed = []
+          for slug in sorted(slugs):
+              root = Path("apps") / slug
+              if not root.exists():
+                  continue
+              for path in root.rglob("*"):
+                  if not path.is_file() or path.suffix.lower() not in extensions:
+                      continue
+                  try:
+                      before = path.read_text(encoding="utf-8")
+                  except UnicodeDecodeError:
+                      continue
+                  after = before
+                  for pattern, replacement in replacements:
+                      after = re.sub(pattern, replacement, after)
+                  if after != before:
+                      path.write_text(after, encoding="utf-8")
+                      changed.append(str(path))
+
+          print("changed files:")
+          for path in changed:
+              print(path)
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then
+            echo "No additional backlink changes were needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps
+          git commit -m "Audit LEVEL UP back links across app files"
+          git push
