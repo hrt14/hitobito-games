@@ -27,10 +27,11 @@ Hitobito のスマートフォン向け Web ゲームをまとめるリポジト
 - スマートフォン Web を最優先にする。
 - 数字より、画面そのものの変化で進行を感じさせる。
 - ゲーム固有データと共通ロジックを分離し、将来の共通パッケージ化に備える。
+- ホスティングと公開ルールは [`HOSTING_POLICY.md`](./HOSTING_POLICY.md) と [`deploy-targets.json`](./deploy-targets.json) を正とする。
 
 ## Human Playtest（人間の実機テスト）
 
-Vercel に公開する前に、PCをローカル試遊サーバーにして、同じWi-Fiのスマホから人間が実際にゲームをプレイできます。
+Vercel / Cloudflare / Firebase に公開する前に、PCをローカル試遊サーバーにして、同じWi-Fiのスマホから人間が実際にゲームをプレイできます。
 
 ### Windows：普段はダブルクリックだけ
 
@@ -64,11 +65,13 @@ npm run human-test
 
 PC側では `http://127.0.0.1:4173/__test/` が開きます。スマホ側のURLは起動時に検出したLAN IP（例 `http://192.168.x.x:4173/__test/`）になり、QRにも同じURLが入ります。
 
+AAA LAB はこの人間テスト画面にのみ載せ、production hosting へは自動deployしません。
+
 この試遊環境はインターネットへ公開する仕組みではありません。同じLAN内からのみアクセスする前提です。
 
 ## Local Test（開発者向け）
 
-Vercel にデプロイしなくても、Node.js だけでPC上の確認ができます。
+Vercel / Cloudflare / Firebase にデプロイしなくても、Node.js だけでPC上の確認ができます。
 
 ```bash
 git pull
@@ -107,10 +110,13 @@ npm install
 
 ## Deploy
 
-各ゲームは `apps/<game-slug>` を Vercel の Root Directory に指定して個別プロジェクトとして公開する想定です。
+詳細は [`HOSTING_POLICY.md`](./HOSTING_POLICY.md) を参照。
 
-- 一坪王国: `apps/one-tsubo`（新規 Vercel プロジェクトを作成して公開）
-- CYCLE: `cycle.hitobito.jp`
-- 404怪異調査クラブ: `404.hitobito.jp`（Root Directory: `apps/404-kaiki`）
-  - ES Modules を使うため、`file://` では動かない。静的配信（Vercel など）が必要。
-  - ビルド不要。Framework Preset は Other、Build Command / Output Directory は未設定。
+現在の基本配置:
+
+- **Vercel** — `games.hitobito.jp` ポータル、`404.hitobito.jp`、`working-planet.hitobito.jp`
+- **Cloudflare Pages** — 小〜中規模の通常ゲームをまとめて配信
+- **Firebase Hosting** — LEVEL UP 系
+- **AAA LAB** — サーバー公開なし。人間テストプレイのみ
+
+作業中の commit と本番 deploy は分離し、複数ゲームを直したあと作業セッションの区切りでまとめて deploy する。
