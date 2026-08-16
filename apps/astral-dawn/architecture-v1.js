@@ -23,25 +23,43 @@ function smoothRoad(){
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
   const road=new THREE.Mesh(g,roadMaterial);road.receiveShadow=true;road.castShadow=false;road.name='Astral_SmoothRoad';core.world.add(road);
-  // Sparse edge stones make the road read as a travelled old route without becoming a fence.
   const stone=mat(0x707772,.95);for(let i=4;i<steps;i+=7){const t=i/steps,p=curve.getPoint(t),tan=curve.getTangent(t).normalize(),side=new THREE.Vector2(-tan.z,tan.x).normalize(),sgn=i%2?1:-1,x=p.x+side.x*2.72*sgn,z=p.z+side.y*2.72*sgn;const r=add(core.world,new THREE.DodecahedronGeometry(.18+(i%3)*.035,0),stone,[x,y(x,z)+.12,z],[1.35,.55,1]);r.rotation.y=i*.71;}
 }
 
 function timberHouseDetail(x,z,rot=0,s=1,kind='home'){
   const g=new THREE.Group();g.position.set(x,y(x,z),z);g.rotation.y=rot;g.scale.setScalar(s);core.world.add(g);
   const wood=mat(0x5f402e,.82),dark=mat(0x273a3e,.72),stone=mat(0x707873,.94),warm=mat(0xffc77d,.42,0,{emissive:0xd4873c,emissiveIntensity:1.4}),cloth=mat(kind==='inn'?0x874a42:kind==='shop'?0x4d6d69:0x6e594c,.78,0,{side:THREE.DoubleSide});
+  const roofMat=mat(kind==='inn'?0x743f42:kind==='shop'?0x31585b:0x554c43,.82);
+  const glass=mat(0x9ed8d3,.3,0,{emissive:0x477f79,emissiveIntensity:.75});
   add(g,new THREE.BoxGeometry(5.35,.34,4.3),stone,[0,.18,0]);
+
+  // A slightly oversized roof shell covers the generic base roof and makes building type
+  // readable even when the player approaches from the rear or side.
+  const roof=add(g,new THREE.ConeGeometry(4.42,2.48,4),roofMat,[0,4.53,0],[1.04,1,.88],[0,Math.PI/4,0]);roof.name=`${kind}_roof`;
   for(const sx of [-2.22,2.22])for(const sz of [-1.72,1.72])add(g,new THREE.BoxGeometry(.16,3.1,.16),wood,[sx,1.72,sz]);
   for(const z0 of [-1.78,1.78]){add(g,new THREE.BoxGeometry(4.65,.13,.14),wood,[0,2.9,z0]);add(g,new THREE.BoxGeometry(4.5,.12,.12),wood,[0,1.15,z0],[1,1,1],[0,0,.25]);add(g,new THREE.BoxGeometry(4.5,.12,.12),wood,[0,1.15,z0],[1,1,1],[0,0,-.25]);}
-  const chimney=add(g,new THREE.CylinderGeometry(.28,.35,2.1,7),stone,[1.45,4.25,-.55]);chimney.rotation.y=.2;
-  add(g,new THREE.ConeGeometry(.48,.35,7),dark,[1.45,5.42,-.55]);
+  for(const x0 of [-2.28,2.28]){add(g,new THREE.BoxGeometry(.14,.14,3.45),wood,[x0,2.9,0]);add(g,new THREE.BoxGeometry(.14,2.7,.14),wood,[x0,1.55,0]);}
+
+  const chimney=add(g,new THREE.CylinderGeometry(.28,.35,2.1,7),stone,[1.45,4.25,-.55]);chimney.rotation.y=.2;add(g,new THREE.ConeGeometry(.48,.35,7),dark,[1.45,5.42,-.55]);
+
+  // Windows on both long faces, plus side windows, so the house never falls back to a blank box.
+  for(const zFace of [-2.08,2.08])for(const sx of [-1.25,1.25]){
+    add(g,new THREE.BoxGeometry(.9,.78,.08),glass,[sx,1.92,zFace]);
+    add(g,new THREE.BoxGeometry(1.05,.08,.12),wood,[sx,2.34,zFace]);add(g,new THREE.BoxGeometry(1.05,.08,.12),wood,[sx,1.5,zFace]);
+    add(g,new THREE.BoxGeometry(.08,.9,.12),wood,[sx-.48,1.92,zFace]);add(g,new THREE.BoxGeometry(.08,.9,.12),wood,[sx+.48,1.92,zFace]);
+  }
+  for(const xFace of [-2.34,2.34]){add(g,new THREE.BoxGeometry(.08,.74,1.0),glass,[xFace,1.9,0]);add(g,new THREE.BoxGeometry(.12,.08,1.14),wood,[xFace,2.31,0]);add(g,new THREE.BoxGeometry(.12,.08,1.14),wood,[xFace,1.49,0]);}
+
+  // Front porch / awning is the strongest role cue at pedestrian height.
   add(g,new THREE.PlaneGeometry(kind==='home'?1.7:2.7,1.1),cloth,[0,2.05,2.28],[1,1,1],[-.48,0,0]);
   if(kind!=='home'){
+    for(const sx of [-1.15,1.15])add(g,new THREE.BoxGeometry(.1,2,.1),wood,[sx,1.05,2.36]);
+    add(g,new THREE.BoxGeometry(2.7,.13,1.15),roofMat,[0,2.25,2.55],[1,1,1],[-.05,0,0]);
     add(g,new THREE.BoxGeometry(kind==='inn'?1.05:1.35,.56,.12),wood,[-1.45,2.75,2.37]);
     add(g,kind==='inn'?new THREE.TorusGeometry(.18,.045,7,18):new THREE.OctahedronGeometry(.15,0),warm,[-1.45,2.75,2.45]);
     if(kind==='inn'){const lantern=new THREE.PointLight(0xffad62,1.3,7,2);lantern.position.set(-1.45,2.5,2.7);g.add(lantern)}
   }
-  for(const sx of [-1.25,1.25]){add(g,new THREE.BoxGeometry(.95,.14,.28),wood,[sx,1.72,2.25]);for(let i=0;i<4;i++)add(g,new THREE.IcosahedronGeometry(.09,0),mat(i%2?0xf0c68c:0xb86e76,1),[sx-.3+i*.2,1.9,2.28]);}
+  for(const sx of [-1.25,1.25]){add(g,new THREE.BoxGeometry(.95,.14,.28),wood,[sx,1.28,2.22]);for(let i=0;i<4;i++)add(g,new THREE.IcosahedronGeometry(.09,0),mat(i%2?0xf0c68c:0xb86e76,1),[sx-.3+i*.2,1.48,2.28]);}
   smokeEmitter(g,new THREE.Vector3(1.45,5.65,-.55));
   return g;
 }
