@@ -1,0 +1,53 @@
+name: Astral Dawn browser smoke
+
+on:
+  push:
+    branches:
+      - feat/astral-dawn-threejs-rpg
+    paths:
+      - 'apps/astral-dawn/**'
+      - '.github/workflows/astral-dawn-browser.yml'
+  pull_request:
+    paths:
+      - 'apps/astral-dawn/**'
+      - '.github/workflows/astral-dawn-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  chromium-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/astral-server.log 2>&1 &
+          echo $! > /tmp/astral-server.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/astral-dawn/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/astral-server.log
+          exit 1
+      - name: Automated gameplay smoke
+        env:
+          ASTRAL_URL: http://127.0.0.1:4173/apps/astral-dawn/
+        run: node apps/astral-dawn/smoke-browser.mjs
+      - name: Upload automated screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-dawn-smoke-screenshots
+          path: apps/astral-dawn/.artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/astral-server.log || true
