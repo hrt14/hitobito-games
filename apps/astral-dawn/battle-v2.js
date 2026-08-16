@@ -21,18 +21,28 @@ function comboFx(){const c=core,T=c.THREE,enemy=c.S.enemyObj;if(!enemy)return;co
 }
 
 function useCombo(){const S=core.S,button=document.querySelector('.combo-command');if(S.mode!=='battle'||!S.can)return;if(!S.joined)return core.toast('リナがいなければ連携できない。',1400);if(comboUsed===S.enemyObj)return core.toast('星環連携はこの戦闘ではもう使った。',1500);if(S.mp<20)return core.toast('星環連携には MP 20 が必要。',1500);
-  comboUsed=S.enemyObj;button?.classList.add('used');S.mp-=12; // the delegated Star Slash consumes the remaining 8 MP.
+  comboUsed=S.enemyObj;button?.classList.add('used');S.mp-=12;
   S.enemy.hp=Math.max(1,S.enemy.hp-58);core.updateUI();comboFx();const log=document.querySelector('#battleLog');if(log){log.textContent='アレン＆リナ — 星環連携「双星断」！';log.classList.add('show')}core.tone(740,.14,'sine',.04);setTimeout(()=>core.tone(988,.22,'triangle',.04),110);
   setTimeout(()=>{const skill=[...document.querySelectorAll('.commands button')].find(x=>x.dataset.command==='skill');skill?.click()},330);
 }
 
-function onEnemyAttackStart(){const enemy=core.S.enemyObj;if(!enemy||enemy.userData.boss){variantPending=null;return}variantPending=traitFor(enemy);const log=document.querySelector('#battleLog');if(!log)return;requestAnimationFrame(()=>{if(!variantPending)return;const label=variantPending.id==='fang'?'裂爪跳び！':variantPending.id==='drain'?'星喰みの牙！':'灰角再生！';log.textContent=label;log.classList.add('show')});}
+function onEnemyAttackStart(){const enemy=core.S.enemyObj;if(!enemy||enemy.userData.boss){variantPending=null;return}variantPending=traitFor(enemy);const log=document.querySelector('#battleLog');if(!log)return;setTimeout(()=>{if(!variantPending)return;const label=variantPending.id==='fang'?'裂爪跳び！':variantPending.id==='drain'?'星喰みの牙！':'灰角再生！';log.textContent=label;log.classList.add('show')},0);}
 function applyVariantAfterHit(){if(!variantPending||!core.S.enemyObj)return;const v=variantPending;variantPending=null;if(v.id==='fang'){core.S.hp=Math.max(0,core.S.hp-5);core.updateUI();core.toast('裂爪の追撃　HP -5',1000);}
   else if(v.id==='drain'){const n=Math.min(6,core.S.mp);core.S.mp-=n;core.updateUI();core.toast(`星力を ${n} 吸われた`,1100);}
   else if(v.id==='regen'){core.S.enemy.hp=Math.min(core.S.enemy.maxHp,core.S.enemy.hp+12);const bar=document.querySelector('#enemyHpBar');if(bar)bar.style.width=`${core.S.enemy.hp/core.S.enemy.maxHp*100}%`;core.toast('ヴァルグの傷が塞がる　HP +12',1100);}}
 
 function observeLog(){const e=document.querySelector('#battleLog');if(!e)return;let last='';new MutationObserver(()=>{const t=e.textContent;if(t===last)return;last=t;if(t.includes('灰角のヴァルグの攻撃'))onEnemyAttackStart();else if(/\d+ のダメージ/.test(t)&&variantPending)applyVariantAfterHit();else if(t.includes('星喰らいの衝撃波')&&core.S.enemyObj?.userData.boss){core.S.enemyObj.userData.monsterLight&&(core.S.enemyObj.userData.monsterLight.intensity=4.2);setTimeout(()=>{if(core.S.enemyObj?.userData.monsterLight)core.S.enemyObj.userData.monsterLight.intensity=2},500)}}).observe(e,{childList:true,characterData:true,subtree:true});}
 
-function monitor(){const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;if(enemy!==lastEnemy){lastEnemy=enemy;button?.classList.remove('used')}const usable=core.S.mode==='battle'&&core.S.joined&&core.S.mp>=20&&comboUsed!==enemy;button?.classList.toggle('ready',!!usable);button&&(button.disabled=core.S.mode==='battle'&&!core.S.can);updateTrait();requestAnimationFrame(monitor);}
+function monitor(){
+  const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;
+  if(enemy!==lastEnemy){lastEnemy=enemy;button?.classList.remove('used');}
+  const usable=core.S.mode==='battle'&&core.S.joined&&core.S.mp>=20&&comboUsed!==enemy;
+  button?.classList.toggle('ready',!!usable);
+  if(button)button.disabled=core.S.mode==='battle'&&!core.S.can;
+  updateTrait();
+  // Gameplay/UI availability must not depend on WebGL frame rate. On slow devices
+  // requestAnimationFrame can stall while timers and battle state continue advancing.
+  setTimeout(monitor,80);
+}
 
 (async()=>{try{core=await waitCore();injectCss();addComboButton();addTraitUi();observeLog();monitor();}catch(err){console.warn('[Astral Dawn] battle v2 layer skipped.',err)}})();
