@@ -189,15 +189,20 @@ function answerQuestion(q,answerId){
 function finishQuestions(){
   const ranked=Object.entries(state.scores).sort((a,b)=>b[1]-a[1]);
   state.primary=ranked[0][1]===0 ? 'size' : ranked[0][0];
-  state.level=initialLevel(state.primary);
+  state.level=initialLevel(state.primary, state.category);
   resultScreen();
 }
 
-function initialLevel(primary){
-  if(primary==='energy') return 0;
-  if(primary==='aversion'||primary==='perfection') return 1;
-  if(primary==='unclear'||primary==='size') return 2;
-  return 1;
+function initialLevel(primary, category){
+  let baseline=1;
+  if(primary==='energy') baseline=0;
+  else if(primary==='aversion'||primary==='perfection') baseline=1;
+  else if(primary==='unclear'||primary==='size') baseline=2;
+
+  const successes=getHistory().filter((item)=>item.result==='success' && item.category===category);
+  const close=successes.find((item)=>item.blocker===primary) || successes[0];
+  if(!close || !Number.isInteger(close.level)) return baseline;
+  return Math.min(baseline, close.level);
 }
 
 function resultScreen(){
