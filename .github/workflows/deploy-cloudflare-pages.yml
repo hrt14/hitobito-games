@@ -39,3 +39,18 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy .dist/cloudflare --project-name=hitobito-games-normal
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure play.hitobito.jp custom domain
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          BASE="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/hitobito-games-normal/domains"
+          CURRENT="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "${BASE}/play.hitobito.jp")"
+          if printf '%s' "$CURRENT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);process.exit(j.success&&j.result&&j.result.name==='play.hitobito.jp'?0:1)})"; then
+            printf '%s' "$CURRENT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log('Custom domain already registered:',j.result.name,'status=',j.result.status)})"
+          else
+            CREATED="$(curl -sS -X POST -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "${BASE}" --data '{"name":"play.hitobito.jp"}')"
+            printf '%s' "$CREATED" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('Custom domain registered:',j.result.name,'status=',j.result.status)})"
+          fi
