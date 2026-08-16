@@ -16,7 +16,7 @@ function addTraitUi(){const e=document.createElement('div');e.id='enemyTrait';e.
 function traitFor(enemy){if(!enemy||enemy.userData.boss)return {id:'boss',label:'古代種 / 星喰らい'};if(enemy.userData.variant)return enemy.userData.variant;const x=enemy.userData.home?.x??0;const v=x<14?{id:'fang',label:'裂爪型 / 追撃'}:x<23?{id:'drain',label:'吸星型 / MP侵食'}:{id:'regen',label:'再生型 / 自己回復'};enemy.userData.variant=v;return v;}
 function updateTrait(){const e=document.querySelector('#enemyTrait');if(!e)return;const enemy=core.S.enemyObj;if(core.S.mode!=='battle'||!enemy){e.classList.remove('show');return}const t=traitFor(enemy);e.querySelector('b').textContent=t.label;e.classList.add('show');}
 
-function comboFx(){const c=core,T=c.THREE,enemy=c.S.enemyObj;if(!enemy)return;const mid=c.player.position.clone().lerp(enemy.position,.55).add(new T.Vector3(0,1.25,0));for(let k=0;k<2;k++){const ring=new T.Mesh(new T.TorusGeometry(.6+k*.35,.035,8,42),new T.MeshBasicMaterial({color:k?0xf0cd79:0x7be7e6,transparent:true,opacity:.9,depthWrite:false,blending:T.AdditiveBlending}));ring.position.copy(mid);ring.rotation.x=Math.PI/2+k*.45;c.scene.add(ring);let t=0;(function tick(){t+=.035;ring.scale.setScalar(1+t*2.8);ring.rotation.z+=.09*(k?1:-1);ring.material.opacity=1-t;if(t<1)requestAnimationFrame(tick);else{c.scene.remove(ring);ring.geometry.dispose();ring.material.dispose()}})();}
+function comboFx(){const c=core,T=c.THREE,enemy=c.S.enemyObj;if(!enemy)return;const mid=c.player.position.clone().lerp(enemy.position,.55).add(new T.Vector3(0,1.25,0));for(let k=0;k<2;k++){const ring=new T.Mesh(new T.TorusGeometry(.6+k*.35,.035,8,42),new T.MeshBasicMaterial({color:k?0xf0cd79:0x7be7e6,transparent:true,opacity:.9,depthWrite:false,blending:T.AdditiveBlending}));ring.position.copy(mid);ring.rotation.x=Math.PI/2+k*.45;c.scene.add(ring);let started=performance.now();(function tick(now){const p=Math.min(1,(now-started)/650);ring.scale.setScalar(1+p*2.8);ring.rotation.z=p*Math.PI*(k?1:-1);ring.material.opacity=1-p;if(p<1)requestAnimationFrame(tick);else{c.scene.remove(ring);ring.geometry.dispose();ring.material.dispose()}})(started);}
   if(c.companion?.userData.gem)c.companion.userData.gem.material.emissiveIntensity=8;setTimeout(()=>{if(c.companion?.userData.gem)c.companion.userData.gem.material.emissiveIntensity=2},900);
 }
 
@@ -33,32 +33,37 @@ function applyVariantAfterHit(){if(!variantPending||!core.S.enemyObj)return;cons
 
 function observeLog(){const e=document.querySelector('#battleLog');if(!e)return;let last='';new MutationObserver(()=>{const t=e.textContent;if(t===last)return;last=t;if(t.includes('灰角のヴァルグの攻撃'))onEnemyAttackStart();else if(/\d+ のダメージ/.test(t)&&variantPending)applyVariantAfterHit();else if(t.includes('星喰らいの衝撃波')&&core.S.enemyObj?.userData.boss){core.S.enemyObj.userData.monsterLight&&(core.S.enemyObj.userData.monsterLight.intensity=4.2);setTimeout(()=>{if(core.S.enemyObj?.userData.monsterLight)core.S.enemyObj.userData.monsterLight.intensity=2},500)}}).observe(e,{childList:true,characterData:true,subtree:true});}
 
+function finishEffect(effect){
+  const idx=core.effects.indexOf(effect);if(idx<0)return;
+  if(effect.type==='lunge'){
+    if(effect.o&&effect.from)effect.o.position.copy(effect.from);if(effect.o)effect.o.rotation.z=0;if(core.parts?.sword)core.parts.sword.rotation.x=0;
+  }else if(effect.type==='vanish'){
+    if(effect.o){effect.o.visible=false;effect.o.scale.setScalar(.01);}
+  }else if(effect.type==='grow'&&effect.o)effect.o.scale.setScalar(1.55);
+  core.effects.splice(idx,1);
+}
 function syncTimedEffects(){
   const now=performance.now();
-  for(const effect of core.effects){
+  for(const effect of [...core.effects]){
     if(!effect||!['lunge','vanish','grow'].includes(effect.type)||!effect.d)continue;
     if(effect._wallStart===undefined)effect._wallStart=now-(effect.t||0)*1000;
-    const wall=(now-effect._wallStart)/1000;
-    if(wall>(effect.t||0))effect.t=Math.min(wall,effect.d+.001);
+    const wall=(now-effect._wallStart)/1000;effect.t=Math.max(effect.t||0,Math.min(wall,effect.d+.001));
+    if(effect.type==='lunge'&&!effect.hit&&wall>=effect.d*.48){effect.hit=true;try{effect.cb?.();}catch(err){console.error('[Astral Dawn] wall-time lunge callback failed',err);}}
+    if(wall>=effect.d)finishEffect(effect);
   }
 }
 
 function scheduleDefeatedRemoval(enemy){
   if(!enemy||enemy.userData.boss||enemy.userData.defeatHideScheduled||core.S.enemy?.hp>0)return;
-  enemy.userData.defeatHideScheduled=true;
-  setTimeout(()=>{enemy.visible=false;enemy.userData.defeated=true;},850);
+  enemy.userData.defeatHideScheduled=true;setTimeout(()=>{enemy.visible=false;enemy.userData.defeated=true;},850);
 }
 
 function monitor(){
-  const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;
-  syncTimedEffects();
+  const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;syncTimedEffects();
   if(enemy!==lastEnemy){lastEnemy=enemy;button?.classList.remove('used');}
   scheduleDefeatedRemoval(enemy);
   const usable=core.S.mode==='battle'&&core.S.joined&&core.S.mp>=20&&comboUsed!==enemy;
-  button?.classList.toggle('ready',!!usable);
-  if(button)button.disabled=core.S.mode==='battle'&&!core.S.can;
-  updateTrait();
-  setTimeout(monitor,80);
+  button?.classList.toggle('ready',!!usable);if(button)button.disabled=core.S.mode==='battle'&&!core.S.can;updateTrait();setTimeout(monitor,80);
 }
 
 (async()=>{try{core=await waitCore();injectCss();addComboButton();addTraitUi();observeLog();monitor();}catch(err){console.warn('[Astral Dawn] battle v2 layer skipped.',err)}})();
