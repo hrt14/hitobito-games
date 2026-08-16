@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="60点で出し、反応を見て直す。完璧主義を壊す意思決定ゲーム。">
+  <title>失敗して進め。｜LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header><div><small>LEVEL UP / SHIP & LEARN</small><h1>失敗して進め。</h1></div><button id="restart" type="button">やり直す</button></header>
+    <section class="meters">
+      <div><span>残り</span><strong id="round">8</strong></div>
+      <div><span>前進</span><strong id="progress">0%</strong></div>
+      <div><span>学び</span><strong id="learning">0</strong></div>
+      <div><span>完璧沼</span><strong id="perfection">0</strong></div>
+    </section>
+    <section class="stage" id="stage">
+      <div class="timer"><i id="timerBar"></i></div>
+      <p class="kicker" id="kicker">PROJECT 01</p>
+      <h2 id="title">準備ができるのを待つ？</h2>
+      <p class="scene" id="scene"></p>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </section>
+    <footer><span>正解は「失敗しないこと」ではない。</span><strong>出す → 反応を見る → 直す</strong></footer>
+  </main>
+  <div id="ending" class="ending" hidden></div>
+  <script src="./game.js"></script>
+</body>
+</html>
