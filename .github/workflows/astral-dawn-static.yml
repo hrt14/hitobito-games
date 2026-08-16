@@ -1,0 +1,42 @@
+name: Astral Dawn static quality gate
+
+on:
+  push:
+    branches:
+      - feat/astral-dawn-threejs-rpg
+  pull_request:
+    paths:
+      - 'apps/astral-dawn/**'
+      - '.github/workflows/astral-dawn-static.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse browser modules
+        run: |
+          node --check apps/astral-dawn/game-v4.js
+          node --check apps/astral-dawn/game-v5.js
+          node --check apps/astral-dawn/models-v1.js
+      - name: Verify V5 instrumentation anchors
+        run: |
+          grep -Fq "function cameraUpdate(dt){" apps/astral-dawn/game-v4.js
+          grep -Fq "function damage(n,crit=false){" apps/astral-dawn/game-v4.js
+          grep -Fq "if(i){if(i.type==='npc')talk(i);else shrine();return}" apps/astral-dawn/game-v4.js
+          grep -Fq "init();" apps/astral-dawn/game-v4.js
+      - name: Verify entrypoint and documentation
+        run: |
+          grep -Fq 'src="./game-v5.js"' apps/astral-dawn/index.html
+          grep -Fq 'src="./models-v1.js"' apps/astral-dawn/index.html
+          test -f apps/astral-dawn/QUALITY.md
+          test -f apps/astral-dawn/REVIEW.md
+          test -f apps/astral-dawn/THIRD_PARTY_ASSETS.md
+      - name: Verify optional HD assets are reachable
+        run: |
+          curl --retry 2 --max-time 20 -fsI 'https://cdn.jsdelivr.net/gh/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0@main/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb' >/dev/null
+          curl --retry 2 --max-time 20 -fsI 'https://cdn.jsdelivr.net/gh/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0@main/addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb' >/dev/null
