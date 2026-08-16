@@ -5,7 +5,7 @@ const ASSET_BASE='https://cdn.jsdelivr.net/gh/KayKit-Game-Assets/KayKit-Characte
 const ASSETS={hero:`${ASSET_BASE}Knight.glb`,companion:`${ASSET_BASE}Mage.glb`};
 const loader=new GLTFLoader();
 const actors=new Map();
-let core=null,last=performance.now();
+let core=null,last=performance.now(),companionAttempted=false;
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function waitCore(){for(let i=0;i<160;i++){if(window.__ASTRAL_CORE?.player)return window.__ASTRAL_CORE;await sleep(50)}throw new Error('Astral core did not expose the scene in time');}
@@ -26,7 +26,6 @@ function addAstralIdentity(root,model,role){
     const halo=new THREE.Mesh(new THREE.TorusGeometry(.29,.025,8,30),gold);halo.position.set(0,2.46,-.08);halo.rotation.x=Math.PI/2;root.add(halo);
     const orb=new THREE.Mesh(new THREE.OctahedronGeometry(.1,0),cyan);orb.position.set(.55,2.0,.18);root.add(orb);root.userData.identityFx={halo,orb,mantle};
   }
-  // A restrained tint prevents the stock atlas from reading as a completely unrelated art direction.
   const tint=new THREE.Color(role==='hero'?0xdceaf0:0xf0ddec);
   model.traverse(o=>{if(o.isMesh&&o.material){o.material=o.material.clone();o.material.color.multiply(tint);o.material.roughness=Math.max(.42,o.material.roughness??.6);o.material.envMapIntensity=.65;}});
 }
@@ -45,7 +44,12 @@ function playLoop(state,name){state.current=null;fadeTo(state,name,0);}
 function playOnce(state,name,d=.1){const next=actionFor(state,name);if(!next)return;const old=state.current?actionFor(state,state.current):null;if(old&&old!==next)old.fadeOut(d);next.enabled=true;next.reset();next.setLoop(THREE.LoopOnce,1);next.clampWhenFinished=true;next.fadeIn(d).play();state.current=name;state.onceUntil=performance.now()+Math.max(420,next.getClip().duration*1000*.75);}
 
 async function loadHero(){try{const gltf=await load(ASSETS.hero);prepareModel(core.player,gltf,'hero');console.info('[Astral Dawn] HD hero loaded (KayKit CC0 + Astral identity layer).');}catch(err){console.warn('[Astral Dawn] HD hero unavailable; procedural hero retained.',err);}}
-async function loadCompanion(){if(actors.has('companion')||!core.companion)return;try{const gltf=await load(ASSETS.companion);prepareModel(core.companion,gltf,'companion');console.info('[Astral Dawn] HD companion loaded (KayKit CC0 + Astral identity layer).');}catch(err){console.warn('[Astral Dawn] HD companion unavailable; procedural companion retained.',err);}}
+async function loadCompanion(){
+  if(companionAttempted||actors.has('companion')||!core.companion)return;
+  companionAttempted=true;
+  try{const gltf=await load(ASSETS.companion);prepareModel(core.companion,gltf,'companion');console.info('[Astral Dawn] HD companion loaded (KayKit CC0 + Astral identity layer).');}
+  catch(err){console.warn('[Astral Dawn] HD companion unavailable; procedural companion retained.',err);}
+}
 
 function observeBattleLog(){const log=document.querySelector('#battleLog');if(!log)return;new MutationObserver(()=>{const t=log.textContent,hero=actors.get('hero'),rina=actors.get('companion');if(hero&&(t.includes('アレンの攻撃')||t.includes('星断ち')))playOnce(hero,'attack');if(hero&&(t.includes('ダメージ')||t.includes('衝撃波')))playOnce(hero,'hit');if(rina&&t.includes('リナの'))playOnce(rina,'spell');}).observe(log,{childList:true,characterData:true,subtree:true});}
 
