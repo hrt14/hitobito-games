@@ -8,6 +8,7 @@ on:
     paths:
       - 'apps/astral-dawn/**'
       - '.github/workflows/astral-dawn-static.yml'
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -25,10 +26,18 @@ jobs:
           node --check apps/astral-dawn/models-v1.js
       - name: Verify V5 instrumentation anchors
         run: |
-          grep -Fq "function cameraUpdate(dt){" apps/astral-dawn/game-v4.js
-          grep -Fq "function damage(n,crit=false){" apps/astral-dawn/game-v4.js
-          grep -Fq "if(i){if(i.type==='npc')talk(i);else shrine();return}" apps/astral-dawn/game-v4.js
-          grep -Fq "init();" apps/astral-dawn/game-v4.js
+          node <<'NODE'
+          const fs=require('fs');
+          const s=fs.readFileSync('apps/astral-dawn/game-v4.js','utf8');
+          const needles=[
+            "function cameraUpdate(dt){",
+            "function damage(n,crit=false){",
+            "if(i){if(i.type==='npc')talk(i);else shrine();return}",
+            "\ninit();"
+          ];
+          for(const n of needles){if(!s.includes(n)){console.error('Missing V5 instrumentation anchor:',n);process.exit(1)}}
+          console.log('All V5 instrumentation anchors found.');
+          NODE
       - name: Verify entrypoint and documentation
         run: |
           grep -Fq 'src="./game-v5.js"' apps/astral-dawn/index.html
