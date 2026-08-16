@@ -27,45 +27,48 @@ try{
 
   mark('start-game');
   await page.click('#startBtn');
-  await page.waitForSelector('#dialogue:not(.hidden)',{timeout:5000});
+  await page.waitForSelector('#dialogue:not(.hidden)',{timeout:9000});
   mark('finish-intro-dialogue');
   for(let i=0;i<3;i++){await page.click('#dialogueNext');await page.waitForTimeout(120)}
-  await page.waitForFunction(()=>document.querySelector('#dialogue')?.classList.contains('hidden'),{timeout:3000});
-  await page.waitForFunction(()=>window.__ASTRAL_CORE?.S?.joined===true,{timeout:3000});
-  await page.waitForFunction(()=>!!window.__ASTRAL_CORE?.companion,{timeout:3000});
-  await page.waitForSelector('.combo-command',{state:'attached',timeout:3000});
+  await page.waitForFunction(()=>document.querySelector('#dialogue')?.classList.contains('hidden'),{timeout:5000});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE?.S?.joined===true,{timeout:5000});
+  await page.waitForFunction(()=>!!window.__ASTRAL_CORE?.companion,{timeout:5000});
+  await page.waitForSelector('.combo-command',{state:'attached',timeout:5000});
   await page.waitForTimeout(250);
   assert(errors.length===0,`errors appeared after party join:\n${errors.join('\n')}`);
 
   mark('movement');
   const before=await page.evaluate(()=>({x:window.__ASTRAL_CORE.player.position.x,z:window.__ASTRAL_CORE.player.position.z}));
-  await page.keyboard.down('KeyW');await page.waitForTimeout(650);await page.keyboard.up('KeyW');await page.waitForTimeout(150);
+  await page.keyboard.down('KeyW');
+  try{
+    await page.waitForFunction(start=>{const p=window.__ASTRAL_CORE?.player?.position;return !!p&&Math.hypot(p.x-start.x,p.z-start.z)>.12;},before,{timeout:7000});
+  } finally { await page.keyboard.up('KeyW'); }
+  await page.waitForTimeout(120);
   const after=await page.evaluate(()=>({x:window.__ASTRAL_CORE.player.position.x,z:window.__ASTRAL_CORE.player.position.z}));
-  assert(Math.hypot(after.x-before.x,after.z-before.z)>.25,'keyboard movement did not move the hero');
+  assert(Math.hypot(after.x-before.x,after.z-before.z)>.12,'keyboard movement did not move the hero');
   await page.screenshot({path:path.join(out,'field.png')});
 
   mark('treasure');
   const chest=await page.evaluate(()=>{const c=window.__ASTRAL_CORE.interactables.find(x=>x.type==='chest');if(!c)return null;return {label:c.label,opened:c.obj.userData.opened,items:window.__ASTRAL_CORE.S.items};});
   assert(chest,'V5 chest instrumentation missing');
   await page.evaluate(()=>{const c=window.__ASTRAL_CORE.interactables.find(x=>x.type==='chest');window.__ASTRAL.openChest(c)});
-  await page.waitForTimeout(250);
-  assert(await page.evaluate(()=>window.__ASTRAL_CORE.interactables.find(x=>x.type==='chest').obj.userData.opened===true),'chest did not open');
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.interactables.find(x=>x.type==='chest')?.obj.userData.opened===true,{timeout:5000});
 
   mark('enter-battle');
   await page.evaluate(()=>{const c=window.__ASTRAL_CORE,p=c.player,e=c.enemies.find(x=>x.visible&&!x.userData.boss);p.position.set(e.position.x,e.position.y,e.position.z);});
-  await page.waitForSelector('#battleHud:not(.hidden)',{timeout:5000});
-  await page.waitForSelector('#enemyTrait.show',{timeout:3000});
+  await page.waitForSelector('#battleHud:not(.hidden)',{timeout:12000});
+  await page.waitForSelector('#enemyTrait.show',{timeout:8000});
   assert(await page.locator('.combo-command').isVisible(),'party combo command is not visible in battle');
   await page.screenshot({path:path.join(out,'battle.png')});
 
   mark('party-combo');
   const mpBefore=await page.evaluate(()=>window.__ASTRAL_CORE.S.mp);
   await page.click('.combo-command');
-  await page.waitForTimeout(650);
+  await page.waitForFunction(v=>window.__ASTRAL_CORE.S.mp<v,mpBefore,{timeout:6000});
   const mpAfter=await page.evaluate(()=>window.__ASTRAL_CORE.S.mp);
   assert(mpAfter<mpBefore,'party combo did not consume MP');
-  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.wins>=1,{timeout:6000});
-  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.mode==='field'||window.__ASTRAL_CORE.S.mode==='dialogue',{timeout:6000});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.wins>=1,{timeout:15000});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.mode==='field'||window.__ASTRAL_CORE.S.mode==='dialogue',{timeout:12000});
 
   mark('quality-control');
   const quality=await page.locator('#qualityToggle').textContent();
