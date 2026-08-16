@@ -13,6 +13,22 @@ page.on('requestfailed',r=>messages.push(`requestfailed: ${r.url()} :: ${r.failu
 const mark=s=>{stage=s;console.log(`[Astral smoke] ${s}`)};
 const assert=(ok,msg)=>{if(!ok)throw new Error(msg)};
 const settleFrames=async(count=2)=>page.evaluate(n=>new Promise(resolve=>{const step=()=>--n<=0?resolve():requestAnimationFrame(step);requestAnimationFrame(step)}),count);
+const waitCombo=()=>page.waitForFunction(()=>{const b=document.querySelector('.combo-command');return !!b&&!b.disabled&&b.classList.contains('ready');},{timeout:10000});
+
+async function enterNextNormalBattle(){
+  await page.evaluate(()=>{const c=window.__ASTRAL_CORE,p=c.player,e=c.enemies.find(x=>x.visible&&!x.userData.boss);if(!e)throw new Error('no normal enemy available');p.position.set(e.position.x,e.position.y,e.position.z);});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.mode==='battle'&&!window.__ASTRAL_CORE.S.enemyObj?.userData.boss,{timeout:12000});
+  await page.waitForSelector('#enemyTrait.show',{timeout:8000});
+  await waitCombo();
+}
+async function useComboAndWaitWins(targetWins){
+  const before=await page.evaluate(()=>window.__ASTRAL_CORE.S.mp);
+  await page.click('.combo-command');
+  await page.waitForFunction(v=>window.__ASTRAL_CORE.S.mp<v,before,{timeout:6000});
+  await page.waitForFunction(w=>window.__ASTRAL_CORE.S.wins>=w,targetWins,{timeout:18000});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.mode==='field'||window.__ASTRAL_CORE.S.mode==='dialogue',{timeout:15000});
+  return before-(await page.evaluate(()=>window.__ASTRAL_CORE.S.mp));
+}
 
 try{
   mark('navigate');
@@ -46,7 +62,7 @@ try{
   } finally { await page.keyboard.up('KeyW'); }
   await settleFrames(2);
   const after=await page.evaluate(()=>({x:window.__ASTRAL_CORE.player.position.x,z:window.__ASTRAL_CORE.player.position.z}));
-  assert(Math.hypot(after.x-before.x,after.z-before.z)>.12,'keyboard movement did not move the hero');
+  const moved=Math.hypot(after.x-before.x,after.z-before.z);assert(moved>.12,'keyboard movement did not move the hero');
   await page.screenshot({path:path.join(out,'field.png')});
 
   mark('treasure');
@@ -55,29 +71,42 @@ try{
   await page.evaluate(()=>{const c=window.__ASTRAL_CORE.interactables.find(x=>x.type==='chest');window.__ASTRAL.openChest(c)});
   await page.waitForFunction(()=>window.__ASTRAL_CORE.interactables.find(x=>x.type==='chest')?.obj.userData.opened===true,{timeout:5000});
 
-  mark('enter-battle');
-  await page.evaluate(()=>{const c=window.__ASTRAL_CORE,p=c.player,e=c.enemies.find(x=>x.visible&&!x.userData.boss);p.position.set(e.position.x,e.position.y,e.position.z);});
-  await page.waitForSelector('#battleHud:not(.hidden)',{timeout:12000});
-  await page.waitForSelector('#enemyTrait.show',{timeout:8000});
-  assert(await page.locator('.combo-command').isVisible(),'party combo command is not visible in battle');
+  mark('first-battle');
+  await enterNextNormalBattle();
   await settleFrames(3);
   await page.screenshot({path:path.join(out,'battle.png')});
+  const comboMpCost=await useComboAndWaitWins(1);
 
-  mark('party-combo');
-  const mpBefore=await page.evaluate(()=>window.__ASTRAL_CORE.S.mp);
+  mark('second-battle');
+  await enterNextNormalBattle();
+  await useComboAndWaitWins(2);
+  assert(await page.evaluate(()=>window.__ASTRAL_CORE.S.quest>=2),'quest did not advance after two normal victories');
+
+  mark('activate-shrine');
+  await page.evaluate(()=>{const c=window.__ASTRAL_CORE,p=c.player,s=c.interactables.find(x=>x.type==='shrine');if(!s)throw new Error('shrine interactable missing');p.position.copy(s.obj.position);p.position.y=c.groundY(p.position.x,p.position.z)+.25;});
+  await settleFrames(1);
+  await page.keyboard.press('KeyE');
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.bossSpawned===true,{timeout:6000});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.mode==='battle'&&window.__ASTRAL_CORE.S.enemyObj?.userData.boss===true,{timeout:15000});
+  await waitCombo();
+  await page.evaluate(()=>{window.__ASTRAL_CORE.S.enemy.hp=100;const bar=document.querySelector('#enemyHpBar');if(bar)bar.style.width=`${100/window.__ASTRAL_CORE.S.enemy.maxHp*100}%`;});
+  await settleFrames(3);
+  await page.screenshot({path:path.join(out,'boss.png')});
+
+  mark('defeat-boss');
   await page.click('.combo-command');
-  await page.waitForFunction(v=>window.__ASTRAL_CORE.S.mp<v,mpBefore,{timeout:6000});
-  const mpAfter=await page.evaluate(()=>window.__ASTRAL_CORE.S.mp);
-  assert(mpAfter<mpBefore,'party combo did not consume MP');
-  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.wins>=1,{timeout:15000});
-  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.mode==='field'||window.__ASTRAL_CORE.S.mode==='dialogue',{timeout:12000});
+  await page.waitForFunction(()=>window.__ASTRAL_CORE.S.boss===true,{timeout:12000});
+  await page.waitForSelector('#dawnTitle.show',{state:'visible',timeout:12000});
+  await settleFrames(2);
+  await page.screenshot({path:path.join(out,'dawn.png')});
+  assert(await page.locator('body').evaluate(b=>b.classList.contains('dawn-cinema')),'dawn cinematic did not activate');
 
   mark('quality-control');
   const quality=await page.locator('#qualityToggle').textContent();
   assert(quality?.startsWith('Q·'),'adaptive quality control not initialized');
   const fatalErrors=errors.filter(x=>!(/Knight\.glb|Mage\.glb|KayKit|jsdelivr/i.test(x)));
   assert(fatalErrors.length===0,`browser errors:\n${fatalErrors.join('\n')}`);
-  const result={ok:true,stage,moved:Math.hypot(after.x-before.x,after.z-before.z),chest:chest.label,comboMpCost:mpBefore-mpAfter,wins:await page.evaluate(()=>window.__ASTRAL_CORE.S.wins),quality,errors};
+  const result={ok:true,stage,moved,chest:chest.label,comboMpCost,wins:await page.evaluate(()=>window.__ASTRAL_CORE.S.wins),boss:await page.evaluate(()=>window.__ASTRAL_CORE.S.boss),quality,errors};
   fs.writeFileSync(path.join(out,'diagnostic.json'),JSON.stringify(result,null,2));
   console.log(JSON.stringify(result,null,2));
 } catch(err) {
@@ -89,10 +118,13 @@ try{
     core:!!window.__ASTRAL_CORE,
     mode:window.__ASTRAL_CORE?.S?.mode||null,
     joined:window.__ASTRAL_CORE?.S?.joined||false,
+    wins:window.__ASTRAL_CORE?.S?.wins||0,
+    bossSpawned:window.__ASTRAL_CORE?.S?.bossSpawned||false,
+    boss:window.__ASTRAL_CORE?.S?.boss||false,
     player:window.__ASTRAL_CORE?.player?{x:window.__ASTRAL_CORE.player.position.x,y:window.__ASTRAL_CORE.player.position.y,z:window.__ASTRAL_CORE.player.position.z}:null,
     scripts:[...document.scripts].map(x=>x.src).filter(Boolean)
   })).catch(()=>({}));
-  const report={ok:false,stage,error:String(err?.stack||err),errors,messages:messages.slice(-160),snapshot};
+  const report={ok:false,stage,error:String(err?.stack||err),errors,messages:messages.slice(-180),snapshot};
   fs.writeFileSync(path.join(out,'diagnostic.json'),JSON.stringify(report,null,2));
   await page.screenshot({path:path.join(out,'failure.png'),fullPage:true}).catch(()=>{});
   console.error(JSON.stringify(report,null,2));
