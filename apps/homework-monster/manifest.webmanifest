@@ -1,0 +1,12 @@
+{
+  "name": "宿題モンスター",
+  "short_name": "宿題モンスター",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffe0c2",
+  "theme_color": "#ffe0c2",
+  "description": "宿題を小さく切り分けて、モンスターにひとくちずつ食べさせる育成ゲーム。",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

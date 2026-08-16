@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#ffd9a8"/>
+  <ellipse cx="256" cy="404" rx="118" ry="22" fill="rgba(120,90,60,.16)"/>
+  <ellipse cx="196" cy="352" rx="42" ry="26" fill="#f4849f"/>
+  <ellipse cx="316" cy="352" rx="42" ry="26" fill="#f4849f"/>
+  <ellipse cx="256" cy="272" rx="142" ry="132" fill="#ffb3c7"/>
+  <ellipse cx="256" cy="312" rx="88" ry="78" fill="#ffe3ec"/>
+  <path d="M256 118 L284 190 L228 190 Z" fill="#f4849f"/>
+  <ellipse cx="206" cy="250" rx="38" ry="41" fill="#fffdf8"/>
+  <ellipse cx="306" cy="250" rx="38" ry="41" fill="#fffdf8"/>
+  <circle cx="211" cy="256" r="22" fill="#3b2f36"/>
+  <circle cx="311" cy="256" r="22" fill="#3b2f36"/>
+  <circle cx="220" cy="244" r="9" fill="#fff"/>
+  <circle cx="320" cy="244" r="9" fill="#fff"/>
+  <path d="M226 330 a34 32 0 0 0 60 0 z" fill="#6b4048"/>
+  <circle cx="404" cy="168" r="46" fill="#4b8dff"/>
+  <text x="404" y="172" font-size="46" font-weight="900" fill="#eaf2ff" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">7</text>
+</svg>
