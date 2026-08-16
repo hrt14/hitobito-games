@@ -1,6 +1,7 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
+set "RUN_ROOT=%CD%"
 
 title Hitobito Games - Human Playtest
 
@@ -31,15 +32,31 @@ if errorlevel 1 (
 echo [1/3] Updating from GitHub...
 where git >nul 2>nul
 if errorlevel 1 (
-  echo       Git was not found. Skipping update.
+  echo       Git was not found. Using the local copy.
 ) else (
   git pull --ff-only
   if errorlevel 1 (
     echo.
-    echo [WARN] git pull failed. Continuing with the local copy.
+    echo [WARN] The working copy could not be updated safely.
+    echo        Starting a clean latest playtest copy instead.
     echo.
+    set "FRESH_ROOT=%LOCALAPPDATA%\HitobitoPlaytestLatest"
+    if exist "!FRESH_ROOT!\.git" (
+      git -C "!FRESH_ROOT!" fetch origin main
+      if errorlevel 1 goto update_failed
+      git -C "!FRESH_ROOT!" reset --hard origin/main
+      if errorlevel 1 goto update_failed
+    ) else (
+      if exist "!FRESH_ROOT!" rmdir /s /q "!FRESH_ROOT!"
+      git clone --depth 1 --branch main https://github.com/hrt14/hitobito-games.git "!FRESH_ROOT!"
+      if errorlevel 1 goto update_failed
+    )
+    set "RUN_ROOT=!FRESH_ROOT!"
   )
 )
+
+cd /d "%RUN_ROOT%"
+for /f %%i in ('git rev-parse --short HEAD 2^>nul') do echo       Version: %%i
 
 echo [2/3] Checking playtest environment...
 if not exist "node_modules\uqr\package.json" (
@@ -68,14 +85,25 @@ if errorlevel 1 (
   echo [WARN] PowerShell was not found. Starting without sleep prevention.
   call npm run human-test
 ) else (
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\human-test-windows.ps1"
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%RUN_ROOT%\scripts\human-test-windows.ps1"
 )
 
 if errorlevel 1 (
   echo.
   echo [ERROR] The playtest server could not start.
+  echo        If another Human Playtest window is already open, close it and run this file again.
   echo.
   pause
 )
 
 endlocal
+exit /b 0
+
+:update_failed
+echo.
+echo [ERROR] Could not download the latest playtest copy from GitHub.
+echo        Check the internet connection and run this file again.
+echo.
+pause
+endlocal
+exit /b 1
