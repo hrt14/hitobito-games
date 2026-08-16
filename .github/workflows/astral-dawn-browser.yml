@@ -48,6 +48,7 @@ jobs:
           path: apps/astral-dawn/.artifacts/*
           if-no-files-found: warn
           retention-days: 7
+          include-hidden-files: true
       - name: Server log on failure
         if: failure()
         run: cat /tmp/astral-server.log || true
