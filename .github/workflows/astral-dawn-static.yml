@@ -1,0 +1,40 @@
+name: Astral Dawn static quality gate
+
+on:
+  push:
+    branches:
+      - feat/astral-dawn-threejs-rpg
+  pull_request:
+    paths:
+      - 'apps/astral-dawn/**'
+      - '.github/workflows/astral-dawn-static.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse browser modules
+        run: |
+          node --check apps/astral-dawn/game-v4.js
+          node --check apps/astral-dawn/game-v5.js
+          node --check apps/astral-dawn/models-v1.js
+          node --check apps/astral-dawn/monsters-v1.js
+          node --check apps/astral-dawn/battle-v2.js
+          node --check apps/astral-dawn/architecture-v1.js
+          node --check apps/astral-dawn/ending-v1.js
+          node --check apps/astral-dawn/camera-safety-v1.js
+          node --check apps/astral-dawn/performance-v1.js
+          node --check apps/astral-dawn/validate-static.mjs
+          node --check apps/astral-dawn/smoke-browser.mjs
+      - name: Validate composed V5 runtime
+        run: node apps/astral-dawn/validate-static.mjs
+      - name: Verify optional HD assets are reachable
+        run: |
+          curl --retry 2 --max-time 20 -fsI 'https://cdn.jsdelivr.net/gh/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0@main/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb' >/dev/null
+          curl --retry 2 --max-time 20 -fsI 'https://cdn.jsdelivr.net/gh/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0@main/addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb' >/dev/null
