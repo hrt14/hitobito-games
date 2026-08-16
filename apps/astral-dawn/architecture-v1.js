@@ -7,6 +7,26 @@ function mat(color,roughness=.8,metalness=0,extra={}){return new THREE.MeshStand
 function add(parent,geo,material,pos=[0,0,0],scale=[1,1,1],rot=[0,0,0]){const o=new THREE.Mesh(geo,material);o.position.set(...pos);o.scale.set(...scale);o.rotation.set(...rot);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
 function y(x,z){return core.groundY(x,z);}
 
+function smoothRoad(){
+  let roadMaterial=null;
+  core.world.traverse(o=>{if(!o.isMesh||!o.material?.color)return;if(o.material.color.getHex()===0x9d8059){roadMaterial=roadMaterial||o.material.clone();o.visible=false;}});
+  roadMaterial=roadMaterial||mat(0x9d8059,1);
+  roadMaterial.side=THREE.DoubleSide;
+  roadMaterial.polygonOffset=true;roadMaterial.polygonOffsetFactor=-1;roadMaterial.polygonOffsetUnits=-1;
+  const control=[[-4,8],[2,2],[6,-5],[12,-14],[18,-22],[24,-31],[31,-36]].map(([x,z])=>new THREE.Vector3(x,0,z));
+  const curve=new THREE.CatmullRomCurve3(control,false,'centripetal',.35),steps=74,pos=[],uv=[],idx=[];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps,p=curve.getPoint(t),tan=curve.getTangent(t).normalize(),side=new THREE.Vector2(-tan.z,tan.x).normalize();
+    const half=2.42+Math.sin(t*Math.PI*5.3)*.13+Math.sin(t*Math.PI*13.1)*.055;
+    for(const s of [-1,1]){const x=p.x+side.x*half*s,z=p.z+side.y*half*s;pos.push(x,y(x,z)+.07,z);uv.push(s<0?0:1,t*12);}
+    if(i<steps){const a=i*2,b=a+1,c=a+2,d=a+3;idx.push(a,c,b,b,c,d);}
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+  const road=new THREE.Mesh(g,roadMaterial);road.receiveShadow=true;road.castShadow=false;road.name='Astral_SmoothRoad';core.world.add(road);
+  // Sparse edge stones make the road read as a travelled old route without becoming a fence.
+  const stone=mat(0x707772,.95);for(let i=4;i<steps;i+=7){const t=i/steps,p=curve.getPoint(t),tan=curve.getTangent(t).normalize(),side=new THREE.Vector2(-tan.z,tan.x).normalize(),sgn=i%2?1:-1,x=p.x+side.x*2.72*sgn,z=p.z+side.y*2.72*sgn;const r=add(core.world,new THREE.DodecahedronGeometry(.18+(i%3)*.035,0),stone,[x,y(x,z)+.12,z],[1.35,.55,1]);r.rotation.y=i*.71;}
+}
+
 function timberHouseDetail(x,z,rot=0,s=1,kind='home'){
   const g=new THREE.Group();g.position.set(x,y(x,z),z);g.rotation.y=rot;g.scale.setScalar(s);core.world.add(g);
   const wood=mat(0x5f402e,.82),dark=mat(0x273a3e,.72),stone=mat(0x707873,.94),warm=mat(0xffc77d,.42,0,{emissive:0xd4873c,emissiveIntensity:1.4}),cloth=mat(kind==='inn'?0x874a42:kind==='shop'?0x4d6d69:0x6e594c,.78,0,{side:THREE.DoubleSide});
@@ -42,7 +62,7 @@ function shrineArchitecture(){const s=core.scene.userData.shrine;if(!s)return;co
 
 function distantRuins(){const stone=mat(0x566763,.98);for(let i=0;i<7;i++){const x=44+i*2.6,z=-51-Math.sin(i*.7)*4,h=2.5+(i%3)*1.2,g=new THREE.Group();g.position.set(x,y(x,z),z);g.rotation.y=.2+i*.13;core.world.add(g);add(g,new THREE.BoxGeometry(.75,h,.75),stone,[0,h/2,0]);if(i%2===0)add(g,new THREE.BoxGeometry(2.2,.5,.6),stone,[.7,h-.2,0],[1,1,1],[0,0,.15]);}}
 
-function build(){timberHouseDetail(-8,13,-.2,1.08,'inn');timberHouseDetail(-15,7,.25,.9,'shop');timberHouseDetail(1,17,-.45,.82,'home');timberHouseDetail(-7,22,.15,1.35,'home');marketStall();forgeCorner();shrineArchitecture();distantRuins();}
+function build(){smoothRoad();timberHouseDetail(-8,13,-.2,1.08,'inn');timberHouseDetail(-15,7,.25,.9,'shop');timberHouseDetail(1,17,-.45,.82,'home');timberHouseDetail(-7,22,.15,1.35,'home');marketStall();forgeCorner();shrineArchitecture();distantRuins();}
 function loop(now){const dt=Math.min((now-last)/1000,.04);last=now;const t=now/1000;for(const s of smokes){s.o.position.x=s.base.x+Math.sin(t*.45+s.phase)*.13;s.o.position.y=s.base.y+Math.sin(t*.7+s.phase)*.09;s.o.scale.setScalar(1+Math.sin(t*.5+s.phase)*.12);s.o.material.opacity=.08+Math.sin(t*.4+s.phase)*.025}const shrine=core?.scene.userData.shrine;if(shrine?.userData.archStar){shrine.userData.archStar.rotation.z+=dt*.08;shrine.userData.archStar.material.opacity=.08+Math.sin(t*1.4)*.035}const forge=core?.world.children.find(x=>x.userData.fire);if(forge){forge.userData.fire.material.emissiveIntensity=3.3+Math.sin(t*9)*1.2;forge.userData.light.intensity=1.8+Math.sin(t*8)*.55}requestAnimationFrame(loop);}
 
 (async()=>{try{core=await waitCore();build();requestAnimationFrame(loop);}catch(err){console.warn('[Astral Dawn] architecture layer skipped.',err)}})();
