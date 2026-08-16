@@ -23,3 +23,15 @@ jobs:
           URL="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/hitobito-games-normal/domains/play.hitobito.jp"
           RESP="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "$URL")"
           printf '%s' "$RESP" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};const r=j.result||{};console.log(JSON.stringify({name:r.name,status:r.status,zone_tag:r.zone_tag||null,validation_data:r.validation_data||null,verification_data:r.verification_data||null},null,2))})"
+
+      - name: Diagnose authoritative DNS
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq dnsutils >/dev/null
+          echo 'NS hitobito.jp:'
+          dig +short NS hitobito.jp
+          echo 'CNAME games.hitobito.jp:'
+          dig +short CNAME games.hitobito.jp
+          echo 'CNAME play.hitobito.jp:'
+          dig +short CNAME play.hitobito.jp
