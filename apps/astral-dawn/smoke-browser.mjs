@@ -12,6 +12,7 @@ page.on('console',m=>{messages.push(`${m.type()}: ${m.text()}`);if(m.type()==='e
 page.on('requestfailed',r=>messages.push(`requestfailed: ${r.url()} :: ${r.failure()?.errorText||''}`));
 const mark=s=>{stage=s;console.log(`[Astral smoke] ${s}`)};
 const assert=(ok,msg)=>{if(!ok)throw new Error(msg)};
+const settleFrames=async(count=2)=>page.evaluate(n=>new Promise(resolve=>{const step=()=>--n<=0?resolve():requestAnimationFrame(step);requestAnimationFrame(step)}),count);
 
 try{
   mark('navigate');
@@ -43,7 +44,7 @@ try{
   try{
     await page.waitForFunction(start=>{const p=window.__ASTRAL_CORE?.player?.position;return !!p&&Math.hypot(p.x-start.x,p.z-start.z)>.12;},before,{timeout:7000});
   } finally { await page.keyboard.up('KeyW'); }
-  await page.waitForTimeout(120);
+  await settleFrames(2);
   const after=await page.evaluate(()=>({x:window.__ASTRAL_CORE.player.position.x,z:window.__ASTRAL_CORE.player.position.z}));
   assert(Math.hypot(after.x-before.x,after.z-before.z)>.12,'keyboard movement did not move the hero');
   await page.screenshot({path:path.join(out,'field.png')});
@@ -59,6 +60,7 @@ try{
   await page.waitForSelector('#battleHud:not(.hidden)',{timeout:12000});
   await page.waitForSelector('#enemyTrait.show',{timeout:8000});
   assert(await page.locator('.combo-command').isVisible(),'party combo command is not visible in battle');
+  await settleFrames(3);
   await page.screenshot({path:path.join(out,'battle.png')});
 
   mark('party-combo');
