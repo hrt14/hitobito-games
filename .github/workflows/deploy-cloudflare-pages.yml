@@ -1,0 +1,36 @@
+name: Deploy normal games to Cloudflare Pages
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    name: Deploy normal games
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build hosting bundles
+        run: npm run build:hosting
+
+      - name: Verify protected games are excluded
+        run: |
+          node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('.dist/cloudflare/manifest.json','utf8'));const slugs=new Set(m.games.map(g=>g.slug));for(const blocked of ['404-kaiki','astral-dawn','oceans-of-earth']){if(slugs.has(blocked)){throw new Error(blocked+' must not be deployed to Cloudflare');}}console.log('Cloudflare bundle verified:',m.games.length,'games');"
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .dist/cloudflare --project-name=hitobito-games-normal
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
