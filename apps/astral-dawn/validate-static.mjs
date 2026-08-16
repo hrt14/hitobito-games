@@ -52,7 +52,7 @@ try{
 
 const index=read('index.html');
 const scripts=[...index.matchAll(/<script[^>]+src="\.\/([^"]+\.js)"/g)].map(m=>m[1]);
-const required=['game-v5.js','models-v1.js','monsters-v1.js','battle-v2.js','architecture-v1.js','ending-v1.js','performance-v1.js'];
+const required=['game-v5.js','models-v1.js','monsters-v1.js','battle-v2.js','architecture-v1.js','ending-v1.js','camera-safety-v1.js','performance-v1.js'];
 for(const file of required){
   if(!scripts.includes(file))fail(`index missing required runtime layer: ${file}`);
   if(!fs.existsSync(path.join(root,file)))fail(`referenced runtime layer does not exist: ${file}`);
