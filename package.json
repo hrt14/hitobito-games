@@ -7,7 +7,8 @@
     "start": "node scripts/local-server.mjs",
     "human-test": "node scripts/human-test-organized.mjs",
     "check": "node scripts/smoke-check.mjs",
-    "build:hosting": "node scripts/build-host-targets.mjs"
+    "build:hosting": "node scripts/build-host-targets.mjs",
+    "build:firebase": "npm run build:hosting && node scripts/build-firebase-levelup-home.mjs"
   },
   "dependencies": {
     "uqr": "^0.1.3"
