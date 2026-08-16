@@ -33,15 +33,22 @@ function applyVariantAfterHit(){if(!variantPending||!core.S.enemyObj)return;cons
 
 function observeLog(){const e=document.querySelector('#battleLog');if(!e)return;let last='';new MutationObserver(()=>{const t=e.textContent;if(t===last)return;last=t;if(t.includes('灰角のヴァルグの攻撃'))onEnemyAttackStart();else if(/\d+ のダメージ/.test(t)&&variantPending)applyVariantAfterHit();else if(t.includes('星喰らいの衝撃波')&&core.S.enemyObj?.userData.boss){core.S.enemyObj.userData.monsterLight&&(core.S.enemyObj.userData.monsterLight.intensity=4.2);setTimeout(()=>{if(core.S.enemyObj?.userData.monsterLight)core.S.enemyObj.userData.monsterLight.intensity=2},500)}}).observe(e,{childList:true,characterData:true,subtree:true});}
 
+function scheduleDefeatedRemoval(enemy){
+  if(!enemy||enemy.userData.boss||enemy.userData.defeatHideScheduled||core.S.enemy?.hp>0)return;
+  enemy.userData.defeatHideScheduled=true;
+  // Core vanish animation is frame-delta based. Guarantee logical removal using wall time
+  // so a very low FPS device cannot respawn a defeated enemy when battle ends.
+  setTimeout(()=>{enemy.visible=false;enemy.userData.defeated=true;},850);
+}
+
 function monitor(){
   const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;
   if(enemy!==lastEnemy){lastEnemy=enemy;button?.classList.remove('used');}
+  scheduleDefeatedRemoval(enemy);
   const usable=core.S.mode==='battle'&&core.S.joined&&core.S.mp>=20&&comboUsed!==enemy;
   button?.classList.toggle('ready',!!usable);
   if(button)button.disabled=core.S.mode==='battle'&&!core.S.can;
   updateTrait();
-  // Gameplay/UI availability must not depend on WebGL frame rate. On slow devices
-  // requestAnimationFrame can stall while timers and battle state continue advancing.
   setTimeout(monitor,80);
 }
 
