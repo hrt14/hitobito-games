@@ -66,8 +66,8 @@
         <div class="card-stack" id="cardStack">
           <div class="task-card" id="taskCard" role="button" tabindex="0" aria-label="課題カード。スワイプして分類してください">
             <div class="card-grip"></div>
-            <p class="card-kicker">これは誰の課題？</p>
-            <h2 id="taskText">返信するかどうか</h2>
+            <p class="card-kicker">この行動・結果は、誰が決める？</p>
+            <h2 id="taskText">友人が、返信するかどうか</h2>
             <p class="drag-hint" id="dragHint">カードを4方向へスワイプ</p>
           </div>
         </div>
@@ -141,5 +141,59 @@
   </dialog>
 
   <script src="./game.js"></script>
+  <script>
+    (() => {
+      const polishedTaskCopy = new Map([
+        ['今夜30分だけ復習する', '自分が、今夜30分だけ復習する'],
+        ['試験問題の難しさ', '明日の試験問題が、難しいかどうか'],
+        ['企画を採用するかどうか', '決裁者が、提出した企画を採用するか'],
+        ['傘を持って出る', '自分が、傘を持って出るか'],
+        ['実際に雨が降るか', '明日、実際に雨が降るか'],
+        ['もう一度だけ確認の連絡をする', '自分から、もう一度だけ確認の連絡をする'],
+        ['相手が返信するタイミング', '友人が、いつ返信するか'],
+        ['今回は断る', '自分が、今回の誘いを断るか'],
+        ['他人が「いいね」するか', '投稿を見た人が、「いいね」するか'],
+        ['投稿する内容を見直す', '自分が、投稿内容を見直すか'],
+        ['期限と完成条件を明確に伝える', '自分が、期限と完成条件を明確に伝える'],
+        ['本人が本気で取り組むか', '依頼を受けた部下が、実際にどう取り組むか'],
+        ['全員が参加できる時間を相談して決める', '参加者みんなで、会議の時間を決める'],
+        ['却下された理由を聞く', '自分が、却下された理由を確認する'],
+        ['上司が自分を優秀だと思うか', '上司が、自分をどう評価するか'],
+        ['価格と条件を双方で合意する', '自社と取引先で、価格と条件を決める'],
+        ['家事分担を話し合って決める', '家族みんなで、家事の分担を決める'],
+        ['宿題を実際にやるか', '子ども本人が、宿題に取り組むか'],
+        ['静かに勉強できる場所を用意する', '自分が、静かに勉強できる場所を用意する'],
+        ['話を聞けると伝える', '自分が、「話なら聞けるよ」と伝える'],
+        ['今すぐ元気になるか', '落ち込んでいる家族が、いつ元気になるか'],
+        ['必要な事実と改善点を伝える', '自分が、必要な事実と改善点を伝える'],
+        ['指摘を受け入れて改善するか', '同僚が、指摘を受け入れて改善するか'],
+        ['頼まれる前に全部代わりに決める', '自分が、友人の代わりに全部決めてしまう'],
+        ['助けが必要なら言って、と伝える', '自分が、「必要なら手伝うよ」と伝える'],
+        ['次回の役割分担をチームで決め直す', 'チーム全員で、次回の役割分担を決め直す'],
+        ['起きてしまった過去そのもの', 'すでに起きた失敗そのものを変える'],
+        ['次回のチェック項目を1つ作る', '自分が、次回のチェック項目を1つ作る'],
+        ['謝罪するかどうか', '自分が、相手に謝るか'],
+        ['謝罪を受け入れるか', '傷ついた相手が、謝罪を受け入れるか'],
+        ['遅延そのものをなくす', '今起きている電車の遅延を、自分の力でなくす'],
+        ['別ルートを調べる', '自分が、別の移動ルートを調べる']
+      ]);
+
+      const polish = (root = document) => {
+        const liveTask = document.getElementById('taskText');
+        if (liveTask) {
+          const original = liveTask.textContent.trim();
+          if (polishedTaskCopy.has(original)) liveTask.textContent = polishedTaskCopy.get(original);
+        }
+        root.querySelectorAll?.('#mistakeReview h3').forEach((task) => {
+          const original = task.textContent.trim();
+          if (polishedTaskCopy.has(original)) task.textContent = polishedTaskCopy.get(original);
+        });
+      };
+
+      const observer = new MutationObserver(() => polish(document));
+      observer.observe(document.body, {subtree:true, childList:true, characterData:true});
+      polish(document);
+    })();
+  </script>
 </body>
 </html>
