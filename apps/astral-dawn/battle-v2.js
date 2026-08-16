@@ -57,9 +57,16 @@ function scheduleDefeatedRemoval(enemy){
   if(!enemy||enemy.userData.boss||enemy.userData.defeatHideScheduled||core.S.enemy?.hp>0)return;
   enemy.userData.defeatHideScheduled=true;setTimeout(()=>{enemy.visible=false;enemy.userData.defeated=true;},850);
 }
+function syncCommandButtons(){
+  const inBattle=core.S.mode==='battle';
+  document.querySelectorAll('.commands button').forEach(b=>{
+    if(b.classList.contains('combo-command'))return;
+    b.disabled=inBattle?!core.S.can:false;
+  });
+}
 
 function monitor(){
-  const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;syncTimedEffects();
+  const button=document.querySelector('.combo-command'),enemy=core.S.enemyObj;syncTimedEffects();syncCommandButtons();
   if(enemy!==lastEnemy){lastEnemy=enemy;button?.classList.remove('used');}
   scheduleDefeatedRemoval(enemy);
   const usable=core.S.mode==='battle'&&core.S.joined&&core.S.mp>=20&&comboUsed!==enemy;
