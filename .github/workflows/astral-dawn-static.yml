@@ -28,8 +28,10 @@ jobs:
           node --check apps/astral-dawn/battle-v2.js
           node --check apps/astral-dawn/architecture-v1.js
           node --check apps/astral-dawn/ending-v1.js
+          node --check apps/astral-dawn/camera-safety-v1.js
           node --check apps/astral-dawn/performance-v1.js
           node --check apps/astral-dawn/validate-static.mjs
+          node --check apps/astral-dawn/smoke-browser.mjs
       - name: Validate composed V5 runtime
         run: node apps/astral-dawn/validate-static.mjs
       - name: Verify optional HD assets are reachable
