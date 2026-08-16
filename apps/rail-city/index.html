@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#071018" />
+  <title>RAIL CITY</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-kicker">RAILWAY × CITY</div>
+        <div class="brand-name">RAIL CITY</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>資金</span><strong id="money">¥0</strong></div>
+        <div class="stat"><span>人口</span><strong id="population">0</strong></div>
+        <div class="stat"><span>乗客/日</span><strong id="ridership">0</strong></div>
+      </div>
+    </header>
+
+    <section class="goal-card" id="goalCard">
+      <div class="goal-icon">◎</div>
+      <div class="goal-copy">
+        <div class="goal-title" id="goalTitle">2つの駅を線路でつなぐ</div>
+        <div class="goal-sub" id="goalSub">線路 → 駅 → 列車。街はそのあと勝手に育ちます。</div>
+      </div>
+      <div class="goal-progress" id="goalProgress">0/2</div>
+    </section>
+
+    <section class="game-shell">
+      <canvas id="game" aria-label="鉄道都市ゲーム"></canvas>
+      <div id="toast" class="toast"></div>
+      <div class="legend" id="legend">
+        <span><i class="dot rail"></i>線路</span>
+        <span><i class="dot station"></i>駅</span>
+        <span><i class="dot city"></i>街</span>
+      </div>
+      <button id="speedBtn" class="speed-btn" aria-label="時間速度">▶ 1x</button>
+    </section>
+
+    <section class="info-strip" id="infoStrip">
+      <div class="info-main">
+        <div class="info-label" id="infoLabel">都市計画室</div>
+        <div class="info-text" id="infoText">下の「線路」を選び、マップをタップ。隣へつなげるだけ。</div>
+      </div>
+      <div class="pulse-profit" id="profitText">次の決算 +¥0</div>
+    </section>
+
+    <nav class="toolbar" aria-label="建設メニュー">
+      <button class="tool active" data-tool="rail">
+        <span class="tool-icon rail-icon"></span>
+        <span class="tool-name">線路</span>
+        <span class="tool-cost">¥20</span>
+      </button>
+      <button class="tool" data-tool="station">
+        <span class="tool-icon station-icon"></span>
+        <span class="tool-name">駅</span>
+        <span class="tool-cost">¥140</span>
+      </button>
+      <button class="tool" data-tool="develop">
+        <span class="tool-icon develop-icon"></span>
+        <span class="tool-name">開発</span>
+        <span class="tool-cost">¥90</span>
+      </button>
+      <button class="tool" data-tool="bulldoze">
+        <span class="tool-icon bulldoze-icon"></span>
+        <span class="tool-name">撤去</span>
+        <span class="tool-cost">50%</span>
+      </button>
+    </nav>
+
+    <button class="reset" id="resetBtn">最初から</button>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>

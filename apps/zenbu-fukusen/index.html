@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="嫌な出来事を、未来の物語のどこに置くか。時間軸を伸ばして考える反射を鍛えるLEVEL UPゲーム。" />
+  <title>全部、伏線。 | LEVEL UP</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="LEVEL UP ホーム">
+        <span class="brand-mark">LU</span>
+        <span>LEVEL UP</span>
+      </a>
+      <button class="ghost-btn" id="bookBtn" type="button" aria-label="伏線帳を開く">伏線帳 <span id="bookCount">0</span></button>
+    </header>
+
+    <main id="app" class="game" aria-live="polite">
+      <section id="introScreen" class="screen intro-screen is-active">
+        <div class="eyebrow">STORY REFRAMING GAME</div>
+        <div class="hero-knot" aria-hidden="true">
+          <svg viewBox="0 0 260 180" role="img">
+            <path class="thread-base" d="M18 119 C56 48, 98 160, 126 92 C154 25, 182 147, 244 58" />
+            <path class="thread-glow" d="M18 119 C56 48, 98 160, 126 92 C154 25, 182 147, 244 58" />
+            <circle cx="18" cy="119" r="5" />
+            <circle cx="244" cy="58" r="7" />
+          </svg>
+        </div>
+        <h1>全部、<span>伏線。</span></h1>
+        <p class="lead">起きたことは変えられない。<br>でも、それが物語のどこに置かれるかは、まだ決まっていない。</p>
+        <div class="principle-card">
+          <strong>これは「無理やり良かったことにする」ゲームではありません。</strong>
+          <span>嫌だった事実はそのまま。未来に別の意味が生まれる可能性だけを増やします。</span>
+        </div>
+        <button class="primary-btn hero-btn" id="startBtn" type="button">最初の伏線を見る <span>→</span></button>
+        <button class="text-btn" id="customBtnIntro" type="button">自分の出来事でやる</button>
+      </section>
+
+      <section id="gameScreen" class="screen game-screen">
+        <div class="session-head">
+          <div>
+            <div class="micro-label">伏線トレーニング</div>
+            <div class="round-label"><span id="roundNow">1</span> / <span id="roundTotal">5</span></div>
+          </div>
+          <div class="progress-dots" id="progressDots" aria-label="進行状況"></div>
+        </div>
+
+        <div class="story-stage" id="storyStage">
+          <div class="scene-visual" id="sceneVisual" aria-hidden="true">
+            <div class="scene-orbit orbit-a"></div>
+            <div class="scene-orbit orbit-b"></div>
+            <div class="scene-icon" id="sceneIcon">✕</div>
+          </div>
+          <div class="scene-copy">
+            <div class="scene-tag">起きたこと</div>
+            <h2 id="incidentTitle">第一志望に落ちた。</h2>
+            <p id="incidentTruth">悔しい。努力してきた分だけ、簡単には切り替えられない。</p>
+          </div>
+        </div>
+
+        <div class="question-block" id="questionBlock">
+          <p class="question-kicker">この出来事が、3年後に最高の伏線回収になるとしたら？</p>
+          <h3>どの未来へ糸を伸ばす？</h3>
+        </div>
+
+        <div class="route-grid" id="routeGrid"></div>
+
+        <div class="timeline-panel" id="timelinePanel" hidden>
+          <div class="timeline-top">
+            <div>
+              <span class="route-type" id="routeType">出会い</span>
+              <h3 id="routeTitle">別の場所で、重要な人に会う</h3>
+            </div>
+            <button class="mini-btn" id="otherRouteBtn" type="button">別の未来</button>
+          </div>
+
+          <div class="fate-line" aria-hidden="true">
+            <div class="fate-progress" id="fateProgress"></div>
+            <span class="node is-lit" style="--x:0%"></span>
+            <span class="node" id="node1" style="--x:33%"></span>
+            <span class="node" id="node2" style="--x:66%"></span>
+            <span class="node" id="node3" style="--x:100%"></span>
+          </div>
+
+          <div class="timeline-labels" aria-hidden="true">
+            <span>NOW</span><span>3か月</span><span>1年</span><span>3年</span>
+          </div>
+
+          <article class="beat-card" id="beatCard">
+            <div class="beat-time" id="beatTime">3か月後</div>
+            <div class="beat-emoji" id="beatEmoji">↗</div>
+            <h4 id="beatTitle"></h4>
+            <p id="beatBody"></p>
+          </article>
+
+          <button class="primary-btn" id="nextBeatBtn" type="button">時間を進める <span>→</span></button>
+        </div>
+
+        <div class="recovery-panel" id="recoveryPanel" hidden>
+          <div class="recovery-burst" aria-hidden="true">✦</div>
+          <div class="recovery-label">伏線回収</div>
+          <h3 id="recoveryTitle"></h3>
+          <p id="recoveryStory"></p>
+          <div class="recovery-note">
+            <span>覚えておくこと</span>
+            <strong>今はまだ、意味が確定していない。</strong>
+          </div>
+          <div class="reward-row">
+            <div><span>伏線</span><strong id="fusenReward">+1</strong></div>
+            <div><span>視点</span><strong id="viewReward">+1</strong></div>
+            <div><span>連続</span><strong id="comboReward">×1</strong></div>
+          </div>
+          <button class="primary-btn" id="nextIncidentBtn" type="button">次の出来事へ <span>→</span></button>
+          <button class="text-btn" id="replayRouteBtn" type="button">同じ出来事を別ルートで回収</button>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="screen result-screen">
+        <div class="result-ring" aria-hidden="true">
+          <span id="resultCount">5</span>
+          <small>RECOVERED</small>
+        </div>
+        <div class="eyebrow">SESSION COMPLETE</div>
+        <h2>「失敗」で終わらせない<br>回路が少し太くなった。</h2>
+        <p>未来を楽観する必要はない。<br><strong>「まだ意味は決まっていない」</strong>と保留できれば、それで十分。</p>
+        <div class="stats-grid">
+          <div><span>回収した伏線</span><strong id="statRecovered">5</strong></div>
+          <div><span>使った未来型</span><strong id="statTypes">4</strong></div>
+          <div><span>最高コンボ</span><strong id="statCombo">×3</strong></div>
+        </div>
+        <button class="primary-btn" id="againBtn" type="button">もう5本やる <span>↻</span></button>
+        <button class="secondary-btn" id="customBtnResult" type="button">自分の出来事でやる</button>
+      </section>
+
+      <section id="bookScreen" class="screen book-screen">
+        <div class="screen-head">
+          <div>
+            <div class="micro-label">MY STORY</div>
+            <h2>伏線帳</h2>
+          </div>
+          <button class="icon-btn" id="closeBookBtn" type="button" aria-label="閉じる">×</button>
+        </div>
+        <p class="book-intro">回収した物語を保存しています。同じ出来事に、別の回収を増やしていけます。</p>
+        <div id="bookList" class="book-list"></div>
+        <div id="emptyBook" class="empty-state">
+          <div>⌁</div>
+          <strong>まだ伏線はありません</strong>
+          <span>1本回収すると、ここに残ります。</span>
+        </div>
+      </section>
+
+      <section id="customScreen" class="screen custom-screen">
+        <div class="screen-head">
+          <div>
+            <div class="micro-label">YOUR STORY</div>
+            <h2>自分の出来事</h2>
+          </div>
+          <button class="icon-btn" id="closeCustomBtn" type="button" aria-label="閉じる">×</button>
+        </div>
+        <div class="custom-step">
+          <label for="customEvent">起きたことを、事実だけで短く</label>
+          <textarea id="customEvent" maxlength="80" placeholder="例：楽しみにしていた企画がなくなった"></textarea>
+          <div class="char-count"><span id="customCount">0</span>/80</div>
+        </div>
+        <div class="custom-step">
+          <span class="field-label">もし伏線になるなら、どの方向？</span>
+          <div class="chip-grid" id="customTypes"></div>
+        </div>
+        <div class="custom-step custom-future" id="customFuture" hidden>
+          <label for="customFutureText">3年後の自分なら、どう回収している？</label>
+          <textarea id="customFutureText" maxlength="140" placeholder="例：空いた時間で始めた小さな仕事が、今の本業になっている"></textarea>
+          <div class="prompt-hint" id="promptHint"></div>
+        </div>
+        <button class="primary-btn" id="saveCustomBtn" type="button" disabled>この未来を伏線帳に残す <span>✦</span></button>
+        <p class="safety-copy">答えが出ない日は「まだ分からない」で保存しなくて大丈夫です。</p>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

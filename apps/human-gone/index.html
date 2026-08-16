@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>人がいなくなったら</title>
+  <style>
+    :root {
+      --bg-top: #8ec5ff;
+      --bg-bottom: #d7ecff;
+      --panel: rgba(10, 18, 30, 0.72);
+      --text: #eef6ff;
+      --accent: #9df08b;
+      --muted: rgba(255,255,255,0.7);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+    .wrap {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+    }
+    .hud {
+      padding: 14px 14px 6px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+    .titleBox {
+      padding: 14px 16px;
+      max-width: 520px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(22px, 3vw, 30px);
+      line-height: 1.1;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .stageBox {
+      padding: 12px 16px;
+      min-width: 180px;
+      text-align: right;
+    }
+    .stageLabel {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .stageName {
+      font-weight: 700;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+    .scene {
+      position: relative;
+      padding: 6px 10px 4px;
+    }
+    svg {
+      width: 100%;
+      height: calc(100vh - 220px);
+      min-height: 340px;
+      display: block;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #88c4ff 0%, #d2efff 55%, #a0d986 56%, #7fbc68 100%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22), 0 18px 42px rgba(0,0,0,0.18);
+    }
+    .controls {
+      display: grid;
+      gap: 10px;
+      padding: 8px 12px 16px;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #ffffff;
+      color: #143048;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+    }
+    button.secondary { background: rgba(255,255,255,0.14); color: var(--text); border: 1px solid rgba(255,255,255,0.18); }
+    .timeline {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      transition: 220ms ease;
+    }
+    .chip.active {
+      background: rgba(157,240,139,0.24);
+      border-color: rgba(157,240,139,0.75);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .hint {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .fadeable, .growable, .shiftable, .crackable, .signalable, .hideable, .animal {
+      transition: all 900ms cubic-bezier(.2,.8,.2,1);
+      transform-origin: center bottom;
+    }
+    .person { transition: opacity 800ms ease, transform 800ms ease; }
+    .plant { transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 900ms ease; transform-origin: center bottom; }
+    .cloud { animation: drift 28s linear infinite; }
+    .bird { animation: drift 18s linear infinite; }
+    @keyframes drift {
+      from { transform: translateX(-10px); }
+      to { transform: translateX(30px); }
+    }
+    .sparkle { animation: blink 1.2s ease-in-out infinite; }
+    @keyframes blink {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.9; }
+    }
+
+    .labelBubble {
+      fill: rgba(10,18,30,0.70);
+      stroke: rgba(255,255,255,0.15);
+      stroke-width: 1;
+    }
+    .objectLabel {
+      font-size: 14px;
+      fill: white;
+      font-weight: 700;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div class="titleBox panel">
+      <h1>人がいなくなったら</h1>
+      <div class="subtitle" id="description">
+        触ると、誰もいなくなった都市が時間とともに変化していきます。ビル、道路、信号、植物のどれかをタップして反応を見てください。
+      </div>
+    </div>
+    <div class="stageBox panel">
+      <div class="stageLabel">時間</div>
+      <div class="stageName" id="stageName">直後</div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <svg viewBox="0 0 1200 700" aria-label="人がいなくなった都市のSVGシーン">
+      <defs>
+        <linearGradient id="buildingGlass" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#6fa1d1"/>
+          <stop offset="100%" stop-color="#456989"/>
+        </linearGradient>
+        <linearGradient id="roadGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#57606b"/>
+          <stop offset="100%" stop-color="#37404a"/>
+        </linearGradient>
+      </defs>
+
+      <g id="sky">
+        <ellipse class="cloud" cx="180" cy="95" rx="55" ry="20" fill="rgba(255,255,255,0.85)"/>
+        <ellipse class="cloud" cx="240" cy="95" rx="45" ry="18" fill="rgba(255,255,255,0.92)"/>
+        <ellipse class="cloud" cx="920" cy="120" rx="62" ry="23" fill="rgba(255,255,255,0.8)"/>
+        <ellipse class="cloud" cx="980" cy="120" rx="44" ry="18" fill="rgba(255,255,255,0.92)"/>
+        <g class="bird" opacity="0.4">
+          <path d="M1020 80 q15 -14 30 0 q15 -14 30 0" fill="none" stroke="#35556c" stroke-width="4" stroke-linecap="round"/>
+          <path d="M1060 95 q12 -10 24 0 q12 -10 24 0" fill="none" stroke="#35556c" stroke-width="4" stroke-linecap="round"/>
+        </g>
+      </g>
+
+      <g id="farTrees" class="hideable fadeable" opacity="0.12">
+        <circle cx="60" cy="390" r="28" fill="#4f8a3d"/>
+        <circle cx="102" cy="382" r="24" fill="#5d9b48"/>
+        <circle cx="1110" cy="398" r="24" fill="#4f8a3d"/>
+        <circle cx="1143" cy="386" r="29" fill="#649f50"/>
+      </g>
+
+      <g id="buildings">
+        <rect x="80" y="180" width="180" height="245" rx="8" fill="#53687b" class="fadeable" id="building1"/>
+        <rect x="290" y="120" width="200" height="305" rx="8" fill="#44596d" class="fadeable" id="building2"/>
+        <rect x="520" y="210" width="160" height="215" rx="8" fill="#617587" class="fadeable" id="building3"/>
+        <rect x="720" y="145" width="180" height="280" rx="8" fill="#4d6073" class="fadeable" id="building4"/>
+        <rect x="930" y="190" width="150" height="235" rx="8" fill="#5a7082" class="fadeable" id="building5"/>
+
+        <g id="windows" class="fadeable">
+          <g fill="url(#buildingGlass)">
+            <g id="w1">
+              <rect x="103" y="205" width="24" height="34" rx="3"/><rect x="143" y="205" width="24" height="34" rx="3"/><rect x="183" y="205" width="24" height="34" rx="3"/>
+              <rect x="103" y="255" width="24" height="34" rx="3"/><rect x="143" y="255" width="24" height="34" rx="3"/><rect x="183" y="255" width="24" height="34" rx="3"/>
+              <rect x="103" y="305" width="24" height="34" rx="3"/><rect x="143" y="305" width="24" height="34" rx="3"/><rect x="183" y="305" width="24" height="34" rx="3"/>
+            </g>
+            <g id="w2">
+              <rect x="320" y="150" width="26" height="34" rx="3"/><rect x="364" y="150" width="26" height="34" rx="3"/><rect x="408" y="150" width="26" height="34" rx="3"/>
+              <rect x="320" y="198" width="26" height="34" rx="3"/><rect x="364" y="198" width="26" height="34" rx="3"/><rect x="408" y="198" width="26" height="34" rx="3"/>
+              <rect x="320" y="246" width="26" height="34" rx="3"/><rect x="364" y="246" width="26" height="34" rx="3"/><rect x="408" y="246" width="26" height="34" rx="3"/>
+              <rect x="320" y="294" width="26" height="34" rx="3"/><rect x="364" y="294" width="26" height="34" rx="3"/><rect x="408" y="294" width="26" height="34" rx="3"/>
+            </g>
+            <g id="w3">
+              <rect x="550" y="240" width="24" height="32" rx="3"/><rect x="590" y="240" width="24" height="32" rx="3"/>
+              <rect x="550" y="286" width="24" height="32" rx="3"/><rect x="590" y="286" width="24" height="32" rx="3"/>
+              <rect x="550" y="332" width="24" height="32" rx="3"/><rect x="590" y="332" width="24" height="32" rx="3"/>
+            </g>
+            <g id="w4">
+              <rect x="754" y="175" width="24" height="34" rx="3"/><rect x="796" y="175" width="24" height="34" rx="3"/><rect x="838" y="175" width="24" height="34" rx="3"/>
+              <rect x="754" y="223" width="24" height="34" rx="3"/><rect x="796" y="223" width="24" height="34" rx="3"/><rect x="838" y="223" width="24" height="34" rx="3"/>
+              <rect x="754" y="271" width="24" height="34" rx="3"/><rect x="796" y="271" width="24" height="34" rx="3"/><rect x="838" y="271" width="24" height="34" rx="3"/>
+            </g>
+            <g id="w5">
+              <rect x="962" y="220" width="22" height="32" rx="3"/><rect x="1000" y="220" width="22" height="32" rx="3"/>
+              <rect x="962" y="265" width="22" height="32" rx="3"/><rect x="1000" y="265" width="22" height="32" rx="3"/>
+              <rect x="962" y="310" width="22" height="32" rx="3"/><rect x="1000" y="310" width="22" height="32" rx="3"/>
+            </g>
+          </g>
+        </g>
+        <g id="ivyOnBuildings" opacity="0" class="growable">
+          <path d="M120 240 q30 40 20 100 q-5 50 15 90" fill="none" stroke="#2f7d35" stroke-width="10" stroke-linecap="round"/>
+          <path d="M350 150 q20 35 18 82 q-6 35 10 80 q8 40 6 100" fill="none" stroke="#3c8c43" stroke-width="12" stroke-linecap="round"/>
+          <path d="M825 170 q10 30 6 80 q-7 60 18 118" fill="none" stroke="#2f7d35" stroke-width="12" stroke-linecap="round"/>
+          <circle cx="129" cy="271" r="10" fill="#4d9d49"/><circle cx="140" cy="323" r="9" fill="#4d9d49"/><circle cx="155" cy="388" r="11" fill="#5aa457"/>
+          <circle cx="365" cy="200" r="9" fill="#53a250"/><circle cx="372" cy="280" r="12" fill="#53a250"/><circle cx="386" cy="350" r="10" fill="#66aa61"/>
+          <circle cx="836" cy="240" r="11" fill="#53a250"/><circle cx="844" cy="320" r="12" fill="#66aa61"/>
+        </g>
+      </g>
+
+      <g id="mid">
+        <rect x="0" y="425" width="1200" height="80" fill="#8cbc6d"/>
+        <path id="road" class="shiftable" d="M0 505 L1200 505 L1200 700 L0 700 Z" fill="url(#roadGrad)"/>
+        <rect x="0" y="558" width="1200" height="12" fill="#ffffff" opacity="0.85" id="roadLine" class="fadeable"/>
+        <g id="cracks" opacity="0" class="crackable">
+          <path d="M112 540 l38 18 l-16 24 l42 20" stroke="#20262d" stroke-width="5" fill="none"/>
+          <path d="M430 584 l28 -18 l22 13 l-14 28 l48 18" stroke="#20262d" stroke-width="5" fill="none"/>
+          <path d="M760 548 l32 22 l-18 22 l32 20" stroke="#20262d" stroke-width="5" fill="none"/>
+          <path d="M1008 592 l22 -16 l18 14 l-10 18" stroke="#20262d" stroke-width="5" fill="none"/>
+        </g>
+      </g>
+
+      <g id="streetObjects">
+        <g id="signal" class="signalable" style="cursor:pointer">
+          <rect x="640" y="420" width="12" height="130" fill="#34404a"/>
+          <rect x="615" y="430" width="60" height="78" rx="8" fill="#232b33"/>
+          <circle id="signalRed" cx="645" cy="452" r="12" fill="#ff5454" class="sparkle"/>
+          <circle id="signalYellow" cx="645" cy="469" r="12" fill="#f2c94c" opacity="0.5"/>
+          <circle id="signalGreen" cx="645" cy="487" r="12" fill="#4bd37b" opacity="0.7"/>
+          <rect x="668" y="448" width="38" height="8" rx="4" fill="#dfe8ef"/>
+          <rect x="668" y="483" width="38" height="8" rx="4" fill="#dfe8ef"/>
+        </g>
+
+        <g id="car" class="hideable fadeable" style="cursor:pointer">
+          <rect x="820" y="580" width="140" height="42" rx="18" fill="#ef5748"/>
+          <rect x="850" y="548" width="72" height="40" rx="12" fill="#c74236"/>
+          <circle cx="850" cy="624" r="15" fill="#1f2b36"/>
+          <circle cx="930" cy="624" r="15" fill="#1f2b36"/>
+        </g>
+
+        <g id="bench" class="hideable fadeable" style="cursor:pointer">
+          <rect x="205" y="488" width="72" height="16" rx="5" fill="#a26d42"/>
+          <rect x="213" y="504" width="8" height="36" fill="#694122"/>
+          <rect x="257" y="504" width="8" height="36" fill="#694122"/>
+        </g>
+      </g>
+
+      <g id="people" class="hideable" style="cursor:pointer">
+        <g class="person" id="person1">
+          <circle cx="174" cy="518" r="14" fill="#ffdcbe"/>
+          <rect x="160" y="532" width="28" height="48" rx="12" fill="#2f80ed"/>
+          <line x1="167" y1="580" x2="160" y2="618" stroke="#1d2530" stroke-width="6" stroke-linecap="round"/>
+          <line x1="181" y1="580" x2="190" y2="618" stroke="#1d2530" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g class="person" id="person2">
+          <circle cx="235" cy="530" r="13" fill="#ffdcbe"/>
+          <rect x="223" y="543" width="24" height="40" rx="10" fill="#eb5757"/>
+          <line x1="228" y1="581" x2="222" y2="615" stroke="#1d2530" stroke-width="6" stroke-linecap="round"/>
+          <line x1="242" y1="581" x2="246" y2="615" stroke="#1d2530" stroke-width="6" stroke-linecap="round"/>
+        </g>
+      </g>
+
+      <g id="nature" style="cursor:pointer">
+        <g class="plant" id="plantLeft" transform="translate(0 0) scale(0.2)" opacity="0.1">
+          <path d="M310 555 q-18 -45 12 -84 q22 25 20 72 q35 -42 72 -44 q-9 45 -62 62" fill="#49a74a"/>
+        </g>
+        <g class="plant" id="plantCenter" transform="translate(0 0) scale(0.15)" opacity="0.1">
+          <path d="M610 596 q-12 -40 8 -68 q15 18 15 56 q28 -35 58 -36 q-8 36 -48 52" fill="#4ca64a"/>
+        </g>
+        <g class="plant" id="plantRight" transform="translate(0 0) scale(0.16)" opacity="0.1">
+          <path d="M954 610 q-14 -44 10 -80 q20 22 16 70 q29 -37 58 -38 q-7 39 -53 58" fill="#4ca64a"/>
+        </g>
+        <g id="bigTree" class="plant" opacity="0" transform="translate(0 50) scale(0.4)">
+          <rect x="60" y="410" width="34" height="94" rx="8" fill="#6f4b31"/>
+          <circle cx="77" cy="380" r="48" fill="#5ca14c"/>
+          <circle cx="48" cy="394" r="34" fill="#4b8f41"/>
+          <circle cx="106" cy="397" r="32" fill="#6daf57"/>
+        </g>
+      </g>
+
+      <g id="animals" opacity="0">
+        <g class="animal" id="deer" transform="translate(40 20) scale(0.88)" style="cursor:pointer">
+          <rect x="915" y="552" width="64" height="28" rx="12" fill="#8f6a49"/>
+          <rect x="970" y="544" width="22" height="18" rx="8" fill="#8f6a49"/>
+          <line x1="928" y1="578" x2="924" y2="616" stroke="#6f5035" stroke-width="6" stroke-linecap="round"/>
+          <line x1="950" y1="578" x2="952" y2="616" stroke="#6f5035" stroke-width="6" stroke-linecap="round"/>
+          <line x1="978" y1="560" x2="986" y2="535" stroke="#6f5035" stroke-width="4" stroke-linecap="round"/>
+          <line x1="985" y1="560" x2="1000" y2="538" stroke="#6f5035" stroke-width="4" stroke-linecap="round"/>
+        </g>
+        <g class="animal" id="birdsReturn" transform="translate(0 0)" style="cursor:pointer">
+          <path d="M144 240 q12 -12 24 0 q12 -12 24 0" fill="none" stroke="#24384a" stroke-width="4" stroke-linecap="round"/>
+          <path d="M190 218 q12 -12 24 0 q12 -12 24 0" fill="none" stroke="#24384a" stroke-width="4" stroke-linecap="round"/>
+          <path d="M980 255 q14 -13 28 0 q14 -13 28 0" fill="none" stroke="#24384a" stroke-width="4" stroke-linecap="round"/>
+        </g>
+      </g>
+
+      <g id="tapTargets">
+        <rect x="615" y="420" width="95" height="130" fill="transparent" data-target="signal"/>
+        <rect x="90" y="120" width="990" height="305" fill="transparent" data-target="buildings"/>
+        <rect x="0" y="505" width="1200" height="195" fill="transparent" data-target="road"/>
+        <rect x="280" y="455" width="780" height="180" fill="transparent" data-target="nature"/>
+        <rect x="130" y="480" width="160" height="150" fill="transparent" data-target="people"/>
+      </g>
+
+      <g id="tooltip" opacity="0" pointer-events="none">
+        <rect id="tooltipBg" class="labelBubble" x="0" y="0" width="10" height="10" rx="12"></rect>
+        <text id="tooltipText" class="objectLabel" x="0" y="0">text</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <div class="buttons">
+      <button id="prevBtn" class="secondary">← もどる</button>
+      <button id="nextBtn">時間を進める →</button>
+      <button id="autoBtn" class="secondary">自動再生</button>
+      <button id="resetBtn" class="secondary">最初から</button>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <div class="hint">左右スワイプ / ボタン / タップで操作できます</div>
+  </div>
+</div>
+
+<script>
+const stages = [
+  {
+    name: '直後',
+    description: '人が突然いなくなった直後。車も信号も街も、まだ人の気配を残しています。触って、最初に止まるものを見つけてください。',
+    tooltip: { signal: '信号はまだ動いている', buildings: 'ビルはまだ整っている', road: '道路は無傷', nature: '植物はまだ少ない', people: '人影が残っている' },
+    apply() {
+      setOpacity(['people','car','bench','roadLine','windows'], 1);
+      setOpacity(['cracks','ivyOnBuildings','animals','bigTree'], 0);
+      setOpacity(['farTrees'], 0.12);
+      setTransform('plantLeft', 'translate(0 0) scale(0.2)'); setOpacity(['plantLeft'], 0.1);
+      setTransform('plantCenter', 'translate(0 0) scale(0.15)'); setOpacity(['plantCenter'], 0.1);
+      setTransform('plantRight', 'translate(0 0) scale(0.16)'); setOpacity(['plantRight'], 0.1);
+      signalOn('red');
+      tintBuildings(1, '#53687b', '#44596d', '#617587', '#4d6073', '#5a7082');
+      shiftRoad(0);
+    }
+  },
+  {
+    name: '3日後',
+    description: '電力や保守が止まり始め、信号が乱れます。人はもう見当たりません。街はまだ形を保っています。',
+    tooltip: { signal: '信号が不規則に点滅する', buildings: '窓明かりが消えはじめる', road: '道路はまだ保たれる', nature: '雑草が顔を出す', people: 'もう誰もいない' },
+    apply() {
+      setOpacity(['people'], 0);
+      setOpacity(['car','bench','roadLine','windows'], 0.92);
+      setOpacity(['cracks','ivyOnBuildings','animals','bigTree'], 0);
+      setOpacity(['farTrees'], 0.2);
+      setTransform('plantLeft', 'translate(0 -8) scale(0.35)'); setOpacity(['plantLeft'], 0.35);
+      setTransform('plantCenter', 'translate(0 -4) scale(0.3)'); setOpacity(['plantCenter'], 0.3);
+      setTransform('plantRight', 'translate(0 -8) scale(0.32)'); setOpacity(['plantRight'], 0.32);
+      signalFlicker();
+      tintBuildings(0.95, '#56697a', '#465a6b', '#637788', '#506274', '#5d7283');
+      shiftRoad(0);
+    }
+  },
+  {
+    name: '1年後',
+    description: '雑草が道の隙間から広がり、ビルにはつるが絡み始めます。都市は自然に明け渡されていきます。',
+    tooltip: { signal: '信号はほぼ止まった', buildings: 'つる植物がのぼる', road: 'ひび割れが見え始める', nature: '雑草が主役になる', people: '静けさだけが残る' },
+    apply() {
+      setOpacity(['people'], 0);
+      setOpacity(['car'], 0.78);
+      setOpacity(['bench'], 0.86);
+      setOpacity(['windows'], 0.65);
+      setOpacity(['roadLine'], 0.5);
+      setOpacity(['cracks','ivyOnBuildings'], 0.55);
+      setOpacity(['animals'], 0.08);
+      setOpacity(['farTrees'], 0.35);
+      setTransform('plantLeft', 'translate(0 -20) scale(0.62)'); setOpacity(['plantLeft'], 0.8);
+      setTransform('plantCenter', 'translate(0 -10) scale(0.5)'); setOpacity(['plantCenter'], 0.7);
+      setTransform('plantRight', 'translate(0 -16) scale(0.56)'); setOpacity(['plantRight'], 0.78);
+      setOpacity(['bigTree'], 0.18); setTransform('bigTree', 'translate(0 28) scale(0.58)');
+      signalOff();
+      tintBuildings(0.84, '#4f635e', '#455a59', '#577265', '#4a6058', '#566c60');
+      shiftRoad(0);
+    }
+  },
+  {
+    name: '10年後',
+    description: '道路はひび割れ、木が育ち、動物が街に戻り始めます。都市は半分、森になっています。',
+    tooltip: { signal: '信号はただの柱になる', buildings: 'ビルがくすみ、植物に包まれる', road: '道路が割れ草が伸びる', nature: '木が育ち始める', people: '動物だけが歩く' },
+    apply() {
+      setOpacity(['people'], 0);
+      setOpacity(['car'], 0.35);
+      setOpacity(['bench'], 0.58);
+      setOpacity(['windows'], 0.35);
+      setOpacity(['roadLine'], 0.14);
+      setOpacity(['cracks'], 0.95);
+      setOpacity(['ivyOnBuildings'], 0.95);
+      setOpacity(['animals'], 0.65);
+      setOpacity(['farTrees'], 0.7);
+      setTransform('plantLeft', 'translate(0 -24) scale(0.94)'); setOpacity(['plantLeft'], 1);
+      setTransform('plantCenter', 'translate(0 -12) scale(0.78)'); setOpacity(['plantCenter'], 1);
+      setTransform('plantRight', 'translate(0 -18) scale(0.84)'); setOpacity(['plantRight'], 1);
+      setOpacity(['bigTree'], 0.82); setTransform('bigTree', 'translate(0 8) scale(0.82)');
+      signalOff();
+      tintBuildings(0.72, '#51624d', '#465945', '#5a6a54', '#4b5c49', '#576954');
+      shiftRoad(2);
+    }
+  },
+  {
+    name: '100年後',
+    description: '文明の輪郭はほとんど失われ、都市は森に飲み込まれます。残るのは骨組みと、帰ってきた生命です。',
+    tooltip: { signal: '信号は遺跡になる', buildings: '建物は森の一部になる', road: '道路は土に還る', nature: '自然が完全に主役', people: '街は記憶になる' },
+    apply() {
+      setOpacity(['people'], 0);
+      setOpacity(['car'], 0.15);
+      setOpacity(['bench'], 0.22);
+      setOpacity(['windows'], 0.18);
+      setOpacity(['roadLine'], 0.0);
+      setOpacity(['cracks'], 1);
+      setOpacity(['ivyOnBuildings'], 1);
+      setOpacity(['animals'], 1);
+      setOpacity(['farTrees'], 1);
+      setTransform('plantLeft', 'translate(0 -32) scale(1.18)'); setOpacity(['plantLeft'], 1);
+      setTransform('plantCenter', 'translate(0 -16) scale(1.04)'); setOpacity(['plantCenter'], 1);
+      setTransform('plantRight', 'translate(0 -20) scale(1.08)'); setOpacity(['plantRight'], 1);
+      setOpacity(['bigTree'], 1); setTransform('bigTree', 'translate(0 0) scale(1)');
+      signalOff();
+      tintBuildings(0.55, '#495845', '#3f4f3d', '#50624b', '#455540', '#52614c');
+      shiftRoad(8);
+    }
+  }
+];
+
+let currentStage = 0;
+let autoTimer = null;
+let startX = null;
+
+const stageNameEl = document.getElementById('stageName');
+const descEl = document.getElementById('description');
+const timelineEl = document.getElementById('timeline');
+const tooltip = document.getElementById('tooltip');
+const tooltipBg = document.getElementById('tooltipBg');
+const tooltipText = document.getElementById('tooltipText');
+const svg = document.querySelector('svg');
+
+function byId(id){ return document.getElementById(id); }
+function setOpacity(ids, value){ ids.forEach(id => byId(id).style.opacity = value); }
+function setTransform(id, value){ byId(id).style.transform = value; }
+function tintBuildings(windowOpacity, ...fills) {
+  ['building1','building2','building3','building4','building5'].forEach((id, idx) => byId(id).setAttribute('fill', fills[idx]));
+  byId('windows').style.opacity = windowOpacity;
+}
+function signalOn(main) {
+  const red = byId('signalRed');
+  const yellow = byId('signalYellow');
+  const green = byId('signalGreen');
+  red.classList.remove('sparkle'); yellow.classList.remove('sparkle'); green.classList.remove('sparkle');
+  red.style.opacity = main === 'red' ? 1 : 0.25;
+  yellow.style.opacity = main === 'yellow' ? 1 : 0.22;
+  green.style.opacity = main === 'green' ? 1 : 0.25;
+  if (main === 'red') red.classList.add('sparkle');
+  if (main === 'yellow') yellow.classList.add('sparkle');
+  if (main === 'green') green.classList.add('sparkle');
+}
+function signalFlicker() {
+  signalOn('yellow');
+  clearInterval(window.__flickerTimer);
+  let idx = 0;
+  const order = ['yellow','green','yellow','red'];
+  window.__flickerTimer = setInterval(() => { signalOn(order[idx % order.length]); idx++; }, 700);
+}
+function signalOff() {
+  clearInterval(window.__flickerTimer);
+  byId('signalRed').classList.remove('sparkle');
+  byId('signalYellow').classList.remove('sparkle');
+  byId('signalGreen').classList.remove('sparkle');
+  byId('signalRed').style.opacity = 0.08;
+  byId('signalYellow').style.opacity = 0.06;
+  byId('signalGreen').style.opacity = 0.06;
+}
+function shiftRoad(amount) {
+  const road = byId('road');
+  road.style.transform = `translateY(${amount}px)`;
+}
+
+function renderTimeline() {
+  timelineEl.innerHTML = '';
+  stages.forEach((stage, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (i === currentStage ? ' active' : '');
+    chip.textContent = stage.name;
+    chip.addEventListener('click', () => {
+      stopAuto();
+      currentStage = i;
+      applyStage();
+    });
+    timelineEl.appendChild(chip);
+  });
+}
+
+function applyStage() {
+  stages[currentStage].apply();
+  stageNameEl.textContent = stages[currentStage].name;
+  descEl.textContent = stages[currentStage].description;
+  renderTimeline();
+}
+
+function nextStage() {
+  currentStage = Math.min(stages.length - 1, currentStage + 1);
+  applyStage();
+}
+function prevStage() {
+  currentStage = Math.max(0, currentStage - 1);
+  applyStage();
+}
+function resetStages() {
+  stopAuto();
+  currentStage = 0;
+  applyStage();
+}
+function toggleAuto() {
+  if (autoTimer) { stopAuto(); return; }
+  document.getElementById('autoBtn').textContent = '停止';
+  autoTimer = setInterval(() => {
+    if (currentStage >= stages.length - 1) {
+      stopAuto();
+      return;
+    }
+    nextStage();
+  }, 1800);
+}
+function stopAuto() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+  document.getElementById('autoBtn').textContent = '自動再生';
+}
+
+function showTooltip(target, x, y) {
+  const text = stages[currentStage].tooltip[target] || '';
+  if (!text) return;
+  tooltipText.textContent = text;
+  tooltip.style.opacity = 1;
+  tooltipText.setAttribute('x', x + 18);
+  tooltipText.setAttribute('y', y - 18);
+  requestAnimationFrame(() => {
+    const box = tooltipText.getBBox();
+    tooltipBg.setAttribute('x', box.x - 12);
+    tooltipBg.setAttribute('y', box.y - 8);
+    tooltipBg.setAttribute('width', box.width + 24);
+    tooltipBg.setAttribute('height', box.height + 16);
+  });
+}
+function hideTooltip() { tooltip.style.opacity = 0; }
+
+svg.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-target]');
+  if (!t) return;
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  showTooltip(t.dataset.target, p.x, p.y);
+  window.clearTimeout(window.__tipTimer);
+  window.__tipTimer = setTimeout(hideTooltip, 1600);
+});
+
+svg.addEventListener('touchstart', (e) => {
+  startX = e.touches[0].clientX;
+}, {passive:true});
+svg.addEventListener('touchend', (e) => {
+  if (startX == null) return;
+  const endX = e.changedTouches[0].clientX;
+  const delta = endX - startX;
+  if (Math.abs(delta) > 40) {
+    stopAuto();
+    if (delta < 0) nextStage();
+    else prevStage();
+  }
+  startX = null;
+}, {passive:true});
+
+let mouseDownX = null;
+svg.addEventListener('mousedown', (e) => mouseDownX = e.clientX);
+svg.addEventListener('mouseup', (e) => {
+  if (mouseDownX == null) return;
+  const delta = e.clientX - mouseDownX;
+  if (Math.abs(delta) > 50) {
+    stopAuto();
+    if (delta < 0) nextStage(); else prevStage();
+  }
+  mouseDownX = null;
+});
+
+document.getElementById('nextBtn').addEventListener('click', () => { stopAuto(); nextStage(); });
+document.getElementById('prevBtn').addEventListener('click', () => { stopAuto(); prevStage(); });
+document.getElementById('resetBtn').addEventListener('click', resetStages);
+document.getElementById('autoBtn').addEventListener('click', toggleAuto);
+
+applyStage();
+</script>
+</body>
+</html>

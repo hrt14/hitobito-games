@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>午前0時の入館審査</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e9f1ed;background:#08100d;color-scheme:dark}
+*{box-sizing:border-box} body{margin:0;padding:12px;background:radial-gradient(circle at 50% -20%,#183126 0,#08100d 52%,#050806 100%)}
+.app{max-width:520px;margin:auto;border:1px solid #29463a;border-radius:20px;overflow:hidden;background:rgba(7,15,12,.94);box-shadow:0 18px 60px rgba(0,0,0,.35)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1d342a;background:#0c1813}
+.title{font-weight:800;letter-spacing:.06em;font-size:14px}.clock{font:700 13px ui-monospace,monospace;color:#87d8ae}.status{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:10px 12px}
+.pill{padding:8px;border:1px solid #203b2f;border-radius:12px;background:#0d1b15;text-align:center;font-size:11px;color:#9fb7ab}.pill b{display:block;color:#e8f4ee;font-size:15px;margin-top:2px}
+.scene{position:relative;min-height:215px;margin:0 12px;border-radius:16px;overflow:hidden;border:1px solid #213f31;background:linear-gradient(#12271f,#09120e 62%,#060a08)}
+.rain{position:absolute;inset:0;opacity:.24;background-image:repeating-linear-gradient(105deg,transparent 0 16px,rgba(190,230,215,.7) 17px,transparent 18px);animation:rain .5s linear infinite}@keyframes rain{to{background-position:20px 30px}}
+.glass{position:absolute;inset:12px;border:1px solid rgba(149,217,183,.22);box-shadow:inset 0 0 40px rgba(67,130,101,.08)}
+.person{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);width:106px;height:156px}.head{position:absolute;left:28px;top:0;width:50px;height:58px;border-radius:46% 46% 48% 48%;background:#b9c7c0;box-shadow:inset 0 -8px 0 rgba(0,0,0,.1)}
+.eye{position:absolute;top:25px;width:5px;height:3px;background:#0b1611;border-radius:50%}.eye.l{left:13px}.eye.r{right:13px}.body{position:absolute;left:8px;bottom:0;width:90px;height:105px;border-radius:30px 30px 12px 12px;background:#d5dcda}.badge{position:absolute;right:12px;top:80px;width:26px;height:18px;border:1px solid #446859;background:#e8efec;color:#183125;font-size:5px;text-align:center;padding-top:4px}.scan{position:absolute;left:0;right:0;height:1px;background:#55f2a5;box-shadow:0 0 8px #55f2a5;animation:scan 2.8s ease-in-out infinite}@keyframes scan{0%,100%{top:18%}50%{top:82%}}
+.info{position:absolute;left:12px;bottom:11px;padding:7px 9px;border-radius:9px;background:rgba(3,8,6,.78);border:1px solid #254636;max-width:63%}.name{font-weight:800;font-size:14px}.dept{font-size:10px;color:#95b4a5;margin-top:2px}.intro{padding:10px 14px 0;color:#b9cec3;font-size:12px;line-height:1.55}
+.log{margin:10px 12px 0;max-height:180px;overflow:auto;padding:10px;border-radius:14px;background:#09110e;border:1px solid #183127}.line{margin-bottom:9px;font-size:12px;line-height:1.5}.q{color:#7fc9a3}.a{color:#e2eee8}.msg{color:#f0cf8b}
+.ask{display:flex;gap:7px;padding:10px 12px}.ask input{flex:1;min-width:0;background:#0c1712;border:1px solid #2b4c3d;border-radius:12px;padding:11px 12px;color:#eef7f2;font-size:14px;outline:none}.ask input:focus{border-color:#56c88f}.ask button,.decision button,.start{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}.ask button{background:#dcebe4;color:#102319}.decision{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px}.allow{background:#256b4a;color:white}.deny{background:#7a2c32;color:white}.start{width:calc(100% - 24px);margin:12px;background:#dcebe4;color:#102319}.disabled{opacity:.45;pointer-events:none}.ending{padding:16px;font-size:13px;line-height:1.7;color:#f0d9a8}.hint{padding:0 14px 12px;font-size:10px;color:#668274}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><div class="title">午前0時の入館審査</div><div class="clock" id="clock">00:07</div></div>
+  <div id="root"><button class="start" id="start">夜勤を開始する</button></div>
+</div>
+<script type="module">
+import { startGame, askVisitor, judgeVisitor } from './game.js';
+let state=null;
+async function call(name,args){
+ const result=name==='start_game' ? startGame()
+  : name==='ask_visitor' ? askVisitor(args.game_id,args.question)
+  : name==='judge_visitor' ? judgeVisitor(args.game_id,args.decision)
+  : null;
+ const r={structuredContent:result};update(r);return r;
+}
+function update(r){if(r?.structuredContent){state=r.structuredContent;render()}}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){const root=document.querySelector('#root');if(!state){root.innerHTML='<button class="start" id="start">夜勤を開始する</button>';document.querySelector('#start').onclick=()=>call('start_game',{});return}
+ const t=String(7+state.night*8).padStart(2,'0');document.querySelector('#clock').textContent=`00:${t}`;
+ if(state.finished){root.innerHTML=`<div class="status"><div class="pill">夜<b>${state.night}/${state.total_nights}</b></div><div class="pill">信用<b>${state.trust}</b></div><div class="pill">異常値<b>${state.contamination}</b></div></div><div class="ending">${esc(state.ending||state.last_message)}</div><button class="start" id="restart">もう一度</button>`;document.querySelector('#restart').onclick=()=>call('start_game',{});return}
+ const v=state.visitor;const lines=state.transcript.map(x=>`<div class="line"><div class="q">あなた：${esc(x.question)}</div><div class="a">${esc(x.answer)}</div></div>`).join('');
+ root.innerHTML=`<div class="status"><div class="pill">来訪者<b>${state.night}/${state.total_nights}</b></div><div class="pill">質問残り<b>${state.questions_left}</b></div><div class="pill">信用<b>${state.trust}</b></div></div>
+ <div class="scene"><div class="rain"></div><div class="glass"></div><div class="scan"></div><div class="person"><div class="head"><i class="eye l"></i><i class="eye r"></i></div><div class="body"></div><div class="badge">${esc(v.badge)}</div></div><div class="info"><div class="name">${esc(v.name)}</div><div class="dept">${esc(v.dept)} / ${esc(v.badge)}</div></div></div>
+ <div class="intro">${esc(v.intro)}</div><div class="log">${lines||'<div class="line msg">'+esc(state.last_message)+'</div>'}</div>
+ <form class="ask ${state.questions_left<=0?'disabled':''}" id="ask"><input id="q" maxlength="300" autocomplete="off" placeholder="好きな質問を入力…"><button>聞く</button></form>
+ <div class="decision"><button class="deny" id="deny">拒否する</button><button class="allow" id="allow">入館許可</button></div><div class="hint">違和感は必ずしも偽物の証拠ではない。</div>`;
+ document.querySelector('#ask').onsubmit=async e=>{e.preventDefault();const i=document.querySelector('#q');const q=i.value.trim();if(q&&state.questions_left>0){i.value='';await call('ask_visitor',{game_id:state.game_id,question:q})}};
+ document.querySelector('#deny').onclick=()=>call('judge_visitor',{game_id:state.game_id,decision:'deny'});document.querySelector('#allow').onclick=()=>call('judge_visitor',{game_id:state.game_id,decision:'allow'});
+}
+render();
+</script>
+</body>
+</html>

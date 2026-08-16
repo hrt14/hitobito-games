@@ -1,0 +1,12 @@
+{
+  "name": "断る。｜断る力を鍛えるゲーム",
+  "short_name": "断る。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#0f172a",
+  "description": "遊ぶだけで断り方の引き出しが増える、3分のトレーニングゲーム。",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
