@@ -41,6 +41,7 @@ jobs:
           ASTRAL_URL: http://127.0.0.1:4173/apps/astral-dawn/
         run: node apps/astral-dawn/smoke-browser.mjs
       - name: Automated mobile touch smoke
+        if: always()
         env:
           ASTRAL_URL: http://127.0.0.1:4173/apps/astral-dawn/
         run: node apps/astral-dawn/smoke-mobile.mjs
