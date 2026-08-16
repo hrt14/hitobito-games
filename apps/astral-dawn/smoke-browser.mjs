@@ -4,10 +4,10 @@ import path from 'node:path';
 
 const base=process.env.ASTRAL_URL||'http://127.0.0.1:4173/apps/astral-dawn/';
 const out=path.resolve('apps/astral-dawn/.artifacts');fs.mkdirSync(out,{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});
+const browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--enable-webgl','--ignore-gpu-blocklist']});
 const page=await browser.newPage({viewport:{width:1280,height:720},deviceScaleFactor:1});
 const errors=[],messages=[];let stage='launch';
-page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
+page.on('pageerror',e=>errors.push(`pageerror: ${e.stack||e.message}`));
 page.on('console',m=>{messages.push(`${m.type()}: ${m.text()}`);if(m.type()==='error')errors.push(`console.error: ${m.text()}`)});
 page.on('requestfailed',r=>messages.push(`requestfailed: ${r.url()} :: ${r.failure()?.errorText||''}`));
 const mark=s=>{stage=s;console.log(`[Astral smoke] ${s}`)};
@@ -34,6 +34,8 @@ try{
   await page.waitForFunction(()=>window.__ASTRAL_CORE?.S?.joined===true,{timeout:3000});
   await page.waitForFunction(()=>!!window.__ASTRAL_CORE?.companion,{timeout:3000});
   await page.waitForSelector('.combo-command',{state:'attached',timeout:3000});
+  await page.waitForTimeout(250);
+  assert(errors.length===0,`errors appeared after party join:\n${errors.join('\n')}`);
 
   mark('movement');
   const before=await page.evaluate(()=>({x:window.__ASTRAL_CORE.player.position.x,z:window.__ASTRAL_CORE.player.position.z}));
@@ -82,9 +84,10 @@ try{
     core:!!window.__ASTRAL_CORE,
     mode:window.__ASTRAL_CORE?.S?.mode||null,
     joined:window.__ASTRAL_CORE?.S?.joined||false,
+    player:window.__ASTRAL_CORE?.player?{x:window.__ASTRAL_CORE.player.position.x,y:window.__ASTRAL_CORE.player.position.y,z:window.__ASTRAL_CORE.player.position.z}:null,
     scripts:[...document.scripts].map(x=>x.src).filter(Boolean)
   })).catch(()=>({}));
-  const report={ok:false,stage,error:String(err?.stack||err),errors,messages:messages.slice(-120),snapshot};
+  const report={ok:false,stage,error:String(err?.stack||err),errors,messages:messages.slice(-160),snapshot};
   fs.writeFileSync(path.join(out,'diagnostic.json'),JSON.stringify(report,null,2));
   await page.screenshot({path:path.join(out,'failure.png'),fullPage:true}).catch(()=>{});
   console.error(JSON.stringify(report,null,2));
