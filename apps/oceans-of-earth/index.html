@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#02070b" />
+  <title>THE OCEANS OF EARTH — Devonian Prototype</title>
+  <style>
+    :root{color-scheme:dark;--cyan:#76e7ff;--ink:#02070b;--glass:rgba(8,20,27,.62)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070b;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#eaf9ff}
+    canvas{display:block;width:100%;height:100%;touch-action:none}
+    #ui{position:fixed;inset:0;pointer-events:none;z-index:5}
+    .vignette{position:absolute;inset:-10%;background:radial-gradient(circle at 50% 48%,transparent 36%,rgba(0,0,0,.28) 69%,rgba(0,0,0,.76) 100%);mix-blend-mode:multiply}
+    .grain{position:absolute;inset:0;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");animation:grain .22s steps(2) infinite}
+    @keyframes grain{0%{transform:translate(0)}25%{transform:translate(-1.5%,1%)}50%{transform:translate(1%,-1.2%)}75%{transform:translate(.8%,1.4%)}100%{transform:translate(0)}}
+    #hud{position:absolute;inset:0;opacity:0;transition:opacity .8s ease}
+    #hud.on{opacity:1}
+    .timeline{position:absolute;left:24px;top:22px;letter-spacing:.18em;font-size:10px;color:rgba(220,247,255,.66);text-transform:uppercase}
+    .era{display:block;margin-top:6px;color:#dffbff;font-size:15px;font-weight:650;letter-spacing:.13em}
+    #depth{position:absolute;right:22px;top:22px;text-align:right;font-size:10px;letter-spacing:.16em;color:rgba(220,247,255,.58)}
+    #depth b{display:block;margin-top:6px;font-size:14px;color:#e9fbff;font-weight:600}
+    #reticle{position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border:1px solid rgba(214,247,255,.64);border-radius:50%;box-shadow:0 0 10px rgba(98,223,255,.3);transition:all .2s}
+    #reticle.hot{width:15px;height:15px;border-color:#9af0ff;box-shadow:0 0 16px rgba(76,226,255,.62)}
+    #prompt{position:absolute;left:50%;bottom:9%;transform:translateX(-50%) translateY(16px);opacity:0;transition:.3s ease;text-align:center;min-width:min(84vw,440px)}
+    #prompt.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #prompt .key{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:28px;padding:0 8px;margin-right:10px;border:1px solid rgba(163,237,255,.35);background:rgba(2,12,18,.72);backdrop-filter:blur(12px);border-radius:6px;color:#c8f6ff;font-size:11px;font-weight:700}
+    #prompt .txt{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#dff9ff;text-shadow:0 2px 16px #001}
+    #objective{position:absolute;left:24px;bottom:24px;max-width:min(76vw,420px);font-size:11px;line-height:1.6;letter-spacing:.08em;color:rgba(225,248,255,.68)}
+    #objective strong{display:block;color:#effcff;font-size:12px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:4px}
+    #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 34%,#0b1a22 0,#03090d 44%,#010305 100%);transition:opacity 1.2s ease,visibility 1.2s}
+    #intro.hide{opacity:0;visibility:hidden}
+    .intro-inner{width:min(760px,88vw);text-align:center}
+    .eyebrow{font-size:10px;letter-spacing:.42em;color:rgba(155,222,239,.7);text-transform:uppercase;margin-bottom:22px}
+    h1{font-size:clamp(34px,7vw,78px);line-height:.92;margin:0;font-weight:550;letter-spacing:-.035em;text-transform:uppercase;text-wrap:balance}
+    h1 span{display:block;color:#7fdff2;font-weight:300}
+    .lede{max-width:620px;margin:24px auto 30px;color:rgba(220,243,248,.64);font-size:13px;line-height:1.8;letter-spacing:.04em}
+    #start{pointer-events:auto;appearance:none;border:1px solid rgba(124,223,244,.42);border-radius:999px;padding:14px 24px;background:rgba(25,88,103,.16);color:#eaffff;letter-spacing:.16em;font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 0 40px rgba(57,199,231,.06);transition:.25s ease}
+    #start:hover{background:rgba(52,163,188,.23);border-color:rgba(139,235,255,.74);box-shadow:0 0 50px rgba(57,199,231,.16);transform:translateY(-1px)}
+    .controls{margin-top:18px;font-size:10px;color:rgba(203,233,240,.42);letter-spacing:.1em}
+    #chapter{position:fixed;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;background:rgba(0,10,15,0);transition:opacity .9s ease,background 1.2s ease}
+    #chapter.show{opacity:1;background:rgba(0,11,16,.18)}
+    #chapter .card{text-align:center;text-shadow:0 4px 30px #001c}
+    #chapter .small{font-size:10px;letter-spacing:.42em;color:#8fdaea;text-transform:uppercase}
+    #chapter .big{margin-top:10px;font-size:clamp(28px,5vw,58px);font-weight:300;letter-spacing:.12em;text-transform:uppercase}
+    #chapter .sub{margin-top:8px;font-size:11px;letter-spacing:.16em;color:rgba(214,243,249,.62)}
+    #flash{position:fixed;inset:0;z-index:18;background:#baf5ff;opacity:0;pointer-events:none;mix-blend-mode:screen}
+    #loaderError{display:none;position:fixed;inset:0;z-index:30;align-items:center;justify-content:center;text-align:center;padding:32px;background:#02070b;color:#d8f5fb}
+    #mobile{display:none;position:absolute;inset:0;pointer-events:none}
+    .stick{position:absolute;left:24px;bottom:28px;width:116px;height:116px;border:1px solid rgba(167,231,244,.12);border-radius:50%;background:rgba(4,17,23,.18);backdrop-filter:blur(5px);pointer-events:auto;touch-action:none}
+    .nub{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px;border-radius:50%;border:1px solid rgba(173,235,248,.22);background:rgba(74,158,176,.12);transform:translate(0,0)}
+    #lookPad{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:auto;touch-action:none}
+    #action{display:none;position:absolute;right:24px;bottom:36px;width:82px;height:82px;border:1px solid rgba(134,231,250,.28);border-radius:50%;background:rgba(5,25,33,.42);backdrop-filter:blur(10px);color:#dffbff;letter-spacing:.12em;font-size:10px;font-weight:700;pointer-events:auto}
+    #action.show{display:block}
+    @media (pointer:coarse),(max-width:820px){#mobile{display:block}.controls{display:none}#objective{bottom:158px}.timeline{left:18px;top:18px}#depth{right:18px;top:18px}#prompt{bottom:24%}}
+  </style>
+</head>
+<body>
+  <div id="intro"><div class="intro-inner"><div class="eyebrow">Hitobito Games — Immersive Prototype 01</div><h1>The Oceans <span>of Earth</span></h1><div class="lede">存在したすべての海を収蔵する、時代水族館。最初の展示は3億8,200万年前——デボン紀。ガラスの向こうに、絶滅した海そのものがある。</div><button id="start">Enter the Aquarium</button><div class="controls">WASD 移動 · マウス 視点 · SHIFT 走る · E インタラクト</div></div></div>
+  <div id="chapter"><div class="card"><div class="small">Archive 02</div><div class="big">Devonian Sea</div><div class="sub">382,000,000 YEARS BEFORE PRESENT</div></div></div>
+  <div id="flash"></div>
+  <div id="loaderError"><div><h2>Three.js failed to load</h2><p>インターネット接続を確認して、再読み込みしてください。</p></div></div>
+  <div id="ui"><div class="vignette"></div><div class="grain"></div><div id="hud"><div class="timeline">Earth Ocean Archive<span class="era">DEVONIAN · 382 MA</span></div><div id="depth">OBSERVATION DECK<b>0.0 m</b></div><div id="reticle"></div><div id="prompt"><span class="key">E</span><span class="txt">Enter the Devonian Sea</span></div><div id="objective"><strong>Walk toward the blue light</strong>巨大水槽の前まで進み、3億8,200万年前の捕食者を観察する。</div><div id="mobile"><div id="stick" class="stick"><div id="nub" class="nub"></div></div><div id="lookPad"></div><button id="action">ENTER</button></div></div></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>
