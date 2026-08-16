@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-16",
+  "targets": {
+    "vercel": {
+      "role": "portal-and-main-games",
+      "projects": [
+        { "name": "hitobito-games", "domain": "games.hitobito.jp", "scope": "portal" },
+        { "name": "404-kaiki", "domain": "404.hitobito.jp", "scope": "apps/404-kaiki" },
+        { "name": "lastfire-idle", "domain": "working-planet.hitobito.jp", "scope": "Working Planet repository" }
+      ]
+    },
+    "cloudflarePages": {
+      "role": "normal-games-batch",
+      "source": "apps/*",
+      "excludeCategories": ["levelup", "aaa-lab"],
+      "excludeSlugs": ["404-kaiki"]
+    },
+    "firebaseHosting": {
+      "role": "level-up",
+      "categories": ["levelup"],
+      "migrationMode": "keep-existing-production-until-verified"
+    },
+    "humanTestOnly": {
+      "role": "aaa-lab",
+      "categories": ["aaa-lab"],
+      "slugs": ["oceans-of-earth", "astral-dawn"],
+      "productionDeploy": false
+    }
+  }
+}
