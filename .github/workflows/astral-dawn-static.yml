@@ -25,6 +25,7 @@ jobs:
           node --check apps/astral-dawn/game-v5.js
           node --check apps/astral-dawn/models-v1.js
           node --check apps/astral-dawn/monsters-v1.js
+          node --check apps/astral-dawn/battle-v2.js
       - name: Verify V5 instrumentation anchors
         run: |
           node <<'NODE'
@@ -44,6 +45,7 @@ jobs:
           grep -Fq 'src="./game-v5.js"' apps/astral-dawn/index.html
           grep -Fq 'src="./models-v1.js"' apps/astral-dawn/index.html
           grep -Fq 'src="./monsters-v1.js"' apps/astral-dawn/index.html
+          grep -Fq 'src="./battle-v2.js"' apps/astral-dawn/index.html
           test -f apps/astral-dawn/QUALITY.md
           test -f apps/astral-dawn/REVIEW.md
           test -f apps/astral-dawn/THIRD_PARTY_ASSETS.md
