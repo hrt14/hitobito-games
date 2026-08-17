@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0d0a" />
+  <meta name="description" content="他人との比較が始まった瞬間に、自分の軸へ戻る反射を鍛えるLEVEL UPゲーム。" />
+  <title>自分は自分 | LEVEL UP</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;color:#f5f7ee;background:#090b08;--lime:#d8ff5b;--ink:#090b08;--muted:#9ca48f;--line:rgba(216,255,91,.18);--danger:#ff7b70;--panel:#11150f}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#090b08;color:#f5f7ee;-webkit-font-smoothing:antialiased}body{min-height:100dvh;overflow-x:hidden;background:radial-gradient(circle at 80% -10%,rgba(216,255,91,.13),transparent 35%),linear-gradient(180deg,#0b0e09,#070806)}button,a{font:inherit}button{touch-action:manipulation}.app{min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;width:min(760px,100%);margin:auto;padding:calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}.home{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:14px;color:#f5f7ee;text-decoration:none;background:rgba(255,255,255,.025)}.home svg{width:21px;height:21px}.brand{text-align:center;line-height:1}.brand b{display:block;font-size:11px;letter-spacing:.17em}.brand span{display:block;margin-top:5px;font-size:9px;color:var(--muted);letter-spacing:.13em}.top-spacer{width:44px}.stage{display:grid;align-content:center;gap:16px;padding:10px 0;min-height:0}.progress{display:flex;gap:6px;justify-content:center;align-items:center;height:12px}.progress i{width:7px;height:7px;border-radius:999px;background:#2b3028;transition:.2s}.progress i.done{background:var(--lime)}.progress i.current{width:24px;background:#7d9340}.scene{position:relative;border:1px solid var(--line);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.045),rgba(255,255,255,.015));padding:18px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.22)}.scene:before{content:"";position:absolute;inset:auto -80px -110px auto;width:220px;height:220px;border:1px solid rgba(216,255,91,.12);border-radius:50%}.eyebrow{text-align:center;color:var(--lime);font-size:10px;font-weight:900;letter-spacing:.16em;margin-bottom:12px}.road{position:relative;height:92px;margin:0 -4px 13px;border-radius:18px;background:linear-gradient(90deg,rgba(255,123,112,.05),rgba(255,255,255,.025) 45%,rgba(216,255,91,.06));overflow:hidden}.road:before{content:"";position:absolute;left:50%;top:10px;bottom:10px;width:1px;background:rgba(255,255,255,.09)}.lane-label{position:absolute;top:10px;font-size:9px;font-weight:900;letter-spacing:.12em}.lane-label.other{left:12px;color:#b98d87}.lane-label.mine{right:12px;color:#a8c44d}.crowd{position:absolute;left:15px;bottom:14px;display:flex;gap:3px;opacity:.42}.crowd span{width:12px;height:25px;border-radius:8px 8px 4px 4px;background:#8f6a66}.crowd span:nth-child(2){height:33px}.crowd span:nth-child(3){height:29px}.my-road{position:absolute;right:18px;left:51%;bottom:22px;height:2px;background:linear-gradient(90deg,rgba(216,255,91,.1),var(--lime));box-shadow:0 0 18px rgba(216,255,91,.25)}.avatar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--lime);color:#111;font-weight:950;box-shadow:0 0 0 7px rgba(216,255,91,.09),0 12px 28px rgba(0,0,0,.35);transition:left .42s cubic-bezier(.2,.9,.2,1),transform .42s,background .3s}.avatar.pulled{left:28%;background:#d7a09a;transform:translateX(-50%) rotate(-8deg)}.avatar.back{left:72%;transform:translateX(-50%) rotate(4deg)}.question{font-size:clamp(22px,5.7vw,32px);line-height:1.36;letter-spacing:-.035em;font-weight:850;text-align:center;margin:0 auto;max-width:620px}.question small{display:block;margin-top:9px;font-size:11px;line-height:1.5;color:var(--muted);font-weight:700;letter-spacing:0}.choices{display:grid;gap:9px}.choice{width:100%;min-height:62px;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:#131710;color:#f4f6ed;padding:14px 15px;text-align:left;font-weight:760;line-height:1.45;font-size:15px;cursor:pointer;transition:transform .12s,border-color .2s,background .2s,opacity .2s}.choice:active{transform:scale(.985)}.choice:hover{border-color:rgba(216,255,91,.35)}.choice.wrong{border-color:rgba(255,123,112,.55);background:rgba(255,123,112,.09);opacity:.7}.choice.correct{border-color:rgba(216,255,91,.7);background:rgba(216,255,91,.1)}.choice:disabled{cursor:default}.feedback{min-height:78px;border-radius:18px;border:1px solid transparent;padding:12px 14px;display:none;align-items:center;gap:12px}.feedback.show{display:flex}.feedback.bad{border-color:rgba(255,123,112,.28);background:rgba(255,123,112,.07)}.feedback.good{border-color:rgba(216,255,91,.28);background:rgba(216,255,91,.07)}.feedback-mark{flex:0 0 38px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:950;background:#1b2018}.feedback.good .feedback-mark{color:var(--ink);background:var(--lime)}.feedback.bad .feedback-mark{color:#210907;background:#ff988f}.feedback-copy b{display:block;font-size:13px;margin-bottom:3px}.feedback-copy span{display:block;font-size:12px;line-height:1.55;color:#c7ccb9}.next{display:none;width:100%;min-height:58px;border:0;border-radius:18px;background:var(--lime);color:#10120d;font-size:15px;font-weight:950;cursor:pointer}.next.show{display:block}.footer{text-align:center;color:#737b6b;font-size:9px;letter-spacing:.08em;padding-top:6px}.screen{display:none}.screen.active{display:grid}.intro,.result{align-content:center;text-align:center;gap:18px;min-height:calc(100dvh - 140px)}.intro-mark{margin:auto;width:90px;height:90px;border-radius:50%;display:grid;place-items:center;background:var(--lime);color:#10120d;font-size:33px;font-weight:950;box-shadow:0 0 0 13px rgba(216,255,91,.06)}h1{font-size:clamp(50px,14vw,82px);line-height:.9;letter-spacing:-.07em;margin:0;font-weight:950}h1 span{color:var(--lime)}.lead{margin:0 auto;max-width:520px;color:#bcc3b0;font-size:15px;line-height:1.85}.rule{display:grid;gap:8px;text-align:left;margin:0 auto;width:min(100%,540px)}.rule div{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(255,255,255,.075);border-radius:15px;background:rgba(255,255,255,.025)}.rule b{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:#171b14;color:var(--lime);font-size:13px}.rule span{font-size:12px;line-height:1.55;color:#d6dacd}.start,.again{width:min(100%,540px);margin:auto;min-height:62px;border:0;border-radius:19px;background:var(--lime);color:#10120d;font-size:16px;font-weight:950;cursor:pointer}.subnote{font-size:10px;color:#71796a}.result-ring{width:138px;height:138px;border-radius:50%;margin:auto;display:grid;place-items:center;background:conic-gradient(var(--lime) calc(var(--rate,0)*1%),#1b2018 0);position:relative}.result-ring:before{content:"";position:absolute;inset:11px;border-radius:50%;background:#0a0c08}.result-ring strong{position:relative;font-size:40px;line-height:1}.result-ring span{position:relative;display:block;font-size:9px;color:#9fa891;margin-top:3px;letter-spacing:.1em}.result h2{margin:0;font-size:30px;letter-spacing:-.04em}.mantra{font-size:19px;font-weight:900;line-height:1.55;color:#edf1e5}.compare-self{display:none;margin:auto;width:min(100%,500px);padding:12px 14px;border-radius:15px;border:1px solid var(--line);color:#cbd1bd;font-size:12px;line-height:1.6}.compare-self.show{display:block}.result-actions{display:grid;gap:9px;width:min(100%,540px);margin:auto}.back-home{display:grid;place-items:center;min-height:52px;border-radius:17px;border:1px solid var(--line);color:#dfe4d7;text-decoration:none;font-size:13px;font-weight:850}.flash{animation:flash .34s ease}@keyframes flash{50%{filter:brightness(1.45)}}
+    @media(max-width:520px){.app{padding-left:12px;padding-right:12px}.stage{gap:11px}.scene{border-radius:22px;padding:14px}.road{height:82px}.question{font-size:22px}.choice{font-size:14px;min-height:58px;padding:12px 13px}.feedback{min-height:68px}.intro,.result{min-height:calc(100dvh - 124px);gap:14px}.intro-mark{width:72px;height:72px;font-size:27px}h1{font-size:54px}.lead{font-size:13px;line-height:1.7}.rule div{padding:9px 10px}.rule span{font-size:11px}}
+    @media(max-height:720px){.top{min-height:40px}.home{width:40px;height:40px}.stage{gap:8px;padding:4px 0}.scene{padding:11px 13px}.road{height:68px;margin-bottom:8px}.crowd span{height:20px}.crowd span:nth-child(2){height:27px}.crowd span:nth-child(3){height:23px}.avatar{width:36px;height:36px}.question{font-size:20px}.question small{margin-top:5px}.choices{gap:7px}.choice{min-height:50px;padding:10px 12px;font-size:13px}.feedback{min-height:58px;padding:8px 10px}.next{min-height:50px}.intro,.result{gap:10px}.intro-mark{width:62px;height:62px}.rule{gap:5px}.rule div{padding:7px 9px}.start,.again{min-height:54px}}
+  </style>
+</head>
+<body data-game-slug="jibun-wa-jibun">
+  <main class="app" data-game-slug="jibun-wa-jibun">
+    <header class="top">
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.4 3.5 10v10.2h6v-6.1h5v6.1h6V10L12 3.4Zm0 2.5 6.3 4.9v7.3h-1.8V12h-9v6.1H5.7v-7.3L12 5.9Z"/></svg>
+      </a>
+      <div class="brand"><b>LEVEL UP</b><span>SELF AXIS TRAINING</span></div>
+      <div class="top-spacer" aria-hidden="true"></div>
+    </header>
+
+    <section id="intro" class="screen intro active" aria-labelledby="title">
+      <div class="intro-mark">自</div>
+      <h1 id="title">自分は<span>自分</span></h1>
+      <p class="lead">比べない人になる必要はない。<br>比べ始めた瞬間に、<strong>自分へ戻れる人</strong>になる。</p>
+      <div class="rule" aria-label="このゲームで鍛える3つの反射">
+        <div><b>1</b><span><strong>切り離す</strong> — あの人の現在地は、あなたの採点表ではない。</span></div>
+        <div><b>2</b><span><strong>使える所だけ取る</strong> — 参考にはする。採点には使わない。</span></div>
+        <div><b>3</b><span><strong>自分へ戻る</strong> — で、自分はどうしたい？</span></div>
+      </div>
+      <button id="start" class="start" type="button">10回、自分に戻る</button>
+      <div class="subnote">制限時間なし。できれば直感で選ぶ。</div>
+    </section>
+
+    <section id="game" class="screen stage" aria-live="polite">
+      <div id="progress" class="progress" aria-label="進行状況"></div>
+      <div class="scene">
+        <div id="eyebrow" class="eyebrow">比較トリガー 01 / 10</div>
+        <div class="road" aria-hidden="true">
+          <span class="lane-label other">他人の採点表</span>
+          <span class="lane-label mine">自分の道</span>
+          <div class="crowd"><span></span><span></span><span></span></div>
+          <div class="my-road"></div>
+          <div id="avatar" class="avatar">自</div>
+        </div>
+        <p id="question" class="question"></p>
+      </div>
+      <div id="choices" class="choices"></div>
+      <div id="feedback" class="feedback" role="status">
+        <div id="feedbackMark" class="feedback-mark">↺</div>
+        <div class="feedback-copy"><b id="feedbackTitle"></b><span id="feedbackText"></span></div>
+      </div>
+      <button id="next" class="next" type="button">次の場面へ</button>
+    </section>
+
+    <section id="result" class="screen result" aria-labelledby="resultTitle">
+      <div id="resultRing" class="result-ring" style="--rate:0"><div><strong id="resultScore">0</strong><span>FIRST CHOICE / 10</span></div></div>
+      <h2 id="resultTitle">自分へ戻る練習、完了。</h2>
+      <div id="mantra" class="mantra">あの人はあの人。<br>自分は自分。</div>
+      <div id="selfCompare" class="compare-self"></div>
+      <p class="lead">比較したことが失敗じゃない。<br><strong>気づいて戻った瞬間</strong>が、このゲームの成功。</p>
+      <div class="result-actions">
+        <button id="again" class="again" type="button">もう10回やる</button>
+        <a class="back-home" href="/">LEVEL UPへ戻る</a>
+      </div>
+    </section>
+
+    <footer class="footer">参考にはする。採点には使わない。</footer>
+  </main>
+
+  <script>
+    const QUESTIONS = [
+      {s:'同年代の知人が、自分よりかなり稼いでいると知った。',hint:'収入を見た瞬間',good:'必要なら方法だけ参考にする。自分の価値の採点には使わない。',choices:[['自分は遅れている。もっと急がないと。','compare'],['同じ仕事や投資を全部まねする。','copy'],['参考になる所だけ拾って、自分の次の一手へ戻る。','self']]},
+      {s:'SNSで、知人の楽しそうな海外旅行が流れてきた。',hint:'生活を見た瞬間',good:'その写真は相手の人生の一場面。自分が本当にしたいことを確認する。',choices:[['自分の毎日はつまらない気がする。','compare'],['自分も同じ場所へ行かないと損だと思う。','copy'],['「自分も本当に行きたい？」と自分の欲求に戻る。','self']]},
+      {s:'仕事がものすごく速い人を見た。',hint:'能力を見た瞬間',good:'速さは情報。自己評価ではなく、使える技術だけ持ち帰る。',choices:[['自分は能力が低い、と結論づける。','compare'],['その人のやり方を全部そのまま採用する。','copy'],['速さのコツだけ観察して、自分の仕事へ戻る。','self']]},
+      {s:'友人が家を買ったという話を聞いた。',hint:'持ち物を見た瞬間',good:'相手の選択は相手の答え。自分の生活に家が必要かは別問題。',choices:[['自分もそろそろ買わないと遅い。','compare'],['同じ価格帯の家をすぐ探し始める。','copy'],['自分はどんな暮らしがしたいかを先に考える。','self']]},
+      {s:'同業者の投稿が大きくバズっている。',hint:'注目度を見た瞬間',good:'数字を自分の価値に変換しない。使える要素だけ研究する。',choices:[['自分は人気がない、と落ち込む。','compare'],['同じ内容・言い回しをそのまま投稿する。','copy'],['伸びた理由だけ見て、自分が届けたい内容へ戻る。','self']]},
+      {s:'自分より若い人が、大きな成果を出している。',hint:'年齢と成果を見た瞬間',good:'年齢順に人生が進むわけではない。今日の一手に戻ればいい。',choices:[['この年齢で自分は何をしているんだろう。','compare'],['追いつくために予定を全部詰め込む。','copy'],['相手の年齢を自分の締切にせず、今日の一手を選ぶ。','self']]},
+      {s:'周囲からすごく褒められている人がいる。',hint:'他人の評価を見た瞬間',good:'相手への評価と、自分への評価は別物。取り合う必要はない。',choices:[['自分は評価されていない、と感じる。','compare'],['その人の振る舞いを全部まねして好かれようとする。','copy'],['その人への評価はそのまま認めて、自分の仕事へ戻る。','self']]},
+      {s:'競合の商品が、自分たちより売れている。',hint:'売上を見た瞬間',good:'競合売上は有益なデータ。でも「自分たちはダメ」の証明ではない。',choices:[['負けている。自分たちはダメだ。','compare'],['競合の商品ページを全部同じにする。','copy'],['売れている理由を分解し、自分たちに効く一手だけ試す。','self']]},
+      {s:'知人の子どもの成績がとても良いと聞いた。',hint:'家族を比べそうな瞬間',good:'他の家庭の成績は、自分の家庭の採点表ではない。',choices:[['うちは大丈夫かな、と急に不安になる。','compare'],['同じ塾や教材をすぐ全部入れる。','copy'],['その家庭はその家庭。自分の子に今必要なことへ戻る。','self']]},
+      {s:'自分より見た目が整っている人を見かけた。',hint:'外見を見た瞬間',good:'魅力は順位表ではない。自分が心地よく整えたい部分だけ整える。',choices:[['自分の欠点を探し始める。','compare'],['その人と同じ服・髪型にすればいいと思う。','copy'],['相手の魅力は認めつつ、自分が心地よい整え方へ戻る。','self']]},
+      {s:'同僚が自分より先に昇進した。',hint:'肩書を見た瞬間',good:'昇進はその人の経路。自分は自分の望む役割と次の行動を選ぶ。',choices:[['自分は出遅れた、と感じる。','compare'],['昇進した人と同じ仕事だけを狙う。','copy'],['自分は何を任されたいのかを確認し、そのための一手を選ぶ。','self']]},
+      {s:'知人が「毎朝5時起きで運動している」と話している。',hint:'習慣を見た瞬間',good:'良い習慣でも、自分に合う形は別。目的から選び直す。',choices:[['自分は意志が弱い、と感じる。','compare'],['明日から同じ5時起きをそのまま始める。','copy'],['自分の目的に必要なら、自分に続くサイズで取り入れる。','self']]},
+      {s:'同じ時期に始めた人の方が、ずっと先へ進んでいる。',hint:'進捗を見た瞬間',good:'開始日が同じでも条件は同じではない。今の自分の一手だけ見ればいい。',choices:[['自分だけ遅い、と焦る。','compare'],['追いつくまで休みを削る。','copy'],['相手の進捗を締切にせず、自分の次の一歩へ戻る。','self']]},
+      {s:'友人が高価なものを買った。',hint:'所有物を見た瞬間',good:'値段は幸福度の順位ではない。自分が欲しいかどうかが先。',choices:[['自分もそれくらい持つべきだと思う。','compare'],['似た価格のものを探して買う。','copy'],['「それ、自分も本当に欲しい？」を確認する。','self']]},
+      {s:'他の人の予定表が、ものすごく充実して見える。',hint:'忙しさを見た瞬間',good:'予定の多さは人生の充実度ではない。空白も含めて自分の時間を使う。',choices:[['自分は何もしていない気になる。','compare'],['空いている予定をとにかく埋める。','copy'],['自分が大事にしたい時間が取れているかを見る。','self']]},
+      {s:'同業者が新しいサービスを次々に出している。',hint:'スピードを見た瞬間',good:'数の多さに引っ張られない。自分の顧客に必要な一つを選ぶ。',choices:[['自分ももっと数を出さないと負ける。','compare'],['同じ種類のサービスを急いで全部作る。','copy'],['顧客に必要なものがあるかだけ確認して、自分の優先順位へ戻る。','self']]},
+      {s:'知人のフォロワー数が、自分の何倍もある。',hint:'数字を見た瞬間',good:'フォロワー数は目的ではなく一つの指標。自分が届けたい相手へ戻る。',choices:[['自分には影響力がない、と感じる。','compare'],['数字を増やすためなら何でも投稿する。','copy'],['誰に何を届けたいのかを確認して、必要な発信をする。','self']]},
+      {s:'友人が「仕事が楽しくて仕方ない」と話している。',hint:'感情を比べそうな瞬間',good:'他人の感情を基準に、自分の仕事を不合格にしなくていい。',choices:[['自分の働き方は間違っている気がする。','compare'],['同じ職種へ転職すれば楽しくなると思う。','copy'],['自分の仕事で減らしたいこと・増やしたいことを見る。','self']]},
+      {s:'自分より少ない努力で成果を出しているように見える人がいる。',hint:'努力量を比べた瞬間',good:'見えている範囲だけで条件を同じにしない。自分の改善点へ戻る。',choices:[['自分だけ損をしている、と感じる。','compare'],['その人と同じ近道を全部探す。','copy'],['条件の違いは置いて、自分のやり方で減らせる無駄を見る。','self']]},
+      {s:'他人の「理想的な一日」動画を見た。',hint:'暮らし方を見た瞬間',good:'動画は見本であって採点基準ではない。自分の良い一日は自分で決める。',choices:[['自分の生活はだらしない、と感じる。','compare'],['動画と同じ朝から夜までを再現する。','copy'],['一つだけ良さそうな要素を試し、自分に合うかを見る。','self']]},
+      {s:'同期が大きな仕事を任されている。',hint:'役割を見た瞬間',good:'誰に何が任されるかは別ルート。自分が望む責任の範囲を決める。',choices:[['自分は期待されていない、と考える。','compare'],['同じ仕事を任せてもらうことだけを目標にする。','copy'],['自分は何を任されたいか、何は持たないかを決める。','self']]},
+      {s:'レビューで他社商品ばかり褒められているのを見た。',hint:'評価を見た瞬間',good:'比較は改善材料として使う。自分の存在価値の判定には使わない。',choices:[['自分たちの商品は価値がないと思う。','compare'],['褒められている特徴を全部追加する。','copy'],['顧客が本当に評価した点だけ抽出して、自分の商品を改善する。','self']]},
+      {s:'知人が早期リタイアしたという話を聞いた。',hint:'人生設計を見た瞬間',good:'早く辞めることも長く働くことも順位ではない。自分の望む暮らしが答え。',choices:[['自分はまだ働いていて遅れていると思う。','compare'],['同じ資産額を最優先目標にする。','copy'],['自分はどんな働き方と暮らし方がしたいかへ戻る。','self']]},
+      {s:'他人の完璧そうな成果物を見た直後、自分の作りかけを見る。',hint:'完成度を比べた瞬間',good:'完成品と途中経過を同じ土俵に置かない。次の改善一つだけを見る。',choices:[['自分のものが急にダメに見える。','compare'],['相手の表現を丸ごと寄せる。','copy'],['途中の自分を完成品と比べず、次に直す一箇所を決める。','self']]}
+    ];
+
+    const MANTRAS = [
+      'あの人はあの人。<br>自分は自分。',
+      '参考にはする。<br>採点には使わない。',
+      'で、自分は<br>どうしたい？'
+    ];
+    const ROUND_SIZE = 10;
+    let round = [];
+    let index = 0;
+    let firstChoiceReturns = 0;
+    let firstAttempt = true;
+    let locked = false;
+
+    const $ = (id) => document.getElementById(id);
+    const els = {intro:$('intro'),game:$('game'),result:$('result'),start:$('start'),again:$('again'),progress:$('progress'),eyebrow:$('eyebrow'),avatar:$('avatar'),question:$('question'),choices:$('choices'),feedback:$('feedback'),feedbackMark:$('feedbackMark'),feedbackTitle:$('feedbackTitle'),feedbackText:$('feedbackText'),next:$('next'),resultRing:$('resultRing'),resultScore:$('resultScore'),mantra:$('mantra'),selfCompare:$('selfCompare')};
+
+    function shuffled(items){
+      const a=[...items];
+      for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+      return a;
+    }
+
+    function setScreen(name){
+      [els.intro,els.game,els.result].forEach(el=>el.classList.remove('active'));
+      els[name].classList.add('active');
+      window.scrollTo({top:0,behavior:'instant'});
+    }
+
+    function buildProgress(){
+      els.progress.innerHTML='';
+      for(let i=0;i<ROUND_SIZE;i++){
+        const dot=document.createElement('i');
+        if(i<index) dot.className='done';
+        else if(i===index) dot.className='current';
+        els.progress.appendChild(dot);
+      }
+    }
+
+    function startRound(){
+      round=shuffled(QUESTIONS).slice(0,ROUND_SIZE);
+      index=0;
+      firstChoiceReturns=0;
+      setScreen('game');
+      renderQuestion();
+    }
+
+    function renderQuestion(){
+      locked=false;
+      firstAttempt=true;
+      const q=round[index];
+      buildProgress();
+      els.eyebrow.textContent=`比較トリガー ${String(index+1).padStart(2,'0')} / ${ROUND_SIZE}`;
+      els.question.innerHTML=`${q.s}<small>${q.hint}</small>`;
+      els.avatar.className='avatar';
+      els.feedback.className='feedback';
+      els.next.className='next';
+      els.choices.innerHTML='';
+      shuffled(q.choices).forEach(([text,type])=>{
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='choice';
+        btn.textContent=text;
+        btn.dataset.type=type;
+        btn.addEventListener('click',()=>choose(btn,type));
+        els.choices.appendChild(btn);
+      });
+    }
+
+    function choose(btn,type){
+      if(locked || btn.disabled) return;
+      const q=round[index];
+      if(type!=='self'){
+        btn.disabled=true;
+        btn.classList.add('wrong');
+        els.avatar.className='avatar pulled';
+        els.feedback.className='feedback show bad';
+        els.feedbackMark.textContent='↺';
+        els.feedbackTitle.textContent=type==='copy'?'まねる前に、自分へ戻る。':'比較に気づいた。ここから戻れる。';
+        els.feedbackText.textContent=type==='copy'?'相手の答えを、そのまま自分の答えにしない。':'相手の現在地を、自分の採点表にしない。';
+        firstAttempt=false;
+        return;
+      }
+
+      locked=true;
+      if(firstAttempt) firstChoiceReturns++;
+      [...els.choices.children].forEach(choice=>{choice.disabled=true;if(choice===btn)choice.classList.add('correct');});
+      els.avatar.className='avatar back';
+      els.feedback.className='feedback show good';
+      els.feedbackMark.textContent='自';
+      els.feedbackTitle.textContent='自分の道へ戻った。';
+      els.feedbackText.textContent=q.good;
+      els.next.className='next show';
+      els.next.textContent=index===ROUND_SIZE-1?'結果を見る':'次の場面へ';
+      els.game.classList.add('flash');
+      setTimeout(()=>els.game.classList.remove('flash'),360);
+    }
+
+    function finish(){
+      const key='levelup-jibun-wa-jibun-v1';
+      let previous=null;
+      try{previous=JSON.parse(localStorage.getItem(key)||'null');}catch{}
+      const current=firstChoiceReturns;
+      try{localStorage.setItem(key,JSON.stringify({last:current,sessions:(previous?.sessions||0)+1,updatedAt:Date.now()}));}catch{}
+      els.resultScore.textContent=String(current);
+      els.resultRing.style.setProperty('--rate',String(current*10));
+      els.mantra.innerHTML=MANTRAS[Math.floor(Math.random()*MANTRAS.length)];
+      if(previous && Number.isFinite(previous.last)){
+        const diff=current-previous.last;
+        els.selfCompare.className='compare-self show';
+        if(diff>0) els.selfCompare.textContent=`前回の自分 ${previous.last}回 → 今回 ${current}回。${diff}回ぶん、最初から自分へ戻れた。`;
+        else if(diff<0) els.selfCompare.textContent=`前回の自分 ${previous.last}回 → 今回 ${current}回。今日は比較に気づいて戻る練習を10回できた。`;
+        else els.selfCompare.textContent=`前回の自分も今回も ${current}回。比較に気づいて戻る反射を、もう10回積み上げた。`;
+      }else{
+        els.selfCompare.className='compare-self';
+        els.selfCompare.textContent='';
+      }
+      setScreen('result');
+    }
+
+    els.start.addEventListener('click',startRound);
+    els.again.addEventListener('click',startRound);
+    els.next.addEventListener('click',()=>{if(!locked)return;if(index>=ROUND_SIZE-1)finish();else{index++;renderQuestion();}});
+
+    document.addEventListener('keydown',(event)=>{
+      if(!els.game.classList.contains('active')) return;
+      const choices=[...els.choices.querySelectorAll('.choice:not(:disabled)')];
+      if(['1','2','3'].includes(event.key)) choices[Number(event.key)-1]?.click();
+      if(event.key==='Enter' && els.next.classList.contains('show')) els.next.click();
+    });
+  </script>
+</body>
+</html>
