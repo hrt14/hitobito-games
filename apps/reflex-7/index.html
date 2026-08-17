@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#090b08" />
+  <meta name="description" content="日常の瞬間判断を反復し、7つの思考パターンを反射レベルまで鍛えるLEVEL UPゲーム。" />
+  <title>REFLEX 7 | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る">⌂</a>
+      <div class="brand"><span>HITOBITO</span><b>LEVEL UP</b></div>
+      <button class="sound" id="soundButton" type="button" aria-pressed="true" aria-label="効果音を切り替える">♪</button>
+    </header>
+
+    <section class="screen screen-start is-active" id="startScreen">
+      <div class="start-orbit" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+      <div class="eyebrow">THINK LESS. CHOOSE BETTER.</div>
+      <h1>REFLEX<br><em>7</em></h1>
+      <p class="lead">知っているだけでは、咄嗟に使えない。<br>日常の場面を見て、より良い一手を<strong>反射で選ぶ。</strong></p>
+      <div class="start-stats" aria-label="これまでの成績">
+        <div><strong id="startSessions">0</strong><span>SESSIONS</span></div>
+        <div><strong id="startAccuracy">—</strong><span>ACCURACY</span></div>
+        <div><strong id="startSpeed">—</strong><span>AVG SPEED</span></div>
+      </div>
+      <div class="rules"><span>10問</span><span>3択</span><span id="ruleTime">6秒</span><span>苦手を多めに出題</span></div>
+      <button class="primary" id="startButton" type="button">反射トレーニング開始 <span>→</span></button>
+      <p class="note">正解を暗記するゲームではありません。状況を見た瞬間の「最初の反応」を鍛えます。</p>
+    </section>
+
+    <section class="screen screen-game" id="gameScreen" aria-live="polite">
+      <div class="hud">
+        <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+        <div class="hud-row"><span id="roundLabel">01 / 10</span><span class="streak" id="streakLabel">STREAK 0</span><span id="scoreLabel">0</span></div>
+      </div>
+
+      <div class="skill-row">
+        <span class="skill-dot" id="skillDot"></span>
+        <span class="skill-name" id="skillName">CONTROL</span>
+        <span class="skill-jp" id="skillJp">変えられる方へ</span>
+      </div>
+
+      <article class="scenario" id="scenarioCard">
+        <div class="scene-no" id="sceneNo">SCENE 01</div>
+        <h2 id="scenarioText">場面がここに入ります。</h2>
+        <div class="timer" aria-label="回答時間"><div class="timer-fill" id="timerFill"></div></div>
+      </article>
+
+      <div class="choices" id="choices"></div>
+      <div class="microcopy">考え込む前の一手を選ぶ</div>
+    </section>
+
+    <section class="screen screen-feedback" id="feedbackScreen">
+      <div class="feedback-mark" id="feedbackMark">✓</div>
+      <div class="feedback-kicker" id="feedbackKicker">GOOD REFLEX</div>
+      <h2 id="feedbackTitle">変えられる方へ。</h2>
+      <p id="feedbackText">短い理由がここに入ります。</p>
+      <div class="feedback-meta"><span id="feedbackSkill">CONTROL</span><span id="feedbackTime">1.8s</span></div>
+      <button class="primary" id="nextButton" type="button">次の場面 <span>→</span></button>
+    </section>
+
+    <section class="screen screen-result" id="resultScreen">
+      <div class="eyebrow">SESSION COMPLETE</div>
+      <h2>今日の<br><em>反射スコア</em></h2>
+      <div class="reflex-score"><strong id="reflexScore">0</strong><span>/ 100</span></div>
+      <div class="result-grid">
+        <div><span>正答率</span><strong id="resultAccuracy">0%</strong></div>
+        <div><span>平均判断</span><strong id="resultSpeed">0.0s</strong></div>
+        <div><span>最長連続</span><strong id="resultStreak">0</strong></div>
+      </div>
+      <div class="weak-card">
+        <div class="weak-label">NEXT TRAINING</div>
+        <div class="weak-skill" id="weakSkill">LISTEN</div>
+        <p id="weakText">まず相手を理解する反射を、次は多めに出題します。</p>
+      </div>
+      <div class="ifthen">
+        <span>現実に持ち帰る1行</span>
+        <strong id="ifThenText">もし反対されたら → まず理由を聞く。</strong>
+      </div>
+      <button class="primary" id="retryButton" type="button">もう10問 <span>↻</span></button>
+      <a class="secondary" href="/">LEVEL UPへ戻る</a>
+    </section>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
