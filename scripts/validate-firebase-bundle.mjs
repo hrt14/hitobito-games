@@ -50,6 +50,10 @@ for (const game of catalog.games) {
   }
 }
 
+if (!home.includes('id="levelup-refresh"')) {
+  problems.push('home: refresh button missing');
+}
+
 if (catalog.games.length !== 22) {
   problems.push(`catalog: expected 22 curated games, found ${catalog.games.length}`);
 }
@@ -60,4 +64,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified`);
+console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; refresh button present`);
