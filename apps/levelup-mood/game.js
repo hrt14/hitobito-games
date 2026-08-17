@@ -22,12 +22,12 @@
     { id:'lookfar', icon:'👀', title:'10秒、遠くを見る', sub:'画面と考え事から距離を取る', skill:'attention', tags:['screen','overload','fatigue','rumination'], base:12 },
     { id:'walk', icon:'🚶', title:'30歩だけ歩く', sub:'身体を動かして切り替える', skill:'body', tags:['anger','stuck','fatigue','rumination'], base:14 },
     { id:'tea', icon:'☕', title:'温かいものを飲む', sub:'まず快適さを1つ足す', skill:'recovery', tags:['weather','sad','waiting','fatigue'], base:12 },
-    { id:'name', icon:'🏷️', title:'「いまイラついてる」', sub:'気分に名前だけつける', skill:'words', tags:['anger','social','rumination','disappointment'], base:13 },
+    { id:'name', icon:'🏷️', title:'気分に名前をつける', sub:'「焦り」「悔しい」など一言にする', skill:'words', tags:['anger','social','rumination','disappointment'], base:13 },
     { id:'nextone', icon:'⚡', title:'次の1個だけ決める', sub:'コントロールを小さく取り戻す', skill:'action', tags:['stuck','delay','disappointment','overload'], base:15 },
     { id:'tinywin', icon:'✓', title:'30秒で1個終わらせる', sub:'小さな完了を作る', skill:'action', tags:['stuck','overload','delay','waiting'], base:14 },
-    { id:'distance', icon:'↔️', title:'返信を5分置く', sub:'反応する前に距離を作る', skill:'boundary', tags:['social','anger','message','criticism'], base:16 },
+    { id:'distance', icon:'↔️', title:'5分だけ距離を置く', sub:'反応する前に間を作る', skill:'boundary', tags:['social','anger','message','criticism'], base:16 },
     { id:'shoulders', icon:'🧍', title:'肩とあごをゆるめる', sub:'力みを先にほどく', skill:'body', tags:['rush','anger','body','screen'], base:12 },
-    { id:'reframe', icon:'💬', title:'「そうなったか」', sub:'事実だけ一度受け取る', skill:'words', tags:['disappointment','delay','weather','rejection'], base:15 },
+    { id:'reframe', icon:'💬', title:'「そうなったか」と区切る', sub:'事実だけ一度受け取る', skill:'words', tags:['disappointment','delay','weather','rejection'], base:15 },
     { id:'humor', icon:'🙂', title:'心の中で実況する', sub:'ちょっとだけネタにする', skill:'humor', tags:['awkward','mistake','waiting','social'], base:11 },
     { id:'snack', icon:'🍫', title:'小さく補給する', sub:'空腹なら先に燃料を入れる', skill:'recovery', tags:['hunger','fatigue','anger','body'], base:16 },
     { id:'sun', icon:'🌤️', title:'外気に30秒触れる', sub:'環境を小さく切り替える', skill:'senses', tags:['screen','stuck','sad','fatigue'], base:13 },
@@ -35,31 +35,41 @@
   ];
 
   const TRAPS = [
-    { id:'make_reply', icon:'📱', title:'相手に今すぐ返事させる', sub:'外部条件を操作', trap:true },
-    { id:'make_train', icon:'🚄', title:'電車を早く走らせる', sub:'外部条件を操作', trap:true },
-    { id:'make_rain', icon:'☀️', title:'雨を止ませる', sub:'外部条件を操作', trap:true },
-    { id:'make_queue', icon:'🪄', title:'行列を消す', sub:'外部条件を操作', trap:true },
-    { id:'make_boss', icon:'🧑‍💼', title:'相手の機嫌を直す', sub:'外部条件を操作', trap:true },
-    { id:'rewind', icon:'⏪', title:'ミス前まで巻き戻す', sub:'外部条件を操作', trap:true }
+    { id:'train_watch', icon:'🚃', title:'運行情報を何度も更新する', sub:'遅れが縮むか監視し続ける', trap:true, feedback:'確認を続けても遅れそのものは縮まりにくい。待っている自分を少し楽にする一手へ戻そう。' },
+    { id:'reply_chase', icon:'📱', title:'追いメッセージを送る', sub:'返信を早めようとする', trap:true, feedback:'相手の返信速度を急がせるより、待っている時間の自分を整える方が今すぐ動かせる。' },
+    { id:'rain_watch', icon:'🌧️', title:'天気予報を何度も見直す', sub:'雨が変わらないか気にし続ける', trap:true, feedback:'予報を見続けても今の雨は変わりにくい。今日の自分に足せる快適さを探そう。' },
+    { id:'mood_watch', icon:'🧑‍💼', title:'相手の顔色をずっと読む', sub:'機嫌が直るまで気にし続ける', trap:true, feedback:'相手の機嫌を管理し続けると自分の緊張が増えやすい。自分の呼吸や距離に戻そう。' },
+    { id:'mistake_replay', icon:'⏪', title:'送信前を頭の中でやり直す', sub:'「ああすれば」を繰り返す', trap:true, feedback:'過去の場面を何度再生しても送信前には戻れない。今できる次の一手へ切り替えよう。' },
+    { id:'queue_watch', icon:'👥', title:'列の進みをずっと気にする', sub:'前の人ばかり見続ける', trap:true, feedback:'列の速さを見張り続けるより、待ち時間の自分を少し楽にする方が回復につながる。' },
+    { id:'fight_back', icon:'💬', title:'勢いのまま言い返す', sub:'その場で相手を変えようとする', trap:true, feedback:'反射で言い返す前に、まず自分の熱を少し下げる。必要な返答はそのあとでもできる。' },
+    { id:'cancel_restore', icon:'🗓️', title:'予定を戻せないか何度も聞く', sub:'キャンセルをなかったことにしたい', trap:true, feedback:'予定を元に戻すことだけに粘るより、空いた時間をどう使うかへ操作を戻そう。' },
+    { id:'stuck_push', icon:'💻', title:'同じ画面のまま粘り続ける', sub:'気合いで突破しようとする', trap:true, feedback:'詰まったまま押し続けると消耗しやすい。いったん身体や注意を切り替えるのも前進。' },
+    { id:'notify_all', icon:'🔔', title:'全部すぐ返す', sub:'通知の順番に反応し続ける', trap:true, feedback:'全部を今処理すると注意がさらに散りやすい。まず自分側で次の1個を決めよう。' },
+    { id:'hunger_push', icon:'🍽️', title:'空腹のまま気合いで押し切る', sub:'身体のサインを無視する', trap:true, feedback:'空腹は気合いだけでは消えにくい。可能なら小さく補給して、身体から機嫌を戻そう。' },
+    { id:'fatigue_push', icon:'😴', title:'眠気を無視して続ける', sub:'同じペースで頑張り続ける', trap:true, feedback:'疲れているときに同じ出力を求め続けると消耗しやすい。まず小さく状態を変えよう。' },
+    { id:'awkward_replay', icon:'🙃', title:'相手の反応を何度も思い返す', sub:'沈黙の意味を考え続ける', trap:true, feedback:'数秒の反応を何度も再生すると気まずさが膨らみやすい。いったん出来事を区切ろう。' },
+    { id:'rejection_push', icon:'📉', title:'判断を変えてもらおうと食い下がる', sub:'今の評価をすぐ覆そうとする', trap:true, feedback:'相手の判断をすぐ変えることだけに力を使うより、自分の次の一手へ戻す方が回復しやすい。' },
+    { id:'closed_wait', icon:'🚧', title:'店の前で開くのを待ち続ける', sub:'予定どおりになるまで動かない', trap:true, feedback:'今日開く保証のない店を待つより、次の選択肢を1つ決める方が自分の時間を取り戻せる。' },
+    { id:'noise_wait', icon:'🔊', title:'静かになるまでイライラして待つ', sub:'周りが変わるのを待ち続ける', trap:true, feedback:'周囲がすぐ静かになるとは限らない。音との距離や身体の力みなど、自分側を先に動かそう。' }
   ];
 
   const EVENTS = [
-    {icon:'🚃',title:'電車が15分遅れている。',detail:'ホームは混雑。到着時刻は変えられない。',drop:18,tags:['delay','waiting','rush'],impacts:['待ち','焦り'],trap:'make_train',best:['breathe','nextone','music']},
-    {icon:'📱',title:'返信が来ない。',detail:'既読はついた。でも相手の返信速度は操作できない。',drop:16,tags:['waiting','message','rumination','social'],impacts:['待ち','考えすぎ'],trap:'make_reply',best:['lookfar','tinywin','write']},
-    {icon:'🌧️',title:'楽しみにしていた日に雨。',detail:'予報は一日中雨。天気はそのまま。',drop:15,tags:['weather','disappointment','sad'],impacts:['予定外','がっかり'],trap:'make_rain',best:['reframe','tea','music']},
-    {icon:'🧑‍💼',title:'相手が不機嫌。',detail:'返事が短い。こちらから相手の気分は決められない。',drop:17,tags:['social','anger','anxiety'],impacts:['対人','緊張'],trap:'make_boss',best:['distance','name','breathe']},
-    {icon:'🧾',title:'自分のミスに気づいた。',detail:'送信済み。起きたことは取り消せない。',drop:20,tags:['mistake','rumination','disappointment','anxiety'],impacts:['後悔','焦り'],trap:'rewind',best:['name','nextone','write']},
-    {icon:'👥',title:'レジの行列が長い。',detail:'前に12人。列そのものは今すぐ消せない。',drop:13,tags:['waiting','anger','stuck'],impacts:['待ち','苛立ち'],trap:'make_queue',best:['music','humor','water']},
-    {icon:'💬',title:'きつい言い方をされた。',detail:'言われた言葉はもう戻らない。次の反応だけ選べる。',drop:21,tags:['criticism','social','anger','message'],impacts:['批判','怒り'],trap:'make_boss',best:['distance','name','walk']},
-    {icon:'🗓️',title:'予定が急にキャンセル。',detail:'空いた2時間。相手の都合は変えられない。',drop:17,tags:['disappointment','stuck','waiting'],impacts:['予定外','空白'],trap:'make_reply',best:['reframe','nextone','tea']},
-    {icon:'💻',title:'作業が全然進まない。',detail:'画面を見ても同じ場所。いったん詰まっている。',drop:16,tags:['screen','stuck','overload','fatigue'],impacts:['詰まり','疲労'],trap:'rewind',best:['walk','lookfar','tinywin']},
-    {icon:'🔔',title:'通知が次々に来る。',detail:'全部に今すぐ反応しなくてもいい。通知は鳴っている。',drop:14,tags:['overload','screen','rush'],impacts:['過負荷','注意散漫'],trap:'make_reply',best:['shoulders','nextone','write']},
-    {icon:'🍽️',title:'お腹が空いてイライラ。',detail:'あと40分は予定が続く。いまの身体は燃料不足。',drop:18,tags:['hunger','body','anger','fatigue'],impacts:['空腹','苛立ち'],trap:'make_boss',best:['snack','water','breathe']},
-    {icon:'😴',title:'眠くて頭が回らない。',detail:'気合いでは処理速度が戻らない。今は疲れている。',drop:17,tags:['fatigue','body','screen'],impacts:['疲労','集中低下'],trap:'rewind',best:['water','sun','lookfar']},
-    {icon:'🙃',title:'会話で変なことを言った。',detail:'数秒の沈黙。言ったことは戻らない。',drop:14,tags:['awkward','social','rumination','mistake'],impacts:['気まずさ','反芻'],trap:'rewind',best:['humor','reframe','name']},
-    {icon:'📉',title:'提案が採用されなかった。',detail:'今回は見送り。相手の判断はもう出ている。',drop:19,tags:['rejection','disappointment','rumination'],impacts:['不採用','がっかり'],trap:'make_boss',best:['reframe','write','nextone']},
-    {icon:'🚧',title:'店が臨時休業。',detail:'入口には休業の貼り紙。今日は開かない。',drop:12,tags:['disappointment','stuck','delay'],impacts:['予定外','足止め'],trap:'make_queue',best:['reframe','nextone','humor']},
-    {icon:'🔊',title:'周りがうるさくて集中できない。',detail:'環境音は続いている。今すぐ全員を静かにはできない。',drop:15,tags:['noise','screen','anger','stuck'],impacts:['騒音','集中低下'],trap:'make_boss',best:['music','distance','shoulders']}
+    {icon:'🚃',title:'電車が15分遅れている。',detail:'出発表示は15分遅れ。ホームは少し混んでいる。',drop:18,tags:['delay','waiting','rush'],impacts:['待ち','焦り'],trap:'train_watch',best:['breathe','nextone','music']},
+    {icon:'📱',title:'返信が来ない。',detail:'既読はついた。10分経っても返信はまだない。',drop:16,tags:['waiting','message','rumination','social'],impacts:['待ち','考えすぎ'],trap:'reply_chase',best:['lookfar','tinywin','write']},
+    {icon:'🌧️',title:'楽しみにしていた日に雨。',detail:'楽しみにしていた外出の日。朝から雨が続いている。',drop:15,tags:['weather','disappointment','sad'],impacts:['予定外','がっかり'],trap:'rain_watch',best:['reframe','tea','music']},
+    {icon:'🧑‍💼',title:'相手が不機嫌そう。',detail:'返事が短く、いつもより空気が重い。',drop:17,tags:['social','anger','anxiety'],impacts:['対人','緊張'],trap:'mood_watch',best:['distance','name','breathe']},
+    {icon:'🧾',title:'送ったあとでミスに気づいた。',detail:'メッセージを送信した直後、内容のミスに気づいた。',drop:20,tags:['mistake','rumination','disappointment','anxiety'],impacts:['後悔','焦り'],trap:'mistake_replay',best:['name','nextone','write']},
+    {icon:'👥',title:'レジの行列が長い。',detail:'レジ前に12人。思ったより列が長い。',drop:13,tags:['waiting','anger','stuck'],impacts:['待ち','苛立ち'],trap:'queue_watch',best:['music','humor','water']},
+    {icon:'💬',title:'きつい言い方をされた。',detail:'会話の途中で、思ったより強い言い方をされた。',drop:21,tags:['criticism','social','anger','message'],impacts:['批判','怒り'],trap:'fight_back',best:['distance','name','walk']},
+    {icon:'🗓️',title:'予定が急にキャンセル。',detail:'予定の1時間前にキャンセルの連絡が来た。',drop:17,tags:['disappointment','stuck','waiting'],impacts:['予定外','空白'],trap:'cancel_restore',best:['reframe','nextone','tea']},
+    {icon:'💻',title:'作業が全然進まない。',detail:'同じところで20分止まっている。考えても進まない。',drop:16,tags:['screen','stuck','overload','fatigue'],impacts:['詰まり','疲労'],trap:'stuck_push',best:['walk','lookfar','tinywin']},
+    {icon:'🔔',title:'通知が次々に来る。',detail:'仕事中に通知が立て続けに5件。集中が切れた。',drop:14,tags:['overload','screen','rush'],impacts:['過負荷','注意散漫'],trap:'notify_all',best:['shoulders','nextone','write']},
+    {icon:'🍽️',title:'お腹が空いてイライラ。',detail:'予定が続いていて、空腹でだんだんイライラしてきた。',drop:18,tags:['hunger','body','anger','fatigue'],impacts:['空腹','苛立ち'],trap:'hunger_push',best:['snack','water','breathe']},
+    {icon:'😴',title:'眠くて頭が回らない。',detail:'眠気が強く、同じ文を何度も読み直している。',drop:17,tags:['fatigue','body','screen'],impacts:['疲労','集中低下'],trap:'fatigue_push',best:['water','sun','lookfar']},
+    {icon:'🙃',title:'会話で変なことを言った。',detail:'言った直後に数秒の沈黙。ちょっと気まずい。',drop:14,tags:['awkward','social','rumination','mistake'],impacts:['気まずさ','反芻'],trap:'awkward_replay',best:['humor','reframe','name']},
+    {icon:'📉',title:'提案が採用されなかった。',detail:'出した提案に「今回は見送り」と返ってきた。',drop:19,tags:['rejection','disappointment','rumination'],impacts:['不採用','がっかり'],trap:'rejection_push',best:['reframe','write','nextone']},
+    {icon:'🚧',title:'店が臨時休業。',detail:'行きたかった店の前まで来たら、臨時休業の貼り紙。',drop:12,tags:['disappointment','stuck','delay'],impacts:['予定外','足止め'],trap:'closed_wait',best:['reframe','nextone','humor']},
+    {icon:'🔊',title:'周りがうるさくて集中できない。',detail:'周りの話し声と物音が続き、集中が切れてきた。',drop:15,tags:['noise','screen','anger','stuck'],impacts:['騒音','集中低下'],trap:'noise_wait',best:['music','distance','shoulders']}
   ];
 
   const $ = (id) => document.getElementById(id);
@@ -147,13 +157,9 @@
   }
 
   function buildOptions(event){
-    const best = event.best.map(id => ACTIONS.find(a=>a.id===id)).filter(Boolean);
-    const pool = shuffle(ACTIONS.filter(a => !event.best.includes(a.id)));
-    const good = best[Math.floor(Math.random()*best.length)];
-    const medium = pool.find(a => a.tags.some(t=>event.tags.includes(t))) || pool[0];
-    const neutral = pool.find(a => a.id !== medium.id && !a.tags.some(t=>event.tags.includes(t))) || pool[1];
+    const selfOptions = event.best.map(id => ACTIONS.find(a=>a.id===id)).filter(Boolean);
     const trap = TRAPS.find(t=>t.id===event.trap) || TRAPS[0];
-    return shuffle([good,medium,neutral,trap]);
+    return shuffle([...selfOptions,trap]);
   }
 
   function startTimer(){
@@ -189,8 +195,8 @@
 
     let gain = 0;
     let grade = 'bad';
-    let title = '外は動かない。';
-    let body = '変えられない条件ではなく、自分に戻せる一手を探してみよう。';
+    let title = 'まだ一手ある。';
+    let body = 'いまの自分を少し動かせる選択を探してみよう。';
 
     if(timedOut){
       gain = 2;
@@ -200,8 +206,8 @@
     } else if(action && action.trap){
       gain = 0;
       state.combo = 0;
-      title = 'それは外部条件。';
-      body = '相手・天気・過去・待ち時間はこのターンでは固定。自分側の操作を探そう。';
+      title = 'そこに粘ると消耗する。';
+      body = action.feedback || '変えにくいものに力を使い続けるより、自分を少し楽にする一手へ戻そう。';
       tone('low');
     } else if(action){
       const matches = action.tags.filter(t=>event.tags.includes(t)).length;
@@ -310,7 +316,7 @@
 
   function copyResult(){
     if(!state?.resultScore) return;
-    const text = `『機嫌は自分で取る』\nREGULATION ${state.resultScore}\nRESET COMBO ×${state.maxCombo}\n外は固定。自分の一手を選ぶ。\n#LEVELUP`;
+    const text = `『機嫌は自分で取る』\nREGULATION ${state.resultScore}\nRESET COMBO ×${state.maxCombo}\n外に粘るより、自分の一手を選ぶ。\n#LEVELUP`;
     if(navigator.clipboard?.writeText){
       navigator.clipboard.writeText(text).then(()=>showToast('結果をコピーしました')).catch(()=>fallbackCopy(text));
     } else fallbackCopy(text);
