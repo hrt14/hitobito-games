@@ -9,8 +9,9 @@ const homePath = path.join(outDir, 'index.html');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 const manifestPath = path.join(outDir, 'manifest.json');
 const appIndexPath = path.join(outDir, 'apps', 'yahoo-shopping-marketer', 'index.html');
+const appGamePath = path.join(outDir, 'apps', 'yahoo-shopping-marketer', 'game.js');
 
-for (const file of [homePath, catalogPath, manifestPath, appIndexPath]) {
+for (const file of [homePath, catalogPath, manifestPath, appIndexPath, appGamePath]) {
   if (!fs.existsSync(file)) throw new Error(`yahoo-shopping-marketer integration input missing: ${file}`);
 }
 
@@ -42,6 +43,14 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 if (!manifest.games.some((item) => item.slug === game.slug)) {
   throw new Error('yahoo-shopping-marketer is not included in Firebase manifest');
 }
+
+const appGame = fs.readFileSync(appGamePath, 'utf8');
+const appIndex = fs.readFileSync(appIndexPath, 'utf8');
+if (!appGame.includes('コマースアドマネージャー')) throw new Error('Yahoo current ad naming is missing from game');
+if (appGame.includes('アイテムマッチ') || appIndex.includes('アイテムマッチ')) throw new Error('Stale Yahoo ad naming remains in app');
+if (!appGame.includes('timedOut?[0,0,0,0]')) throw new Error('Yahoo timeout KPI safety fix is missing');
+if (!appGame.includes("els.game.classList.add('answered')")) throw new Error('Yahoo mobile feedback compaction hook is missing');
+if (!appIndex.includes('business-ec.yahoo.co.jp/shopping/question/index.html')) throw new Error('Yahoo official source link is missing');
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 const beforeCount = catalog.games.length;
@@ -98,4 +107,4 @@ for (const required of [
 }
 if (!finalCatalog.games.some((item) => item.slug === game.slug)) throw new Error('yahoo-shopping-marketer catalog integration failed');
 
-console.log(`[Firebase] Yahoo Shopping marketer injected as NEW release (${afterCount} games)`);
+console.log(`[Firebase] Yahoo Shopping marketer validated + injected as NEW release (${afterCount} games)`);
