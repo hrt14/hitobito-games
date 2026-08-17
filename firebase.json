@@ -30,23 +30,6 @@
       "**/node_modules/**"
     ],
     "cleanUrls": true,
-    "trailingSlash": true,
-    "redirects": [
-      {
-        "source": "/start",
-        "destination": "https://hitobito-tools.vercel.app/start",
-        "type": 302
-      },
-      {
-        "source": "/maa-iika",
-        "destination": "https://hitobito-tools.vercel.app/maa-iika",
-        "type": 302
-      },
-      {
-        "source": "/self-management",
-        "destination": "https://hitobito-tools.vercel.app/self-management",
-        "type": 302
-      }
-    ]
+    "trailingSlash": true
   }
 }
