@@ -7,6 +7,11 @@ on:
       - main
     paths:
       - 'apps/**'
+      - 'index.html'
+      - 'scripts/playtest-catalog.mjs'
+      - 'scripts/build-host-targets.mjs'
+      - 'scripts/human-test-organized.mjs'
+      - 'scripts/human-test.mjs'
       - 'scripts/sanitize-public-apps.mjs'
       - '.github/workflows/sanitize-public-apps.yml'
 
@@ -32,18 +37,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Sanitize all public app sources
+      - name: Sanitize public source surfaces
         run: node scripts/sanitize-public-apps.mjs --fix
 
       - name: Commit redactions if needed
         run: |
-          if ! git diff --quiet -- apps; then
-            git add apps
-            git commit -m "Remove confidential examples from public apps"
+          TARGETS=(apps index.html scripts/playtest-catalog.mjs scripts/build-host-targets.mjs scripts/human-test-organized.mjs scripts/human-test.mjs)
+          if ! git diff --quiet -- "${TARGETS[@]}"; then
+            git add -- "${TARGETS[@]}"
+            git commit -m "Remove confidential examples from public surfaces"
             git push origin HEAD:main
           else
-            echo "No app source changes needed"
+            echo "No public source changes needed"
           fi
 
-      - name: Re-scan after sanitization
+      - name: Build games and play bundle
+        run: npm run build:hosting
+
+      - name: Audit generated games/play bundle
         run: node scripts/sanitize-public-apps.mjs
