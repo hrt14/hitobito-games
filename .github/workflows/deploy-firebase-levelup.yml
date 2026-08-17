@@ -15,10 +15,10 @@ on:
       - 'package-lock.json'
       - 'scripts/build-host-targets.mjs'
       - 'scripts/build-firebase-levelup-home.mjs'
-      - 'scripts/inject-levelup-meeting-respawn.mjs'
       - 'scripts/inject-levelup-home-link.mjs'
       - 'scripts/inject-levelup-account.mjs'
       - 'scripts/inject-levelup-refresh-button.mjs'
+      - 'scripts/patch-levelup-popup-auth.mjs'
       - 'scripts/playtest-catalog.mjs'
       - 'scripts/prepare-firebase-mobile.mjs'
       - 'scripts/validate-firebase-bundle.mjs'
@@ -68,9 +68,9 @@ jobs:
           set -euo pipefail
           test -s .dist/firebase/apps/ato-5min/game.js
           test -s .dist/firebase/apps/watashi-zukan/game.js
-          test -s .dist/firebase/apps/meeting-respawn/game.js
-          test -s .dist/firebase/apps/meeting-respawn/style.css
           grep -F 'signInWithPopup(provider)' .dist/firebase/levelup-account.js >/dev/null
+          grep -F 'Googleログインが完了しました。' .dist/firebase/levelup-account.js >/dev/null
+          grep -F "(code ? '（' + code + '）' : '')" .dist/firebase/levelup-account.js >/dev/null
           ! grep -F 'levelup-auth-bridge.html' .dist/firebase/levelup-account.js
           ! grep -F 'levelup-custom-auth' .dist/firebase/index.html
           grep -F 'window.firebase.auth().onAuthStateChanged(renderAccount)' .dist/firebase/index.html >/dev/null
@@ -87,11 +87,8 @@ jobs:
           ! grep -F 'data-answer="joint"' .dist/firebase/apps/task-separation/index.html
           ! grep -F 'data-answer="outside"' .dist/firebase/apps/task-separation/index.html
           grep -F '間違えた問題を振り返る' .dist/firebase/apps/task-separation/index.html >/dev/null
-          grep -F 'RESPAWN COMPLETE' .dist/firebase/apps/meeting-respawn/game.js >/dev/null
-          grep -F '30秒だけやる' .dist/firebase/apps/meeting-respawn/game.js >/dev/null
-          grep -F 'もっと小さくした' .dist/firebase/apps/meeting-respawn/game.js >/dev/null
           node scripts/audit-firebase-mobile.mjs
-          echo "Mobile loader, direct popup auth, inline style, task-separation, and meeting-respawn checks OK"
+          echo "Mobile loader, hardened popup auth, inline style, and task-separation checks OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -104,11 +101,11 @@ jobs:
         run: |
           set -euo pipefail
           sleep 5
+          expected_games=$(node -e "const fs=require('fs');console.log(JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json','utf8')).games.length)")
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             echo "Checking $base"
             curl -fLsS "$base/" -o /tmp/levelup-home.html
-            grep -F '24 games' /tmp/levelup-home.html >/dev/null
-            grep -F '会議リスポーン' /tmp/levelup-home.html >/dev/null
+            grep -F "${expected_games} games" /tmp/levelup-home.html >/dev/null
             grep -F 'window.firebase.auth().onAuthStateChanged(renderAccount)' /tmp/levelup-home.html >/dev/null
             ! grep -F 'levelup-custom-auth' /tmp/levelup-home.html
             node - "$base" <<'NODE'
@@ -139,6 +136,8 @@ jobs:
             curl -fLsS "$base/levelup-account.js" -o /tmp/levelup-account.js
             grep -F 'GoogleAuthProvider' /tmp/levelup-account.js >/dev/null
             grep -F 'signInWithPopup(provider)' /tmp/levelup-account.js >/dev/null
+            grep -F 'Googleログインが完了しました。' /tmp/levelup-account.js >/dev/null
+            grep -F "(code ? '（' + code + '）' : '')" /tmp/levelup-account.js >/dev/null
             ! grep -F 'levelup-auth-bridge.html' /tmp/levelup-account.js
             curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
             grep -F "const QUESTIONS" /tmp/task-separation.js >/dev/null
@@ -146,14 +145,5 @@ jobs:
             grep -F '意味マップ | LEVEL UP' /tmp/meaning-map.html >/dev/null
             curl -fLsS "$base/apps/meaning-map/game.js" -o /tmp/meaning-map.js
             grep -F "const LENSES" /tmp/meaning-map.js >/dev/null
-            curl -fLsS "$base/apps/meeting-respawn/" -o /tmp/meeting-respawn.html
-            grep -F '会議リスポーン | LEVEL UP' /tmp/meeting-respawn.html >/dev/null
-            grep -F './game.js' /tmp/meeting-respawn.html >/dev/null
-            grep -F './style.css' /tmp/meeting-respawn.html >/dev/null
-            grep -F 'data-levelup-account' /tmp/meeting-respawn.html >/dev/null
-            curl -fLsS "$base/apps/meeting-respawn/game.js" -o /tmp/meeting-respawn.js
-            grep -F 'RESPAWN COMPLETE' /tmp/meeting-respawn.js >/dev/null
-            grep -F '30秒だけやる' /tmp/meeting-respawn.js >/dev/null
-            grep -F 'もっと小さくした' /tmp/meeting-respawn.js >/dev/null
-            echo "OK: $base all 24 routes + direct popup auth + meeting respawn + meaning map + mobile-safe loaders"
+            echo "OK: $base all ${expected_games} routes + hardened popup auth + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
           done
