@@ -26,6 +26,16 @@ for (const game of manifest.games) {
   }
 
   const html = fs.readFileSync(indexPath, 'utf8');
+  if (!html.includes('id="levelup-home-fixed"')) {
+    problems.push(`${game.slug}: LEVEL UP home button missing`);
+  }
+  if (!html.includes('href="https://levelup.hitobito.jp/"')) {
+    problems.push(`${game.slug}: LEVEL UP home button target is incorrect`);
+  }
+  if (!html.includes('<svg viewBox="0 0 24 24"')) {
+    problems.push(`${game.slug}: LEVEL UP home icon missing`);
+  }
+
   const refs = [...html.matchAll(/(?:src|href)=["'](\.\/[^"'#?]+)["']/g)].map((m) => m[1]);
   for (const ref of refs) {
     const target = path.resolve(dir, ref);
@@ -64,4 +74,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; refresh button present`);
+console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; refresh button and app home buttons present`);
