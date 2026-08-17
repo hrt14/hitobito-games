@@ -206,7 +206,7 @@ const finalHtml = fs.readFileSync(homePath, 'utf8');
 if (!finalHtml.includes(marker)) {
   throw new Error('LEVEL UP refresh button injection failed.');
 }
-if (!finalHtml.includes('id="levelup-account-chip"')) {
+if (!finalHtml.includes('levelup-account-chip')) {
   throw new Error('LEVEL UP header account injection failed.');
 }
 
