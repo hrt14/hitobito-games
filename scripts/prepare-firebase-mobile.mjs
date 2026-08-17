@@ -45,5 +45,17 @@ function prepareWatashiZukan() {
   console.log('[Mobile prep] watashi-zukan: 11 runtime fetch/eval chunks -> plain game.js');
 }
 
+function restoreTaskSeparationTwoChoice() {
+  const source = path.join(root, 'firebase-overrides', 'task-separation');
+  const target = path.join(root, 'apps', 'task-separation');
+  for (const file of ['index.html', 'game.js']) {
+    const from = path.join(source, file);
+    if (!fs.existsSync(from)) throw new Error(`task-separation override missing: ${file}`);
+    fs.copyFileSync(from, path.join(target, file));
+  }
+  console.log('[LEVEL UP restore] task-separation: restored user-approved two-choice gameplay');
+}
+
 prepareAto5min();
 prepareWatashiZukan();
+restoreTaskSeparationTwoChoice();
