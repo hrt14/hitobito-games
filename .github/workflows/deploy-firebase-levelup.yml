@@ -59,6 +59,10 @@ jobs:
           test -s .dist/firebase/apps/watashi-zukan/game.js
           ! grep -F 'DecompressionStream' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'game-a.bin' .dist/firebase/apps/ato-5min/index.html
+          grep -F 'id="ato5min-inline-styles"' .dist/firebase/apps/ato-5min/index.html >/dev/null
+          grep -F -- '--bg:#090b11' .dist/firebase/apps/ato-5min/index.html >/dev/null
+          ! grep -F 'style-part1.css' .dist/firebase/apps/ato-5min/index.html
+          ! grep -F 'style-part2.css' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'Promise.all(parts.map' .dist/firebase/apps/watashi-zukan/game.js
           grep -F 'これは自分の課題？ それとも相手の課題？' .dist/firebase/apps/task-separation/index.html >/dev/null
           grep -F 'data-answer="self"' .dist/firebase/apps/task-separation/index.html >/dev/null
@@ -67,7 +71,7 @@ jobs:
           ! grep -F 'data-answer="outside"' .dist/firebase/apps/task-separation/index.html
           grep -F '間違えた問題を振り返る' .dist/firebase/apps/task-separation/index.html >/dev/null
           node scripts/audit-firebase-mobile.mjs
-          echo "Mobile loader and task-separation two-choice checks OK"
+          echo "Mobile loader, inline style, and task-separation checks OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -93,6 +97,9 @@ jobs:
           NODE
             curl -fLsS "$base/apps/ato-5min/" -o /tmp/ato5.html
             grep -F './game.js' /tmp/ato5.html >/dev/null
+            grep -F 'id="ato5min-inline-styles"' /tmp/ato5.html >/dev/null
+            grep -F -- '--bg:#090b11' /tmp/ato5.html >/dev/null
+            ! grep -F 'style-part1.css' /tmp/ato5.html
             curl -fLsS "$base/apps/ato-5min/game.js" -o /tmp/ato5.js
             test -s /tmp/ato5.js
             curl -fLsS "$base/apps/watashi-zukan/game.js" -o /tmp/watashi.js
@@ -103,5 +110,5 @@ jobs:
             ! grep -F 'data-answer="joint"' /tmp/task-separation.html
             curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
             grep -F "const QUESTIONS" /tmp/task-separation.js >/dev/null
-            echo "OK: $base all 22 routes + mobile-safe loaders + two-choice task separation"
+            echo "OK: $base all 22 routes + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
           done
