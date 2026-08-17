@@ -124,8 +124,21 @@ if (!home.includes('data-levelup-account') || !home.includes('data-page="home"')
   problems.push('home: shared LEVEL UP account missing');
 }
 
-if (catalog.games.length !== 26) {
-  problems.push(`catalog: expected 26 curated games, found ${catalog.games.length}`);
+if (!Array.isArray(catalog.games) || catalog.games.length === 0) {
+  problems.push('catalog: no curated games found');
+} else {
+  const uniqueCatalogSlugs = new Set(catalog.games.map((game) => game.slug));
+  if (uniqueCatalogSlugs.size !== catalog.games.length) {
+    problems.push(`catalog: duplicate slugs detected (${catalog.games.length - uniqueCatalogSlugs.size})`);
+  }
+  const homeCardSlugs = [...home.matchAll(/<article class="card(?: [^"]*)?"[^>]*data-game="([^"]+)"/g)].map((match) => match[1]);
+  const uniqueHomeCardSlugs = new Set(homeCardSlugs);
+  for (const game of catalog.games) {
+    if (!uniqueHomeCardSlugs.has(game.slug)) problems.push(`home: curated card missing ${game.slug}`);
+  }
+  if (!home.includes(`<span>${catalog.games.length} games</span>`)) {
+    problems.push(`home: game count does not match catalog (${catalog.games.length})`);
+  }
 }
 
 if (problems.length) {
