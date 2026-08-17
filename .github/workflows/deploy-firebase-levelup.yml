@@ -60,6 +60,7 @@ jobs:
           ! grep -F 'DecompressionStream' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'game-a.bin' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'Promise.all(parts.map' .dist/firebase/apps/watashi-zukan/game.js
+          node scripts/audit-firebase-mobile.mjs
           echo "Mobile loader check OK"
 
       - name: Deploy to Firebase Hosting
