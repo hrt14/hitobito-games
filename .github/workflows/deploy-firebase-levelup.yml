@@ -6,7 +6,21 @@ on:
     branches:
       - main
     paths:
-      - .firebase-deploy-trigger
+      - 'apps/**'
+      - 'firebase-overrides/**'
+      - 'deploy-targets.json'
+      - 'firebase.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/build-host-targets.mjs'
+      - 'scripts/build-firebase-levelup-home.mjs'
+      - 'scripts/inject-levelup-home-link.mjs'
+      - 'scripts/inject-levelup-refresh-button.mjs'
+      - 'scripts/playtest-catalog.mjs'
+      - 'scripts/prepare-firebase-mobile.mjs'
+      - 'scripts/validate-firebase-bundle.mjs'
+      - '.github/workflows/deploy-firebase-levelup.yml'
+      - '.firebase-deploy-trigger'
 
 concurrency:
   group: firebase-levelup-production
@@ -40,14 +54,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Restore Aug 15 LEVEL UP game sources
-        run: |
-          set -euo pipefail
-          SNAPSHOT=dfe0eec0b0b1a0e231021212f32d310bd663a4fe
-          rm -rf apps
-          git archive "$SNAPSHOT" apps | tar -x
-          node scripts/prepare-firebase-mobile.mjs
-          echo "LEVEL UP game source snapshot: $SNAPSHOT (2026-08-15 23:45 JST)"
+      - name: Prepare current LEVEL UP game sources for mobile
+        run: node scripts/prepare-firebase-mobile.mjs
 
       - name: Build LEVEL UP bundle
         run: npm run build:firebase
