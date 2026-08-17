@@ -6,8 +6,13 @@ on:
     branches:
       - main
     paths:
+      - 'apps/**'
       - 'scripts/sanitize-public-apps.mjs'
       - '.github/workflows/sanitize-public-apps.yml'
+
+concurrency:
+  group: sanitize-public-apps
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -28,7 +33,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Sanitize all public app sources
-        run: node scripts/sanitize-public-apps.mjs --fix | tee /tmp/privacy-report.json
+        run: node scripts/sanitize-public-apps.mjs --fix
 
       - name: Commit redactions if needed
         run: |
