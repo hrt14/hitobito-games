@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#080b17" />
+  <meta name="description" content="寝る前に次の朝の小さな楽しみを予約して、朝になったら開封する。早寝を我慢ではなく期待に変えるLEVEL UPゲーム。" />
+  <title>朝が楽しみ。 | LEVEL UP</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;
+      --bg:#080b17;
+      --panel:rgba(255,255,255,.075);
+      --panel-strong:rgba(255,255,255,.11);
+      --line:rgba(255,255,255,.12);
+      --text:#f8f6ef;
+      --muted:#aaaebe;
+      --gold:#ffd86f;
+      --peach:#ff9f7a;
+      --dawn:#9dd5ff;
+      --green:#adf5c0;
+      --shadow:0 24px 70px rgba(0,0,0,.42);
+    }
+    *{box-sizing:border-box}
+    html{min-height:100%;background:var(--bg)}
+    body{margin:0;min-height:100dvh;background:
+      radial-gradient(circle at 72% -12%,rgba(150,178,255,.2),transparent 36%),
+      radial-gradient(circle at 0% 60%,rgba(255,159,122,.07),transparent 42%),
+      linear-gradient(180deg,#0d1124 0%,#080b17 48%,#080a12 100%);
+      color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    button,input{font:inherit}
+    button{touch-action:manipulation}
+    .stars,.dawn-glow{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .stars{opacity:.72;background-image:
+      radial-gradient(circle at 8% 14%,rgba(255,255,255,.82) 0 1px,transparent 1.8px),
+      radial-gradient(circle at 20% 38%,rgba(255,255,255,.72) 0 1px,transparent 1.6px),
+      radial-gradient(circle at 36% 17%,rgba(255,255,255,.78) 0 1.2px,transparent 1.8px),
+      radial-gradient(circle at 52% 31%,rgba(255,255,255,.66) 0 1px,transparent 1.6px),
+      radial-gradient(circle at 66% 11%,rgba(255,255,255,.88) 0 1.2px,transparent 1.9px),
+      radial-gradient(circle at 82% 34%,rgba(255,255,255,.72) 0 1px,transparent 1.7px),
+      radial-gradient(circle at 94% 19%,rgba(255,255,255,.84) 0 1.1px,transparent 1.8px),
+      radial-gradient(circle at 14% 70%,rgba(255,255,255,.44) 0 1px,transparent 1.7px),
+      radial-gradient(circle at 88% 68%,rgba(255,255,255,.4) 0 1px,transparent 1.7px);
+      background-size:420px 420px;animation:starDrift 24s linear infinite}
+    .dawn-glow{opacity:0;background:radial-gradient(circle at 50% 108%,rgba(255,211,118,.42),rgba(255,151,122,.18) 20%,rgba(109,167,255,.08) 44%,transparent 66%);transition:opacity .9s ease}
+    body.morning .dawn-glow,body.revealed .dawn-glow{opacity:1}
+    body.sleeping .stars{animation:none;opacity:.3}
+    @keyframes starDrift{to{transform:translate3d(0,18px,0)}}
+
+    .app{position:relative;z-index:1;width:min(100% - 24px,560px);margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 0 max(28px,env(safe-area-inset-bottom))}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:9px;color:#dfe3ef;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+    .brand-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px rgba(255,216,111,.65)}
+    .home{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--line);border-radius:999px;color:#c6cad7;text-decoration:none;font-size:11px;font-weight:800;background:rgba(255,255,255,.035)}
+
+    .screen{display:none;animation:fadeIn .34s ease both}
+    .screen.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+    .eyebrow{margin:8px 0 10px;color:var(--gold);font-size:10px;font-weight:950;letter-spacing:.18em;text-transform:uppercase}
+    h1{margin:0;font-size:clamp(42px,12vw,66px);line-height:.95;letter-spacing:-.065em;font-weight:950}
+    .lead{margin:16px 0 0;color:#c3c7d4;font-size:14px;line-height:1.8}
+    .lead strong{color:#fff}
+
+    .moon-wrap{height:128px;position:relative;margin:16px 0 6px;overflow:hidden}
+    .moon{position:absolute;width:104px;height:104px;border-radius:50%;right:7%;top:9px;background:radial-gradient(circle at 36% 30%,#fff7cf 0 5%,#ffe9a0 31%,#f2c85e 76%,#dcae42 100%);box-shadow:0 0 40px rgba(255,221,120,.24)}
+    .moon:after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:rgba(151,119,57,.13);left:19px;top:50px;box-shadow:37px -24px 0 5px rgba(151,119,57,.1),48px 21px 0 1px rgba(151,119,57,.13)}
+    .horizon{position:absolute;left:-8%;right:-8%;bottom:-40px;height:88px;border-radius:50% 50% 0 0/40% 40% 0 0;background:linear-gradient(180deg,#151d38,#0d1224);box-shadow:0 -1px 0 rgba(255,255,255,.05)}
+
+    .panel{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.045));box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+    .label{display:block;margin-bottom:10px;color:#e6e8f0;font-size:12px;font-weight:900}
+    .joy-input{width:100%;min-height:58px;border:1px solid rgba(255,255,255,.15);border-radius:16px;background:rgba(3,5,13,.45);color:#fff;padding:15px 15px;font-size:16px;font-weight:800;outline:none;transition:border-color .18s,box-shadow .18s}
+    .joy-input::placeholder{color:#707587;font-weight:700}
+    .joy-input:focus{border-color:rgba(255,216,111,.7);box-shadow:0 0 0 4px rgba(255,216,111,.08)}
+    .quick-title{margin:16px 0 8px;color:#858a9c;font-size:10px;font-weight:900;letter-spacing:.08em}
+    .chips{display:flex;gap:8px;overflow:auto;padding:1px 1px 5px;scrollbar-width:none}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{flex:0 0 auto;min-height:42px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.055);color:#d7dae5;padding:0 13px;font-size:12px;font-weight:850;cursor:pointer}
+    .chip:active{transform:scale(.97)}
+    .time-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+    .field{padding:12px 13px;border:1px solid rgba(255,255,255,.11);border-radius:16px;background:rgba(3,5,13,.32)}
+    .field span{display:block;margin-bottom:7px;color:#8e93a5;font-size:9px;font-weight:900;letter-spacing:.08em}
+    .field input{width:100%;border:0;background:transparent;color:#fff;font-size:15px;font-weight:900;outline:none;color-scheme:dark}
+    .hint{margin:12px 2px 0;color:#858a98;font-size:11px;line-height:1.65}
+
+    .primary,.secondary,.quiet{width:100%;min-height:56px;border-radius:17px;border:0;font-weight:950;cursor:pointer;transition:transform .16s ease,filter .16s ease,opacity .16s ease}
+    .primary{margin-top:16px;background:linear-gradient(135deg,#ffe589,#ffbb67);color:#201a0e;box-shadow:0 14px 32px rgba(255,194,94,.18);font-size:15px}
+    .primary:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+    .secondary{background:rgba(255,255,255,.09);color:#fff;border:1px solid rgba(255,255,255,.12);font-size:14px}
+    .quiet{min-height:44px;background:transparent;color:#8f94a4;font-size:11px}
+    .primary:not(:disabled):active,.secondary:active{transform:scale(.985)}
+
+    .seal-head{text-align:center;padding:10px 4px 0}
+    .seal-head h1{font-size:clamp(36px,10vw,56px)}
+    .ticket{position:relative;margin:24px auto 18px;padding:28px 20px 22px;min-height:270px;border-radius:30px;border:1px solid rgba(255,224,139,.22);background:
+      radial-gradient(circle at 50% 15%,rgba(255,220,119,.11),transparent 35%),
+      linear-gradient(160deg,rgba(24,29,55,.98),rgba(9,12,26,.98));box-shadow:0 30px 80px rgba(0,0,0,.48),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;text-align:center}
+    .ticket:before,.ticket:after{content:"";position:absolute;width:34px;height:34px;border-radius:50%;background:#080b17;top:50%;transform:translateY(-50%)}
+    .ticket:before{left:-18px}.ticket:after{right:-18px}
+    .ticket-label{color:#a9aebe;font-size:9px;font-weight:950;letter-spacing:.19em;text-transform:uppercase}
+    .lock{width:86px;height:86px;margin:23px auto 15px;border:1px solid rgba(255,216,111,.25);border-radius:50%;display:grid;place-items:center;background:rgba(255,216,111,.055);font-size:38px;box-shadow:0 0 40px rgba(255,216,111,.07)}
+    .sealed-copy{margin:0 auto;max-width:390px;color:#d8dbe5;font-size:15px;line-height:1.7;font-weight:800}
+    .sealed-copy .blur{display:inline-block;color:transparent;text-shadow:0 0 10px rgba(255,255,255,.54);user-select:none}
+    .countdown{margin:18px 0 0;color:var(--gold);font-size:25px;font-weight:950;letter-spacing:-.035em}
+    .wake-label{margin-top:6px;color:#858a9b;font-size:10px;font-weight:800}
+    .sleep-duration{display:flex;align-items:center;justify-content:center;gap:8px;margin:15px auto 0;padding:10px 13px;border-radius:999px;background:rgba(255,255,255,.05);width:max-content;max-width:100%;color:#bac0d0;font-size:11px;font-weight:800}
+    .sleep-duration strong{color:#fff}
+    .seal-actions{display:grid;gap:9px;margin-top:13px}
+
+    .sleep-screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 12px 54px}
+    .sleep-orb{width:122px;height:122px;border-radius:50%;display:grid;place-items:center;margin-bottom:27px;background:radial-gradient(circle at 42% 38%,rgba(255,231,155,.28),rgba(255,207,93,.07) 43%,rgba(255,255,255,.025) 65%);border:1px solid rgba(255,216,111,.13);box-shadow:0 0 70px rgba(255,213,101,.08);font-size:45px}
+    .sleep-screen h2{margin:0;font-size:32px;line-height:1.12;letter-spacing:-.045em}
+    .sleep-screen p{margin:14px auto 0;max-width:370px;color:#9da2b2;font-size:13px;line-height:1.85}
+    .sleep-screen .tiny{margin-top:28px;color:#676c7d;font-size:10px}
+
+    .morning-head{text-align:center;padding-top:8px}
+    .sun{width:92px;height:92px;border-radius:50%;margin:18px auto 18px;background:radial-gradient(circle,#fff9cb 0 15%,#ffe082 42%,#ffb967 72%,rgba(255,177,88,.2) 73%);box-shadow:0 0 70px rgba(255,198,94,.42);animation:sunPulse 3.6s ease-in-out infinite}
+    @keyframes sunPulse{50%{transform:scale(1.035);box-shadow:0 0 88px rgba(255,198,94,.52)}}
+    .morning-head h1{font-size:clamp(42px,12vw,62px)}
+    .morning-head p{color:#c7c9d2;font-size:14px;line-height:1.8}
+    .open-card{position:relative;margin:22px 0 0;min-height:286px;perspective:1100px}
+    .card-inner{position:relative;width:100%;min-height:286px;transform-style:preserve-3d;transition:transform .82s cubic-bezier(.2,.8,.2,1)}
+    .open-card.open .card-inner{transform:rotateY(180deg)}
+    .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;border-radius:30px;backface-visibility:hidden;border:1px solid rgba(255,255,255,.15);box-shadow:var(--shadow);overflow:hidden}
+    .front{background:linear-gradient(155deg,#252b4e,#11162f)}
+    .front:after{content:"";position:absolute;inset:12px;border:1px dashed rgba(255,216,111,.26);border-radius:22px}
+    .gift{font-size:62px;filter:drop-shadow(0 10px 22px rgba(0,0,0,.28))}
+    .front strong{margin-top:13px;font-size:17px;z-index:1}
+    .front span{margin-top:5px;color:#9ea3b4;font-size:11px;z-index:1}
+    .back{transform:rotateY(180deg);background:
+      radial-gradient(circle at 50% 15%,rgba(255,244,179,.34),transparent 36%),
+      linear-gradient(145deg,#fff0b9,#ffcb88 58%,#ffaf84);color:#271b16;text-align:center}
+    .reward-label{font-size:9px;font-weight:950;letter-spacing:.18em;opacity:.58}
+    .reward-emoji{font-size:42px;margin:13px 0 8px}
+    .reward-text{font-size:clamp(25px,7vw,38px);line-height:1.14;font-weight:950;letter-spacing:-.045em;word-break:break-word}
+    .reward-date{margin-top:14px;font-size:10px;font-weight:850;opacity:.58}
+    .open-button{margin-top:14px}
+    .after-open{display:none;margin-top:15px;gap:9px}
+    .open-card.open + .open-button{display:none}
+    .open-card.open ~ .after-open{display:grid}
+    .done-message{display:none;margin:18px 0 0;padding:18px;border-radius:20px;background:rgba(173,245,192,.09);border:1px solid rgba(173,245,192,.2);color:#dffce8;text-align:center;font-size:13px;line-height:1.7;font-weight:800}
+    .done-message.show{display:block;animation:fadeIn .3s ease}
+
+    .collection{margin-top:22px;padding:16px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.085)}
+    .collection-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
+    .collection-head strong{font-size:13px}.collection-head span{color:#7f8494;font-size:10px}
+    .stamp-row{display:flex;gap:7px;margin-top:12px;overflow:auto;padding-bottom:2px;scrollbar-width:none}
+    .stamp-row::-webkit-scrollbar{display:none}
+    .stamp{flex:0 0 40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(255,216,111,.09);border:1px solid rgba(255,216,111,.15);font-size:18px}
+    .stamp.empty{opacity:.28;filter:grayscale(1)}
+
+    .confetti{position:fixed;z-index:20;pointer-events:none;left:50%;top:45%;width:8px;height:14px;border-radius:2px;animation:burst 1.2s ease-out forwards}
+    @keyframes burst{0%{transform:translate(-50%,-50%) rotate(0) scale(.4);opacity:1}100%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:0}}
+
+    .reset-link{margin-top:16px;text-align:center}
+    .reset-link button{border:0;background:none;color:#666c7d;font-size:10px;text-decoration:underline;text-underline-offset:3px;padding:10px;cursor:pointer}
+    .error{display:none;margin-top:10px;color:#ffb3a3;font-size:11px;font-weight:800}.error.show{display:block}
+
+    @media(max-width:380px){.app{width:min(100% - 18px,560px)}.panel{padding:15px}.time-row{grid-template-columns:1fr}.ticket{padding-inline:15px}.moon-wrap{height:112px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}.stars{animation:none}}
+  </style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+  <div class="dawn-glow" aria-hidden="true"></div>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-dot"></span><span>LEVEL UP / MORNING</span></div>
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る">⌂ LEVEL UP</a>
+    </header>
+
+    <section id="setupScreen" class="screen" aria-labelledby="setupTitle">
+      <div class="eyebrow">Sleep toward something</div>
+      <h1 id="setupTitle">朝が<br>楽しみ。</h1>
+      <p class="lead">早く寝るために、夜を削るんじゃない。<br><strong>次に起きる朝へ、小さな楽しみを1個置いておく。</strong></p>
+      <div class="moon-wrap" aria-hidden="true"><div class="moon"></div><div class="horizon"></div></div>
+
+      <div class="panel">
+        <label class="label" for="joyInput">次に起きたら、まず何を楽しむ？</label>
+        <input id="joyInput" class="joy-input" type="text" maxlength="60" autocomplete="off" placeholder="例：冷たいカフェラテを飲む" />
+        <div class="quick-title">1タップで入れる</div>
+        <div class="chips" aria-label="朝の楽しみ候補">
+          <button class="chip" type="button" data-joy="好きな飲み物をゆっくり飲む">☕ 好きな飲み物</button>
+          <button class="chip" type="button" data-joy="好きな朝ごはんを食べる">🍞 朝ごはん</button>
+          <button class="chip" type="button" data-joy="好きな曲を1曲だけ聴く">🎧 好きな1曲</button>
+          <button class="chip" type="button" data-joy="5分だけ好きなゲームをする">🎮 5分だけ遊ぶ</button>
+          <button class="chip" type="button" data-joy="窓を開けて朝の空を見る">🌅 朝の空</button>
+          <button class="chip" type="button" data-joy="好きなものを5分だけ読む">📖 5分読む</button>
+        </div>
+
+        <div class="time-row">
+          <label class="field"><span>次に起きる日</span><input id="wakeDate" type="date" /></label>
+          <label class="field"><span>起きる時刻</span><input id="wakeTime" type="time" value="07:00" /></label>
+        </div>
+        <p id="durationHint" class="hint">起きる時刻までの時間をここに表示します。</p>
+        <div id="setupError" class="error" role="alert"></div>
+        <button id="sealButton" class="primary" type="button">明日の朝に封印する →</button>
+      </div>
+    </section>
+
+    <section id="sealedScreen" class="screen" aria-labelledby="sealedTitle">
+      <div class="seal-head">
+        <div class="eyebrow">Reserved for your next morning</div>
+        <h1 id="sealedTitle">朝に、置いた。</h1>
+        <p class="lead">楽しみはもう決めた。<br>あとは、そこまで一気に進めばいい。</p>
+      </div>
+      <div class="ticket" aria-live="polite">
+        <div class="ticket-label">Morning reward / sealed</div>
+        <div class="lock">☾</div>
+        <p class="sealed-copy">朝の楽しみ：<span id="blurredJoy" class="blur">予約済みのごほうび</span></p>
+        <div id="countdown" class="countdown">--:--:--</div>
+        <div id="wakeLabel" class="wake-label"></div>
+        <div id="sleepDuration" class="sleep-duration">☁ <span>今からなら <strong>--</strong></span></div>
+      </div>
+      <div class="seal-actions">
+        <button id="sleepButton" class="primary" type="button">今日はここまで。寝る。</button>
+        <button id="editButton" class="secondary" type="button">予約を変える</button>
+      </div>
+      <div class="reset-link"><button id="cancelPlanButton" type="button">この予約を取り消す</button></div>
+    </section>
+
+    <section id="sleepScreen" class="screen">
+      <div class="sleep-screen">
+        <div class="sleep-orb" aria-hidden="true">☾</div>
+        <h2>明日の楽しみは<br>預かった。</h2>
+        <p>もう考えることはありません。<br>朝になったら、この画面にごほうびが届きます。</p>
+        <p id="sleepWakeLine" class="tiny"></p>
+      </div>
+    </section>
+
+    <section id="morningScreen" class="screen" aria-labelledby="morningTitle">
+      <div class="morning-head">
+        <div class="sun" aria-hidden="true"></div>
+        <div class="eyebrow">Good morning</div>
+        <h1 id="morningTitle">朝が来た。</h1>
+        <p>昨夜の自分から、朝の自分へ。<br>予約しておいた楽しみを開けよう。</p>
+      </div>
+      <div id="openCard" class="open-card" aria-live="polite">
+        <div class="card-inner">
+          <div class="face front">
+            <div class="gift">🎁</div>
+            <strong>朝のごほうび</strong>
+            <span>昨夜の自分より</span>
+          </div>
+          <div class="face back">
+            <div class="reward-label">TODAY'S FIRST JOY</div>
+            <div id="rewardEmoji" class="reward-emoji">☀️</div>
+            <div id="rewardText" class="reward-text"></div>
+            <div id="rewardDate" class="reward-date"></div>
+          </div>
+        </div>
+      </div>
+      <button id="openButton" class="primary open-button" type="button">開ける</button>
+      <div class="after-open">
+        <button id="doneButton" class="primary" type="button">やった！ ☀</button>
+        <button id="laterButton" class="secondary" type="button">これから楽しむ</button>
+      </div>
+      <div id="doneMessage" class="done-message">朝の楽しみ、回収。<br>今夜また、次の朝へ1個置いておこう。</div>
+      <div class="collection">
+        <div class="collection-head"><strong>朝コレクション</strong><span id="collectionCount">0回</span></div>
+        <div id="stampRow" class="stamp-row" aria-label="最近の朝コレクション"></div>
+      </div>
+      <div id="newPlanWrap" class="reset-link" style="display:none"><button id="newPlanButton" type="button">今夜の予約画面へ</button></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'levelup-asa-tanoshimi-v1';
+      const HISTORY_KEY = 'levelup-asa-tanoshimi-history-v1';
+      const $ = (id) => document.getElementById(id);
+      const screens = ['setupScreen','sealedScreen','sleepScreen','morningScreen'];
+      let timer = null;
+      let plan = loadJSON(STORAGE_KEY, null);
+      let history = loadJSON(HISTORY_KEY, []);
+      if (!Array.isArray(history)) history = [];
+
+      function loadJSON(key, fallback){
+        try{
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        }catch(_){ return fallback; }
+      }
+      function savePlan(){
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(plan)); }catch(_){}
+      }
+      function saveHistory(){
+        try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0,30))); }catch(_){}
+      }
+      function show(id){
+        screens.forEach((name)=>$(name).classList.toggle('active',name===id));
+        document.body.classList.toggle('sleeping',id==='sleepScreen');
+        document.body.classList.toggle('morning',id==='morningScreen');
+        if(id!=='morningScreen') document.body.classList.remove('revealed');
+        window.scrollTo({top:0,behavior:'instant'});
+      }
+      function pad(n){return String(n).padStart(2,'0');}
+      function dateInputValue(date){return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;}
+      function parseLocal(dateString,timeString){
+        if(!dateString || !timeString) return null;
+        const [y,m,d]=dateString.split('-').map(Number);
+        const [hh,mm]=timeString.split(':').map(Number);
+        const value = new Date(y,m-1,d,hh,mm,0,0);
+        return Number.isNaN(value.getTime()) ? null : value;
+      }
+      function formatWake(date){
+        return new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'}).format(date);
+      }
+      function formatShortDate(date){
+        return new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(date);
+      }
+      function durationParts(ms){
+        const totalMin=Math.max(0,Math.floor(ms/60000));
+        return {hours:Math.floor(totalMin/60),minutes:totalMin%60};
+      }
+      function durationText(ms){
+        const p=durationParts(ms);
+        if(p.hours>0 && p.minutes>0) return `${p.hours}時間${p.minutes}分`;
+        if(p.hours>0) return `${p.hours}時間`;
+        return `${p.minutes}分`;
+      }
+      function countdownText(ms){
+        const s=Math.max(0,Math.floor(ms/1000));
+        const h=Math.floor(s/3600);
+        const m=Math.floor((s%3600)/60);
+        const sec=s%60;
+        return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+      }
+      function defaultWake(){
+        const now=new Date();
+        const target=new Date(now);
+        target.setHours(7,0,0,0);
+        if(target<=now) target.setDate(target.getDate()+1);
+        return target;
+      }
+      function setDefaults(){
+        const target=defaultWake();
+        $('wakeDate').value=dateInputValue(target);
+        $('wakeTime').value=`${pad(target.getHours())}:${pad(target.getMinutes())}`;
+        updateDurationHint();
+      }
+      function selectedWake(){ return parseLocal($('wakeDate').value,$('wakeTime').value); }
+      function updateDurationHint(){
+        const wake=selectedWake();
+        if(!wake){ $('durationHint').textContent='起きる日と時刻を選んでください。'; return; }
+        const diff=wake-new Date();
+        if(diff<=0){ $('durationHint').textContent='その時刻はもう過ぎています。次に起きる時刻を選んでください。'; return; }
+        $('durationHint').textContent=`今からなら、起きる時刻まで ${durationText(diff)}。`;
+      }
+      function inferEmoji(text){
+        const t=String(text||'');
+        if(/コーヒー|カフェ|飲み物|紅茶|お茶|ジュース/.test(t)) return '☕';
+        if(/朝ごはん|パン|食べ|ごはん|料理/.test(t)) return '🍞';
+        if(/音楽|曲|聴|聞/.test(t)) return '🎧';
+        if(/ゲーム|遊/.test(t)) return '🎮';
+        if(/空|外|散歩|朝日|窓/.test(t)) return '🌅';
+        if(/本|読/.test(t)) return '📖';
+        return '☀️';
+      }
+      function showError(message){
+        $('setupError').textContent=message;
+        $('setupError').classList.toggle('show',Boolean(message));
+      }
+      function createPlan(){
+        const joy=$('joyInput').value.trim();
+        const wake=selectedWake();
+        if(!joy){ showError('朝の楽しみを1個だけ決めよう。'); $('joyInput').focus(); return; }
+        if(!wake || wake<=new Date()){ showError('これから来る、次の起床時刻を選んでください。'); return; }
+        showError('');
+        plan={
+          id:`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,
+          joy,
+          wakeAt:wake.toISOString(),
+          createdAt:new Date().toISOString(),
+          sleeping:false,
+          openedAt:null,
+          completedAt:null
+        };
+        savePlan();
+        renderSealed();
+        show('sealedScreen');
+        if(navigator.vibrate) navigator.vibrate(18);
+      }
+      function renderSealed(){
+        if(!plan) return;
+        const wake=new Date(plan.wakeAt);
+        $('blurredJoy').textContent=plan.joy.replace(/./g,'●').slice(0,18) || '●●●';
+        $('wakeLabel').textContent=`${formatWake(wake)} に開封`;
+        $('sleepWakeLine').textContent=`${formatWake(wake)} に、朝の楽しみを開封。`;
+        updateClock();
+      }
+      function updateClock(){
+        if(timer){clearInterval(timer);timer=null;}
+        if(!plan) return;
+        const tick=()=>{
+          const now=new Date();
+          const wake=new Date(plan.wakeAt);
+          const diff=wake-now;
+          if(diff<=0){
+            if(timer){clearInterval(timer);timer=null;}
+            renderMorning();show('morningScreen');return;
+          }
+          $('countdown').textContent=countdownText(diff);
+          $('sleepDuration').innerHTML=`☁ <span>今からなら <strong>${durationText(diff)}</strong></span>`;
+        };
+        tick();timer=setInterval(tick,1000);
+      }
+      function editPlan(){
+        if(!plan) return;
+        const wake=new Date(plan.wakeAt);
+        $('joyInput').value=plan.joy;
+        $('wakeDate').value=dateInputValue(wake);
+        $('wakeTime').value=`${pad(wake.getHours())}:${pad(wake.getMinutes())}`;
+        updateDurationHint();
+        show('setupScreen');
+      }
+      function cancelPlan(){
+        if(timer){clearInterval(timer);timer=null;}
+        plan=null;
+        try{localStorage.removeItem(STORAGE_KEY);}catch(_){}
+        $('joyInput').value='';
+        setDefaults();
+        show('setupScreen');
+      }
+      function sleepNow(){
+        if(!plan) return;
+        plan.sleeping=true;
+        plan.sleepingAt=new Date().toISOString();
+        savePlan();
+        if(timer){clearInterval(timer);timer=null;}
+        show('sleepScreen');
+      }
+      function renderMorning(){
+        if(!plan) return;
+        const wake=new Date(plan.wakeAt);
+        $('rewardText').textContent=plan.joy;
+        $('rewardEmoji').textContent=inferEmoji(plan.joy);
+        $('rewardDate').textContent=`${formatShortDate(wake)}の朝に予約`;
+        $('openCard').classList.toggle('open',Boolean(plan.openedAt));
+        $('doneMessage').classList.toggle('show',Boolean(plan.completedAt));
+        $('newPlanWrap').style.display=plan.completedAt?'block':'none';
+        renderCollection();
+        document.body.classList.toggle('revealed',Boolean(plan.openedAt));
+      }
+      function openReward(){
+        if(!plan || plan.openedAt) return;
+        plan.openedAt=new Date().toISOString();savePlan();
+        $('openCard').classList.add('open');
+        document.body.classList.add('revealed');
+        burst();
+        if(navigator.vibrate) navigator.vibrate([20,40,25]);
+      }
+      function completeReward(){
+        if(!plan) return;
+        if(!plan.openedAt){plan.openedAt=new Date().toISOString();}
+        if(!plan.completedAt){
+          plan.completedAt=new Date().toISOString();
+          history.unshift({id:plan.id,joy:plan.joy,wakeAt:plan.wakeAt,completedAt:plan.completedAt});
+          const seen=new Set();
+          history=history.filter((item)=>item&&item.id&&!seen.has(item.id)&&(seen.add(item.id),true)).slice(0,30);
+          saveHistory();savePlan();
+          burst();
+        }
+        $('doneMessage').classList.add('show');
+        $('newPlanWrap').style.display='block';
+        renderCollection();
+      }
+      function burst(){
+        const colors=['#ffd86f','#ff9f7a','#9dd5ff','#adf5c0','#ffffff'];
+        for(let i=0;i<22;i++){
+          const el=document.createElement('span');
+          el.className='confetti';
+          const angle=(Math.PI*2*i/22)+(Math.random()*.28);
+          const dist=95+Math.random()*135;
+          el.style.setProperty('--x',`${Math.cos(angle)*dist}px`);
+          el.style.setProperty('--y',`${Math.sin(angle)*dist}px`);
+          el.style.setProperty('--r',`${(Math.random()*720-360)}deg`);
+          el.style.background=colors[i%colors.length];
+          el.style.animationDelay=`${Math.random()*.08}s`;
+          document.body.appendChild(el);
+          setTimeout(()=>el.remove(),1400);
+        }
+      }
+      function renderCollection(){
+        $('collectionCount').textContent=`${history.length}回`;
+        const row=$('stampRow');row.innerHTML='';
+        const recent=history.slice(0,7);
+        recent.forEach((item)=>{
+          const el=document.createElement('div');el.className='stamp';el.textContent=inferEmoji(item.joy);el.title=item.joy;row.appendChild(el);
+        });
+        for(let i=recent.length;i<7;i++){
+          const el=document.createElement('div');el.className='stamp empty';el.textContent='☀';row.appendChild(el);
+        }
+      }
+      function startNewPlan(){
+        plan=null;try{localStorage.removeItem(STORAGE_KEY);}catch(_){}
+        $('joyInput').value='';setDefaults();show('setupScreen');
+      }
+      function boot(){
+        setDefaults();
+        document.querySelectorAll('[data-joy]').forEach((button)=>button.addEventListener('click',()=>{
+          $('joyInput').value=button.dataset.joy||'';$('joyInput').focus();showError('');
+        }));
+        $('wakeDate').addEventListener('change',updateDurationHint);
+        $('wakeTime').addEventListener('change',updateDurationHint);
+        $('joyInput').addEventListener('input',()=>showError(''));
+        $('sealButton').addEventListener('click',createPlan);
+        $('sleepButton').addEventListener('click',sleepNow);
+        $('editButton').addEventListener('click',editPlan);
+        $('cancelPlanButton').addEventListener('click',cancelPlan);
+        $('openButton').addEventListener('click',openReward);
+        $('doneButton').addEventListener('click',completeReward);
+        $('laterButton').addEventListener('click',()=>{
+          $('doneMessage').textContent='いい朝は、完璧に始めなくていい。まず、この楽しみから。';
+          $('doneMessage').classList.add('show');
+        });
+        $('newPlanButton').addEventListener('click',startNewPlan);
+
+        if(plan && plan.joy && plan.wakeAt){
+          const wake=new Date(plan.wakeAt);
+          if(plan.completedAt){renderMorning();show('morningScreen');}
+          else if(new Date()>=wake){renderMorning();show('morningScreen');}
+          else if(plan.sleeping){renderSealed();show('sleepScreen');}
+          else{renderSealed();show('sealedScreen');}
+        }else{
+          plan=null;show('setupScreen');
+        }
+        renderCollection();
+        document.addEventListener('visibilitychange',()=>{
+          if(document.visibilityState==='visible'&&plan&&!plan.completedAt){
+            const wake=new Date(plan.wakeAt);
+            if(new Date()>=wake){renderMorning();show('morningScreen');}
+            else if($('sealedScreen').classList.contains('active')) updateClock();
+          }
+        });
+      }
+      boot();
+    })();
+  </script>
+</body>
+</html>
