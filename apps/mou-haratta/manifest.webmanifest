@@ -1,0 +1,11 @@
+{
+  "name": "もう払った。 | LEVEL UP",
+  "short_name": "もう払った。",
+  "description": "嫌なことが起きた瞬間に『代償先払い』を思い出す反射を鍛える30秒トレーニング。",
+  "start_url": "/apps/mou-haratta/",
+  "scope": "/apps/mou-haratta/",
+  "display": "standalone",
+  "background_color": "#f5efe4",
+  "theme_color": "#f5efe4",
+  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
