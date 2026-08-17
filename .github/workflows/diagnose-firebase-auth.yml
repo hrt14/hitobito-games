@@ -34,7 +34,7 @@ jobs:
       - name: Install Google auth helper
         run: npm install --no-save google-auth-library
 
-      - name: Inspect and repair Firebase Auth authorized domain
+      - name: Inspect Firebase Auth configuration
         run: |
           node <<'NODE'
           const { GoogleAuth } = require('google-auth-library');
@@ -44,6 +44,33 @@ jobs:
           const BASE = 'https://identitytoolkit.googleapis.com/admin/v2';
 
           async function main() {
+            const initResponse = await fetch('https://levelup.hitobito.jp/__/firebase/init.json', { cache: 'no-store' });
+            const init = await initResponse.json();
+            console.log('Hosting init status:', initResponse.status);
+            console.log('Hosting init projectId:', init.projectId);
+            console.log('Hosting init authDomain:', init.authDomain);
+
+            if (init.apiKey) {
+              const publicConfigUrl = new URL('https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig');
+              publicConfigUrl.searchParams.set('key', init.apiKey);
+              const publicConfigResponse = await fetch(publicConfigUrl);
+              const text = await publicConfigResponse.text();
+              let publicConfig = null;
+              try { publicConfig = text ? JSON.parse(text) : {}; } catch { publicConfig = { raw: text }; }
+              console.log('Public project config status:', publicConfigResponse.status);
+              if (publicConfigResponse.ok) {
+                const domains = Array.isArray(publicConfig.authorizedDomains) ? publicConfig.authorizedDomains : [];
+                console.log('Public authorized domains:', domains.join(', '));
+                console.log('Public custom domain authorized:', domains.includes(CUSTOM_DOMAIN));
+                if (Array.isArray(publicConfig.idpConfig)) {
+                  const google = publicConfig.idpConfig.find((item) => item.provider === 'google.com');
+                  if (google) console.log('Public Google provider clientId:', google.clientId || '(none)');
+                }
+              } else {
+                console.log('Public project config error:', JSON.stringify(publicConfig));
+              }
+            }
+
             const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] });
             const client = await auth.getClient();
             const token = await client.getAccessToken();
@@ -59,42 +86,16 @@ jobs:
             }
 
             const configResult = await api(`/projects/${PROJECT}/config`);
-            console.log('Auth config status:', configResult.res.status);
-            if (!configResult.res.ok) {
-              console.log('Auth config read error:', JSON.stringify(configResult.body));
-            } else {
-              const domains = Array.isArray(configResult.body.authorizedDomains) ? configResult.body.authorizedDomains : [];
-              console.log('Authorized domains:', domains.join(', '));
-              console.log('Custom domain authorized:', domains.includes(CUSTOM_DOMAIN));
-
-              if (!domains.includes(CUSTOM_DOMAIN)) {
-                const nextDomains = [...domains, CUSTOM_DOMAIN];
-                const patch = await api(`/projects/${PROJECT}/config?updateMask=authorizedDomains`, {
-                  method: 'PATCH',
-                  body: JSON.stringify({
-                    name: `projects/${PROJECT}/config`,
-                    authorizedDomains: nextDomains,
-                  }),
-                });
-                console.log('Authorized-domain repair status:', patch.res.status);
-                if (!patch.res.ok) console.log('Authorized-domain repair error:', JSON.stringify(patch.body));
-                else console.log('Authorized-domain repair applied:', Array.isArray(patch.body.authorizedDomains) && patch.body.authorizedDomains.includes(CUSTOM_DOMAIN));
-              }
-            }
+            console.log('Admin auth config status:', configResult.res.status);
+            if (!configResult.res.ok) console.log('Admin auth config read error:', JSON.stringify(configResult.body));
 
             const googleResult = await api(`/projects/${PROJECT}/defaultSupportedIdpConfigs/google.com`);
-            console.log('Google provider status:', googleResult.res.status);
-            if (!googleResult.res.ok) {
-              console.log('Google provider read error:', JSON.stringify(googleResult.body));
-            } else {
-              console.log('Google provider enabled:', Boolean(googleResult.body.enabled));
-              console.log('Google OAuth client ID:', googleResult.body.clientId || '(none)');
-            }
+            console.log('Admin Google provider status:', googleResult.res.status);
+            if (!googleResult.res.ok) console.log('Admin Google provider read error:', JSON.stringify(googleResult.body));
 
             for (const url of [
               'https://levelup.hitobito.jp/__/auth/handler',
               'https://hitobito-levelup.firebaseapp.com/__/auth/handler',
-              'https://levelup.hitobito.jp/__/firebase/init.json',
             ]) {
               try {
                 const res = await fetch(url, { redirect: 'manual' });
