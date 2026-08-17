@@ -1,0 +1,44 @@
+name: Sanitize public app content
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/sanitize-public-apps.mjs'
+      - '.github/workflows/sanitize-public-apps.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sanitize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sanitize all public app sources
+        run: node scripts/sanitize-public-apps.mjs --fix | tee /tmp/privacy-report.json
+
+      - name: Commit redactions if needed
+        run: |
+          if ! git diff --quiet -- apps; then
+            git add apps
+            git commit -m "Remove confidential examples from public apps"
+            git push origin HEAD:main
+          else
+            echo "No app source changes needed"
+          fi
+
+      - name: Re-scan after sanitization
+        run: node scripts/sanitize-public-apps.mjs
