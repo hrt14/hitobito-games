@@ -1,0 +1,10 @@
+{
+  "name":"正観スイッチ | LEVEL UP",
+  "short_name":"正観スイッチ",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#12120f",
+  "theme_color":"#12120f",
+  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
