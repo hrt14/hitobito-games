@@ -71,6 +71,7 @@ export const GAME_META = {
   'wind-compass': ['adventure', '船で港を巡り、交易・噂・航海イベントをこなしながら海の航路を広げていく。'],
   'zenbu-fukusen': ['levelup', '嫌な出来事が未来で何の伏線になるかを組み立て、意味を未確定のまま持てる視点を鍛える。'],
   'kotowaru': ['levelup', '頼まれ方や相手との関係に合わせて断り方を選び、断る言葉のバリエーションを反復する。'],
+  'asa-tanoshimi': ['levelup', '寝る前に次の朝の小さな楽しみを1つ予約し、朝までは封印。起きたら開封して、早寝を我慢ではなく期待に変える。'],
 };
 
 export function getGameMeta(slug, extractedDescription = '') {
