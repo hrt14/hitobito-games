@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#10150f">
+  <meta name="description" content="仕事や日常を、一貫性・目的・重要感の3方向へつなぐ反復で、意味を見つける力を鍛えるLEVEL UPゲーム。">
+  <title>意味マップ | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="app">
+    <section class="screen active" id="start-screen" aria-labelledby="game-title">
+      <div class="start-shell">
+        <div class="eyebrow">LEVEL UP / MEANING TRAINING</div>
+        <div class="hero-map" aria-hidden="true">
+          <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="orbit orbit-c"></div>
+          <div class="hero-core">今日の<br>行動</div>
+          <div class="hero-node node-coherence"><b>一貫性</b><span>自分とつながる</span></div>
+          <div class="hero-node node-purpose"><b>目的</b><span>未来とつながる</span></div>
+          <div class="hero-node node-mattering"><b>重要感</b><span>誰かとつながる</span></div>
+        </div>
+        <div class="start-copy">
+          <p class="kicker">CONNECT WHAT YOU DO.</p>
+          <h1 id="game-title">意味<br><em>マップ</em></h1>
+          <p class="lead">「これ、何の意味がある？」に、ひとつの大義ではなく<strong>3本のつながり</strong>を作るゲーム。</p>
+          <div class="three-rule" aria-label="意味の3要素">
+            <div><span>01</span><b>一貫性</b><small>自分の価値観・経験とつなぐ</small></div>
+            <div><span>02</span><b>目的</b><small>次の目標・未来とつなぐ</small></div>
+            <div><span>03</span><b>重要感</b><small>誰かへの影響・貢献とつなぐ</small></div>
+          </div>
+          <button class="primary" id="start-button" type="button">9本つなぐ <span>→</span></button>
+          <p class="start-note">20秒のテンポボーナスあり。時間を過ぎても回答できます。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="game-screen" aria-labelledby="round-title">
+      <div class="game-shell">
+        <header class="hud">
+          <div><span>ROUND</span><strong><b id="round-current">1</b> / 9</strong></div>
+          <div class="hud-center"><span>COMBO</span><strong id="combo">×0</strong></div>
+          <div class="hud-score"><span>SCORE</span><strong id="score">0000</strong></div>
+        </header>
+        <div class="progress"><span id="progress-bar"></span></div>
+
+        <div class="map-panel" aria-label="現在の意味マップ">
+          <div class="mini-map">
+            <div class="map-line line-coherence"></div><div class="map-line line-purpose"></div><div class="map-line line-mattering"></div>
+            <div class="map-core">行動</div>
+            <div class="map-node map-coherence" data-map="coherence"><span>一貫性</span><b id="count-coherence">0</b></div>
+            <div class="map-node map-purpose" data-map="purpose"><span>目的</span><b id="count-purpose">0</b></div>
+            <div class="map-node map-mattering" data-map="mattering"><span>重要感</span><b id="count-mattering">0</b></div>
+          </div>
+          <div class="tempo"><span>TEMPO</span><b id="timer">20</b><div><i id="timer-bar"></i></div></div>
+        </div>
+
+        <section class="question-card">
+          <div class="lens-badge" id="lens-badge">一貫性をつなげ</div>
+          <h2 id="round-title">月次レポートを作る。</h2>
+          <p id="question">この行動を「自分の価値観・経験」とつなげる見方は？</p>
+        </section>
+
+        <div class="options" id="options" aria-label="選択肢"></div>
+
+        <div class="feedback" id="feedback" aria-live="polite">
+          <div><span id="feedback-mark">✓</span><p><strong id="feedback-title"></strong><small id="feedback-text"></small></p></div>
+          <button id="next-button" type="button">次へ →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="result-screen" aria-labelledby="result-title">
+      <div class="result-shell">
+        <div class="eyebrow">YOUR MEANING MAP</div>
+        <h2 id="result-title">9本、つながった。</h2>
+        <div class="result-map">
+          <div class="result-core"><span>今回の</span><b>行動</b></div>
+          <div class="result-branch branch-coherence"><span>一貫性</span><b id="result-coherence">3</b><small>自分との接続</small></div>
+          <div class="result-branch branch-purpose"><span>目的</span><b id="result-purpose">3</b><small>未来との接続</small></div>
+          <div class="result-branch branch-mattering"><span>重要感</span><b id="result-mattering">3</b><small>誰かとの接続</small></div>
+        </div>
+        <div class="result-score"><span>SCORE</span><strong id="final-score">0000</strong><b id="rank">MEANING MAKER</b></div>
+        <div class="insight">
+          <span>NEXT LENS</span>
+          <h3 id="insight-title">目的を足すと、もっと動きやすい。</h3>
+          <p id="insight-text">「これが終わると、次に何ができる？」を1回だけ考えてみよう。</p>
+        </div>
+        <div class="result-actions">
+          <button class="primary" id="real-button" type="button">自分の仕事をつなぐ <span>→</span></button>
+          <button class="secondary" id="retry-button" type="button">もう一度</button>
+        </div>
+        <p class="guardrail">意味は苦しさを正当化するためのものではありません。休む・断る・やめることも、価値観や未来を守る意味のある選択です。</p>
+      </div>
+    </section>
+
+    <section class="screen" id="builder-screen" aria-labelledby="builder-title">
+      <div class="builder-shell">
+        <header class="builder-head"><div><span>REAL LIFE MODE</span><h2 id="builder-title">いまの仕事をつなぐ</h2></div><button id="builder-close" type="button" aria-label="結果に戻る">×</button></header>
+        <div class="builder-progress"><i id="builder-progress"></i></div>
+
+        <section class="builder-step active" data-step="0">
+          <span class="step-no">STEP 1 / 4</span>
+          <h3>「意味ある？」と思っている行動は？</h3>
+          <p>大きな仕事ではなく、今日やる単位で書く。</p>
+          <input id="activity-input" maxlength="42" autocomplete="off" placeholder="例：明日の会議資料を作る">
+          <div class="quick-picks">
+            <button type="button">会議資料を作る</button><button type="button">数字を確認する</button><button type="button">メールを返す</button><button type="button">今日は休む</button>
+          </div>
+          <button class="primary builder-next" type="button">この行動をつなぐ <span>→</span></button>
+        </section>
+
+        <section class="builder-step" data-step="1" data-lens="coherence">
+          <span class="step-no">STEP 2 / 4・一貫性</span>
+          <h3>これは、自分の何とつながる？</h3>
+          <p>正しさではなく、自分が大切にしたい姿を選ぶ。</p>
+          <div class="builder-options" data-builder="coherence">
+            <button type="button" data-value="丁寧にやる自分でいたい">丁寧さ</button>
+            <button type="button" data-value="新しいことを試す自分でいたい">挑戦</button>
+            <button type="button" data-value="約束を守る自分でいたい">誠実さ</button>
+            <button type="button" data-value="自分と家族の余白を守りたい">余白</button>
+          </div>
+        </section>
+
+        <section class="builder-step" data-step="2" data-lens="purpose">
+          <span class="step-no">STEP 3 / 4・目的</span>
+          <h3>これが終わると、何へ進める？</h3>
+          <p>人生の使命でなくていい。次の一歩で十分。</p>
+          <div class="builder-options" data-builder="purpose">
+            <button type="button" data-value="次の判断を早くできる">判断できる</button>
+            <button type="button" data-value="小さく試して反応を見られる">試せる</button>
+            <button type="button" data-value="今日の仕事を終わらせて休める">休める</button>
+            <button type="button" data-value="将来使える型を一つ残せる">型が残る</button>
+          </div>
+        </section>
+
+        <section class="builder-step" data-step="3" data-lens="mattering">
+          <span class="step-no">STEP 4 / 4・重要感</span>
+          <h3>誰の、何を少し良くする？</h3>
+          <p>世界を変えなくていい。負担を一つ減らすだけでもいい。</p>
+          <div class="builder-options" data-builder="mattering">
+            <button type="button" data-value="相手が迷わず決められるようにする">相手の判断</button>
+            <button type="button" data-value="一緒に働く人の手戻りを減らす">仲間の負担</button>
+            <button type="button" data-value="未来の自分が楽に続けられるようにする">未来の自分</button>
+            <button type="button" data-value="家族と落ち着いて過ごす余力を守る">身近な人</button>
+          </div>
+        </section>
+
+        <section class="builder-step" data-step="4">
+          <span class="step-no">YOUR MAP</span>
+          <h3 id="personal-activity">会議資料を作る</h3>
+          <div class="personal-map">
+            <div><span>一貫性</span><p id="personal-coherence"></p></div>
+            <div><span>目的</span><p id="personal-purpose"></p></div>
+            <div><span>重要感</span><p id="personal-mattering"></p></div>
+          </div>
+          <p class="personal-summary" id="personal-summary"></p>
+          <div class="result-actions"><button class="primary" id="save-map" type="button">マップを保存 <span>✓</span></button><button class="secondary" id="builder-restart" type="button">作り直す</button></div>
+          <p class="saved-note" id="saved-note" aria-live="polite"></p>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>

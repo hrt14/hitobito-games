@@ -99,7 +99,7 @@ if (!fs.existsSync(accountAssetPath)) {
   problems.push('account: levelup-account.js missing');
 } else {
   const account = fs.readFileSync(accountAssetPath, 'utf8');
-  for (const required of ['GoogleAuthProvider', "collection(\'levelupUsers\')", "collection(\'history\')", 'hitobito-levelup-favorites-v1', 'hitobito-levelup-history-v1']) {
+  for (const required of ['GoogleAuthProvider', "collection('levelupUsers')", "collection('history')", 'hitobito-levelup-favorites-v1', 'hitobito-levelup-history-v1']) {
     if (!account.includes(required)) problems.push(`account: missing ${required}`);
   }
 }
@@ -108,8 +108,8 @@ if (!home.includes('data-levelup-account') || !home.includes('data-page="home"')
   problems.push('home: shared LEVEL UP account missing');
 }
 
-if (catalog.games.length !== 22) {
-  problems.push(`catalog: expected 22 curated games, found ${catalog.games.length}`);
+if (catalog.games.length !== 23) {
+  problems.push(`catalog: expected 23 curated games, found ${catalog.games.length}`);
 }
 
 if (problems.length) {

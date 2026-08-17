@@ -127,5 +127,9 @@ jobs:
             grep -F 'GoogleAuthProvider' /tmp/levelup-account.js >/dev/null
             curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
             grep -F "const QUESTIONS" /tmp/task-separation.js >/dev/null
-            echo "OK: $base all 22 routes + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
+            curl -fLsS "$base/apps/meaning-map/" -o /tmp/meaning-map.html
+            grep -F '意味マップ | LEVEL UP' /tmp/meaning-map.html >/dev/null
+            curl -fLsS "$base/apps/meaning-map/game.js" -o /tmp/meaning-map.js
+            grep -F "const LENSES" /tmp/meaning-map.js >/dev/null
+            echo "OK: $base all 23 routes + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
           done

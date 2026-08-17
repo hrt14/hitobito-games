@@ -32,6 +32,7 @@ const catalog = [
   {slug:'name-it',title:'名前をつけろ',kicker:'NAME THE FEELING',skill:'感情認識',description:'いま感じている感情に名前をつけ、ぼんやり抱えず認識する反射を鍛える。',icon:'Aa',updateCount:1},
   {slug:'viewpoint-exam',title:'物の見方検定',kicker:'FIND ANOTHER VIEW',skill:'視点転換',description:'嫌な出来事にも別の見方を何通りも作り、視点を切り替える型を反復する。',icon:'↻',updateCount:1},
   {slug:'jinsei-title',title:'人生にタイトルをつけろ',kicker:'EDIT THE STORY',skill:'意味づけ / 編集',description:'同じ出来事でもタイトルを変えると意味が変わる。人生の出来事を編集する力を鍛える。',icon:'T',updateCount:1},
+  {slug:'meaning-map',title:'意味マップ',kicker:'CONNECT WHAT YOU DO',skill:'意味づけ / 目的',description:'仕事や日常を「一貫性・目的・重要感」の3方向へつなぎ、意味を見つける型を鍛える。',icon:'⌘',updateCount:1},
   {slug:'main-character',title:'主人公で行け。',kicker:'LIVE YOUR STORY',skill:'自己決定',description:'周囲の「普通」ではなく、自分が人生の主人公ならどう動くかを選び続ける。',icon:'★',updateCount:1},
   {slug:'arigatou-sagashi',title:'ありがとう探し',kicker:'NOTICE WHAT SUPPORTS YOU',skill:'感謝 / 観察',description:'何気ない日常を支えているものを次々に見つけ、感謝を観察ゲームとして鍛える。',icon:'＋',updateCount:1},
   {slug:'levelup-smalltalk',title:'雑談力アップ',kicker:'KEEP THE TALK MOVING',skill:'雑談 / 会話',description:'雑談の返し・広げ方・質問を反復し、自然に会話を続けるパターンを身につける。',icon:'…',updateCount:1},
