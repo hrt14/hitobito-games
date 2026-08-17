@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-16",
+  "updatedAt": "2026-08-18",
   "targets": {
     "vercel": {
       "role": "portal-and-main-games",
@@ -14,7 +14,7 @@
       "role": "normal-games-batch",
       "source": "apps/*",
       "excludeCategories": ["levelup", "aaa-lab"],
-      "excludeSlugs": ["404-kaiki"]
+      "excludeSlugs": ["404-kaiki", "reflex-7"]
     },
     "firebaseHosting": {
       "role": "level-up",
