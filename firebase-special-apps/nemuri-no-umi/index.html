@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#050608" />
+  <meta name="description" content="光をゆっくり長押しして、夜を少しずつ暗くしていく。勝たなくていい、寝る前のLEVEL UPミニゲーム。" />
+  <title>ねむりの海。 | LEVEL UP</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;
+      --ink:#eee9dd;
+      --muted:#85837e;
+      --dim:#565653;
+      --amber:#c8aa72;
+      --amber-soft:#8e7650;
+      --line:rgba(240,226,196,.11);
+      --progress:0deg;
+      --night:0;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;min-height:100%;background:#050608;color:var(--ink);overflow:hidden;overscroll-behavior:none}
+    body{min-height:100dvh;touch-action:none;-webkit-font-smoothing:antialiased;transition:background 1.5s ease}
+    button,a{font:inherit;color:inherit}
+    button{touch-action:manipulation}
+    .app{position:relative;width:100%;height:100dvh;min-height:520px;overflow:hidden;background:
+      radial-gradient(circle at 50% 10%,rgba(134,111,74,.09),transparent 28%),
+      linear-gradient(180deg,#0b0c10 0%,#07080b 46%,#050608 100%)}
+    .app:after{content:"";position:absolute;inset:0;pointer-events:none;background:rgba(0,0,0,calc(var(--night) * .66));transition:background 1.3s ease;z-index:12}
+    .topbar{position:absolute;z-index:30;left:max(14px,env(safe-area-inset-left));right:max(14px,env(safe-area-inset-right));top:max(14px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:12px;transition:opacity 1s ease}
+    .brand{font-size:10px;font-weight:850;letter-spacing:.18em;color:#77766f}
+    .home{min-width:42px;min-height:42px;border:1px solid rgba(255,255,255,.07);border-radius:999px;display:grid;place-items:center;text-decoration:none;background:rgba(255,255,255,.025);font-size:17px;color:#8d8b84}
+    .scene{position:absolute;inset:0;overflow:hidden;z-index:1}
+    .stars{position:absolute;inset:0;opacity:calc(.5 - var(--night) * .38);transition:opacity 1.4s ease;background-image:
+      radial-gradient(circle at 12% 18%,rgba(235,225,203,.75) 0 1px,transparent 1.4px),
+      radial-gradient(circle at 28% 8%,rgba(235,225,203,.5) 0 1px,transparent 1.4px),
+      radial-gradient(circle at 46% 24%,rgba(235,225,203,.6) 0 1px,transparent 1.5px),
+      radial-gradient(circle at 70% 13%,rgba(235,225,203,.68) 0 1px,transparent 1.5px),
+      radial-gradient(circle at 86% 29%,rgba(235,225,203,.45) 0 1px,transparent 1.4px),
+      radial-gradient(circle at 16% 42%,rgba(235,225,203,.35) 0 1px,transparent 1.4px),
+      radial-gradient(circle at 63% 39%,rgba(235,225,203,.45) 0 1px,transparent 1.4px),
+      radial-gradient(circle at 93% 48%,rgba(235,225,203,.28) 0 1px,transparent 1.4px);
+      background-size:360px 360px;animation:drift 34s linear infinite}
+    @keyframes drift{to{transform:translateY(14px)}}
+    .moon{position:absolute;left:50%;top:17%;width:76px;height:76px;margin-left:-38px;border-radius:50%;background:radial-gradient(circle at 38% 31%,#ddd2b8 0 9%,#c2b393 30%,#8c816d 73%,#6e6658 100%);box-shadow:0 0 34px rgba(196,173,127,.12);opacity:calc(.8 - var(--night) * .55);transform:translateY(calc(var(--night) * 19vh)) scale(calc(1 - var(--night) * .22));transition:transform 1.4s ease,opacity 1.4s ease}
+    .moon:after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;left:15px;top:38px;background:rgba(54,50,44,.12);box-shadow:29px -18px 0 4px rgba(54,50,44,.09),35px 18px 0 rgba(54,50,44,.12)}
+    .horizon{position:absolute;left:-16%;right:-16%;bottom:-5%;height:37%;border-radius:50% 50% 0 0/22% 22% 0 0;background:linear-gradient(180deg,#090b0d,#040506 64%);box-shadow:0 -1px 0 rgba(210,190,150,.05);transform:translateY(calc(var(--night) * 4vh));transition:transform 1.5s ease}
+    .wave,.wave2{position:absolute;left:-18%;width:136%;height:40px;border-top:1px solid rgba(189,167,126,.075);border-radius:50%;bottom:21%;animation:wave 8s ease-in-out infinite;opacity:calc(.7 - var(--night) * .42)}
+    .wave2{bottom:15%;animation-duration:12s;animation-delay:-4s;opacity:calc(.45 - var(--night) * .28)}
+    @keyframes wave{50%{transform:translateX(2.8%) translateY(3px)}}
+
+    .screen{position:absolute;z-index:20;inset:0;display:none;align-items:center;justify-content:center;padding:max(70px,calc(env(safe-area-inset-top) + 58px)) 24px max(28px,env(safe-area-inset-bottom));text-align:center}
+    .screen.active{display:flex;animation:fade .9s ease both}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+    .intro-inner{width:min(100%,430px);transform:translateY(2vh)}
+    .eyebrow{font-size:9px;font-weight:900;letter-spacing:.2em;color:var(--amber-soft);margin-bottom:18px}
+    h1{margin:0;font-size:clamp(50px,14vw,72px);line-height:.92;letter-spacing:-.065em;font-weight:880}
+    .lead{max-width:340px;margin:20px auto 0;font-size:13px;line-height:1.9;color:#99958c}
+    .lead strong{color:#d6cebc;font-weight:800}
+    .start{margin-top:30px;width:min(100%,320px);min-height:58px;border:1px solid rgba(207,185,141,.15);border-radius:999px;background:rgba(170,143,92,.11);color:#d9c9aa;font-size:14px;font-weight:850;letter-spacing:.02em;cursor:pointer}
+    .start:active{transform:scale(.985)}
+    .fine{margin-top:18px;font-size:10px;line-height:1.7;color:#5f5e59}
+
+    .game-screen{align-items:stretch;justify-content:stretch;padding:0}
+    .game-copy{position:absolute;z-index:5;left:22px;right:22px;top:max(82px,calc(env(safe-area-inset-top) + 72px));text-align:center;pointer-events:none;transition:opacity 1s ease,transform 1s ease}
+    .phase{font-size:9px;letter-spacing:.18em;font-weight:900;color:#66645e;text-transform:uppercase}
+    .instruction{margin:11px auto 0;font-size:clamp(22px,7vw,31px);line-height:1.2;letter-spacing:-.04em;font-weight:820;color:#d2cabc;transition:color 1s ease}
+    .sub{margin:9px auto 0;font-size:11px;line-height:1.7;color:#73716b;min-height:19px;transition:opacity .8s ease}
+    .playfield{position:absolute;inset:24% 0 10%;z-index:4}
+    .target-wrap{position:absolute;left:50%;top:49%;width:152px;height:152px;margin:-76px 0 0 -76px;display:grid;place-items:center;transition:left 2.4s cubic-bezier(.2,.65,.2,1),top 2.4s cubic-bezier(.2,.65,.2,1),transform 1.5s ease,opacity 1.5s ease}
+    .target-wrap.holding{transform:scale(.97)}
+    .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(199,170,113,.46) var(--progress),rgba(199,170,113,.055) 0);filter:drop-shadow(0 0 15px rgba(179,147,87,.05));opacity:.82}
+    .ring:after{content:"";position:absolute;inset:4px;border-radius:50%;background:#07080a;border:1px solid rgba(229,210,171,.06)}
+    .orb{position:relative;z-index:1;width:108px;height:108px;border:1px solid rgba(220,198,153,.12);border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 45% 42%,rgba(214,188,137,.17),rgba(129,103,64,.055) 42%,rgba(255,255,255,.012) 67%);box-shadow:0 0 52px rgba(160,127,70,.07),inset 0 0 22px rgba(217,194,151,.04);cursor:pointer;user-select:none}
+    .orb:before{content:"";width:12px;height:12px;border-radius:50%;background:#b99c69;box-shadow:0 0 18px rgba(197,160,94,.5);opacity:calc(.92 - var(--night) * .5);transition:opacity 1.2s ease,transform .6s ease}
+    .target-wrap.holding .orb:before{transform:scale(.72);opacity:.65}
+    .target-wrap.done{opacity:0;transform:scale(.74)}
+    .hold-note{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:max-content;max-width:80%;font-size:10px;color:#56554f;letter-spacing:.08em;transition:opacity 1s ease}
+
+    .finish-inner{width:min(100%,430px);transform:translateY(5vh)}
+    .finish-moon{width:68px;height:68px;border-radius:50%;margin:0 auto 26px;background:rgba(202,183,145,.05);border:1px solid rgba(222,201,162,.08);display:grid;place-items:center;color:#7d735f;font-size:24px}
+    .finish h1{font-size:clamp(42px,12vw,62px);color:#b9b2a5}
+    .finish p{max-width:330px;margin:17px auto 0;color:#74716a;font-size:12px;line-height:1.9}
+    .sleep-button{margin-top:28px;width:min(100%,330px);min-height:60px;border-radius:999px;border:1px solid rgba(206,185,146,.1);background:rgba(255,255,255,.025);color:#a39b8d;font-size:13px;font-weight:850;cursor:pointer}
+    .again{display:block;margin:18px auto 0;border:0;background:transparent;color:#4b4a46;font-size:10px;padding:10px 16px;cursor:pointer}
+    body.finished .topbar{opacity:.28}
+    body.finished .stars{opacity:.035}
+    body.finished .moon{opacity:.08;transform:translateY(27vh) scale(.68)}
+    body.finished .wave,body.finished .wave2{animation-duration:24s;opacity:.09}
+
+    @media(max-height:650px){.intro-inner{transform:none}.game-copy{top:max(66px,calc(env(safe-area-inset-top) + 58px))}.playfield{inset:22% 0 7%}.target-wrap{width:136px;height:136px;margin:-68px 0 0 -68px}.orb{width:96px;height:96px}.finish-inner{transform:none}}
+    @media(prefers-reduced-motion:reduce){.stars,.wave,.wave2{animation:none}.target-wrap{transition:opacity .5s ease}.moon{transition:opacity .5s ease}}
+  </style>
+</head>
+<body>
+  <main class="app" id="app">
+    <div class="scene" aria-hidden="true">
+      <div class="stars"></div>
+      <div class="moon"></div>
+      <div class="horizon"></div>
+      <div class="wave"></div>
+      <div class="wave2"></div>
+    </div>
+
+    <header class="topbar">
+      <div class="brand">LEVEL UP / NIGHT</div>
+      <a class="home" href="/" aria-label="LEVEL UPホームへ戻る">⌂</a>
+    </header>
+
+    <section class="screen active" id="intro" aria-labelledby="title">
+      <div class="intro-inner">
+        <div class="eyebrow">SLOWER IS BETTER</div>
+        <h1 id="title">ねむりの<br>海。</h1>
+        <p class="lead">光を<strong>ゆっくり長押し</strong>して、夜をひとつずつ眠らせる。<br>上手になる必要はありません。</p>
+        <button class="start" id="start" type="button">夜を暗くする</button>
+        <div class="fine">音なし・点滅なし・スコアなし。途中でやめてもクリアです。</div>
+      </div>
+    </section>
+
+    <section class="screen game-screen" id="game" aria-label="ねむりの海 ゲーム画面">
+      <div class="game-copy">
+        <div class="phase" id="phase">NIGHT 01</div>
+        <div class="instruction" id="instruction">光を、そっと長押し</div>
+        <div class="sub" id="sub">消えるまで、そのまま</div>
+      </div>
+      <div class="playfield" id="playfield">
+        <div class="target-wrap" id="target">
+          <div class="ring" aria-hidden="true"></div>
+          <button class="orb" id="orb" type="button" aria-label="光を長押しして眠らせる"></button>
+        </div>
+      </div>
+      <div class="hold-note" id="holdNote">長押し中は、何もしなくていい</div>
+    </section>
+
+    <section class="screen finish" id="finish" aria-labelledby="finishTitle">
+      <div class="finish-inner">
+        <div class="finish-moon">☾</div>
+        <h1 id="finishTitle">もう、見なくていい。</h1>
+        <p>夜は十分暗くなりました。<br>ゲームを終えることが、このゲームの最後の操作です。</p>
+        <button class="sleep-button" id="sleepButton" type="button">画面を伏せる</button>
+        <button class="again" id="again" type="button">まだ眠くなければ、もう一周</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+      const TOTAL = 8;
+      const HOLD_MS = [3700, 3900, 4100, 4300, 4550, 4800, 5100, 5400];
+      const positions = [
+        [50,48],[41,54],[57,52],[46,59],[54,57],[48,62],[52,60],[50,63]
+      ];
+      const instructions = [
+        ['光を、そっと長押し','消えるまで、そのまま'],
+        ['次も、急がない','指の力も抜いていい'],
+        ['少しずつ暗くする','見るのは、この光だけ'],
+        ['まだ、ゆっくり','考えることはありません'],
+        ['もう少しだけ','呼吸は好きなままで'],
+        ['暗さにまかせる','離しても、やり直しにはなりません'],
+        ['目を細めてもいい','光が消えたら次へ'],
+        ['これが最後の光','終わったら、画面も終わり']
+      ];
+
+      const root = document.documentElement;
+      const body = document.body;
+      const intro = document.getElementById('intro');
+      const game = document.getElementById('game');
+      const finish = document.getElementById('finish');
+      const start = document.getElementById('start');
+      const target = document.getElementById('target');
+      const orb = document.getElementById('orb');
+      const phase = document.getElementById('phase');
+      const instruction = document.getElementById('instruction');
+      const sub = document.getElementById('sub');
+      const holdNote = document.getElementById('holdNote');
+      const sleepButton = document.getElementById('sleepButton');
+      const again = document.getElementById('again');
+
+      let round = 0;
+      let holding = false;
+      let startedAt = 0;
+      let elapsedBefore = 0;
+      let raf = 0;
+      let moveTimer = 0;
+
+      function show(screen) {
+        [intro, game, finish].forEach(el => el.classList.toggle('active', el === screen));
+      }
+
+      function applyNight() {
+        const night = Math.min(.94, round / TOTAL);
+        root.style.setProperty('--night', night.toFixed(3));
+      }
+
+      function setRoundCopy() {
+        const [main, small] = instructions[Math.min(round, instructions.length - 1)];
+        phase.textContent = `NIGHT ${String(round + 1).padStart(2, '0')}`;
+        instruction.textContent = main;
+        sub.textContent = small;
+        holdNote.textContent = round < 4 ? '長押し中は、何もしなくていい' : '急がなくていい';
+      }
+
+      function setPosition() {
+        const [x, y] = positions[Math.min(round, positions.length - 1)];
+        target.style.left = `${x}%`;
+        target.style.top = `${y}%`;
+      }
+
+      function setProgress(value) {
+        const clamped = Math.max(0, Math.min(1, value));
+        root.style.setProperty('--progress', `${clamped * 360}deg`);
+      }
+
+      function cancelHold(keepProgress = true) {
+        if (!holding) return;
+        holding = false;
+        target.classList.remove('holding');
+        cancelAnimationFrame(raf);
+        if (keepProgress) elapsedBefore += performance.now() - startedAt;
+        else elapsedBefore = 0;
+      }
+
+      function tick(now) {
+        if (!holding) return;
+        const totalElapsed = elapsedBefore + (now - startedAt);
+        const ratio = totalElapsed / HOLD_MS[Math.min(round, HOLD_MS.length - 1)];
+        setProgress(ratio);
+        if (ratio >= 1) {
+          completeRound();
+          return;
+        }
+        raf = requestAnimationFrame(tick);
+      }
+
+      function beginHold(event) {
+        if (holding || round >= TOTAL) return;
+        event.preventDefault();
+        holding = true;
+        startedAt = performance.now();
+        target.classList.add('holding');
+        try { orb.setPointerCapture?.(event.pointerId); } catch {}
+        raf = requestAnimationFrame(tick);
+      }
+
+      function endHold(event) {
+        if (!holding) return;
+        event.preventDefault();
+        cancelHold(true);
+      }
+
+      function completeRound() {
+        cancelHold(false);
+        setProgress(1);
+        target.classList.add('done');
+        round += 1;
+        applyNight();
+        if (round >= TOTAL) {
+          clearTimeout(moveTimer);
+          moveTimer = window.setTimeout(endGame, 1100);
+          return;
+        }
+        clearTimeout(moveTimer);
+        moveTimer = window.setTimeout(() => {
+          setProgress(0);
+          setRoundCopy();
+          setPosition();
+          target.classList.remove('done');
+        }, 1100);
+      }
+
+      function endGame() {
+        body.classList.add('finished');
+        show(finish);
+      }
+
+      function resetGame() {
+        clearTimeout(moveTimer);
+        cancelAnimationFrame(raf);
+        round = 0;
+        holding = false;
+        startedAt = 0;
+        elapsedBefore = 0;
+        body.classList.remove('finished');
+        setProgress(0);
+        applyNight();
+        setRoundCopy();
+        setPosition();
+        target.classList.remove('done','holding');
+        show(game);
+      }
+
+      start.addEventListener('click', resetGame);
+      again.addEventListener('click', resetGame);
+      sleepButton.addEventListener('click', () => {
+        body.style.transition = 'background 1.2s ease';
+        body.style.background = '#000';
+        document.querySelector('.app').style.opacity = '.08';
+        document.querySelector('.app').style.transition = 'opacity 1.2s ease';
+        window.setTimeout(() => {
+          document.querySelector('.app').style.opacity = '0';
+        }, 80);
+      });
+
+      orb.addEventListener('pointerdown', beginHold);
+      orb.addEventListener('pointerup', endHold);
+      orb.addEventListener('pointercancel', endHold);
+      orb.addEventListener('lostpointercapture', () => cancelHold(true));
+      orb.addEventListener('contextmenu', event => event.preventDefault());
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelHold(true);
+      });
+    })();
+  </script>
+</body>
+</html>
