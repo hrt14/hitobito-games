@@ -51,7 +51,7 @@ function escapeHtml(value) {
 }
 
 const card = `
-  <article class="card" data-game="${escapeHtml(game.slug)}">
+  <article class="card is-new" data-game="${escapeHtml(game.slug)}" data-new="true">
     <button class="favorite" type="button" data-favorite="${escapeHtml(game.slug)}" aria-pressed="false" aria-label="${escapeHtml(game.title)}をお気に入りに追加">♡</button>
     <a class="card-link" href="${escapeHtml(game.href)}">
       <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE ${game.updateCount}</span></div>
@@ -59,7 +59,11 @@ const card = `
       <div class="kicker">${escapeHtml(game.kicker)}</div>
       <div class="skill">${escapeHtml(game.skill)}</div>
       <h2>${escapeHtml(game.title)}</h2>
-      <p>${escapeHtml(game.description)}</p>
+      <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">
+        <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">朝や早寝を「楽しみ」より義務に感じやすい人</span></div>
+        <div class="card-value"><span class="card-value-label">なんのため</span><span class="card-value-text">翌朝の小さな楽しみを予約して、眠る理由を期待に変える</span></div>
+        <div class="card-value"><span class="card-value-label">ベネフィット</span><span class="card-value-text">明日の朝を楽しみにしながら、自然に寝る方向へ切り替えやすくなる</span></div>
+      </div>
       <div class="play">PLAY <span>↗</span></div>
     </a>
   </article>`;
@@ -83,7 +87,9 @@ fs.writeFileSync(homePath, html);
 const finalHome = fs.readFileSync(homePath, 'utf8');
 const finalCatalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 if (!finalHome.includes(`data-game="${game.slug}"`)) throw new Error('Morning reward card injection failed.');
+if (!finalHome.includes(`data-game="${game.slug}" data-new="true"`)) throw new Error('Morning reward NEW marker injection failed.');
+if (!finalHome.includes('翌朝の小さな楽しみを予約して、眠る理由を期待に変える')) throw new Error('Morning reward card value metadata missing.');
 if (!finalCatalog.games.some((item) => item.slug === game.slug)) throw new Error('Morning reward catalog injection failed.');
 if (!finalHome.includes(`<span>${newCount} games</span>`)) throw new Error('LEVEL UP game count was not updated.');
 
-console.log(`[Firebase] Morning reward injected into LEVEL UP home/catalog: ${newCount} games`);
+console.log(`[Firebase] Morning reward injected into LEVEL UP home/catalog as NEW: ${newCount} games`);
