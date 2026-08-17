@@ -43,3 +43,20 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
+
+      - name: Verify live LEVEL UP routes
+        run: |
+          set -euo pipefail
+          sleep 5
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            echo "Checking $base"
+            curl -fLsS "$base/" -o /tmp/levelup-home.html
+            grep -F '/apps/task-separation/' /tmp/levelup-home.html >/dev/null
+            curl -fLsS "$base/apps/task-separation/" -o /tmp/task-separation.html
+            grep -F 'それ、' /tmp/task-separation.html >/dev/null
+            curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
+            test -s /tmp/task-separation.js
+            curl -fLsS "$base/apps/task-separation/style.css" -o /tmp/task-separation.css
+            test -s /tmp/task-separation.css
+            echo "OK: $base task-separation HTML/JS/CSS"
+          done
