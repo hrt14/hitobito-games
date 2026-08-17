@@ -43,9 +43,9 @@
     const acc=state.stats.answers?Math.round(state.stats.correct/state.stats.answers*100):0;
     shell.innerHTML=`
       <section class="hero">
-        <div class="eyebrow">KOBAYASHI SEIKAN / REFLEX TRAINING</div>
-        <h1>正観<em>スイッチ</em></h1>
-        <p class="lead">出来事は選べなくても、<b>次の見方は選べる。</b><br>日常の場面を見て、小林正観の著作に見られる考え方へ切り替える練習。</p>
+        <div class="eyebrow">REFRAME / REFLEX TRAINING</div>
+        <h1>とらえ方<em>スイッチ</em></h1>
+        <p class="lead">出来事は選べなくても、<b>次の見方は選べる。</b><br>日常の場面を見て、受容・感謝・言葉の選び方へ切り替える練習。</p>
         <p class="sublead">正解暗記ではなく「イラッ → 気づく → 切り替える」を反復します。急がせません。反応時間は測りますが、自動で次へ進みません。</p>
         <button class="primary" id="startBtn">60秒トレーニング</button>
         <button class="secondary" id="realBtn">今、起きた → 現実モード</button>
@@ -124,7 +124,7 @@
   function learn(){
     state.view='learn';
     const cards=Object.entries(DATA.lenses).map(([k,x],i)=>`<article class="learn-card"><header><div class="num">0${i+1}</div><h2>${esc(x.title)}</h2></header><p>${esc(x.description)}</p>${k==='gokai'?'<small>五戒：不平不満・愚痴・泣き言・悪口・文句</small>':k==='sowaka'?'<small>そ＝掃除 / わ＝笑い / か＝感謝</small>':''}</article>`).join('');
-    shell.innerHTML=`<section class="mode-title"><div class="eyebrow">5 LENSES</div><h1>5つの型</h1><p>ここは暗記ページではありません。迷ったときに型を確認するための短い索引です。</p></section><div class="learn-list">${cards}</div><div class="source-box"><strong>出典の扱い</strong><br>このアプリは、小林正観の著作・公式管理サイトで紹介されている考え方を、LEVEL UP向けの練習問題へ再構成したものです。科学的・医学的効果を主張するものではありません。危険、健康、法令、契約、強要が関わる場面では、受容や頼まれごとより安全と適切な相談を優先してください。<br><a href="https://www.skp358.com/" target="_blank" rel="noopener noreferrer">SKP公式サイト ↗</a></div><button class="secondary" id="learnBack">戻る</button>`;
+    shell.innerHTML=`<section class="mode-title"><div class="eyebrow">5 LENSES</div><h1>5つの型</h1><p>ここは暗記ページではありません。迷ったときに型を確認するための短い索引です。</p></section><div class="learn-list">${cards}</div><div class="source-box"><strong>このアプリについて</strong><br>受容・感謝・言葉の選び方・小さな親切・掃除や笑いなど、日常で使える考え方をLEVEL UP向けの練習問題へ再構成しています。特定の人物・団体の公式アプリではありません。科学的・医学的効果を主張するものでもありません。危険、健康、法令、契約、強要が関わる場面では、受容や頼まれごとより安全と適切な相談を優先してください。</div><button class="secondary" id="learnBack">戻る</button>`;
     document.getElementById('learnBack').onclick=home;scrollTop();
   }
 
