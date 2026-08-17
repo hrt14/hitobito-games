@@ -34,42 +34,51 @@ jobs:
       - name: Install Google auth helper
         run: npm install --no-save google-auth-library
 
-      - name: Inspect Firebase Auth configuration
+      - name: Inspect and initialize Firebase Auth configuration
         run: |
           node <<'NODE'
           const { GoogleAuth } = require('google-auth-library');
 
           const PROJECT = 'hitobito-levelup';
           const CUSTOM_DOMAIN = 'levelup.hitobito.jp';
-          const BASE = 'https://identitytoolkit.googleapis.com/admin/v2';
+          const ADMIN_BASE = 'https://identitytoolkit.googleapis.com/admin/v2';
+          const V2_BASE = 'https://identitytoolkit.googleapis.com/v2';
 
           async function main() {
-            const initResponse = await fetch('https://levelup.hitobito.jp/__/firebase/init.json', { cache: 'no-store' });
-            const init = await initResponse.json();
-            console.log('Hosting init status:', initResponse.status);
-            console.log('Hosting init projectId:', init.projectId);
-            console.log('Hosting init authDomain:', init.authDomain);
+            const hostingInitResponse = await fetch('https://levelup.hitobito.jp/__/firebase/init.json', { cache: 'no-store' });
+            const hostingInit = await hostingInitResponse.json();
+            console.log('Hosting init status:', hostingInitResponse.status);
+            console.log('Hosting init projectId:', hostingInit.projectId);
+            console.log('Hosting init authDomain:', hostingInit.authDomain);
 
-            if (init.apiKey) {
-              const publicConfigUrl = new URL('https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig');
-              publicConfigUrl.searchParams.set('key', init.apiKey);
-              const publicConfigResponse = await fetch(publicConfigUrl);
-              const text = await publicConfigResponse.text();
-              let publicConfig = null;
-              try { publicConfig = text ? JSON.parse(text) : {}; } catch { publicConfig = { raw: text }; }
-              console.log('Public project config status:', publicConfigResponse.status);
-              if (publicConfigResponse.ok) {
-                const domains = Array.isArray(publicConfig.authorizedDomains) ? publicConfig.authorizedDomains : [];
-                console.log('Public authorized domains:', domains.join(', '));
-                console.log('Public custom domain authorized:', domains.includes(CUSTOM_DOMAIN));
-                if (Array.isArray(publicConfig.idpConfig)) {
-                  const google = publicConfig.idpConfig.find((item) => item.provider === 'google.com');
-                  if (google) console.log('Public Google provider clientId:', google.clientId || '(none)');
+            async function readPublicConfig(label) {
+              if (!hostingInit.apiKey) {
+                console.log(label + ' public project config: no API key');
+                return null;
+              }
+              const url = new URL('https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig');
+              url.searchParams.set('key', hostingInit.apiKey);
+              const response = await fetch(url);
+              const text = await response.text();
+              let body = null;
+              try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+              console.log(label + ' public project config status:', response.status);
+              if (response.ok) {
+                const domains = Array.isArray(body.authorizedDomains) ? body.authorizedDomains : [];
+                console.log(label + ' public authorized domains:', domains.join(', '));
+                console.log(label + ' public custom domain authorized:', domains.includes(CUSTOM_DOMAIN));
+                if (Array.isArray(body.idpConfig)) {
+                  const google = body.idpConfig.find((item) => item.provider === 'google.com');
+                  console.log(label + ' public Google provider present:', Boolean(google));
+                  if (google) console.log(label + ' public Google provider clientId:', google.clientId || '(none)');
                 }
               } else {
-                console.log('Public project config error:', JSON.stringify(publicConfig));
+                console.log(label + ' public project config error:', JSON.stringify(body));
               }
+              return { response, body };
             }
+
+            const before = await readPublicConfig('Before');
 
             const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] });
             const client = await auth.getClient();
@@ -77,32 +86,43 @@ jobs:
             const accessToken = typeof token === 'string' ? token : token.token;
             const headers = { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' };
 
-            async function api(path, init = {}) {
-              const res = await fetch(BASE + path, { ...init, headers: { ...headers, ...(init.headers || {}) } });
-              const text = await res.text();
-              let body = null;
-              try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
-              return { res, body };
+            if (!before || !before.response.ok) {
+              const initAuthResponse = await fetch(`${V2_BASE}/projects/${PROJECT}/identityPlatform:initializeAuth`, {
+                method: 'POST',
+                headers,
+                body: '{}',
+              });
+              const initText = await initAuthResponse.text();
+              let initBody = null;
+              try { initBody = initText ? JSON.parse(initText) : {}; } catch { initBody = { raw: initText }; }
+              console.log('initializeAuth status:', initAuthResponse.status);
+              console.log('initializeAuth response:', JSON.stringify(initBody));
             }
 
-            const configResult = await api(`/projects/${PROJECT}/config`);
-            console.log('Admin auth config status:', configResult.res.status);
-            if (!configResult.res.ok) console.log('Admin auth config read error:', JSON.stringify(configResult.body));
+            await readPublicConfig('After');
 
-            const googleResult = await api(`/projects/${PROJECT}/defaultSupportedIdpConfigs/google.com`);
-            console.log('Admin Google provider status:', googleResult.res.status);
-            if (!googleResult.res.ok) console.log('Admin Google provider read error:', JSON.stringify(googleResult.body));
+            async function adminApi(path) {
+              const response = await fetch(ADMIN_BASE + path, { headers });
+              const text = await response.text();
+              let body = null;
+              try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+              return { response, body };
+            }
+
+            const configResult = await adminApi(`/projects/${PROJECT}/config`);
+            console.log('Admin auth config status:', configResult.response.status);
+            if (!configResult.response.ok) console.log('Admin auth config read error:', JSON.stringify(configResult.body));
+
+            const googleResult = await adminApi(`/projects/${PROJECT}/defaultSupportedIdpConfigs/google.com`);
+            console.log('Admin Google provider status:', googleResult.response.status);
+            if (!googleResult.response.ok) console.log('Admin Google provider read error:', JSON.stringify(googleResult.body));
 
             for (const url of [
               'https://levelup.hitobito.jp/__/auth/handler',
               'https://hitobito-levelup.firebaseapp.com/__/auth/handler',
             ]) {
-              try {
-                const res = await fetch(url, { redirect: 'manual' });
-                console.log('HTTP', res.status, url, 'content-type=' + (res.headers.get('content-type') || ''));
-              } catch (error) {
-                console.log('HTTP ERROR', url, error && error.message ? error.message : String(error));
-              }
+              const response = await fetch(url, { redirect: 'manual' });
+              console.log('HTTP', response.status, url, 'content-type=' + (response.headers.get('content-type') || ''));
             }
           }
 
