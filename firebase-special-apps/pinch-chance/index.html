@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0c09" />
+  <meta name="description" content="ピンチを見た瞬間に、成長機会へ意味変換する反射を鍛えるLEVEL UPゲーム。" />
+  <title>ピンチはチャンス | LEVEL UP</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;--bg:#080a07;--panel:#11150f;--line:rgba(255,255,255,.09);--muted:#98a08f;--text:#f6f8f1;--lime:#d8ff5b;--red:#ff6b5f;--amber:#ffb84f;--ink:#0b0e08}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}body{min-height:100dvh;overflow-x:hidden;background:radial-gradient(circle at 15% -10%,rgba(255,107,95,.13),transparent 31%),radial-gradient(circle at 90% 108%,rgba(216,255,91,.12),transparent 34%),#080a07}button,a{font:inherit}button{touch-action:manipulation}.app{width:min(760px,100%);min-height:100dvh;margin:auto;padding:calc(10px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));display:grid;grid-template-rows:auto 1fr auto}.top{min-height:46px;display:grid;grid-template-columns:46px 1fr 46px;align-items:center}.home{width:44px;height:44px;border:1px solid rgba(216,255,91,.17);border-radius:14px;color:#edf2e4;text-decoration:none;display:grid;place-items:center;background:rgba(255,255,255,.025)}.home svg{width:21px;height:21px}.brand{text-align:center}.brand b{display:block;font-size:10px;letter-spacing:.18em}.brand span{display:block;margin-top:4px;color:#7f8776;font-size:8px;letter-spacing:.13em}.screen{display:none;min-height:0}.screen.active{display:grid}.intro,.result{align-content:center;gap:16px;text-align:center;min-height:calc(100dvh - 110px)}.hero-mark{width:112px;height:112px;margin:auto;border-radius:34px;display:grid;place-items:center;position:relative;background:linear-gradient(145deg,#2a1210,#14130d);border:1px solid rgba(255,107,95,.28);box-shadow:0 24px 80px rgba(0,0,0,.3)}.hero-mark:before{content:'!';font-size:62px;font-weight:950;color:var(--red);line-height:1}.hero-mark:after{content:'→';position:absolute;right:-21px;bottom:-15px;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--lime);color:var(--ink);font-weight:950;font-size:25px;box-shadow:0 10px 32px rgba(216,255,91,.19)}h1{font-size:clamp(48px,13vw,78px);line-height:.9;letter-spacing:-.07em;margin:0;font-weight:950}h1 .danger{color:#ff776d}h1 .chance{color:var(--lime)}.lead{margin:0 auto;max-width:570px;color:#bcc3b2;font-size:14px;line-height:1.8}.lead strong{color:#f6f8f1}.principles{width:min(100%,560px);margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.principle{border:1px solid var(--line);border-radius:16px;padding:12px 8px;background:rgba(255,255,255,.025)}.principle b{display:block;font-size:18px;color:var(--lime);margin-bottom:5px}.principle span{display:block;font-size:10px;line-height:1.45;color:#aeb6a5}.mode-row{width:min(100%,560px);margin:auto;display:flex;gap:8px;align-items:center;justify-content:center}.mode{flex:1;min-height:46px;border:1px solid var(--line);border-radius:14px;background:#121610;color:#c9d0c1;font-size:12px;font-weight:850;cursor:pointer}.mode.on{border-color:rgba(216,255,91,.5);background:rgba(216,255,91,.09);color:var(--lime)}.start,.again{width:min(100%,560px);min-height:60px;margin:auto;border:0;border-radius:18px;background:var(--lime);color:#10130c;font-size:16px;font-weight:950;cursor:pointer;box-shadow:0 14px 40px rgba(216,255,91,.11)}.note{font-size:9px;line-height:1.5;color:#6f7769}.game{align-content:center;gap:10px;padding:8px 0}.hud{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.progress{display:flex;gap:5px}.progress i{height:6px;flex:1;border-radius:99px;background:#252a22;transition:.2s}.progress i.done{background:var(--lime)}.progress i.now{background:#7e9341;box-shadow:0 0 14px rgba(216,255,91,.15)}.streak{font-size:10px;color:#8f9888;font-weight:900;white-space:nowrap}.streak b{color:var(--lime)}.arena{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.085);border-radius:27px;background:linear-gradient(150deg,#171411,#0e120d 64%);min-height:245px;padding:18px;display:grid;align-content:center;gap:15px;isolation:isolate;transition:.38s background,.38s border-color}.arena:before{content:'';position:absolute;left:-90px;top:-110px;width:260px;height:260px;border-radius:50%;background:rgba(255,107,95,.10);filter:blur(1px);z-index:-1;transition:.4s}.arena:after{content:'';position:absolute;right:-120px;bottom:-140px;width:290px;height:290px;border-radius:50%;background:rgba(216,255,91,.03);z-index:-1;transition:.4s}.arena.chance{background:linear-gradient(150deg,#11180d,#0c1109 65%);border-color:rgba(216,255,91,.3)}.arena.chance:before{background:rgba(255,107,95,.025);transform:scale(.72)}.arena.chance:after{background:rgba(216,255,91,.12);transform:scale(1.1)}.phase{font-size:9px;font-weight:950;letter-spacing:.17em;text-align:center;color:#ff8b81}.arena.chance .phase{color:var(--lime)}.transform{height:70px;display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:5px}.badge{height:64px;border-radius:18px;display:grid;place-items:center;font-size:20px;font-weight:950;letter-spacing:-.03em;border:1px solid rgba(255,255,255,.08);transition:.35s transform,.35s opacity,.35s background}.badge.pinch{background:rgba(255,107,95,.10);color:#ff8d84}.badge.chance-badge{background:rgba(216,255,91,.04);color:#718042;opacity:.35}.arena.chance .badge.pinch{opacity:.32;transform:scale(.9)}.arena.chance .badge.chance-badge{opacity:1;transform:scale(1.05);background:rgba(216,255,91,.12);color:var(--lime);border-color:rgba(216,255,91,.25)}.arrow{font-size:25px;color:#52594e;font-weight:950}.arena.chance .arrow{color:var(--lime)}.scenario{margin:0;text-align:center;font-size:clamp(22px,5.7vw,31px);line-height:1.38;letter-spacing:-.035em;font-weight:880}.scenario small{display:block;margin-top:8px;font-size:10px;line-height:1.45;color:#7d8577;font-weight:800;letter-spacing:.07em}.timer-wrap{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.timer{height:6px;border-radius:99px;background:#252a22;overflow:hidden}.timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--red),var(--amber));transform-origin:left;transform:scaleX(1)}.timer-text{font-size:10px;font-weight:950;color:#989f92;min-width:26px;text-align:right}.choices{display:grid;gap:8px}.choice{width:100%;min-height:58px;border:1px solid rgba(255,255,255,.085);border-radius:17px;background:#12160f;color:#f0f3eb;padding:12px 14px;text-align:left;font-size:14px;line-height:1.45;font-weight:780;cursor:pointer;transition:.15s transform,.2s border-color,.2s background,.2s opacity}.choice:active{transform:scale(.985)}.choice.good{border-color:rgba(216,255,91,.58);background:rgba(216,255,91,.09)}.choice.bad{border-color:rgba(255,107,95,.42);background:rgba(255,107,95,.07);opacity:.72}.choice:disabled{cursor:default}.feedback{display:none;min-height:76px;border:1px solid rgba(216,255,91,.2);border-radius:17px;background:rgba(216,255,91,.045);padding:11px 12px;gap:10px;align-items:center}.feedback.show{display:grid;grid-template-columns:40px 1fr}.feedback.bad{border-color:rgba(255,107,95,.2);background:rgba(255,107,95,.045)}.feedback-mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--lime);color:var(--ink);font-weight:950}.feedback.bad .feedback-mark{background:#ff8c82;color:#250a08}.feedback b{display:block;font-size:12px;margin-bottom:3px}.feedback span{display:block;font-size:11px;line-height:1.55;color:#bbc2b2}.next{display:none;width:100%;min-height:54px;border:0;border-radius:17px;background:var(--lime);color:#10130c;font-size:14px;font-weight:950;cursor:pointer}.next.show{display:block}.result-ring{width:146px;height:146px;margin:auto;border-radius:50%;position:relative;display:grid;place-items:center;background:conic-gradient(var(--lime) calc(var(--score,0)*1%),#20251d 0)}.result-ring:before{content:'';position:absolute;inset:11px;border-radius:50%;background:#0b0e08}.result-ring div{position:relative}.result-ring strong{display:block;font-size:42px;line-height:1}.result-ring span{display:block;font-size:9px;margin-top:5px;color:#8f9788;letter-spacing:.1em}.result h2{font-size:30px;letter-spacing:-.04em;margin:0}.result-copy{font-size:14px;line-height:1.7;color:#c1c8b8}.result-copy strong{color:var(--lime)}.scores{width:min(100%,540px);margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.scorebox{padding:11px 8px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.scorebox b{display:block;color:var(--lime);font-size:22px}.scorebox span{font-size:9px;color:#858d7e;line-height:1.3}.mantra{width:min(100%,560px);margin:auto;border:1px solid rgba(216,255,91,.18);border-radius:17px;padding:14px;background:rgba(216,255,91,.05);font-size:16px;line-height:1.6;font-weight:900}.result-actions{display:grid;gap:8px;width:min(100%,560px);margin:auto}.back{min-height:50px;border:1px solid var(--line);border-radius:16px;color:#e3e8dd;text-decoration:none;display:grid;place-items:center;font-size:12px;font-weight:850}.footer{text-align:center;color:#636b5f;font-size:8px;letter-spacing:.1em;padding-top:4px}.flash{animation:flash .28s ease}.shake{animation:shake .25s ease}@keyframes flash{50%{filter:brightness(1.55)}}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+    @media(max-width:520px){.app{padding-left:11px;padding-right:11px}.intro,.result{gap:13px}.hero-mark{width:88px;height:88px;border-radius:26px}.hero-mark:before{font-size:50px}.hero-mark:after{width:45px;height:45px}.lead{font-size:13px;line-height:1.7}.principles{gap:6px}.principle{padding:9px 5px}.principle b{font-size:15px}.principle span{font-size:9px}.arena{min-height:220px;padding:14px;border-radius:22px}.transform{height:60px}.badge{height:56px;font-size:17px}.scenario{font-size:22px}.choice{min-height:54px;font-size:13px;padding:11px 12px}.feedback{min-height:68px}.scores{gap:6px}.scorebox b{font-size:19px}}
+    @media(max-height:730px){.top{min-height:40px}.home{width:40px;height:40px}.game{gap:7px;padding:3px 0}.arena{min-height:190px;padding:10px 13px;gap:9px}.transform{height:48px}.badge{height:46px;border-radius:14px;font-size:15px}.scenario{font-size:20px}.scenario small{margin-top:4px}.choice{min-height:47px;padding:9px 11px;font-size:12px}.choices{gap:6px}.feedback{min-height:58px;padding:8px 10px}.next{min-height:48px}.intro,.result{gap:9px}.hero-mark{width:66px;height:66px}.hero-mark:before{font-size:39px}.hero-mark:after{width:38px;height:38px;right:-16px;bottom:-11px}.principle{padding:7px 4px}.start,.again{min-height:52px}.mantra{padding:10px;font-size:14px}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body data-game-slug="pinch-chance">
+  <main class="app" data-game-slug="pinch-chance">
+    <header class="top">
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.4 3.5 10v10.2h6v-6.1h5v6.1h6V10L12 3.4Zm0 2.5 6.3 4.9v7.3h-1.8V12h-9v6.1H5.7v-7.3L12 5.9Z"/></svg></a>
+      <div class="brand"><b>LEVEL UP</b><span>REFRAME TRAINING</span></div>
+      <div></div>
+    </header>
+
+    <section id="intro" class="screen intro active" aria-labelledby="title">
+      <div class="hero-mark" aria-hidden="true"></div>
+      <h1 id="title"><span class="danger">ピンチ</span>は<br><span class="chance">チャンス</span></h1>
+      <p class="lead">ピンチは「全部背負え」の合図じゃない。<br><strong>「ここで何を一段上げられる？」へ切り替える合図</strong>にする。</p>
+      <div class="principles">
+        <div class="principle"><b>01</b><span>まず<br>チャンス化</span></div>
+        <div class="principle"><b>02</b><span>鍛える力を<br>見抜く</span></div>
+        <div class="principle"><b>03</b><span>次の一手へ<br>変換</span></div>
+      </div>
+      <div class="mode-row" aria-label="制限時間">
+        <button class="mode on" type="button" data-mode="timed">6秒・反射モード</button>
+        <button class="mode" type="button" data-mode="free">制限なし</button>
+      </div>
+      <button id="start" class="start" type="button">10回、チャンスに変える</button>
+      <div class="note">「睡眠を削る」「全部自分で抱える」は正解にしません。能力を上げる一手へ変えるゲームです。</div>
+    </section>
+
+    <section id="game" class="screen game" aria-live="polite">
+      <div class="hud"><div id="progress" class="progress"></div><div class="streak">STREAK <b id="streak">0</b></div></div>
+      <div id="arena" class="arena">
+        <div id="phase" class="phase">PINCH 01 / 10</div>
+        <div class="transform" aria-hidden="true"><div class="badge pinch">PINCH</div><div class="arrow">→</div><div class="badge chance-badge">CHANCE</div></div>
+        <p id="scenario" class="scenario"></p>
+      </div>
+      <div id="timerWrap" class="timer-wrap"><div class="timer"><i id="timerBar"></i></div><div id="timerText" class="timer-text">6.0</div></div>
+      <div id="choices" class="choices"></div>
+      <div id="feedback" class="feedback" role="status"><div id="feedbackMark" class="feedback-mark">✓</div><div><b id="feedbackTitle"></b><span id="feedbackText"></span></div></div>
+      <button id="next" class="next" type="button">次のピンチへ</button>
+    </section>
+
+    <section id="result" class="screen result" aria-labelledby="resultTitle">
+      <div id="resultRing" class="result-ring" style="--score:0"><div><strong id="resultRate">0%</strong><span>CHANCE REFLEX</span></div></div>
+      <h2 id="resultTitle">ピンチの見え方が変わった。</h2>
+      <div id="resultCopy" class="result-copy"></div>
+      <div class="scores"><div class="scorebox"><b id="frameScore">0/10</b><span>チャンス化</span></div><div class="scorebox"><b id="growthScore">0/10</b><span>成長判断</span></div><div class="scorebox"><b id="bestScore">0%</b><span>BEST</span></div></div>
+      <div class="mantra">ピンチが来た。<br><span style="color:var(--lime)">よし、また一段上がれる。</span></div>
+      <div class="result-actions"><button id="again" class="again" type="button">もう10回、反射を作る</button><a class="back" href="/">LEVEL UPへ戻る</a></div>
+    </section>
+    <footer class="footer">PINCH → CHANCE / LEVEL UP</footer>
+  </main>
+
+  <script>
+    (()=>{
+      const scenarios=[
+        {text:'今日中にやる仕事が、予定の倍に増えた。',sub:'量のピンチ',growth:'優先順位',wrong:['気合','長時間'],lesson:'全部を同じ重さで扱わない力を鍛える機会。',next:'「今日やらないと壊れるもの」を1つ決め、残りを後ろへ送る。'},
+        {text:'締切の近い仕事が、3つ同時に重なった。',sub:'締切のピンチ',growth:'集中',wrong:['完璧主義','マルチタスク'],lesson:'同時進行ではなく、順番に終わらせる力を鍛える機会。',next:'最重要の1つだけ開き、他の画面を閉じる。'},
+        {text:'自分しか分からない作業で、毎回止まる。',sub:'属人化のピンチ',growth:'仕組み化',wrong:['根性','抱え込み'],lesson:'「自分しかできない」を減らす仕組みを作る機会。',next:'次の1回を他人でもできるよう、手順を3行だけ残す。'},
+        {text:'追加の頼まれごとが、また飛んできた。',sub:'依頼過多のピンチ',growth:'境界線',wrong:['愛想','全部受ける'],lesson:'何を引き受け、何を返すかを決める力を鍛える機会。',next:'「いつまで・どこまでならできる」を条件付きで返す。'},
+        {text:'移動が多く、まとまった作業時間が取れない。',sub:'時間分断のピンチ',growth:'設計',wrong:['睡眠削減','焦り'],lesson:'場所と時間に合わせて仕事を分解する力を鍛える機会。',next:'移動中用の15分タスクを1つだけ切り出す。'},
+        {text:'提出直前にミスが見つかった。',sub:'失敗のピンチ',growth:'学習・修正',wrong:['自己否定','隠す'],lesson:'ミスを再発防止のルールへ変える力を鍛える機会。',next:'直す→原因を1行→次回チェックを1項目追加。'},
+        {text:'疲れていて、判断が明らかに鈍い。',sub:'コンディションのピンチ',growth:'回復設計',wrong:['徹夜','気合'],lesson:'休むことも実行力の一部として扱う力を鍛える機会。',next:'判断が必要な仕事を止め、回復か単純作業へ切り替える。'},
+        {text:'会議が多すぎて、自分の仕事が進まない。',sub:'会議過多のピンチ',growth:'委任',wrong:['我慢','夜に補填'],lesson:'自分が出る必要のない仕事を外す力を鍛える機会。',next:'次の会議1つだけ「自分が必要な理由」を確認する。'},
+        {text:'相手から急ぎの修正を何度も求められる。',sub:'振り回されるピンチ',growth:'境界線',wrong:['即レス癖','全部従う'],lesson:'相手の緊急と自分の最優先を分ける力を鍛える機会。',next:'優先度と締切を確認し、今の予定を崩す条件を明示する。'},
+        {text:'やることが多すぎて、何から手をつけるか分からない。',sub:'WIPのピンチ',growth:'優先順位',wrong:['一覧を眺める','全部少しずつ'],lesson:'不安を「次の1個」へ変える力を鍛える機会。',next:'完了させる1個を決め、それ以外を見えない場所へ置く。'},
+        {text:'想定していた時間の半分しか残っていない。',sub:'時間不足のピンチ',growth:'捨てる力',wrong:['品質を全部維持','睡眠削減'],lesson:'成果に効かない工程を削る力を鍛える機会。',next:'「なくても目的達成できる作業」を1つ削る。'},
+        {text:'途中で仕様が変わり、作り直しが必要になった。',sub:'変更のピンチ',growth:'適応',wrong:['怒り続ける','昔の案に固執'],lesson:'変化を早く受け取り、次の最短ルートへ移る力を鍛える機会。',next:'失ったものではなく、新条件で最短の完成形を決める。'},
+        {text:'重要な相手から返事が来ず、仕事が止まっている。',sub:'待ちのピンチ',growth:'並列設計',wrong:['催促連打','考え続ける'],lesson:'待ち時間を別の前進へ変える力を鍛える機会。',next:'返事がなくても進められる部分を15分だけ進める。'},
+        {text:'大事な仕事なのに、どうしても着手が重い。',sub:'着手のピンチ',growth:'極小化',wrong:['自己批判','完璧な準備'],lesson:'大仕事を「始められるサイズ」まで小さくする力を鍛える機会。',next:'完成ではなく、最初の3分でやる行動だけ決める。'},
+        {text:'売上や成果が、期待したほど伸びていない。',sub:'結果のピンチ',growth:'仮説検証',wrong:['自信喪失','全部変える'],lesson:'感情ではなく、仮説と検証で前進する力を鍛える機会。',next:'原因候補を1つだけ選び、次の小さな検証を置く。'},
+        {text:'突然のトラブルで、今日の予定が崩れた。',sub:'予定崩壊のピンチ',growth:'再計画',wrong:['全部取り戻す','自分を責める'],lesson:'崩れた予定を、その場で組み直す力を鍛える機会。',next:'残り時間だけを見て、今日の最低成功ラインを引き直す。'},
+        {text:'誰かに任せた仕事の品質が足りなかった。',sub:'委任失敗のピンチ',growth:'任せ方',wrong:['全部取り返す','二度と任せない'],lesson:'人ではなく、依頼条件と確認方法を改善する機会。',next:'完成条件を3点にして、途中確認を1回入れる。'},
+        {text:'新しい役割を任され、経験が足りない。',sub:'未知のピンチ',growth:'成長',wrong:['断定的に怖がる','全部知ってから動く'],lesson:'能力の境界を広げる経験そのもの。',next:'最初に必要な知識を1つだけ調べ、すぐ試す。'},
+        {text:'複数の人が、それぞれ違う期待を向けてくる。',sub:'期待のピンチ',growth:'優先順位',wrong:['全員満足','空気読み'],lesson:'他人の期待ではなく、目的で順番を決める力を鍛える機会。',next:'成果責任に最も近い期待を1つだけ優先する。'},
+        {text:'細かい連絡が多く、集中が何度も切れる。',sub:'割り込みのピンチ',growth:'集中環境',wrong:['全部即レス','通知ON'],lesson:'集中を意志ではなく環境で守る力を鍛える機会。',next:'次の25分だけ通知を切り、連絡確認の時刻を決める。'},
+        {text:'仕事量は減らないのに、体力は残り少ない。',sub:'持久戦のピンチ',growth:'持続設計',wrong:['徹夜','限界まで続ける'],lesson:'一日だけでなく、数日を完走する配分を覚える機会。',next:'睡眠を固定し、残りの時間で「やらないこと」を先に決める。'},
+        {text:'完成度を上げようとすると、いつまでも終わらない。',sub:'完璧主義のピンチ',growth:'完了力',wrong:['無限修正','自己採点'],lesson:'十分な品質で出し、次の改善へ進む力を鍛える機会。',next:'提出条件を3つに限定し、満たしたら一度出す。'},
+        {text:'今日の進捗が遅く、「もう間に合わない」と感じる。',sub:'焦りのピンチ',growth:'再計画',wrong:['自暴自棄','速度だけ上げる'],lesson:'過ぎた時間ではなく、残り時間を使う力を鍛える機会。',next:'今から寝るまでの時間だけで、最低成功ラインを作り直す。'},
+        {text:'重要な仕事と、細かい緊急対応が同時に来た。',sub:'競合のピンチ',growth:'判断',wrong:['両方同時','近い方から'],lesson:'緊急度と重要度を分けて選ぶ力を鍛える機会。',next:'壊れる期限が近い方だけ処理し、重要仕事の時間を再確保する。'}
+      ];
+      const frameGood=['チャンスだ。ここで何が鍛えられる？','よし、成長イベントだ。使える力は？','これは訓練機会。何を一段上げる？'];
+      const frameBad=[['全部、自分で抱えて突破する','まず嫌な気持ちを考え続ける'],['睡眠や休憩を削って量で押す','いったん全部から逃げる'],['とにかく全部同時に始める','「なんで自分だけ」と止まり続ける']];
+      const growthPool=['優先順位','集中','仕組み化','境界線','設計','学習・修正','回復設計','委任','捨てる力','適応','極小化','仮説検証','再計画','任せ方','成長','集中環境','持続設計','完了力','判断','並列設計'];
+      const $=id=>document.getElementById(id);
+      const screens={intro:$('intro'),game:$('game'),result:$('result')};
+      let mode='timed',rounds=[],idx=0,phase='frame',frameScore=0,growthScore=0,streak=0,timerId=0,timerStart=0,locked=false;
+      const KEY='hitobito-pinch-chance-v1';
+      let saved={best:0,plays:0};try{saved={...saved,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{}
+      function show(name){Object.values(screens).forEach(s=>s.classList.remove('active'));screens[name].classList.add('active')}
+      function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+      function save(){localStorage.setItem(KEY,JSON.stringify(saved))}
+      function vibrate(pattern){try{navigator.vibrate?.(pattern)}catch{}}
+      document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b===btn))}));
+      $('start').addEventListener('click',startGame);$('again').addEventListener('click',startGame);$('next').addEventListener('click',()=>{idx++;if(idx>=rounds.length)finish();else renderRound()});
+      function startGame(){rounds=shuffle(scenarios).slice(0,10);idx=0;phase='frame';frameScore=0;growthScore=0;streak=0;locked=false;show('game');renderRound()}
+      function renderProgress(){const box=$('progress');box.innerHTML='';for(let i=0;i<10;i++){const e=document.createElement('i');if(i<idx)e.className='done';else if(i===idx)e.className='now';box.appendChild(e)}$('streak').textContent=streak}
+      function renderRound(){clearTimer();locked=false;phase='frame';renderProgress();const s=rounds[idx];$('arena').classList.remove('chance','shake','flash');$('phase').textContent=`PINCH ${String(idx+1).padStart(2,'0')} / 10`;$('scenario').innerHTML=`${s.text}<small>${s.sub}</small>`;$('feedback').className='feedback';$('next').className='next';renderFrameChoices();if(mode==='timed')startTimer();else{$('timerWrap').style.visibility='hidden'}}
+      function renderFrameChoices(){const choices=$('choices');choices.innerHTML='';const good=frameGood[idx%frameGood.length];const badPair=frameBad[idx%frameBad.length];const opts=shuffle([{text:good,good:true},{text:badPair[0],good:false},{text:badPair[1],good:false}]);opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=o.text;b.addEventListener('click',()=>answerFrame(o.good,b));choices.appendChild(b)})}
+      function startTimer(){clearTimer();$('timerWrap').style.visibility='visible';timerStart=performance.now();const limit=6000;const tick=()=>{const elapsed=performance.now()-timerStart;const left=Math.max(0,limit-elapsed);$('timerBar').style.transform=`scaleX(${left/limit})`;$('timerText').textContent=(left/1000).toFixed(1);if(left<=0){clearTimer();timeoutFrame();return}timerId=requestAnimationFrame(tick)};timerId=requestAnimationFrame(tick)}
+      function clearTimer(){if(timerId)cancelAnimationFrame(timerId);timerId=0}
+      function disableChoices(){document.querySelectorAll('.choice').forEach(b=>b.disabled=true)}
+      function timeoutFrame(){if(locked||phase!=='frame')return;locked=true;streak=0;disableChoices();$('arena').classList.add('shake');showFeedback(false,'時間切れ。','まず「チャンスだ」と切り替えるところから。速さより、反射を作る。');setTimeout(()=>{phase='growth';locked=false;showGrowthPrompt()},650)}
+      function answerFrame(good,button){if(locked)return;locked=true;clearTimer();disableChoices();button.classList.add(good?'good':'bad');if(good){frameScore++;streak++;vibrate(25);$('arena').classList.add('chance','flash');showFeedback(true,'CHANCEに変換。','ピンチを見た瞬間、まず意味づけを変えられた。');}else{streak=0;vibrate([18,30,18]);$('arena').classList.add('shake');showFeedback(false,'負荷を足さない。','全部抱える・休息を削る・止まり続ける、はチャンス化ではない。');}setTimeout(()=>{phase='growth';locked=false;showGrowthPrompt()},good?600:850)}
+      function showGrowthPrompt(){clearTimer();$('arena').classList.add('chance');$('phase').textContent='WHAT CAN LEVEL UP?';const s=rounds[idx];$('scenario').innerHTML=`このピンチで、<strong style="color:var(--lime)">何を一段上げられる？</strong><small>${s.text}</small>`;$('feedback').className='feedback';$('timerWrap').style.visibility='hidden';const distractors=shuffle(growthPool.filter(x=>x!==s.growth&&!s.wrong.includes(x))).slice(0,2);const opts=shuffle([s.growth,...distractors]);$('choices').innerHTML='';opts.forEach(text=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=text;b.addEventListener('click',()=>answerGrowth(text===s.growth,b));$('choices').appendChild(b)})}
+      function answerGrowth(good,button){if(locked)return;locked=true;disableChoices();button.classList.add(good?'good':'bad');const s=rounds[idx];if(good){growthScore++;vibrate(22);$('arena').classList.add('flash');showFeedback(true,`LEVEL UP：${s.growth}`,`${s.lesson} 次の一手：${s.next}`)}else{vibrate([15,25,15]);showFeedback(false,`今回は「${s.growth}」`,`${s.lesson} 次の一手：${s.next}`)}$('next').classList.add('show');$('next').textContent=idx===9?'結果を見る':'次のピンチへ';renderProgress()}
+      function showFeedback(good,title,text){const f=$('feedback');f.className=`feedback show${good?'':' bad'}`;$('feedbackMark').textContent=good?'↗':'↺';$('feedbackTitle').textContent=title;$('feedbackText').textContent=text}
+      function finish(){clearTimer();saved.plays=(saved.plays||0)+1;const rate=Math.round((frameScore/10)*100);saved.best=Math.max(saved.best||0,rate);save();$('resultRing').style.setProperty('--score',rate);$('resultRate').textContent=`${rate}%`;$('frameScore').textContent=`${frameScore}/10`;$('growthScore').textContent=`${growthScore}/10`;$('bestScore').textContent=`${saved.best}%`;let msg='';if(rate>=90)msg='<strong>かなり反射化できている。</strong> 次は現実のピンチが来た瞬間に、同じ言葉を使う。';else if(rate>=70)msg='<strong>「ピンチ→チャンス」の回路ができてきた。</strong> もう10回で速度を上げる。';else msg='まだ最初の反応が「負荷を足す／逃げる」に寄りやすい。<strong>まず意味づけだけ変える。</strong> 行動はそのあとでいい。';$('resultCopy').innerHTML=msg;show('result')}
+    })();
+  </script>
+</body>
+</html>
