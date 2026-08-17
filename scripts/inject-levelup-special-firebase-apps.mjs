@@ -6,7 +6,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..');
 const sourceRoot = path.join(root, 'firebase-special-apps');
 const outDir = path.join(root, '.dist', 'firebase');
-const slugs = ['start', 'maa-iika', 'self-management'];
+const slugs = ['start', 'maa-iika', 'self-management', 'jibun-wa-jibun'];
 
 if (!fs.existsSync(outDir)) throw new Error('Firebase output missing. Run build:hosting first.');
 
@@ -15,7 +15,7 @@ for (const slug of slugs) {
   const indexPath = path.join(source, 'index.html');
   if (!fs.existsSync(indexPath)) throw new Error(`Special LEVEL UP source missing: ${slug}/index.html`);
 
-  // Keep the existing public URLs (/start, /maa-iika, /self-management),
+  // Keep the existing public URLs (/start, /maa-iika, /self-management, /jibun-wa-jibun),
   // and also provide /apps/<slug>/ aliases because the shared account
   // history sanitizer falls back to /apps/<slug>/ for older records.
   for (const destination of [path.join(outDir, slug), path.join(outDir, 'apps', slug)]) {
