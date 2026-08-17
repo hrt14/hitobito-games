@@ -14,13 +14,13 @@ if (!fs.existsSync(htmlPath) || !fs.existsSync(catalogPath)) {
 
 const game = {
   slug:'seikan-switch',
-  title:'正観スイッチ',
+  title:'とらえ方スイッチ',
   kicker:'CHANGE THE NEXT VIEW',
   skill:'受容 / 感謝 / 言葉',
-  description:'五戒・受容・感謝・喜ばれる・そわか。日常の出来事に対して、次の見方を選ぶ反射を5問で鍛える。',
+  description:'言葉・受容・感謝・親切・小さな行動。日常の出来事に対して、次の見方を選ぶ反射を5問で鍛える。',
   icon:'↻',
   href:'/apps/seikan-switch/',
-  updateCount:1,
+  updateCount:2,
 };
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
