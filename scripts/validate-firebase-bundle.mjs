@@ -124,8 +124,8 @@ if (!home.includes('data-levelup-account') || !home.includes('data-page="home"')
   problems.push('home: shared LEVEL UP account missing');
 }
 
-if (catalog.games.length !== 25) {
-  problems.push(`catalog: expected 25 curated games, found ${catalog.games.length}`);
+if (catalog.games.length !== 26) {
+  problems.push(`catalog: expected 26 curated games, found ${catalog.games.length}`);
 }
 
 if (problems.length) {
