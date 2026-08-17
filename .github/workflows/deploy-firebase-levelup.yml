@@ -15,6 +15,7 @@ on:
       - 'package-lock.json'
       - 'scripts/build-host-targets.mjs'
       - 'scripts/build-firebase-levelup-home.mjs'
+      - 'scripts/inject-levelup-meeting-respawn.mjs'
       - 'scripts/inject-levelup-home-link.mjs'
       - 'scripts/inject-levelup-account.mjs'
       - 'scripts/inject-levelup-refresh-button.mjs'
@@ -69,6 +70,8 @@ jobs:
           set -euo pipefail
           test -s .dist/firebase/apps/ato-5min/game.js
           test -s .dist/firebase/apps/watashi-zukan/game.js
+          test -s .dist/firebase/apps/meeting-respawn/game.js
+          test -s .dist/firebase/apps/meeting-respawn/style.css
           test -s .dist/firebase/levelup-auth-bridge.html
           grep -F 'hitobito-levelup.firebaseapp.com/levelup-auth-bridge.html' .dist/firebase/levelup-account.js >/dev/null
           grep -F 'signInWithCredential(credential)' .dist/firebase/levelup-account.js >/dev/null
@@ -86,8 +89,11 @@ jobs:
           ! grep -F 'data-answer="joint"' .dist/firebase/apps/task-separation/index.html
           ! grep -F 'data-answer="outside"' .dist/firebase/apps/task-separation/index.html
           grep -F '間違えた問題を振り返る' .dist/firebase/apps/task-separation/index.html >/dev/null
+          grep -F 'RESPAWN COMPLETE' .dist/firebase/apps/meeting-respawn/game.js >/dev/null
+          grep -F '30秒だけやる' .dist/firebase/apps/meeting-respawn/game.js >/dev/null
+          grep -F 'もっと小さくした' .dist/firebase/apps/meeting-respawn/game.js >/dev/null
           node scripts/audit-firebase-mobile.mjs
-          echo "Mobile loader, auth bridge, inline style, and task-separation checks OK"
+          echo "Mobile loader, auth bridge, inline style, task-separation, and meeting-respawn checks OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -103,7 +109,8 @@ jobs:
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             echo "Checking $base"
             curl -fLsS "$base/" -o /tmp/levelup-home.html
-            grep -F '23 games' /tmp/levelup-home.html >/dev/null
+            grep -F '24 games' /tmp/levelup-home.html >/dev/null
+            grep -F '会議リスポーン' /tmp/levelup-home.html >/dev/null
             node - "$base" <<'NODE'
           const fs = require('fs');
           const { execFileSync } = require('child_process');
@@ -140,5 +147,14 @@ jobs:
             grep -F '意味マップ | LEVEL UP' /tmp/meaning-map.html >/dev/null
             curl -fLsS "$base/apps/meaning-map/game.js" -o /tmp/meaning-map.js
             grep -F "const LENSES" /tmp/meaning-map.js >/dev/null
-            echo "OK: $base all 23 routes + auth bridge + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
+            curl -fLsS "$base/apps/meeting-respawn/" -o /tmp/meeting-respawn.html
+            grep -F '会議リスポーン | LEVEL UP' /tmp/meeting-respawn.html >/dev/null
+            grep -F './game.js' /tmp/meeting-respawn.html >/dev/null
+            grep -F './style.css' /tmp/meeting-respawn.html >/dev/null
+            grep -F 'data-levelup-account' /tmp/meeting-respawn.html >/dev/null
+            curl -fLsS "$base/apps/meeting-respawn/game.js" -o /tmp/meeting-respawn.js
+            grep -F 'RESPAWN COMPLETE' /tmp/meeting-respawn.js >/dev/null
+            grep -F '30秒だけやる' /tmp/meeting-respawn.js >/dev/null
+            grep -F 'もっと小さくした' /tmp/meeting-respawn.js >/dev/null
+            echo "OK: $base all 24 routes + meeting respawn + auth bridge + meaning map + mobile-safe loaders + shared account"
           done
