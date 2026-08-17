@@ -88,6 +88,10 @@
   function timeLimit(){ const s=loadStats(); return s.level>=3?4.2:s.level>=1?5:6; }
   function show(id){ screens.forEach(s=>$(s).classList.toggle('is-active',s===id)); }
   function shuffle(a){ const x=[...a]; for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];} return x; }
+  function randomizeAnswers(item){
+    const shuffled=shuffle(item.options.map((text,index)=>({text,isCorrect:index===item.correct})));
+    return {...item,options:shuffled.map(option=>option.text),correct:shuffled.findIndex(option=>option.isCorrect)};
+  }
   function weightedPool(){
     const stats=loadStats();
     const pool=[];
@@ -107,7 +111,7 @@
       const replacement=shuffle(QUESTIONS.filter(q=>q.skill===skill && !used.has(q.text)))[0];
       if(replacement){ const idx=picked.findIndex((q,i)=>i>6 || picked.filter(x=>x.skill===q.skill).length>1); if(idx>=0)picked[idx]=replacement; }
     }
-    return shuffle(picked);
+    return shuffle(picked).map(randomizeAnswers);
   }
   function updateStart(){
     const s=loadStats();
