@@ -18,6 +18,8 @@ on:
       - 'scripts/inject-levelup-home-link.mjs'
       - 'scripts/inject-levelup-account.mjs'
       - 'scripts/inject-levelup-refresh-button.mjs'
+      - 'scripts/patch-levelup-mobile-auth.mjs'
+      - 'scripts/patch-levelup-header-auth.mjs'
       - 'scripts/playtest-catalog.mjs'
       - 'scripts/prepare-firebase-mobile.mjs'
       - 'scripts/validate-firebase-bundle.mjs'
@@ -67,6 +69,10 @@ jobs:
           set -euo pipefail
           test -s .dist/firebase/apps/ato-5min/game.js
           test -s .dist/firebase/apps/watashi-zukan/game.js
+          test -s .dist/firebase/levelup-auth-bridge.html
+          grep -F 'hitobito-levelup.firebaseapp.com/levelup-auth-bridge.html' .dist/firebase/levelup-account.js >/dev/null
+          grep -F 'signInWithCredential(credential)' .dist/firebase/levelup-account.js >/dev/null
+          grep -F 'getRedirectResult()' .dist/firebase/levelup-auth-bridge.html >/dev/null
           ! grep -F 'DecompressionStream' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'game-a.bin' .dist/firebase/apps/ato-5min/index.html
           grep -F 'id="ato5min-inline-styles"' .dist/firebase/apps/ato-5min/index.html >/dev/null
@@ -81,7 +87,7 @@ jobs:
           ! grep -F 'data-answer="outside"' .dist/firebase/apps/task-separation/index.html
           grep -F '間違えた問題を振り返る' .dist/firebase/apps/task-separation/index.html >/dev/null
           node scripts/audit-firebase-mobile.mjs
-          echo "Mobile loader, inline style, and task-separation checks OK"
+          echo "Mobile loader, auth bridge, inline style, and task-separation checks OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -125,11 +131,14 @@ jobs:
             grep -F 'data-levelup-account' /tmp/task-separation.html >/dev/null
             curl -fLsS "$base/levelup-account.js" -o /tmp/levelup-account.js
             grep -F 'GoogleAuthProvider' /tmp/levelup-account.js >/dev/null
+            grep -F 'hitobito-levelup.firebaseapp.com/levelup-auth-bridge.html' /tmp/levelup-account.js >/dev/null
+            curl -fLsS "$base/levelup-auth-bridge.html" -o /tmp/levelup-auth-bridge.html
+            grep -F 'getRedirectResult()' /tmp/levelup-auth-bridge.html >/dev/null
             curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
             grep -F "const QUESTIONS" /tmp/task-separation.js >/dev/null
             curl -fLsS "$base/apps/meaning-map/" -o /tmp/meaning-map.html
             grep -F '意味マップ | LEVEL UP' /tmp/meaning-map.html >/dev/null
             curl -fLsS "$base/apps/meaning-map/game.js" -o /tmp/meaning-map.js
             grep -F "const LENSES" /tmp/meaning-map.js >/dev/null
-            echo "OK: $base all 23 routes + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
+            echo "OK: $base all 23 routes + auth bridge + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
           done
