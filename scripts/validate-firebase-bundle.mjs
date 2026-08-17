@@ -50,6 +50,16 @@ for (const game of manifest.games) {
   }
 }
 
+const ato5minGamePath = path.join(outDir, 'apps', 'ato-5min', 'game.js');
+if (!fs.existsSync(ato5minGamePath)) {
+  problems.push('ato-5min: game.js missing');
+} else {
+  const ato5minGame = fs.readFileSync(ato5minGamePath, 'utf8');
+  if (!ato5minGame.includes("window.location.assign('https://levelup.hitobito.jp/')")) {
+    problems.push('ato-5min: original home button does not return to LEVEL UP top');
+  }
+}
+
 const home = fs.readFileSync(homePath, 'utf8');
 for (const asset of requiredHomeAssets) {
   if (!fs.existsSync(path.join(outDir, asset))) problems.push(`home: ${asset} missing`);
