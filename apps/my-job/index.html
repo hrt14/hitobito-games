@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d0a">
+<title>それ、俺の仕事？ | LEVEL UP</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;color:#f7f9f1;background:#0b0d0a;--lime:#d8ff5b;--muted:#aab09f;--line:rgba(216,255,91,.17);--card:#12160f;--danger:#ff8b75;--blue:#88c7ff;--gold:#ffd978}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{overflow:hidden;background:radial-gradient(circle at 90% -10%,rgba(216,255,91,.13),transparent 34%),#0b0d0a;color:#f7f9f1;-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit}button{color:inherit}.shell{height:100dvh;display:flex;flex-direction:column;width:min(760px,100%);margin:auto;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.top{height:42px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex:0 0 auto}.home,.small{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;padding:8px 11px;font-size:10px;font-weight:900;letter-spacing:.05em;text-decoration:none;color:var(--muted)}.brand{font-size:10px;font-weight:950;letter-spacing:.16em;color:var(--lime)}.stage{flex:1;min-height:0;display:flex;flex-direction:column}.screen{display:none;flex:1;min-height:0}.screen.active{display:flex;flex-direction:column}.hero{justify-content:center;padding:6px 2px 10px}.kicker{font-size:10px;font-weight:950;letter-spacing:.16em;color:var(--lime);margin-bottom:12px}.hero h1{font-size:clamp(48px,14vw,78px);line-height:.88;letter-spacing:-.07em;margin:0 0 18px}.hero h1 span{color:var(--lime)}.lead{font-size:15px;line-height:1.75;color:#c0c7b7;margin:0 0 22px}.rule{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}.rule div{border:1px solid var(--line);border-radius:16px;padding:12px 9px;background:rgba(216,255,91,.035);min-height:88px}.rule b{display:block;font-size:13px;margin-bottom:7px}.rule span{display:block;font-size:10px;line-height:1.5;color:#929a8a}.primary{border:0;border-radius:18px;background:var(--lime);color:#11150b;padding:16px 18px;font-size:16px;font-weight:950;letter-spacing:-.02em;box-shadow:0 12px 34px rgba(216,255,91,.13)}.primary:active{transform:scale(.985)}.note{font-size:10px;line-height:1.5;color:#7f8777;margin:10px 2px 0}.game{padding-top:6px}.hud{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto}.counter{font-size:11px;font-weight:950;letter-spacing:.1em;color:#9fa696}.score{font-size:11px;font-weight:950;color:var(--lime)}.meter{height:4px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin:11px 0 14px}.meter i{display:block;height:100%;background:var(--lime);width:100%;transform-origin:left center;transition:width .1s linear}.question-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.question{width:100%;border:1px solid var(--line);border-radius:26px;padding:24px 20px;background:linear-gradient(145deg,rgba(216,255,91,.055),rgba(255,255,255,.018));box-shadow:0 22px 50px rgba(0,0,0,.18)}.q-label{font-size:9px;font-weight:950;letter-spacing:.15em;color:#7f8777;margin-bottom:12px}.q-text{font-size:clamp(24px,7vw,36px);line-height:1.28;letter-spacing:-.04em;font-weight:950}.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;flex:0 0 auto}.choice{border:1px solid var(--line);border-radius:18px;background:#11140f;padding:14px 7px;min-height:72px;font-size:14px;font-weight:950;line-height:1.2}.choice small{display:block;font-size:9px;color:#858d7e;margin-top:5px;font-weight:800}.choice[data-value="mine"]{border-color:rgba(216,255,91,.22)}.choice[data-value="theirs"]{border-color:rgba(136,199,255,.22)}.choice[data-value="extra"]{border-color:rgba(255,217,120,.23)}.choice:active{transform:scale(.98)}.feedback{height:58px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;line-height:1.45;font-weight:850;color:#aeb5a6;flex:0 0 auto}.feedback.good{color:var(--lime)}.feedback.bad{color:var(--danger)}.results{justify-content:center}.result-card{border:1px solid var(--line);border-radius:26px;padding:22px;background:linear-gradient(145deg,rgba(216,255,91,.06),rgba(255,255,255,.018))}.result-kicker{font-size:10px;font-weight:950;letter-spacing:.15em;color:var(--lime)}.result-score{font-size:64px;line-height:1;font-weight:950;letter-spacing:-.06em;margin:10px 0 8px}.result-title{font-size:24px;font-weight:950;letter-spacing:-.04em}.result-copy{font-size:12px;color:#aeb5a6;line-height:1.7;margin:8px 0 16px}.misses{display:grid;gap:7px;max-height:180px;overflow:auto}.miss{border-top:1px solid var(--line);padding-top:7px;font-size:10px;line-height:1.5;color:#9ca493}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.secondary{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.035);padding:13px;font-size:12px;font-weight:900}.reality{padding-top:6px}.reality h2{font-size:34px;line-height:1;letter-spacing:-.055em;margin:10px 0 8px}.reality p{font-size:12px;line-height:1.6;color:#aeb5a6;margin:0 0 12px}.input{width:100%;border:1px solid var(--line);border-radius:16px;background:#11140f;color:#f7f9f1;padding:13px 14px;outline:none;resize:none;font-size:14px}.input:focus{border-color:rgba(216,255,91,.42)}.reality .choices{margin:10px 0}.phrase{border:1px solid var(--line);border-radius:17px;padding:14px;background:rgba(216,255,91,.035);font-size:12px;line-height:1.7;color:#c4cabd;min-height:80px}.phrase b{color:var(--lime)}.finish{justify-content:center;text-align:center}.finish .mark{font-size:74px;line-height:1}.finish h2{font-size:38px;line-height:1;letter-spacing:-.05em;margin:12px 0}.finish p{font-size:13px;line-height:1.7;color:#aeb5a6;margin:0 0 18px}.flash{animation:flash .24s ease}@keyframes flash{50%{transform:scale(1.02)}}
+@media(max-width:540px){.shell{padding-left:10px;padding-right:10px}.hero h1{font-size:54px}.lead{font-size:14px}.rule{gap:6px}.rule div{padding:10px 7px;min-height:82px}.rule b{font-size:12px}.question{padding:20px 16px;border-radius:22px}.q-text{font-size:27px}.choices{gap:6px}.choice{font-size:13px;min-height:68px;padding:12px 5px}.result-score{font-size:56px}.reality h2{font-size:31px}}
+@media(max-height:690px){.hero{justify-content:flex-start;padding-top:18px}.hero h1{font-size:46px;margin-bottom:12px}.lead{font-size:12px;margin-bottom:12px}.rule{margin-bottom:12px}.rule div{min-height:70px}.rule span{font-size:9px}.question{padding:17px 15px}.q-text{font-size:23px}.choices{margin-top:9px}.choice{min-height:60px;padding:10px 4px}.feedback{height:42px}.result-card{padding:17px}.result-score{font-size:50px}.misses{max-height:120px}.reality h2{font-size:28px;margin-top:4px}.reality p{margin-bottom:7px}.input{padding:10px 11px}.phrase{min-height:64px;padding:10px;font-size:11px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top"><a class="home" href="/">← LEVEL UP</a><div class="brand">WORK BOUNDARY TRAINING</div><button class="small" id="soundBtn" type="button">SOUND OFF</button></header>
+  <main class="stage">
+    <section class="screen hero active" id="startScreen">
+      <div class="kicker">その依頼、全部背負うな。</div>
+      <h1>それ、<span>俺の仕事？</span></h1>
+      <p class="lead">頼まれた瞬間に全部「自分の仕事」にしない。<br>価値を出す仕事と、相手の実務と、追加対応を3秒で切り分ける。</p>
+      <div class="rule">
+        <div><b>やる</b><span>判断・分析・提案など、本来価値を出す仕事。</span></div>
+        <div><b>相手がやる</b><span>日常操作・手順確認など、相手側の実務。</span></div>
+        <div><b>別料金</b><span>実作業・制作・代行など、範囲を広げる仕事。</span></div>
+      </div>
+      <button class="primary" id="startBtn" type="button">15問・45秒で鍛える →</button>
+      <div class="note">※「正解」はこのゲームで設定した役割境界の例。実際の契約・役割に合わせて最終判断してください。</div>
+    </section>
+
+    <section class="screen game" id="gameScreen">
+      <div class="hud"><div class="counter" id="counter">01 / 15</div><div class="score" id="score">0</div></div>
+      <div class="meter"><i id="timerBar"></i></div>
+      <div class="question-wrap"><div class="question" id="questionCard"><div class="q-label">この依頼は？</div><div class="q-text" id="questionText"></div></div></div>
+      <div class="choices">
+        <button class="choice" data-value="mine" type="button">やる<small>自分の価値</small></button>
+        <button class="choice" data-value="theirs" type="button">相手がやる<small>相手側の実務</small></button>
+        <button class="choice" data-value="extra" type="button">別料金<small>追加対応</small></button>
+      </div>
+      <div class="feedback" id="feedback">3秒で決める。</div>
+    </section>
+
+    <section class="screen results" id="resultScreen">
+      <div class="result-card">
+        <div class="result-kicker">BOUNDARY SCORE</div>
+        <div class="result-score" id="resultScore">0%</div>
+        <div class="result-title" id="resultTitle">境界線を確認中</div>
+        <p class="result-copy" id="resultCopy"></p>
+        <div class="misses" id="misses"></div>
+      </div>
+      <div class="actions"><button class="secondary" id="retryBtn" type="button">もう15問</button><button class="primary" id="realityBtn" type="button">現実の1件へ →</button></div>
+    </section>
+
+    <section class="screen reality" id="realityScreen">
+      <div class="kicker">REALITY MODE</div>
+      <h2>いま気になっている依頼を1つ。</h2>
+      <p>固有名詞は入れなくてOK。「操作方法を教えて」「改善案を出して」くらいで十分。</p>
+      <textarea class="input" id="realTask" rows="3" maxlength="160" placeholder="例：管理画面の細かな操作方法を調べて教えてほしい"></textarea>
+      <div class="choices">
+        <button class="choice real-choice" data-value="mine" type="button">やる<small>自分の価値</small></button>
+        <button class="choice real-choice" data-value="theirs" type="button">相手がやる<small>相手側の実務</small></button>
+        <button class="choice real-choice" data-value="extra" type="button">別料金<small>追加対応</small></button>
+      </div>
+      <div class="phrase" id="phrase">分類すると、伝え方の例がここに出ます。</div>
+      <button class="primary" id="finishBtn" type="button" disabled>この境界線で行く →</button>
+    </section>
+
+    <section class="screen finish" id="finishScreen">
+      <div class="mark">✓</div>
+      <div class="kicker">BOUNDARY SET</div>
+      <h2>全部やらなくていい。</h2>
+      <p id="finishCopy">価値を出す仕事に集中するために、境界線を先に決めた。</p>
+      <button class="primary" id="againBtn" type="button">もう一度鍛える</button>
+    </section>
+  </main>
+</div>
+<script>
+const scenarios=[
+ {q:'数字を見て、売上を伸ばすための改善案を出してほしい',a:'mine',why:'分析と改善提案は、価値を出す中核。'},
+ {q:'管理画面のどこを押せば設定できるか、手順を調べて教えてほしい',a:'theirs',why:'日常操作の手順確認は、相手側で持てる実務。'},
+ {q:'現状データから、優先して直すべき3点を決めてほしい',a:'mine',why:'優先順位の判断は、自分が担う価値。'},
+ {q:'決めた施策を、管理画面に全部登録しておいてほしい',a:'extra',why:'実作業の代行は、提案とは別の仕事として扱う。'},
+ {q:'新商品の売り方を考えて、仮説を3つ出してほしい',a:'mine',why:'戦略・仮説づくりは中核業務。'},
+ {q:'担当者向けに、操作マニュアルを一から作ってほしい',a:'extra',why:'成果物の制作は追加スコープとして切り出す。'},
+ {q:'この数字が悪い原因を整理して、打ち手を提案してほしい',a:'mine',why:'原因分析と打ち手の提案が本来の価値。'},
+ {q:'毎週の数値を管理表に転記して更新してほしい',a:'theirs',why:'定型更新は相手側で回せる運用実務。'},
+ {q:'複数の施策から、今月やる順番を決めてほしい',a:'mine',why:'判断と優先順位づけは中核業務。'},
+ {q:'提案した設定をこちらの代わりに全部変更してほしい',a:'extra',why:'実行代行は別スコープとして扱う。'},
+ {q:'会議で、次に検証する仮説を一緒に決めてほしい',a:'mine',why:'意思決定支援は価値を出す仕事。'},
+ {q:'ツールの基本操作を最初から研修してほしい',a:'extra',why:'研修は独立した提供価値として切り出せる。'},
+ {q:'エラー画面が出たので、公式ヘルプを探して操作方法を調べてほしい',a:'theirs',why:'単発の操作調査は相手側で持てる実務。'},
+ {q:'競合と比べて、どこを変えると売れそうか整理してほしい',a:'mine',why:'比較・分析・提案は中核業務。'},
+ {q:'会議用の報告資料を毎回きれいに整えてほしい',a:'extra',why:'継続的な資料制作は追加スコープとして整理する。'},
+ {q:'施策の結果を見て、続けるか止めるか判断してほしい',a:'mine',why:'評価と判断は中核業務。'},
+ {q:'アカウントの権限追加を代わりに操作してほしい',a:'theirs',why:'社内アカウント運用は相手側で持つ実務。'},
+ {q:'キャンペーンの狙いとKPIを一緒に設計してほしい',a:'mine',why:'目的と評価基準の設計は中核業務。'},
+ {q:'商品登録を50件まとめて代行してほしい',a:'extra',why:'大量の登録作業は明確な追加実務。'},
+ {q:'どの顧客層を狙うべきか、データから絞ってほしい',a:'mine',why:'ターゲット判断は戦略領域。'},
+ {q:'設定画面のスクリーンショット付き手順書を作ってほしい',a:'extra',why:'手順書制作は独立した成果物。'},
+ {q:'担当者が自分で確認できる基本ヘルプの場所を教えてほしい',a:'theirs',why:'基本操作は自己解決できる導線へ戻す。'},
+ {q:'売上が落ちた理由を仮説化して、確認すべき数字を決めてほしい',a:'mine',why:'仮説と検証設計が本来の価値。'},
+ {q:'毎日の予算変更を代わりに操作してほしい',a:'extra',why:'継続運用の代行は別料金で切り出す。'}
+];
+const labels={mine:'やる',theirs:'相手がやる',extra:'別料金'};
+const screens=[...document.querySelectorAll('.screen')];
+const startBtn=document.getElementById('startBtn'),gameScreen=document.getElementById('gameScreen'),questionText=document.getElementById('questionText'),counter=document.getElementById('counter'),scoreEl=document.getElementById('score'),feedback=document.getElementById('feedback'),timerBar=document.getElementById('timerBar'),questionCard=document.getElementById('questionCard');
+let round=[],idx=0,score=0,misses=[],locked=false,timer=null,timeLeft=3000,soundOn=false;
+function show(id){screens.forEach(s=>s.classList.toggle('active',s.id===id));}
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function tone(freq=520,dur=.06){if(!soundOn)return;try{const ac=new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=freq;g.gain.value=.04;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+dur);o.stop(ac.currentTime+dur)}catch{}}
+function startGame(){round=shuffle(scenarios).slice(0,15);idx=0;score=0;misses=[];scoreEl.textContent='0';show('gameScreen');renderQuestion();}
+function renderQuestion(){clearInterval(timer);locked=false;const item=round[idx];counter.textContent=String(idx+1).padStart(2,'0')+' / '+round.length;questionText.textContent=item.q;feedback.textContent='3秒で決める。';feedback.className='feedback';questionCard.classList.remove('flash');timeLeft=3000;timerBar.style.width='100%';const started=performance.now();timer=setInterval(()=>{const elapsed=performance.now()-started;timeLeft=Math.max(0,3000-elapsed);timerBar.style.width=(timeLeft/30)+'%';if(timeLeft<=0){clearInterval(timer);answer(null)}},50)}
+function answer(value){if(locked)return;locked=true;clearInterval(timer);const item=round[idx];const ok=value===item.a;if(ok){score++;scoreEl.textContent=String(score);feedback.textContent='✓ '+item.why;feedback.className='feedback good';tone(620,.08)}else{misses.push({q:item.q,a:item.a,why:item.why});feedback.textContent=(value===null?'時間切れ':'× '+labels[item.a])+' — '+item.why;feedback.className='feedback bad';tone(180,.1)}questionCard.classList.add('flash');setTimeout(()=>{idx++;if(idx>=round.length)showResult();else renderQuestion()},620)}
+function showResult(){clearInterval(timer);const pct=Math.round(score/round.length*100);document.getElementById('resultScore').textContent=pct+'%';document.getElementById('resultTitle').textContent=pct>=87?'境界線、かなり速い。':pct>=67?'いい。あと少し反射化。':'迷った場所が、境界線の候補。';document.getElementById('resultCopy').textContent='目的は満点ではなく、頼まれた瞬間に「全部自分でやる」を止めること。間違えた依頼だけ見直して、現実の1件に境界線を引こう。';const m=document.getElementById('misses');m.innerHTML=misses.length?misses.slice(0,5).map(x=>'<div class="miss">「'+escapeHtml(x.q)+'」<br>→ <b>'+labels[x.a]+'</b>：'+escapeHtml(x.why)+'</div>').join(''):'<div class="miss">全問クリア。現実の依頼でも同じ速度で切り分けよう。</div>';show('resultScreen')}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+startBtn.addEventListener('click',startGame);document.querySelectorAll('#gameScreen .choice').forEach(b=>b.addEventListener('click',()=>answer(b.dataset.value)));document.getElementById('retryBtn').addEventListener('click',startGame);document.getElementById('realityBtn').addEventListener('click',()=>show('realityScreen'));
+let realValue='';const phrase=document.getElementById('phrase'),finishBtn=document.getElementById('finishBtn'),realTask=document.getElementById('realTask');
+const phrases={mine:'<b>やる。</b> 「そこは自分の役割として、判断と提案まで持ちます。」',theirs:'<b>相手がやる。</b> 「判断に必要なところは一緒に見ます。日常の操作や手順確認は、そちらで進めてもらう形でお願いします。」',extra:'<b>別料金。</b> 「そこまで含めると実作業になるので、必要なら追加対応として範囲と費用を分けましょう。」'};
+document.querySelectorAll('.real-choice').forEach(b=>b.addEventListener('click',()=>{realValue=b.dataset.value;document.querySelectorAll('.real-choice').forEach(x=>x.style.outline='none');b.style.outline='2px solid var(--lime)';phrase.innerHTML=phrases[realValue];finishBtn.disabled=false;tone(520,.06)}));finishBtn.addEventListener('click',()=>{const task=realTask.value.trim();document.getElementById('finishCopy').textContent=task?('「'+task+'」→ '+labels[realValue]+'。価値を出す仕事に集中するために、先に境界線を決めた。'):('→ '+labels[realValue]+'。価値を出す仕事に集中するために、先に境界線を決めた。');show('finishScreen')});document.getElementById('againBtn').addEventListener('click',startGame);document.getElementById('soundBtn').addEventListener('click',e=>{soundOn=!soundOn;e.currentTarget.textContent=soundOn?'SOUND ON':'SOUND OFF';tone(520,.06)});
+</script>
+</body>
+</html>
