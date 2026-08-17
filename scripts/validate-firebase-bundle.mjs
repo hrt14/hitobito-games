@@ -81,6 +81,10 @@ if (!home.includes('id="levelup-refresh"')) {
   problems.push('home: refresh button missing');
 }
 
+if (!home.includes('id="levelup-favorite-sort"')) {
+  problems.push('home: favorites-first sorting missing');
+}
+
 if (catalog.games.length !== 22) {
   problems.push(`catalog: expected 22 curated games, found ${catalog.games.length}`);
 }
@@ -91,4 +95,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; refresh button and app home buttons present`);
+console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; refresh button, favorites-first sorting, and app home buttons present`);
