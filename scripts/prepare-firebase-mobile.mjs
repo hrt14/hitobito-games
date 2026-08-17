@@ -11,7 +11,9 @@ function prepareAto5min() {
   const aPath = path.join(dir, 'game-a.bin');
   const bPath = path.join(dir, 'game-b.bin');
   const indexPath = path.join(dir, 'index.html');
-  if (!fs.existsSync(aPath) || !fs.existsSync(bPath) || !fs.existsSync(indexPath)) {
+  const style1Path = path.join(dir, 'style-part1.css');
+  const style2Path = path.join(dir, 'style-part2.css');
+  if (![aPath, bPath, indexPath, style1Path, style2Path].every(fs.existsSync)) {
     throw new Error('ato-5min snapshot files are missing');
   }
 
@@ -19,14 +21,20 @@ function prepareAto5min() {
   const code = zlib.gunzipSync(compressed).toString('utf8');
   fs.writeFileSync(path.join(dir, 'game.js'), code);
 
+  const css = `${fs.readFileSync(style1Path, 'utf8')}\n${fs.readFileSync(style2Path, 'utf8')}`;
   let html = fs.readFileSync(indexPath, 'utf8');
+  html = html
+    .replace(/\s*<link rel="stylesheet" href="style-part1\.css" \/>/, '')
+    .replace(/\s*<link rel="stylesheet" href="style-part2\.css" \/>/, '')
+    .replace('</head>', `  <style id="ato5min-inline-styles">\n${css}\n  </style>\n</head>`);
+
   const start = html.indexOf('<script>\n  (async()=>{');
   if (start < 0) throw new Error('ato-5min legacy loader not found');
   const end = html.indexOf('</script>', start);
   if (end < 0) throw new Error('ato-5min legacy loader end not found');
   html = `${html.slice(0, start)}<script src="./game.js"></script>${html.slice(end + '</script>'.length)}`;
   fs.writeFileSync(indexPath, html);
-  console.log('[Mobile prep] ato-5min: legacy gzip loader -> plain game.js');
+  console.log('[Mobile prep] ato-5min: gzip loader -> plain game.js; split CSS -> inline CSS');
 }
 
 function prepareWatashiZukan() {
