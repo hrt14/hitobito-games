@@ -10,11 +10,13 @@ on:
       - 'firebase-overrides/**'
       - 'deploy-targets.json'
       - 'firebase.json'
+      - 'firestore.rules'
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/build-host-targets.mjs'
       - 'scripts/build-firebase-levelup-home.mjs'
       - 'scripts/inject-levelup-home-link.mjs'
+      - 'scripts/inject-levelup-account.mjs'
       - 'scripts/inject-levelup-refresh-button.mjs'
       - 'scripts/playtest-catalog.mjs'
       - 'scripts/prepare-firebase-mobile.mjs'
@@ -84,6 +86,10 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
 
+      - name: Deploy Firestore security rules when available
+        continue-on-error: true
+        run: npx --yes firebase-tools@latest deploy --only firestore:rules --project hitobito-levelup --non-interactive
+
       - name: Verify live LEVEL UP routes
         run: |
           set -euo pipefail
@@ -116,6 +122,9 @@ jobs:
             grep -F 'これは自分の課題？ それとも相手の課題？' /tmp/task-separation.html >/dev/null
             grep -F '間違えた問題を振り返る' /tmp/task-separation.html >/dev/null
             ! grep -F 'data-answer="joint"' /tmp/task-separation.html
+            grep -F 'data-levelup-account' /tmp/task-separation.html >/dev/null
+            curl -fLsS "$base/levelup-account.js" -o /tmp/levelup-account.js
+            grep -F 'GoogleAuthProvider' /tmp/levelup-account.js >/dev/null
             curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
             grep -F "const QUESTIONS" /tmp/task-separation.js >/dev/null
             echo "OK: $base all 22 routes + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"

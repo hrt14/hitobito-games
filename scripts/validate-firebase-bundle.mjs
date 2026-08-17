@@ -9,6 +9,7 @@ const manifestPath = path.join(outDir, 'manifest.json');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 const homePath = path.join(outDir, 'index.html');
 const requiredHomeAssets = ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'site.webmanifest'];
+const accountAssetPath = path.join(outDir, 'levelup-account.js');
 
 if (!fs.existsSync(manifestPath) || !fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
   throw new Error('Firebase bundle is missing. Run npm run build:firebase first.');
@@ -35,6 +36,9 @@ for (const game of manifest.games) {
   }
   if (!html.includes('<svg viewBox="0 0 24 24"')) {
     problems.push(`${game.slug}: LEVEL UP home icon missing`);
+  }
+  if (!html.includes('data-levelup-account') || !html.includes(`data-game-slug="${game.slug}"`)) {
+    problems.push(`${game.slug}: shared LEVEL UP account missing`);
   }
 
   const refs = [...html.matchAll(/(?:src|href)=["'](\.\/[^"'#?]+)["']/g)].map((m) => m[1]);
@@ -91,6 +95,19 @@ if (!home.includes('id="levelup-favorite-sort"')) {
   problems.push('home: favorites-first sorting missing');
 }
 
+if (!fs.existsSync(accountAssetPath)) {
+  problems.push('account: levelup-account.js missing');
+} else {
+  const account = fs.readFileSync(accountAssetPath, 'utf8');
+  for (const required of ['GoogleAuthProvider', "collection(\'levelupUsers\')", "collection(\'history\')", 'hitobito-levelup-favorites-v1', 'hitobito-levelup-history-v1']) {
+    if (!account.includes(required)) problems.push(`account: missing ${required}`);
+  }
+}
+
+if (!home.includes('data-levelup-account') || !home.includes('data-page="home"')) {
+  problems.push('home: shared LEVEL UP account missing');
+}
+
 if (catalog.games.length !== 22) {
   problems.push(`catalog: expected 22 curated games, found ${catalog.games.length}`);
 }
@@ -101,4 +118,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; refresh button, favorites-first sorting, and app home buttons present`);
+console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; shared account, refresh button, favorites-first sorting, and app home buttons present`);
