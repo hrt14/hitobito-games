@@ -51,12 +51,23 @@ jobs:
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             echo "Checking $base"
             curl -fLsS "$base/" -o /tmp/levelup-home.html
-            grep -F '/apps/task-separation/' /tmp/levelup-home.html >/dev/null
+            grep -F '22 games' /tmp/levelup-home.html >/dev/null
+            node - "$base" <<'NODE'
+          const fs = require('fs');
+          const { execFileSync } = require('child_process');
+          const base = process.argv[2];
+          const catalog = JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json', 'utf8'));
+          for (const game of catalog.games) {
+            const url = new URL(game.href, base).href;
+            console.log(`GET ${game.title}: ${url}`);
+            execFileSync('curl', ['-fLsS', '--max-time', '30', '-o', '/dev/null', url], { stdio: 'inherit' });
+          }
+          NODE
             curl -fLsS "$base/apps/task-separation/" -o /tmp/task-separation.html
             grep -F 'それ、' /tmp/task-separation.html >/dev/null
             curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
             test -s /tmp/task-separation.js
             curl -fLsS "$base/apps/task-separation/style.css" -o /tmp/task-separation.css
             test -s /tmp/task-separation.css
-            echo "OK: $base task-separation HTML/JS/CSS"
+            echo "OK: $base all 22 curated routes + task-separation assets"
           done
