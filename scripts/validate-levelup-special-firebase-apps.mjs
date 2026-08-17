@@ -6,7 +6,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const firebasePath = path.join(root, 'firebase.json');
-const slugs = ['start', 'maa-iika', 'self-management'];
+const slugs = ['start', 'maa-iika', 'self-management', 'jibun-wa-jibun'];
 const problems = [];
 
 for (const slug of slugs) {
@@ -38,4 +38,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log('[Firebase special apps] OK: START / まあ、いいか。 / 自分を回せ。 are Firebase-hosted with shared login');
+console.log('[Firebase special apps] OK: START / まあ、いいか。 / 自分を回せ。 / 自分は自分 are Firebase-hosted with shared login');
