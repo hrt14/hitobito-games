@@ -60,8 +60,14 @@ jobs:
           ! grep -F 'DecompressionStream' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'game-a.bin' .dist/firebase/apps/ato-5min/index.html
           ! grep -F 'Promise.all(parts.map' .dist/firebase/apps/watashi-zukan/game.js
+          grep -F 'これは自分の課題？ それとも相手の課題？' .dist/firebase/apps/task-separation/index.html >/dev/null
+          grep -F 'data-answer="self"' .dist/firebase/apps/task-separation/index.html >/dev/null
+          grep -F 'data-answer="other"' .dist/firebase/apps/task-separation/index.html >/dev/null
+          ! grep -F 'data-answer="joint"' .dist/firebase/apps/task-separation/index.html
+          ! grep -F 'data-answer="outside"' .dist/firebase/apps/task-separation/index.html
+          grep -F '間違えた問題を振り返る' .dist/firebase/apps/task-separation/index.html >/dev/null
           node scripts/audit-firebase-mobile.mjs
-          echo "Mobile loader check OK"
+          echo "Mobile loader and task-separation two-choice checks OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -92,6 +98,10 @@ jobs:
             curl -fLsS "$base/apps/watashi-zukan/game.js" -o /tmp/watashi.js
             test -s /tmp/watashi.js
             curl -fLsS "$base/apps/task-separation/" -o /tmp/task-separation.html
-            grep -F 'それ、' /tmp/task-separation.html >/dev/null
-            echo "OK: $base all 22 curated routes + mobile-safe loaders"
+            grep -F 'これは自分の課題？ それとも相手の課題？' /tmp/task-separation.html >/dev/null
+            grep -F '間違えた問題を振り返る' /tmp/task-separation.html >/dev/null
+            ! grep -F 'data-answer="joint"' /tmp/task-separation.html
+            curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
+            grep -F "const QUESTIONS" /tmp/task-separation.js >/dev/null
+            echo "OK: $base all 22 routes + mobile-safe loaders + two-choice task separation"
           done
