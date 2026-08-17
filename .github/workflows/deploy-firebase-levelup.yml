@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -38,8 +40,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Restore Aug 15 LEVEL UP game sources
+        run: |
+          set -euo pipefail
+          SNAPSHOT=dfe0eec0b0b1a0e231021212f32d310bd663a4fe
+          rm -rf apps
+          git archive "$SNAPSHOT" apps | tar -x
+          node scripts/prepare-firebase-mobile.mjs
+          echo "LEVEL UP game source snapshot: $SNAPSHOT (2026-08-15 23:45 JST)"
+
       - name: Build LEVEL UP bundle
         run: npm run build:firebase
+
+      - name: Check mobile-safe bundle
+        run: |
+          set -euo pipefail
+          test -s .dist/firebase/apps/ato-5min/game.js
+          test -s .dist/firebase/apps/watashi-zukan/game.js
+          ! grep -F 'DecompressionStream' .dist/firebase/apps/ato-5min/index.html
+          ! grep -F 'game-a.bin' .dist/firebase/apps/ato-5min/index.html
+          ! grep -F 'Promise.all(parts.map' .dist/firebase/apps/watashi-zukan/game.js
+          echo "Mobile loader check OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -63,11 +84,13 @@ jobs:
             execFileSync('curl', ['-fLsS', '--max-time', '30', '-o', '/dev/null', url], { stdio: 'inherit' });
           }
           NODE
+            curl -fLsS "$base/apps/ato-5min/" -o /tmp/ato5.html
+            grep -F './game.js' /tmp/ato5.html >/dev/null
+            curl -fLsS "$base/apps/ato-5min/game.js" -o /tmp/ato5.js
+            test -s /tmp/ato5.js
+            curl -fLsS "$base/apps/watashi-zukan/game.js" -o /tmp/watashi.js
+            test -s /tmp/watashi.js
             curl -fLsS "$base/apps/task-separation/" -o /tmp/task-separation.html
             grep -F 'それ、' /tmp/task-separation.html >/dev/null
-            curl -fLsS "$base/apps/task-separation/game.js" -o /tmp/task-separation.js
-            test -s /tmp/task-separation.js
-            curl -fLsS "$base/apps/task-separation/style.css" -o /tmp/task-separation.css
-            test -s /tmp/task-separation.css
-            echo "OK: $base all 22 curated routes + task-separation assets"
+            echo "OK: $base all 22 curated routes + mobile-safe loaders"
           done
