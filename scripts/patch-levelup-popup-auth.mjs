@@ -8,6 +8,7 @@ const root = path.resolve(scriptDir, '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const accountPath = path.join(outDir, 'levelup-account.js');
 const appsDir = path.join(outDir, 'apps');
+const FIREBASE_VERSION = '12.16.0';
 
 if (!fs.existsSync(accountPath)) {
   throw new Error('LEVEL UP account bundle not found. Run inject-levelup-account.mjs first.');
@@ -24,29 +25,19 @@ if (!source.includes("(code ? '（' + code + '）' : '')")) {
 
 const networkErrorNeedle = "    if (code.includes('unavailable') || code.includes('network-request-failed')) return '通信できません。端末への保存は続いています。';";
 const networkErrorReplacement = [
-  "    if (code.includes('redirect-result-empty')) return 'Google認証から戻りましたが、ログイン状態を受け取れませんでした（auth/redirect-result-empty）。';",
-  "    if (code.includes('config-fetch-failed')) return 'Firebase認証設定を読み込めませんでした（auth/config-fetch-failed）。';",
+  "    if (code.includes('internal-error')) return 'Googleログイン処理で内部エラーが発生しました（auth/internal-error）。';",
   "    if (code.includes('sdk-app-missing')) return 'Firebase本体を読み込めませんでした（auth/sdk-app-missing）。';",
   "    if (code.includes('sdk-auth-missing')) return 'Firebase Authenticationを読み込めませんでした（auth/sdk-auth-missing）。';",
+  "    if (code.includes('config-fetch-failed')) return 'Firebase認証設定を読み込めませんでした（auth/config-fetch-failed）。';",
   networkErrorNeedle,
 ].join('\n');
-if (!source.includes("code.includes('redirect-result-empty')")) {
+if (!source.includes("code.includes('sdk-auth-missing')")) {
   if (!source.includes(networkErrorNeedle)) throw new Error('Could not find LEVEL UP network auth error text.');
   source = source.replace(networkErrorNeedle, networkErrorReplacement);
 }
 
 const popupCall = '      await state.auth.signInWithPopup(provider);';
-const signInHandled = [
-  "      const isMobileAuth = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)",
-  "        || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);",
-  "      if (isMobileAuth) {",
-  "        try { sessionStorage.setItem('levelup-auth-redirect-pending-v4', String(Date.now())); } catch {}",
-  "        const returnUrl = new URL(location.href);",
-  "        returnUrl.searchParams.set('_lu_auth_return', '1');",
-  "        history.replaceState(null, '', returnUrl.pathname + returnUrl.search + returnUrl.hash);",
-  "        await state.auth.signInWithRedirect(provider);",
-  "        return;",
-  "      }",
+const popupHandled = [
   "      const result = await state.auth.signInWithPopup(provider);",
   "      if (result?.user) {",
   "        state.user = result.user;",
@@ -56,9 +47,9 @@ const signInHandled = [
   "        render();",
   "      }",
 ].join('\n');
-if (!source.includes("levelup-auth-redirect-pending-v4")) {
+if (!source.includes('const result = await state.auth.signInWithPopup(provider);')) {
   if (!source.includes(popupCall)) throw new Error('Could not find LEVEL UP popup sign-in call.');
-  source = source.replace(popupCall, signInHandled);
+  source = source.replace(popupCall, popupHandled);
 }
 
 const initializeNeedle = `  async function initializeFirebase() {
@@ -87,71 +78,19 @@ const initializeNeedle = `  async function initializeFirebase() {
     }
   }`;
 
-const initializeReplacement = `  function loadFirebaseScript(src) {
-    return new Promise((resolve, reject) => {
-      const node = document.createElement('script');
-      node.src = src;
-      node.async = false;
-      node.dataset.levelupAuthRetry = '1';
-      node.addEventListener('load', () => resolve(), { once: true });
-      node.addEventListener('error', () => reject(new Error('Failed to load ' + src)), { once: true });
-      document.head.appendChild(node);
-    });
-  }
-
-  async function ensureFirebasePart(check, localSrc, cdnSrc, code) {
-    if (check()) return true;
+const initializeReplacement = `  async function initializeFirebase() {
     try {
-      await loadFirebaseScript(localSrc + (localSrc.includes('?') ? '&' : '?') + '_lu=' + Date.now());
-    } catch (error) {
-      console.warn('[LEVEL UP account] reserved Firebase SDK load failed', localSrc, error);
-    }
-    if (check()) return true;
-    try {
-      await loadFirebaseScript(cdnSrc);
-    } catch (error) {
-      console.warn('[LEVEL UP account] Firebase CDN SDK load failed', cdnSrc, error);
-    }
-    if (check()) return true;
-    const sdkError = new Error('Firebase SDK unavailable');
-    sdkError.code = code;
-    throw sdkError;
-  }
-
-  async function ensureFirebaseSdk() {
-    await ensureFirebasePart(
-      () => Boolean(window.firebase?.initializeApp),
-      '/__/firebase/8.10.1/firebase-app.js',
-      'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
-      'auth/sdk-app-missing',
-    );
-    await ensureFirebasePart(
-      () => Boolean(window.firebase?.auth),
-      '/__/firebase/8.10.1/firebase-auth.js',
-      'https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js',
-      'auth/sdk-auth-missing',
-    );
-
-    let firestoreReady = Boolean(window.firebase?.firestore);
-    if (!firestoreReady) {
-      try {
-        await ensureFirebasePart(
-          () => Boolean(window.firebase?.firestore),
-          '/__/firebase/8.10.1/firebase-firestore.js',
-          'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js',
-          'auth/sdk-firestore-missing',
-        );
-        firestoreReady = Boolean(window.firebase?.firestore);
-      } catch (error) {
-        console.warn('[LEVEL UP account] Firestore SDK unavailable; login will continue locally', error);
+      if (!window.firebase?.initializeApp) {
+        const sdkError = new Error('Firebase app SDK unavailable');
+        sdkError.code = 'auth/sdk-app-missing';
+        throw sdkError;
       }
-    }
-    return { firestoreReady };
-  }
+      if (!window.firebase?.auth) {
+        const sdkError = new Error('Firebase Auth SDK unavailable');
+        sdkError.code = 'auth/sdk-auth-missing';
+        throw sdkError;
+      }
 
-  async function initializeFirebase() {
-    try {
-      const sdk = await ensureFirebaseSdk();
       let app = firebase.apps?.[0] || null;
       if (!app) {
         const response = await fetch('/__/firebase/init.json', { cache: 'no-store', credentials: 'same-origin' });
@@ -161,59 +100,26 @@ const initializeReplacement = `  function loadFirebaseScript(src) {
           throw configError;
         }
         const config = await response.json();
-        if (location.hostname === 'levelup.hitobito.jp') config.authDomain = location.hostname;
+        // Keep Firebase Hosting's default *.firebaseapp.com authDomain here.
+        // Popup auth communicates with that helper window directly and does not
+        // depend on third-party redirect storage on Safari.
         app = firebase.initializeApp(config);
       }
 
       state.auth = app.auth();
-      state.db = sdk.firestoreReady && typeof app.firestore === 'function' ? app.firestore() : null;
+      state.db = window.firebase?.firestore && typeof app.firestore === 'function' ? app.firestore() : null;
       await state.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-      if (!state.db) {
-        state.message = 'Googleログインは利用できます。クラウド同期だけ再接続中です。';
-        state.messageKind = '';
-        render();
-      }
-
-      let redirectPending = false;
+      // Clear state left behind by the previous redirect implementation so an
+      // old Safari tab cannot keep surfacing a redirect error after this build.
       try {
-        redirectPending = Boolean(sessionStorage.getItem('levelup-auth-redirect-pending-v4'));
+        sessionStorage.removeItem('levelup-auth-redirect-pending-v3');
+        sessionStorage.removeItem('levelup-auth-redirect-pending-v4');
       } catch {}
       const currentUrl = new URL(location.href);
       if (currentUrl.searchParams.has('_lu_auth_return')) {
-        redirectPending = true;
         currentUrl.searchParams.delete('_lu_auth_return');
         history.replaceState(null, '', currentUrl.pathname + currentUrl.search + currentUrl.hash);
-      }
-
-      try {
-        const redirectResult = await state.auth.getRedirectResult();
-        try { sessionStorage.removeItem('levelup-auth-redirect-pending-v4'); } catch {}
-        if (redirectResult?.user) {
-          state.user = redirectResult.user;
-          state.message = state.db ? 'Googleログインが完了しました。' : 'Googleログインが完了しました。クラウド同期は現在利用できません。';
-          state.messageKind = state.db ? 'success' : 'error';
-          state.busy = false;
-          render();
-        } else if (redirectPending && !state.auth.currentUser) {
-          const redirectError = new Error('Redirect result was empty');
-          redirectError.code = 'auth/redirect-result-empty';
-          console.warn('[LEVEL UP account] redirect returned without a user', {
-            host: location.hostname,
-            authDomain: app.options?.authDomain || '',
-          });
-          state.message = friendlyError(redirectError);
-          state.messageKind = 'error';
-          state.busy = false;
-          render();
-        }
-      } catch (error) {
-        try { sessionStorage.removeItem('levelup-auth-redirect-pending-v4'); } catch {}
-        console.warn('[LEVEL UP account] redirect result failed', error);
-        state.message = friendlyError(error);
-        state.messageKind = 'error';
-        state.busy = false;
-        render();
       }
 
       state.auth.onAuthStateChanged(async (user) => {
@@ -232,14 +138,13 @@ const initializeReplacement = `  function loadFirebaseScript(src) {
     }
   }`;
 
-if (!source.includes('ensureFirebaseSdk()')) {
+if (!source.includes("sessionStorage.removeItem('levelup-auth-redirect-pending-v4')")) {
   if (!source.includes(initializeNeedle)) throw new Error('Could not find LEVEL UP Firebase initialization block.');
   source = source.replace(initializeNeedle, initializeReplacement);
 }
 
 fs.writeFileSync(accountPath, source);
 
-const initScript = '  <script src="/__/firebase/init.js" data-levelup-account-sdk></script>\n';
 const pages = [path.join(outDir, 'index.html')];
 if (fs.existsSync(appsDir)) {
   for (const entry of fs.readdirSync(appsDir, { withFileTypes: true })) {
@@ -250,48 +155,49 @@ if (fs.existsSync(appsDir)) {
 }
 
 const accountVersion = createHash('sha256').update(source).digest('hex').slice(0, 12);
-let removedInitScripts = 0;
-let versionedAccountScripts = 0;
+let patchedPages = 0;
 for (const page of pages) {
   let html = fs.readFileSync(page, 'utf8');
-  if (html.includes(initScript)) {
-    html = html.replaceAll(initScript, '');
-    removedInitScripts += 1;
-  }
-  const next = html.replace(/src="\/levelup-account\.js(?:\?v=[^"]*)?"/g, `src="/levelup-account.js?v=${accountVersion}"`);
-  if (next !== html) versionedAccountScripts += 1;
-  html = next;
+  const before = html;
+
+  html = html
+    .replaceAll('/__/firebase/8.10.1/firebase-app.js', `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app-compat.js`)
+    .replaceAll('/__/firebase/8.10.1/firebase-auth.js', `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth-compat.js`)
+    .replaceAll('/__/firebase/8.10.1/firebase-firestore.js', `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore-compat.js`)
+    .replaceAll('  <script src="/__/firebase/init.js" data-levelup-account-sdk></script>\n', '');
+
+  html = html.replace(/src="\/levelup-account\.js(?:\?v=[^"]*)?"/g, `src="/levelup-account.js?v=${accountVersion}"`);
+
+  if (html !== before) patchedPages += 1;
   fs.writeFileSync(page, html);
 }
 
 const required = [
-  'signInWithRedirect(provider)',
-  "fetch('/__/firebase/init.json'",
-  "config.authDomain = location.hostname",
-  'getRedirectResult()',
-  'auth/redirect-result-empty',
   'signInWithPopup(provider)',
-  'ensureFirebaseSdk()',
-  'https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js',
+  "fetch('/__/firebase/init.json'",
+  "sessionStorage.removeItem('levelup-auth-redirect-pending-v4')",
+  "state.message = state.db ? 'Googleログインが完了しました。'",
 ];
 for (const marker of required) {
-  if (!source.includes(marker)) throw new Error(`LEVEL UP same-origin auth hardening missing: ${marker}`);
+  if (!source.includes(marker)) throw new Error(`LEVEL UP popup auth hardening missing: ${marker}`);
 }
-
-if (removedInitScripts !== pages.length) {
-  throw new Error(`LEVEL UP Firebase init.js removal incomplete: ${removedInitScripts}/${pages.length}`);
+if (source.includes('signInWithRedirect(provider)') || source.includes('getRedirectResult()')) {
+  throw new Error('LEVEL UP account bundle still contains redirect auth.');
 }
-if (versionedAccountScripts !== pages.length) {
-  throw new Error(`LEVEL UP account cache-busting incomplete: ${versionedAccountScripts}/${pages.length}`);
+if (patchedPages !== pages.length) {
+  throw new Error(`LEVEL UP auth page patch incomplete: ${patchedPages}/${pages.length}`);
 }
 for (const page of pages) {
   const html = fs.readFileSync(page, 'utf8');
-  if (html.includes('/__/firebase/init.js')) {
-    throw new Error(`LEVEL UP page still auto-initializes Firebase: ${page}`);
+  for (const asset of [
+    `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app-compat.js`,
+    `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth-compat.js`,
+    `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore-compat.js`,
+    `/levelup-account.js?v=${accountVersion}`,
+  ]) {
+    if (!html.includes(asset)) throw new Error(`LEVEL UP page missing ${asset}: ${page}`);
   }
-  if (!html.includes(`/levelup-account.js?v=${accountVersion}`)) {
-    throw new Error(`LEVEL UP page is missing versioned account script: ${page}`);
-  }
+  if (html.includes('/__/firebase/init.js')) throw new Error(`LEVEL UP page still auto-initializes Firebase: ${page}`);
 }
 
-console.log(`[Firebase] LEVEL UP auth patched: self-healing SDK load + mobile redirect + same-origin authDomain + explicit diagnostics on ${pages.length} pages; account=${accountVersion}`);
+console.log(`[Firebase] LEVEL UP auth patched: Firebase ${FIREBASE_VERSION} compat + popup auth + stale redirect cleanup on ${pages.length} pages; account=${accountVersion}`);
