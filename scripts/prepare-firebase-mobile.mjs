@@ -18,7 +18,15 @@ function prepareAto5min() {
   }
 
   const compressed = Buffer.concat([fs.readFileSync(aPath), fs.readFileSync(bPath)]);
-  const code = zlib.gunzipSync(compressed).toString('utf8');
+  let code = zlib.gunzipSync(compressed).toString('utf8');
+  const homeHandler = "document.getElementById('homeBtn').addEventListener('click',()=>setNav('play'));";
+  if (!code.includes(homeHandler)) {
+    throw new Error('ato-5min legacy home handler not found');
+  }
+  code = code.replace(
+    homeHandler,
+    "document.getElementById('homeBtn').addEventListener('click',()=>window.location.assign('https://levelup.hitobito.jp/'));",
+  );
   fs.writeFileSync(path.join(dir, 'game.js'), code);
 
   const css = `${fs.readFileSync(style1Path, 'utf8')}\n${fs.readFileSync(style2Path, 'utf8')}`;
@@ -34,7 +42,7 @@ function prepareAto5min() {
   if (end < 0) throw new Error('ato-5min legacy loader end not found');
   html = `${html.slice(0, start)}<script src="./game.js"></script>${html.slice(end + '</script>'.length)}`;
   fs.writeFileSync(indexPath, html);
-  console.log('[Mobile prep] ato-5min: gzip loader -> plain game.js; split CSS -> inline CSS');
+  console.log('[Mobile prep] ato-5min: gzip loader -> plain game.js; split CSS -> inline CSS; home button -> LEVEL UP top');
 }
 
 function prepareWatashiZukan() {
