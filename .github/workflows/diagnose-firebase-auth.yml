@@ -1,0 +1,112 @@
+name: Diagnose Firebase Auth configuration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/diagnose-firebase-auth.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Google auth helper
+        run: npm install --no-save google-auth-library
+
+      - name: Inspect and repair Firebase Auth authorized domain
+        run: |
+          node <<'NODE'
+          const { GoogleAuth } = require('google-auth-library');
+
+          const PROJECT = 'hitobito-levelup';
+          const CUSTOM_DOMAIN = 'levelup.hitobito.jp';
+          const BASE = 'https://identitytoolkit.googleapis.com/admin/v2';
+
+          async function main() {
+            const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] });
+            const client = await auth.getClient();
+            const token = await client.getAccessToken();
+            const accessToken = typeof token === 'string' ? token : token.token;
+            const headers = { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' };
+
+            async function api(path, init = {}) {
+              const res = await fetch(BASE + path, { ...init, headers: { ...headers, ...(init.headers || {}) } });
+              const text = await res.text();
+              let body = null;
+              try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+              return { res, body };
+            }
+
+            const configResult = await api(`/projects/${PROJECT}/config`);
+            console.log('Auth config status:', configResult.res.status);
+            if (!configResult.res.ok) {
+              console.log('Auth config read error:', JSON.stringify(configResult.body));
+            } else {
+              const domains = Array.isArray(configResult.body.authorizedDomains) ? configResult.body.authorizedDomains : [];
+              console.log('Authorized domains:', domains.join(', '));
+              console.log('Custom domain authorized:', domains.includes(CUSTOM_DOMAIN));
+
+              if (!domains.includes(CUSTOM_DOMAIN)) {
+                const nextDomains = [...domains, CUSTOM_DOMAIN];
+                const patch = await api(`/projects/${PROJECT}/config?updateMask=authorizedDomains`, {
+                  method: 'PATCH',
+                  body: JSON.stringify({
+                    name: `projects/${PROJECT}/config`,
+                    authorizedDomains: nextDomains,
+                  }),
+                });
+                console.log('Authorized-domain repair status:', patch.res.status);
+                if (!patch.res.ok) console.log('Authorized-domain repair error:', JSON.stringify(patch.body));
+                else console.log('Authorized-domain repair applied:', Array.isArray(patch.body.authorizedDomains) && patch.body.authorizedDomains.includes(CUSTOM_DOMAIN));
+              }
+            }
+
+            const googleResult = await api(`/projects/${PROJECT}/defaultSupportedIdpConfigs/google.com`);
+            console.log('Google provider status:', googleResult.res.status);
+            if (!googleResult.res.ok) {
+              console.log('Google provider read error:', JSON.stringify(googleResult.body));
+            } else {
+              console.log('Google provider enabled:', Boolean(googleResult.body.enabled));
+              console.log('Google OAuth client ID:', googleResult.body.clientId || '(none)');
+            }
+
+            for (const url of [
+              'https://levelup.hitobito.jp/__/auth/handler',
+              'https://hitobito-levelup.firebaseapp.com/__/auth/handler',
+              'https://levelup.hitobito.jp/__/firebase/init.json',
+            ]) {
+              try {
+                const res = await fetch(url, { redirect: 'manual' });
+                console.log('HTTP', res.status, url, 'content-type=' + (res.headers.get('content-type') || ''));
+              } catch (error) {
+                console.log('HTTP ERROR', url, error && error.message ? error.message : String(error));
+              }
+            }
+          }
+
+          main().catch((error) => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          NODE
