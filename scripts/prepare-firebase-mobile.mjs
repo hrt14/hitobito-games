@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
@@ -28,6 +29,7 @@ function prepareAto5min() {
     "document.getElementById('homeBtn').addEventListener('click',()=>window.location.assign('https://levelup.hitobito.jp/'));",
   );
   fs.writeFileSync(path.join(dir, 'game.js'), code);
+  const gameVersion = createHash('sha256').update(code).digest('hex').slice(0, 12);
 
   const css = `${fs.readFileSync(style1Path, 'utf8')}\n${fs.readFileSync(style2Path, 'utf8')}`;
   let html = fs.readFileSync(indexPath, 'utf8');
@@ -40,9 +42,9 @@ function prepareAto5min() {
   if (start < 0) throw new Error('ato-5min legacy loader not found');
   const end = html.indexOf('</script>', start);
   if (end < 0) throw new Error('ato-5min legacy loader end not found');
-  html = `${html.slice(0, start)}<script src="./game.js"></script>${html.slice(end + '</script>'.length)}`;
+  html = `${html.slice(0, start)}<script src="./game.js?v=${gameVersion}"></script>${html.slice(end + '</script>'.length)}`;
   fs.writeFileSync(indexPath, html);
-  console.log('[Mobile prep] ato-5min: gzip loader -> plain game.js; split CSS -> inline CSS; home button -> LEVEL UP top');
+  console.log('[Mobile prep] ato-5min: gzip loader -> plain game.js; split CSS -> inline CSS; home button -> LEVEL UP top; versioned game.js URL');
 }
 
 function prepareWatashiZukan() {
