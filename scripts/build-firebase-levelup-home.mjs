@@ -28,6 +28,7 @@ const catalog = [
   {slug:'dont-change-people',title:'人を変えるな',kicker:'CHANGE YOUR RESPONSE',skill:'対人調整 / 境界線',description:'相手を変えようとせず、自分の距離・頼み方・配置を変えて問題を解く。',icon:'人',updateCount:1},
   {slug:'help-me',title:'助けて',kicker:"DON'T CARRY IT ALONE",skill:'頼る / 委任',description:'仕事を一人で抱えず、人・AI・外注・上司へ適切に頼るほど物事が進む。',icon:'HELP',updateCount:1},
   {slug:'levelup-mood',title:'機嫌は自分で取る',kicker:'OWN YOUR STATE',skill:'感情調整',description:'外部の出来事に任せず、自分で自分の機嫌を整える選択肢を増やしていく。',icon:'☺',updateCount:1},
+  {slug:'extra-load',title:'疲れを増やすな。',kicker:'DROP THE EXTRA LOAD',skill:'思考負荷 / 省エネ',description:'「全部背負う・完璧にする・同時に抱える・反芻する・今決める」を見抜き、必要な分だけ考える反射を鍛える。',icon:'−',updateCount:20},
   {slug:'mou-owatta',title:'もう終わった',kicker:'END THE LOOP',skill:'切り替え / 反芻停止',description:'終わった出来事を反芻せず、事実と次に変えられることだけ拾って思考を終了する。',icon:'END',updateCount:1},
   {slug:'name-it',title:'名前をつけろ',kicker:'NAME THE FEELING',skill:'感情認識',description:'いま感じている感情に名前をつけ、ぼんやり抱えず認識する反射を鍛える。',icon:'Aa',updateCount:1},
   {slug:'viewpoint-exam',title:'物の見方検定',kicker:'FIND ANOTHER VIEW',skill:'視点転換',description:'嫌な出来事にも別の見方を何通りも作り、視点を切り替える型を反復する。',icon:'↻',updateCount:1},
