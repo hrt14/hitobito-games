@@ -8,7 +8,6 @@ const out = path.join(root, '.dist', 'firebase');
 const targetDir = path.join(out, 'apps', 'amazon-operator');
 const sourceIndex = path.join(here, 'index.html');
 const homePath = path.join(out, 'index.html');
-const catalogPath = path.join(out, 'levelup-catalog.json');
 
 if (!fs.existsSync(sourceIndex)) throw new Error('Amazon operator source is missing.');
 if (!fs.existsSync(homePath)) throw new Error('Firebase LEVEL UP home is missing.');
@@ -47,23 +46,6 @@ if (!html.includes(`data-game="${slug}"`)) {
 }
 
 fs.writeFileSync(homePath, html);
-
-if (fs.existsSync(catalogPath)) {
-  const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
-  if (!catalog.games.some((game) => game.slug === slug)) {
-    catalog.games.unshift({
-      slug,
-      title: 'Amazon担当者',
-      kicker: 'AMAZON OPERATOR',
-      skill: 'EC運用 / 広告判断',
-      description: '広告・商品詳細ページ・利益・在庫の数字から、ボトルネックと次の一手を判断する。',
-      icon: 'AMZ',
-      updateCount: 1,
-      href: '/apps/amazon-operator/'
-    });
-    fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
-  }
-}
 
 const finalHtml = fs.readFileSync(homePath, 'utf8');
 const liveIndex = path.join(targetDir, 'index.html');
