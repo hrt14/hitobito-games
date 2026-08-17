@@ -8,14 +8,37 @@ const outDir = path.join(root, '.dist', 'firebase');
 const homePath = path.join(outDir, 'index.html');
 const manifestPath = path.join(outDir, 'manifest.json');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
+const sourceDir = path.join(root, 'apps', 'reflex-7');
+const appOutDir = path.join(outDir, 'apps', 'reflex-7');
 const slug = 'reflex-7';
 
-for (const file of [homePath, manifestPath, catalogPath]) {
-  if (!fs.existsSync(file)) throw new Error(`Missing build prerequisite: ${file}`);
+for (const file of [homePath, manifestPath, catalogPath, path.join(sourceDir, 'index.html'), path.join(sourceDir, 'style.css'), path.join(sourceDir, 'game.js')]) {
+  if (!fs.existsSync(file)) throw new Error(`Missing REFLEX 7 build prerequisite: ${file}`);
 }
 
+// REFLEX 7 is LEVEL UP-only. Place it explicitly in the Firebase bundle.
+fs.rmSync(appOutDir, { recursive: true, force: true });
+fs.mkdirSync(path.dirname(appOutDir), { recursive: true });
+fs.cpSync(sourceDir, appOutDir, { recursive: true });
+
+// Mixed training must not reveal the category before the player answers.
+const gamePath = path.join(appOutDir, 'game.js');
+let gameJs = fs.readFileSync(gamePath, 'utf8');
+const reveal = "    $('skillName').textContent=skill.code; $('skillJp').textContent=skill.jp; $('sceneNo').textContent=`SCENE ${String(state.index+1).padStart(2,'0')}`; $('scenarioText').textContent=item.text;";
+const hidden = "    $('skillName').textContent='MIXED REFLEX'; $('skillJp').textContent='最善の一手を選ぶ'; $('sceneNo').textContent=`SCENE ${String(state.index+1).padStart(2,'0')}`; $('scenarioText').textContent=item.text;";
+if (gameJs.includes(reveal)) gameJs = gameJs.replace(reveal, hidden);
+else if (!gameJs.includes("$('skillName').textContent='MIXED REFLEX'")) throw new Error('REFLEX 7 pre-answer skill masking patch target not found.');
+fs.writeFileSync(gamePath, gameJs);
+
+const indexPath = path.join(appOutDir, 'index.html');
+let appHtml = fs.readFileSync(indexPath, 'utf8');
+appHtml = appHtml.replace('正解を暗記するゲームではありません。状況を見た瞬間の「最初の反応」を鍛えます。','習慣名を当てるゲームではありません。状況を見た瞬間の「最初の反応」を鍛えます。');
+fs.writeFileSync(indexPath, appHtml);
+
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-if (!manifest.games.some((game) => game.slug === slug)) throw new Error('REFLEX 7 is missing from Firebase manifest.');
+manifest.games = (manifest.games || []).filter((game) => game.slug !== slug);
+manifest.games.push({ slug, category: 'levelup', title: 'REFLEX 7 | LEVEL UP' });
+fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 
 const meta = {
   slug,
@@ -25,7 +48,7 @@ const meta = {
   description: '日常の場面を見て、より良い一手を瞬時に選ぶ。7つの判断パターンを知識ではなく反射へ変える。',
   icon: '7',
   href: '/apps/reflex-7/',
-  updateCount: 1,
+  updateCount: 2,
 };
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
@@ -40,7 +63,7 @@ if (!html.includes(`data-game="${slug}"`)) {
   <article class="card is-new" data-game="${slug}" data-new="true">
     <button class="favorite" type="button" data-favorite="${slug}" aria-pressed="false" aria-label="REFLEX 7をお気に入りに追加">♡</button>
     <a class="card-link" href="/apps/reflex-7/">
-      <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE 1</span></div>
+      <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE 2</span></div>
       <div class="icon">7</div>
       <div class="kicker">THINK LESS. CHOOSE BETTER.</div>
       <div class="skill">7つの判断反射</div>
@@ -58,14 +81,16 @@ if (!html.includes(`data-game="${slug}"`)) {
   html = html.replace(gridMarker, `${gridMarker}${card}`);
 }
 
-const cardCount = [...html.matchAll(/<article class="card(?:\s[^\"]*)?"[^>]*data-game=/g)].length;
 html = html.replace(/<strong>\d+<\/strong><span>TRAINING GAMES<\/span>/, `<strong>${catalogCount}</strong><span>TRAINING GAMES</span>`);
 html = html.replace(/<div class="section-head"><h2>Training Games<\/h2><span>\d+ games<\/span><\/div>/, `<div class="section-head"><h2>Training Games</h2><span>${catalogCount} games</span></div>`);
 fs.writeFileSync(homePath, html);
 
 const finalHtml = fs.readFileSync(homePath, 'utf8');
+const finalGame = fs.readFileSync(gamePath, 'utf8');
 if (!finalHtml.includes(`data-game="${slug}"`)) throw new Error('REFLEX 7 card injection failed.');
 if (!finalHtml.includes('/apps/reflex-7/')) throw new Error('REFLEX 7 link missing.');
 if (!finalHtml.includes(`<span>${catalogCount} games</span>`)) throw new Error('REFLEX 7 catalog count mismatch.');
+if (!finalGame.includes("$('skillName').textContent='MIXED REFLEX'")) throw new Error('REFLEX 7 skill masking failed.');
+if (!fs.existsSync(path.join(appOutDir, 'style.css'))) throw new Error('REFLEX 7 style missing from Firebase bundle.');
 
-console.log(`[Firebase] REFLEX 7 v2 injected (${catalogCount} catalog games / ${cardCount} cards)`);
+console.log(`[Firebase] REFLEX 7 v2 bundled + injected (${catalogCount} catalog games)`);
