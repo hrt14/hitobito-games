@@ -8,7 +8,7 @@
     "human-test": "node scripts/human-test-organized.mjs",
     "check": "node scripts/smoke-check.mjs",
     "build:hosting": "node scripts/build-host-targets.mjs",
-    "build:firebase": "npm run build:hosting && node scripts/build-firebase-levelup-home.mjs"
+    "build:firebase": "npm run build:hosting && node scripts/build-firebase-levelup-home.mjs && node scripts/validate-firebase-bundle.mjs"
   },
   "dependencies": {
     "uqr": "^0.1.3"
