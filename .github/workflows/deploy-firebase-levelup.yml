@@ -97,7 +97,7 @@ jobs:
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             echo "Checking $base"
             curl -fLsS "$base/" -o /tmp/levelup-home.html
-            grep -F '22 games' /tmp/levelup-home.html >/dev/null
+            grep -F '23 games' /tmp/levelup-home.html >/dev/null
             node - "$base" <<'NODE'
           const fs = require('fs');
           const { execFileSync } = require('child_process');
