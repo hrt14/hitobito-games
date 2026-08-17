@@ -93,13 +93,17 @@ for (const asset of requiredHomeAssets) {
 for (const reference of ['/favicon.svg', '/favicon-32.png', '/apple-touch-icon.png', '/site.webmanifest']) {
   if (!home.includes(`href="${reference}"`)) problems.push(`home: missing icon reference ${reference}`);
 }
+
 const manifestSlugs = new Set(manifest.games.map((game) => game.slug));
 for (const game of catalog.games) {
   if (!home.includes(`href="${game.href}"`)) {
     problems.push(`home: missing curated link ${game.href}`);
   }
   if (game.href.startsWith('/apps/') && !manifestSlugs.has(game.slug)) {
-    problems.push(`catalog: ${game.slug} is not in Firebase manifest`);
+    const overrideIndex = path.join(outDir, 'apps', game.slug, 'index.html');
+    if (!fs.existsSync(overrideIndex)) {
+      problems.push(`catalog: ${game.slug} is neither in Firebase manifest nor a built override app`);
+    }
   }
 }
 
