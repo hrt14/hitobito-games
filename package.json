@@ -8,7 +8,7 @@
     "human-test": "node scripts/human-test-organized.mjs",
     "check": "node scripts/smoke-check.mjs",
     "build:hosting": "node scripts/build-host-targets.mjs",
-    "build:firebase": "npm run build:hosting && node scripts/build-firebase-levelup-home.mjs && node scripts/inject-levelup-seikan-switch.mjs && node scripts/inject-levelup-meeting-respawn.mjs && node scripts/inject-levelup-home-link.mjs && node scripts/inject-levelup-favorite-sort.mjs && node scripts/inject-levelup-mou-haratta.mjs && node scripts/inject-levelup-my-job.mjs && node firebase-overrides/amazon-operator/inject.mjs && node scripts/inject-levelup-refresh-button.mjs && node scripts/inject-levelup-account.mjs && node scripts/patch-levelup-popup-auth.mjs && node scripts/validate-firebase-bundle.mjs"
+    "build:firebase": "npm run build:hosting && node scripts/build-firebase-levelup-home.mjs && node scripts/inject-levelup-asa-tanoshimi.mjs && node scripts/inject-levelup-seikan-switch.mjs && node scripts/inject-levelup-meeting-respawn.mjs && node scripts/inject-levelup-home-link.mjs && node scripts/inject-levelup-favorite-sort.mjs && node scripts/inject-levelup-mou-haratta.mjs && node scripts/inject-levelup-my-job.mjs && node firebase-overrides/amazon-operator/inject.mjs && node scripts/inject-levelup-refresh-button.mjs && node scripts/inject-levelup-account.mjs && node scripts/patch-levelup-popup-auth.mjs && node scripts/validate-firebase-bundle.mjs"
   },
   "dependencies": {
     "uqr": "^0.1.3"
