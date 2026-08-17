@@ -8,27 +8,30 @@ const outDir = path.join(root, '.dist', 'firebase');
 const homePath = path.join(outDir, 'index.html');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 const manifestPath = path.join(outDir, 'manifest.json');
-const appIndexPath = path.join(outDir, 'apps', 'yahoo-shopping-marketer', 'index.html');
+const appDir = path.join(outDir, 'apps', 'yahoo-shopping-marketer');
+const appIndexPath = path.join(appDir, 'index.html');
+const appScriptPath = path.join(appDir, 'game.js');
+const appCompactStylePath = path.join(appDir, 'compact.css');
 
-for (const file of [homePath, catalogPath, manifestPath, appIndexPath]) {
+for (const file of [homePath, catalogPath, manifestPath, appIndexPath, appScriptPath, appCompactStylePath]) {
   if (!fs.existsSync(file)) throw new Error(`yahoo-shopping-marketer integration input missing: ${file}`);
 }
 
 const game = {
   slug: 'yahoo-shopping-marketer',
   title: 'Yahoo!ショッピング担当者',
-  kicker: 'WEB MARKETER TRAINING',
-  skill: 'Yahoo!ショッピング / 販売判断',
-  description: '商品・検索・広告・販促・CRM・粗利を横断し、数字から次の一手を選ぶ判断力を反復する。',
+  kicker: 'YAHOO! SHOPPING OPERATOR',
+  skill: 'EC運用 / 販促判断',
+  description: '商品・検索・コマースアドマネージャー・ポイント／クーポン・LINE／CRM・粗利を横断し、数字から次の一手を判断する。',
   icon: 'Y!',
   href: '/apps/yahoo-shopping-marketer/',
-  updateCount: 1,
+  updateCount: 2,
 };
 
 const values = {
   forWhom: 'Yahoo!ショッピングの売上改善を担当する人',
-  purpose: '商品・広告・販促・CRMのどこを直すべきか素早く判断する',
-  benefit: '売上だけでなくCVR・粗利・リピートまで見て次の一手を選べるようになる',
+  purpose: '数字からボトルネックを見抜き、最優先の一手を選ぶ',
+  benefit: '商品ページ・広告・販促・CRM・粗利の判断が速くなる',
 };
 
 const escapeHtml = (value) => String(value)
@@ -45,7 +48,9 @@ if (!manifest.games.some((item) => item.slug === game.slug)) {
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 const beforeCount = catalog.games.length;
-if (!catalog.games.some((item) => item.slug === game.slug)) catalog.games.push(game);
+const existing = catalog.games.find((item) => item.slug === game.slug);
+if (existing) Object.assign(existing, game);
+else catalog.games.push(game);
 const afterCount = catalog.games.length;
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 
@@ -84,8 +89,25 @@ if (afterCount !== beforeCount) {
 
 fs.writeFileSync(homePath, home);
 
+const finalIndex = fs.readFileSync(appIndexPath, 'utf8');
+const finalScript = fs.readFileSync(appScriptPath, 'utf8');
 const finalHome = fs.readFileSync(homePath, 'utf8');
 const finalCatalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+
+for (const required of ['コマースアドマネージャー', '判断後の解説は自動で消えません', './compact.css']) {
+  if (!finalIndex.includes(required)) throw new Error(`Yahoo Shopping app index check failed: ${required}`);
+}
+
+for (const required of [
+  'コマースアドマネージャーのクリックは増えた',
+  'const timedOut = index < 0',
+  'const deltaArray = timedOut ? [0, 0, 0, 0]',
+  "els.choices.classList.add('answered')",
+  '料金・制度の変更告知が出た',
+]) {
+  if (!finalScript.includes(required)) throw new Error(`Yahoo Shopping game quality check failed: ${required}`);
+}
+
 for (const required of [
   `data-game="${game.slug}"`,
   `href="${game.href}"`,
@@ -96,6 +118,9 @@ for (const required of [
 ]) {
   if (!finalHome.includes(required)) throw new Error(`yahoo-shopping-marketer home integration missing: ${required}`);
 }
-if (!finalCatalog.games.some((item) => item.slug === game.slug)) throw new Error('yahoo-shopping-marketer catalog integration failed');
+
+const finalEntry = finalCatalog.games.find((item) => item.slug === game.slug);
+if (!finalEntry) throw new Error('yahoo-shopping-marketer catalog integration failed');
+if (!finalEntry.description.includes('コマースアドマネージャー')) throw new Error('Yahoo Shopping catalog terminology is stale');
 
 console.log(`[Firebase] Yahoo Shopping marketer injected as NEW release (${afterCount} games)`);
