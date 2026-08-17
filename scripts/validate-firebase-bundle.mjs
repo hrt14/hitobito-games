@@ -70,6 +70,22 @@ if (!fs.existsSync(ato5minGamePath)) {
   }
 }
 
+const meetingIndexPath = path.join(outDir, 'apps', 'meeting-respawn', 'index.html');
+const meetingGamePath = path.join(outDir, 'apps', 'meeting-respawn', 'game.js');
+const meetingStylePath = path.join(outDir, 'apps', 'meeting-respawn', 'style.css');
+if (!fs.existsSync(meetingIndexPath) || !fs.existsSync(meetingGamePath) || !fs.existsSync(meetingStylePath)) {
+  problems.push('meeting-respawn: app assets missing');
+} else {
+  const meetingIndex = fs.readFileSync(meetingIndexPath, 'utf8');
+  const meetingGame = fs.readFileSync(meetingGamePath, 'utf8');
+  for (const required of ['会議リスポーン | LEVEL UP', './game.js', './style.css']) {
+    if (!meetingIndex.includes(required)) problems.push(`meeting-respawn: missing ${required}`);
+  }
+  for (const required of ['RESPAWN COMPLETE', '30秒だけやる', '始められた？', 'もっと小さくした']) {
+    if (!meetingGame.includes(required)) problems.push(`meeting-respawn: game flow missing ${required}`);
+  }
+}
+
 const home = fs.readFileSync(homePath, 'utf8');
 for (const asset of requiredHomeAssets) {
   if (!fs.existsSync(path.join(outDir, asset))) problems.push(`home: ${asset} missing`);
@@ -108,8 +124,8 @@ if (!home.includes('data-levelup-account') || !home.includes('data-page="home"')
   problems.push('home: shared LEVEL UP account missing');
 }
 
-if (catalog.games.length !== 23) {
-  problems.push(`catalog: expected 23 curated games, found ${catalog.games.length}`);
+if (catalog.games.length !== 24) {
+  problems.push(`catalog: expected 24 curated games, found ${catalog.games.length}`);
 }
 
 if (problems.length) {
