@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#101628" />
+  <meta name="description" content="『それ、誰の課題？』— 自分の課題と相手の課題を2択で分けるLEVEL UPゲーム" />
+  <title>それ、誰の課題？ | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+  <style>
+    .arena{height:470px}
+    .zone{opacity:.9;max-width:116px;line-height:1.25}
+    .zone b{font-size:15px}.zone small{display:block;font-size:8px;color:#7f8aa4;font-weight:700;margin-top:2px}
+    .zone-self{left:12px}.zone-other{right:12px;text-align:right;justify-content:flex-end}
+    .tap-controls button:nth-child(2){color:var(--pink)}
+    .result-hero strong{font-size:70px}.result-hero strong::after{content:'%';font-size:24px;margin-left:3px}
+    .review{margin:18px 0}.review-title{font-size:18px;margin:0 0 10px}.review-list{display:grid;gap:8px}
+    .review-item{border:1px solid #303b58;border-radius:16px;background:#141c30;padding:13px}
+    .review-item .review-no{display:block;font-size:9px;color:#71809a;font-weight:900;letter-spacing:.08em;margin-bottom:5px}
+    .review-item h3{font-size:14px;line-height:1.45;margin:0 0 8px}.review-item .review-answer{font-size:11px;font-weight:900;color:var(--lime);margin-bottom:4px}.review-item p{font-size:10px;line-height:1.55;color:#929db3;margin:0}
+    .perfect{border:1px solid rgba(186,244,90,.25);background:rgba(186,244,90,.05);border-radius:16px;padding:15px;color:#bcd08e;font-size:12px;line-height:1.6}
+    .how-grid{grid-template-columns:1fr 1fr}.how-grid div{display:block}.how-grid div:nth-child(2) b{color:var(--pink)}
+    @media(max-height:760px){.arena{height:405px}.card-stack{height:190px}.situation{top:42px}}
+  </style>
+</head>
+<body>
+  <main class="app-shell" id="app">
+    <header class="topbar">
+      <a class="brand" href="https://levelup.hitobito.jp/" aria-label="LEVEL UPトップへ戻る">
+        <span class="brand-mark">↗</span>
+        <span><b>LEVEL UP</b><small>thinking reflex game</small></span>
+      </a>
+      <button class="icon-button" id="soundBtn" type="button" aria-label="効果音のオンオフ">♪</button>
+    </header>
+
+    <section class="hero" id="heroScreen">
+      <div class="hero-copy">
+        <p class="eyebrow">課題の分離 TRAINING</p>
+        <h1>それ、<br><span>誰の課題？</span></h1>
+        <p class="lead">自分が選ぶことは、自分へ。<br>相手が選ぶことは、相手へ。</p>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+        <div class="person-core"><div class="head"></div><div class="body"></div></div>
+        <span class="float-card c1">上司の評価</span><span class="float-card c2">自分の準備</span>
+        <span class="float-card c3">相手の返事</span><span class="float-card c4">自分の一手</span>
+      </div>
+      <div class="hero-actions">
+        <button class="primary-button" id="startBtn" type="button">2択トレーニング開始 <span>→</span></button>
+        <button class="text-button" id="howBtn" type="button">遊び方を見る</button>
+      </div>
+      <p class="microcopy">1プレイ約2〜3分・18問</p>
+    </section>
+
+    <section class="game-screen hidden" id="gameScreen" aria-live="polite">
+      <div class="hud">
+        <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><span id="progressText">1 / 18</span></div>
+        <div class="combo-pill" id="comboPill">COMBO <b id="comboValue">0</b></div>
+      </div>
+      <div class="stage-label" id="stageLabel">LEVEL 1 · 日常</div>
+      <div class="arena" id="arena">
+        <div class="zone zone-self" data-zone="self"><span>←</span><div><b>自分の課題</b><small>自分が選ぶ・動く</small></div></div>
+        <div class="zone zone-other" data-zone="other"><div><b>相手の課題</b><small>相手が選ぶ・感じる</small></div><span>→</span></div>
+        <div class="situation" id="situationText">友人から返信がない。</div>
+        <div class="card-stack" id="cardStack">
+          <div class="task-card" id="taskCard" role="button" tabindex="0" aria-label="課題カード。左右にスワイプしてください">
+            <div class="card-grip"></div>
+            <p class="card-kicker">これは自分の課題？ それとも相手の課題？</p>
+            <h2 id="taskText">友人が、返信するかどうか</h2>
+            <p class="drag-hint" id="dragHint">← 自分　　相手 →</p>
+          </div>
+        </div>
+        <div class="feedback-burst hidden" id="feedbackBurst"><b id="feedbackTitle">SEPARATED!</b><span id="feedbackBody"></span></div>
+      </div>
+      <div class="weight-panel">
+        <div class="weight-person" id="weightPerson" aria-hidden="true"><div class="mini-head"></div><div class="mini-body"></div><div class="backpack" id="backpack"><span id="weightCount">0</span></div></div>
+        <div class="weight-copy"><b>背負っている相手の課題</b><span id="weightLabel">0個 — 身軽</span></div>
+      </div>
+      <div class="tap-controls">
+        <button type="button" data-answer="self">← 自分の課題</button>
+        <button type="button" data-answer="other">相手の課題 →</button>
+      </div>
+    </section>
+
+    <section class="result-screen hidden" id="resultScreen">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <h1>分けるほど、<br><span>身軽になる。</span></h1>
+      <div class="result-hero"><span>課題の分離 正解率</span><strong id="accuracyScore">0</strong><b id="correctCount">0 / 18</b></div>
+      <div class="score-grid">
+        <div class="score-card"><span>自分の課題</span><b id="selfScore">0%</b><small>自分の一手を拾えた率</small></div>
+        <div class="score-card"><span>相手の課題</span><b id="otherScore">0%</b><small>相手へ返せた率</small></div>
+      </div>
+      <div class="takeaway"><span>今日の反射</span><blockquote>「その結果を選ぶのは、誰？」</blockquote><p id="resultMessage">自分の一手だけを手元に残そう。</p></div>
+      <section class="review" id="mistakeReviewWrap"><h2 class="review-title">間違えた問題を振り返る</h2><div class="review-list" id="mistakeReview"></div></section>
+      <div class="result-actions"><button class="primary-button" id="retryBtn" type="button">もう1セッション <span>↻</span></button><button class="text-button" id="homeBtn" type="button">タイトルへ戻る</button></div>
+      <p class="disclaimer">※ 役割や責任の契約がある場面は現実では複雑です。このゲームでは「最終的に誰が選ぶか」を素早く見分ける練習をします。</p>
+    </section>
+  </main>
+
+  <dialog id="howDialog">
+    <div class="dialog-card">
+      <button class="dialog-close" id="closeHowBtn" type="button" aria-label="閉じる">×</button>
+      <p class="eyebrow">HOW TO PLAY</p><h2>2択だけ。</h2>
+      <div class="how-grid">
+        <div><b>← 自分の課題</b><span>自分が選ぶ・行動すること</span></div>
+        <div><b>相手の課題 →</b><span>相手が選ぶ・感じる・評価すること</span></div>
+      </div>
+      <p class="dialog-note">問題を読んで左右へスワイプ。迷ったら「その結果を最終的に選ぶのは誰？」で考える。</p>
+      <button class="primary-button" id="dialogStartBtn" type="button">やってみる <span>→</span></button>
+    </div>
+  </dialog>
+  <script src="./game.js"></script>
+</body>
+</html>
