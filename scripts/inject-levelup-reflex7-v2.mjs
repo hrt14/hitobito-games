@@ -33,6 +33,21 @@ fs.writeFileSync(gamePath, gameJs);
 const indexPath = path.join(appOutDir, 'index.html');
 let appHtml = fs.readFileSync(indexPath, 'utf8');
 appHtml = appHtml.replace('正解を暗記するゲームではありません。状況を見た瞬間の「最初の反応」を鍛えます。','習慣名を当てるゲームではありません。状況を見た瞬間の「最初の反応」を鍛えます。');
+
+// This app is copied after the shared home-link pass, so add the same persistent LEVEL UP control here.
+if (!appHtml.includes('id="levelup-home-fixed"')) {
+  const homeControl = `
+<style id="levelup-home-fixed-style">
+  #levelup-home-fixed{position:fixed;z-index:2147483647;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));width:46px;height:46px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.24);border-radius:15px;background:rgba(12,16,24,.82);color:#d8ff5b;text-decoration:none;box-shadow:0 8px 28px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  #levelup-home-fixed svg{width:24px;height:24px;display:block}
+  #levelup-home-fixed:active{transform:scale(.94)}
+</style>
+<a id="levelup-home-fixed" href="https://levelup.hitobito.jp/" aria-label="LEVEL UPトップへ戻る" title="LEVEL UPトップへ戻る">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 10.5 12 3.25l8.5 7.25v9.25a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</a>`;
+  if (appHtml.includes('</body>')) appHtml = appHtml.replace('</body>', `${homeControl}</body>`);
+  else appHtml += homeControl;
+}
 fs.writeFileSync(indexPath, appHtml);
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -87,10 +102,12 @@ fs.writeFileSync(homePath, html);
 
 const finalHtml = fs.readFileSync(homePath, 'utf8');
 const finalGame = fs.readFileSync(gamePath, 'utf8');
+const finalAppHtml = fs.readFileSync(indexPath, 'utf8');
 if (!finalHtml.includes(`data-game="${slug}"`)) throw new Error('REFLEX 7 card injection failed.');
 if (!finalHtml.includes('/apps/reflex-7/')) throw new Error('REFLEX 7 link missing.');
 if (!finalHtml.includes(`<span>${catalogCount} games</span>`)) throw new Error('REFLEX 7 catalog count mismatch.');
 if (!finalGame.includes("$('skillName').textContent='MIXED REFLEX'")) throw new Error('REFLEX 7 skill masking failed.');
+if (!finalAppHtml.includes('id="levelup-home-fixed"') || !finalAppHtml.includes('href="https://levelup.hitobito.jp/"') || !finalAppHtml.includes('<svg viewBox="0 0 24 24"')) throw new Error('REFLEX 7 persistent LEVEL UP home control missing.');
 if (!fs.existsSync(path.join(appOutDir, 'style.css'))) throw new Error('REFLEX 7 style missing from Firebase bundle.');
 
 console.log(`[Firebase] REFLEX 7 v2 bundled + injected (${catalogCount} catalog games)`);
