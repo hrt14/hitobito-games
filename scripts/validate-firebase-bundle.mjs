@@ -50,6 +50,12 @@ for (const game of manifest.games) {
   }
 }
 
+const ato5minIndexPath = path.join(outDir, 'apps', 'ato-5min', 'index.html');
+const ato5minIndex = fs.existsSync(ato5minIndexPath) ? fs.readFileSync(ato5minIndexPath, 'utf8') : '';
+if (!ato5minIndex.includes('./game.js?v=')) {
+  problems.push('ato-5min: versioned game.js reference missing');
+}
+
 const ato5minGamePath = path.join(outDir, 'apps', 'ato-5min', 'game.js');
 if (!fs.existsSync(ato5minGamePath)) {
   problems.push('ato-5min: game.js missing');
