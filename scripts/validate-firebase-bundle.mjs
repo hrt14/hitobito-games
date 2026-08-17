@@ -8,6 +8,7 @@ const outDir = path.join(root, '.dist', 'firebase');
 const manifestPath = path.join(outDir, 'manifest.json');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 const homePath = path.join(outDir, 'index.html');
+const requiredHomeAssets = ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'site.webmanifest'];
 
 if (!fs.existsSync(manifestPath) || !fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
   throw new Error('Firebase bundle is missing. Run npm run build:firebase first.');
@@ -50,6 +51,12 @@ for (const game of manifest.games) {
 }
 
 const home = fs.readFileSync(homePath, 'utf8');
+for (const asset of requiredHomeAssets) {
+  if (!fs.existsSync(path.join(outDir, asset))) problems.push(`home: ${asset} missing`);
+}
+for (const reference of ['/favicon.svg', '/favicon-32.png', '/apple-touch-icon.png', '/site.webmanifest']) {
+  if (!home.includes(`href="${reference}"`)) problems.push(`home: missing icon reference ${reference}`);
+}
 const manifestSlugs = new Set(manifest.games.map((game) => game.slug));
 for (const game of catalog.games) {
   if (!home.includes(`href="${game.href}"`)) {

@@ -6,6 +6,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const manifestPath = path.join(outDir, 'manifest.json');
+const brandAssetDir = path.join(root, 'assets', 'levelup');
 
 if (!fs.existsSync(manifestPath)) {
   throw new Error('Firebase manifest not found. Run npm run build:hosting first.');
@@ -46,6 +47,28 @@ for (const game of catalog) {
 
 const games = [...catalog].sort((a,b)=> b.updateCount !== a.updateCount ? b.updateCount-a.updateCount : catalog.indexOf(a)-catalog.indexOf(b));
 
+const iconFiles = ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
+for (const file of iconFiles) {
+  const source = path.join(brandAssetDir, file);
+  if (!fs.existsSync(source)) throw new Error(`LEVEL UP icon asset is missing: ${file}`);
+  fs.copyFileSync(source, path.join(outDir, file));
+}
+
+fs.writeFileSync(path.join(outDir, 'site.webmanifest'), JSON.stringify({
+  name: 'hitobito LEVEL UP',
+  short_name: 'LEVEL UP',
+  description: '遊んで、生きる力を鍛える。',
+  start_url: '/',
+  scope: '/',
+  display: 'standalone',
+  background_color: '#090b08',
+  theme_color: '#d8ff5b',
+  icons: [
+    { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+  ],
+}, null, 2) + '\n');
+
 fs.writeFileSync(path.join(outDir,'levelup-catalog.json'),JSON.stringify({version:1,games:games.map(({special,...game})=>game)},null,2)+'\n');
 
 function escapeHtml(value){return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');}
@@ -71,6 +94,13 @@ const html = `<!doctype html>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d08" />
   <meta name="description" content="遊ぶだけで、考え方の癖を鍛える。hitobito LEVEL UP。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LEVEL UP" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+  <link rel="manifest" href="/site.webmanifest" />
   <title>LEVEL UP | hitobito</title>
   <style>
     :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;color:#f6f8f1;background:#090b08;--lime:#d8ff5b;--muted:#aab09f;--line:rgba(216,255,91,.17)}
