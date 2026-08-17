@@ -6,15 +6,17 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..', '..');
 const out = path.join(root, '.dist', 'firebase');
 const targetDir = path.join(out, 'apps', 'hitori-shouten');
-const sourceIndex = path.join(here, 'index.html');
 const homePath = path.join(out, 'index.html');
 const catalogPath = path.join(out, 'levelup-catalog.json');
+const sourceFiles = ['index.html', 'style.css', 'game.js'];
 
-if (!fs.existsSync(sourceIndex)) throw new Error('hitori-shouten source is missing.');
+for (const file of sourceFiles) {
+  if (!fs.existsSync(path.join(here, file))) throw new Error(`hitori-shouten source is missing: ${file}`);
+}
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) throw new Error('Firebase LEVEL UP home/catalog is missing.');
 
 fs.mkdirSync(targetDir, { recursive: true });
-fs.copyFileSync(sourceIndex, path.join(targetDir, 'index.html'));
+for (const file of sourceFiles) fs.copyFileSync(path.join(here, file), path.join(targetDir, file));
 
 const game = {
   slug: 'hitori-shouten',
@@ -67,8 +69,10 @@ if (afterCount !== beforeCount) {
 fs.writeFileSync(homePath, html);
 
 const finalHtml = fs.readFileSync(homePath, 'utf8');
-const liveIndex = path.join(targetDir, 'index.html');
-if (!fs.existsSync(liveIndex) || fs.statSync(liveIndex).size < 10000) throw new Error('hitori-shouten app copy failed.');
+for (const file of sourceFiles) {
+  const liveFile = path.join(targetDir, file);
+  if (!fs.existsSync(liveFile) || fs.statSync(liveFile).size < 1000) throw new Error(`hitori-shouten asset copy failed: ${file}`);
+}
 if (!finalHtml.includes('data-game="hitori-shouten"')) throw new Error('hitori-shouten LEVEL UP card injection failed.');
 if (!finalHtml.includes('data-new="true"')) throw new Error('hitori-shouten NEW marker missing.');
 if (!finalHtml.includes('売上につながる一手を先に選びやすくなる')) throw new Error('hitori-shouten value metadata missing.');
