@@ -2,6 +2,30 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function validVisitorId(visitorId) {
+      return visitorId is string
+        && visitorId.matches('^[a-z0-9]{16,40}$');
+    }
+
+    function validUserId(userId) {
+      return userId is string && userId.size() <= 128;
+    }
+
+    function validAnalyticsIdentity(data) {
+      return validUserId(data.userId)
+        && data.authState in ['anonymous', 'signed_in']
+        && (
+          (data.authState == 'anonymous' && data.userId == '')
+          || (data.authState == 'signed_in'
+            && request.auth != null
+            && data.userId == request.auth.uid)
+        );
+    }
+
+    function validAnalyticsSlug(slug) {
+      return slug is string && slug.matches('^(home|[a-z0-9-]{1,64})$');
+    }
+
     match /levelupUsers/{userId} {
       allow read, create, update, delete: if request.auth != null
         && request.auth.uid == userId;
@@ -48,14 +72,114 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // One opaque document per play session. It records only app/build/status and
-    // sanitized step/action tokens; public clients cannot read or delete session logs.
+    // Stable, privacy-preserving browser visitor records. No email, display name,
+    // device fingerprint or other profile data is stored here.
+    match /levelupVisitors/{visitorId} {
+      allow read, delete: if false;
+      allow create: if validVisitorId(visitorId)
+        && request.resource.data.keys().hasOnly(['visitorId', 'userId', 'authState', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.visitorId == visitorId
+        && validAnalyticsIdentity(request.resource.data)
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount == 1
+        && request.resource.data.lastSeenAt == request.time;
+      allow update: if validVisitorId(visitorId)
+        && request.resource.data.keys().hasOnly(['visitorId', 'userId', 'authState', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.visitorId == resource.data.visitorId
+        && request.resource.data.visitorId == visitorId
+        && validAnalyticsIdentity(request.resource.data)
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount in [resource.data.sessionCount, resource.data.sessionCount + 1]
+        && request.resource.data.lastSeenAt == request.time;
+    }
+
+    // One document per browser visitor per Japan-calendar day. Counting these documents
+    // gives LEVEL UP DAU without storing personal profile information.
+    match /levelupVisitorDays/{date}/visitors/{visitorId} {
+      allow read, delete: if false;
+      allow create: if date.matches('^[0-9]{8}$')
+        && validVisitorId(visitorId)
+        && request.resource.data.keys().hasOnly(['date', 'visitorId', 'userId', 'authState', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.date == date
+        && request.resource.data.visitorId == visitorId
+        && validAnalyticsIdentity(request.resource.data)
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount == 1
+        && request.resource.data.lastSeenAt == request.time;
+      allow update: if date.matches('^[0-9]{8}$')
+        && validVisitorId(visitorId)
+        && request.resource.data.keys().hasOnly(['date', 'visitorId', 'userId', 'authState', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.date == date
+        && request.resource.data.visitorId == resource.data.visitorId
+        && request.resource.data.visitorId == visitorId
+        && validAnalyticsIdentity(request.resource.data)
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount in [resource.data.sessionCount, resource.data.sessionCount + 1]
+        && request.resource.data.lastSeenAt == request.time;
+    }
+
+    // One aggregate record per authenticated user. This allows logged-in user totals
+    // and recent-active counts while remaining writeable only by that Firebase user.
+    match /levelupLoginUsers/{userId} {
+      allow read, delete: if false;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['userId', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.userId == userId
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount == 1
+        && request.resource.data.lastSeenAt == request.time;
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['userId', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.userId == userId
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount in [resource.data.sessionCount, resource.data.sessionCount + 1]
+        && request.resource.data.lastSeenAt == request.time;
+    }
+
+    // One document per authenticated user per Japan-calendar day = signed-in DAU.
+    match /levelupLoginDays/{date}/users/{userId} {
+      allow read, delete: if false;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && date.matches('^[0-9]{8}$')
+        && request.resource.data.keys().hasOnly(['date', 'userId', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.date == date
+        && request.resource.data.userId == userId
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount == 1
+        && request.resource.data.lastSeenAt == request.time;
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && date.matches('^[0-9]{8}$')
+        && request.resource.data.keys().hasOnly(['date', 'userId', 'lastSlug', 'sessionCount', 'lastSeenAt'])
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.date == date
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.userId == userId
+        && validAnalyticsSlug(request.resource.data.lastSlug)
+        && request.resource.data.sessionCount is int
+        && request.resource.data.sessionCount in [resource.data.sessionCount, resource.data.sessionCount + 1]
+        && request.resource.data.lastSeenAt == request.time;
+    }
+
+    // One opaque document per LEVEL UP page/game session. New analytics fields are
+    // optional for backward compatibility with an already-open pre-deploy page.
     match /levelupSessions/{sessionId} {
       allow read, delete: if false;
       allow create: if sessionId.matches('^[a-z0-9]{8,40}$')
-        && request.resource.data.keys().hasOnly(['slug', 'buildSha', 'status', 'lastStep', 'lastAction', 'startedAt', 'lastSeenAt'])
-        && request.resource.data.slug is string
-        && request.resource.data.slug.matches('^[a-z0-9-]{1,64}$')
+        && request.resource.data.keys().hasOnly(['slug', 'buildSha', 'status', 'lastStep', 'lastAction', 'startedAt', 'lastSeenAt', 'visitorId', 'userId', 'authState', 'pageKind', 'durationSec'])
+        && validAnalyticsSlug(request.resource.data.slug)
         && request.resource.data.buildSha is string
         && request.resource.data.buildSha.size() >= 4
         && request.resource.data.buildSha.size() <= 12
@@ -65,8 +189,12 @@ service cloud.firestore {
         && request.resource.data.lastAction is string
         && request.resource.data.lastAction.size() <= 80
         && request.resource.data.startedAt == request.time
-        && request.resource.data.lastSeenAt == request.time;
-      allow update: if request.resource.data.keys().hasOnly(['slug', 'buildSha', 'status', 'lastStep', 'lastAction', 'startedAt', 'lastSeenAt'])
+        && request.resource.data.lastSeenAt == request.time
+        && (!('visitorId' in request.resource.data) || validVisitorId(request.resource.data.visitorId))
+        && (!('userId' in request.resource.data) || validAnalyticsIdentity(request.resource.data))
+        && (!('pageKind' in request.resource.data) || request.resource.data.pageKind in ['home', 'game'])
+        && (!('durationSec' in request.resource.data) || (request.resource.data.durationSec is int && request.resource.data.durationSec >= 0 && request.resource.data.durationSec <= 86400));
+      allow update: if request.resource.data.keys().hasOnly(['slug', 'buildSha', 'status', 'lastStep', 'lastAction', 'startedAt', 'lastSeenAt', 'visitorId', 'userId', 'authState', 'pageKind', 'durationSec'])
         && request.resource.data.slug == resource.data.slug
         && request.resource.data.buildSha == resource.data.buildSha
         && request.resource.data.startedAt == resource.data.startedAt
@@ -75,7 +203,13 @@ service cloud.firestore {
         && request.resource.data.lastStep.size() <= 60
         && request.resource.data.lastAction is string
         && request.resource.data.lastAction.size() <= 80
-        && request.resource.data.lastSeenAt == request.time;
+        && request.resource.data.lastSeenAt == request.time
+        && (!('visitorId' in request.resource.data) || validVisitorId(request.resource.data.visitorId))
+        && (!('visitorId' in resource.data) || request.resource.data.visitorId == resource.data.visitorId)
+        && (!('userId' in request.resource.data) || validAnalyticsIdentity(request.resource.data))
+        && (!('pageKind' in request.resource.data) || request.resource.data.pageKind in ['home', 'game'])
+        && (!('pageKind' in resource.data) || request.resource.data.pageKind == resource.data.pageKind)
+        && (!('durationSec' in request.resource.data) || (request.resource.data.durationSec is int && request.resource.data.durationSec >= 0 && request.resource.data.durationSec <= 86400));
     }
   }
 }
