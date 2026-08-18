@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#080b0a" />
+  <meta name="description" content="嫌な気分に巻き込まれ続けない。60〜90秒で、今の感情の強度を少し下げて日常へ戻るLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>ぬける。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="step-dots" id="stepDots" aria-label="進行状況">
+        <i class="active"></i><i></i><i></i><i></i><i></i>
+      </div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="音をオフにする">♪</button>
+    </header>
+
+    <section class="screen active" id="startScreen" data-step="0">
+      <div class="hero-copy">
+        <p class="eyebrow">60–90 SEC RESET</p>
+        <h1>ぬける<span>。</span></h1>
+        <p class="lead">解決しなくていい。<br><strong>まず、嫌さを少し下げる。</strong></p>
+      </div>
+
+      <div class="intensity-card">
+        <div class="intensity-head">
+          <span>今の「嫌さ」</span>
+          <strong><b id="beforeValue">7</b><small>/10</small></strong>
+        </div>
+        <input id="beforeRange" class="intensity-range" type="range" min="0" max="10" step="1" value="7" aria-label="今の嫌な気分の強さ" />
+        <div class="range-labels"><span>平気</span><span>かなり嫌</span></div>
+      </div>
+
+      <button class="primary-btn" id="startBtn" type="button"><span>ここから抜ける</span><b>→</b></button>
+      <p class="microcopy">理由は入力しません。約1分、画面に合わせるだけ。</p>
+
+      <div class="local-stats" id="localStats" hidden>
+        <span>これまで <b id="playCount">0</b>回</span>
+        <span>平均 <b id="averageDrop">0</b>ぬけた</span>
+      </div>
+    </section>
+
+    <section class="screen" id="emotionScreen" data-step="1">
+      <div class="screen-copy compact">
+        <p class="eyebrow">STEP 1 / NAME IT LIGHTLY</p>
+        <h2>近いものを<br>ひとつだけ。</h2>
+        <p>正解はありません。考え込まず、今いちばん近いもの。</p>
+      </div>
+      <div class="emotion-grid" id="emotionGrid"></div>
+      <button class="text-btn" id="emotionSkipBtn" type="button">選ばず進む →</button>
+    </section>
+
+    <section class="screen" id="breatheScreen" data-step="2">
+      <div class="screen-copy centered">
+        <p class="eyebrow">STEP 2 / LET THE BODY LEAD</p>
+        <h2 id="breatheTitle">画面に合わせる。</h2>
+        <p id="breatheLead">苦しくない範囲で。吐く方を少し長めに。</p>
+      </div>
+
+      <div class="breath-stage" id="breathStage" aria-live="polite">
+        <div class="fog fog-a"></div><div class="fog fog-b"></div><div class="fog fog-c"></div>
+        <div class="breath-ring" id="breathRing">
+          <div class="breath-core">
+            <span id="breathPhase">準備</span>
+            <strong id="breathCount">3</strong>
+          </div>
+        </div>
+        <div class="cycle-dots" id="cycleDots"><i></i><i></i><i></i></div>
+      </div>
+
+      <button class="secondary-btn" id="breatheSkipBtn" type="button">呼吸は飛ばす</button>
+      <p class="safety-note">息苦しさ・めまい・違和感があれば、呼吸を止めず普段どおりに戻してください。</p>
+    </section>
+
+    <section class="screen" id="throwScreen" data-step="3">
+      <div class="screen-copy centered">
+        <p class="eyebrow">STEP 3 / CREATE DISTANCE</p>
+        <h2>それを、<br>ここから遠ざける。</h2>
+        <p>解決ではなく距離。黒いモヤを上へ放り投げる。</p>
+      </div>
+
+      <div class="throw-stage" id="throwStage">
+        <div class="horizon"></div>
+        <div class="throw-target">遠くへ</div>
+        <div class="mood-blob" id="moodBlob" role="button" tabindex="0" aria-label="モヤを上へスワイプして遠ざける">
+          <span id="blobLabel">この嫌さ</span>
+          <i></i><i></i><i></i>
+        </div>
+        <div class="throw-hint" id="throwHint">↑ 上へスワイプ</div>
+      </div>
+
+      <button class="secondary-btn" id="throwFallbackBtn" type="button">タップで遠くへ飛ばす ↑</button>
+    </section>
+
+    <section class="screen" id="afterScreen" data-step="4">
+      <div class="screen-copy compact">
+        <p class="eyebrow">LAST / CHECK AGAIN</p>
+        <h2>今は、<br>どのくらい？</h2>
+        <p>下がっていなくても失敗ではありません。今の数字をそのまま。</p>
+      </div>
+
+      <div class="intensity-card after">
+        <div class="intensity-head">
+          <span>今の「嫌さ」</span>
+          <strong><b id="afterValue">5</b><small>/10</small></strong>
+        </div>
+        <input id="afterRange" class="intensity-range" type="range" min="0" max="10" step="1" value="5" aria-label="今の嫌な気分の強さ（終了時）" />
+        <div class="range-labels"><span>平気</span><span>かなり嫌</span></div>
+      </div>
+
+      <button class="primary-btn" id="finishBtn" type="button"><span>結果を見る</span><b>→</b></button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen" data-step="5">
+      <div class="result-orbit" aria-hidden="true"><i></i><i></i></div>
+      <p class="eyebrow">RESET COMPLETE</p>
+      <div class="drop-result">
+        <strong id="dropValue">2</strong>
+        <span id="dropUnit">ぬけた。</span>
+      </div>
+      <p class="result-copy" id="resultCopy">解決してなくてもいい。<br>少し距離ができれば、今日はそれで十分。</p>
+      <div class="before-after" id="beforeAfter"><span>BEFORE <b>7</b></span><i>→</i><span>NOW <b>5</b></span></div>
+      <div class="result-actions">
+        <button class="primary-btn" id="againBtn" type="button"><span>もう一度</span><b>↻</b></button>
+        <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      </div>
+      <p class="privacy-note">入力した強度・選択はこの端末内にだけ保存されます。自由記述はありません。</p>
+    </section>
+  </main>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
