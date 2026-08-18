@@ -71,7 +71,9 @@
   }
 
   function setIntensity(value){
-    root.style.setProperty('--intensity', String(Math.max(0, Math.min(1, value / 10))));
+    const normalized = Math.max(0, Math.min(1, value / 10));
+    root.style.setProperty('--intensity', String(normalized));
+    root.style.setProperty('--fog-opacity', String(0.25 + normalized * 0.55));
   }
 
   function updateRange(input, output, key){
@@ -84,7 +86,7 @@
     const active = $(id);
     const step = Number(active?.dataset.step ?? 0);
     dots.forEach((dot, i) => dot.classList.toggle('active', i === Math.min(step, 4)));
-    window.scrollTo({top:0, behavior:'instant'});
+    window.scrollTo({top:0, behavior:'auto'});
   }
 
   function renderEmotions(){
@@ -156,7 +158,7 @@
     state.thrown = false; state.drag = null;
     const blob = $('moodBlob');
     blob.classList.remove('thrown'); blob.style.transform = ''; blob.style.opacity = '1';
-    blob.style.setProperty('--throw-x','0px'); blob.style.setProperty('--throw-r','10deg');
+    blob.style.setProperty('--throw-x','0px'); blob.style.setProperty('--throw-x2','0px'); blob.style.setProperty('--throw-r','10deg');
     $('throwHint').textContent = '↑ 上へスワイプ';
   }
 
@@ -165,7 +167,9 @@
     state.thrown = true;
     const blob = $('moodBlob');
     blob.style.transform = '';
-    blob.style.setProperty('--throw-x', `${Math.max(-90,Math.min(90,dx))}px`);
+    const throwX = Math.max(-90, Math.min(90, dx));
+    blob.style.setProperty('--throw-x', `${throwX}px`);
+    blob.style.setProperty('--throw-x2', `${throwX * 1.7}px`);
     blob.style.setProperty('--throw-r', `${Math.max(-24,Math.min(24,dx/4))}deg`);
     blob.classList.add('thrown');
     $('throwHint').textContent = '距離ができた。';
