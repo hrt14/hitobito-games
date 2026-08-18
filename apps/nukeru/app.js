@@ -17,7 +17,7 @@
 
   const state = {
     before: 7,
-    after: 5,
+    after: 7,
     emotion: null,
     sound: true,
     breathTimer: null,
@@ -207,9 +207,8 @@
 
   function showResult(){
     const drop = state.before - state.after;
-    const positiveDrop = Math.max(0, drop);
-    $('dropValue').textContent = positiveDrop;
-    $('dropUnit').textContent = drop > 0 ? 'ぬけた。' : drop === 0 ? 'そのまま。' : '今は上がった。';
+    $('dropValue').textContent = Math.abs(drop);
+    $('dropUnit').textContent = drop > 0 ? 'ぬけた。' : drop === 0 ? 'そのまま。' : '上がった。';
     $('beforeAfter').innerHTML = `<span>BEFORE <b>${state.before}</b></span><i>→</i><span>NOW <b>${state.after}</b></span>`;
     if (drop >= 4) $('resultCopy').innerHTML = 'かなり距離ができた。<br>今は、戻れた感覚だけ持って終わる。';
     else if (drop > 0) $('resultCopy').innerHTML = '解決してなくてもいい。<br>少し距離ができれば、今日はそれで十分。';
@@ -237,7 +236,7 @@
   function reset(){
     clearBreathing(); state.emotion=null; state.thrown=false; state.drag=null;
     $('beforeRange').value='7'; updateRange($('beforeRange'), $('beforeValue'), 'before');
-    $('afterRange').value='5'; $('afterValue').textContent='5'; state.after=5;
+    $('afterRange').value='7'; $('afterValue').textContent='7'; state.after=7;
     renderHistory(); setScreen('startScreen');
   }
 
