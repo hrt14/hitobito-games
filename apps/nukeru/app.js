@@ -87,6 +87,7 @@
     const step = Number(active?.dataset.step ?? 0);
     dots.forEach((dot, i) => dot.classList.toggle('active', i === Math.min(step, 4)));
     window.scrollTo({top:0, behavior:'auto'});
+    try { window.LevelUpTelemetry?.step?.(id.replace(/Screen$/, '')); } catch {}
   }
 
   function renderEmotions(){
@@ -176,7 +177,7 @@
     $('flash').classList.remove('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
     tone(620,.15,.03); setTimeout(()=>tone(820,.2,.018),90); vibrate([10,28,15]);
     setTimeout(() => {
-      $('afterRange').value = String(Math.max(0, state.before - 2));
+      $('afterRange').value = String(state.before);
       updateRange($('afterRange'), $('afterValue'), 'after');
       setScreen('afterScreen');
     }, 820);
@@ -218,16 +219,18 @@
     const entry = {t:Date.now(), before:state.before, after:state.after, drop, emotion:state.emotion?.id || null};
     history.sessions.push(entry); history.sessions = history.sessions.slice(-60); saveHistory();
     setIntensity(state.after); setScreen('resultScreen');
+    try { window.LevelUpTelemetry?.complete?.('result'); } catch {}
     tone(drop > 0 ? 660 : 380,.16,.025);
   }
 
   function renderHistory(){
     const sessions = history.sessions;
     if (!sessions.length) { $('localStats').hidden = true; return; }
-    const drops = sessions.map(s => Math.max(0, Number(s.drop)||0));
-    const average = drops.reduce((a,b)=>a+b,0) / drops.length;
+    const changes = sessions.map(s => Number(s.drop) || 0);
+    const average = changes.reduce((a,b)=>a+b,0) / changes.length;
+    const amount = Math.abs(average).toFixed(1).replace('.0','');
     $('playCount').textContent = sessions.length;
-    $('averageDrop').textContent = average.toFixed(1).replace('.0','');
+    $('averageDrop').textContent = average > 0 ? `${amount}↓` : average < 0 ? `${amount}↑` : '0';
     $('localStats').hidden = false;
   }
 
