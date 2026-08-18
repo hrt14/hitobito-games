@@ -1,3 +1,4 @@
-Deploy 思考の階段 to LEVEL UP
-Triggered after implementation, LEVEL UP classification, catalog integration, and mobile interaction review
-Triggered at 2026-08-18T16:46:00+09:00
+Deploy LEVEL UP Google login fix
+Mobile: same-origin redirect auth on levelup.hitobito.jp
+Desktop: popup auth
+Triggered at 2026-08-18T16:55:00+09:00
