@@ -14,7 +14,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: firebase-levelup-force-production
+  group: firebase-levelup-production
   cancel-in-progress: false
 
 jobs:
@@ -47,30 +47,54 @@ jobs:
           set -o pipefail
           npm run build:firebase 2>&1 | tee /tmp/firebase-build.log
 
-      - name: Assert Thinking Stairs bundle
+      - name: Assert LEVEL UP bundle
         run: |
           set -euo pipefail
-          test -s .dist/firebase/apps/thinking-stairs/index.html
-          test -s .dist/firebase/apps/thinking-stairs/game.js
-          test -s .dist/firebase/apps/thinking-stairs/style.css
-          grep -F 'data-game="thinking-stairs"' .dist/firebase/index.html >/dev/null
-          grep -F '/apps/thinking-stairs/' .dist/firebase/levelup-catalog.json >/dev/null
+          test -s .dist/firebase/apps/big-tech-interview/index.html
+          grep -F '面接官は、答えを知らない。 | LEVEL UP' .dist/firebase/apps/big-tech-interview/index.html >/dev/null
+          grep -F '/apps/big-tech-interview/' .dist/firebase/levelup-catalog.json >/dev/null
+          grep -F 'data-game="big-tech-interview"' .dist/firebase/index.html >/dev/null
+          node - <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('.dist/firebase/manifest.json', 'utf8'));
+          const catalog = JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json', 'utf8'));
+          const manifestLevelup = manifest.games.filter((g) => g.category === 'levelup');
+          const catalogSlugs = new Set(catalog.games.map((g) => g.slug));
+          const missing = manifestLevelup.filter((g) => !catalogSlugs.has(g.slug));
+          if (missing.length) throw new Error(`Manifest LEVEL UP games missing from catalog: ${missing.map((g) => g.slug).join(', ')}`);
+          console.log(`Bundle coverage OK: ${manifestLevelup.length} manifest LEVEL UP apps, ${catalog.games.length} catalog games`);
+          NODE
 
       - name: Deploy Firebase Hosting
         run: |
           set -o pipefail
           npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-deploy.log
 
-      - name: Verify Thinking Stairs live
+      - name: Verify LEVEL UP live
         run: |
           set -euo pipefail
           sleep 5
+          expected_games=$(node -e "const fs=require('fs');console.log(JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json','utf8')).games.length)")
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             echo "Checking $base"
-            curl -fLsS --max-time 30 "$base/apps/thinking-stairs/" -o /tmp/thinking-stairs.html
-            grep -F '思考の階段 | LEVEL UP' /tmp/thinking-stairs.html >/dev/null
             curl -fLsS --max-time 30 "$base/" -o /tmp/levelup-home.html
-            grep -F 'data-game="thinking-stairs"' /tmp/levelup-home.html >/dev/null
+            grep -F "${expected_games} games" /tmp/levelup-home.html >/dev/null
+            grep -F 'data-game="big-tech-interview"' /tmp/levelup-home.html >/dev/null
+
+            curl -fLsS --max-time 30 "$base/apps/big-tech-interview/" -o /tmp/big-tech-interview.html
+            grep -F '面接官は、答えを知らない。 | LEVEL UP' /tmp/big-tech-interview.html >/dev/null
+
+            node - "$base" <<'NODE'
+          const fs = require('fs');
+          const { execFileSync } = require('child_process');
+          const base = process.argv[2];
+          const catalog = JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json', 'utf8'));
+          for (const game of catalog.games) {
+            const url = new URL(game.href, base).href;
+            execFileSync('curl', ['-fLsS', '--max-time', '30', '-o', '/dev/null', url], { stdio: 'inherit' });
+          }
+          console.log(`Live route coverage OK: ${catalog.games.length} games on ${base}`);
+          NODE
           done
 
       - name: Report success
@@ -78,9 +102,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          count=$(node -e "const fs=require('fs');console.log(JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json','utf8')).games.length)")
           gh issue create --repo "$GITHUB_REPOSITORY" \
-            --title "Firebase deploy OK: Thinking Stairs ${GITHUB_SHA::7}" \
-            --body "Force Firebase deploy succeeded. Thinking Stairs exists on both hitobito-levelup.web.app and levelup.hitobito.jp, and its home card is present. Commit: $GITHUB_SHA"
+            --title "Firebase deploy OK: LEVEL UP ${GITHUB_SHA::7}" \
+            --body "Firebase deploy succeeded. All ${count} LEVEL UP catalog routes were checked on hitobito-levelup.web.app and levelup.hitobito.jp. BIG TECH THINKING TEST is present on the home page and its app route is live. Commit: $GITHUB_SHA"
 
       - name: Report failure
         if: failure()
@@ -88,20 +113,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            echo 'Force Firebase deploy failed.'
+            echo 'LEVEL UP Firebase deploy failed.'
             echo
             echo "Commit: $GITHUB_SHA"
             echo
             echo '### Build log tail'
             echo '```text'
-            if [ -f /tmp/firebase-build.log ]; then tail -n 120 /tmp/firebase-build.log; else echo '(build log unavailable)'; fi
+            if [ -f /tmp/firebase-build.log ]; then tail -n 160 /tmp/firebase-build.log; else echo '(build log unavailable)'; fi
             echo '```'
             echo
             echo '### Deploy log tail'
             echo '```text'
-            if [ -f /tmp/firebase-deploy.log ]; then tail -n 120 /tmp/firebase-deploy.log; else echo '(deploy log unavailable)'; fi
+            if [ -f /tmp/firebase-deploy.log ]; then tail -n 160 /tmp/firebase-deploy.log; else echo '(deploy log unavailable)'; fi
             echo '```'
           } > /tmp/firebase-report.md
           gh issue create --repo "$GITHUB_REPOSITORY" \
-            --title "Firebase deploy FAILED: Thinking Stairs ${GITHUB_SHA::7}" \
+            --title "Firebase deploy FAILED: LEVEL UP ${GITHUB_SHA::7}" \
             --body-file /tmp/firebase-report.md
