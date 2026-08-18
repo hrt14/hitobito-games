@@ -81,8 +81,27 @@ if (!fs.existsSync(meetingIndexPath) || !fs.existsSync(meetingGamePath) || !fs.e
   for (const required of ['会議リスポーン | LEVEL UP', './game.js', './style.css']) {
     if (!meetingIndex.includes(required)) problems.push(`meeting-respawn: missing ${required}`);
   }
-  for (const required of ['RESPAWN COMPLETE', '30秒だけやる', '始められた？', 'もっと小さくした']) {
-    if (!meetingGame.includes(required)) problems.push(`meeting-respawn: game flow missing ${required}`);
+  for (const required of ['頭の残響を、置く。', '仕事の前に、休む。', '頭の霧、どう？', '次じゃなく、戻り口。', 'RESPAWN COMPLETE']) {
+    if (!meetingGame.includes(required)) problems.push(`meeting-respawn: recovery flow missing ${required}`);
+  }
+  for (const stale of ['30秒だけやる', '始められた？', 'もっと小さくした']) {
+    if (meetingGame.includes(stale)) problems.push(`meeting-respawn: stale pre-recovery flow still present ${stale}`);
+  }
+}
+
+const thinkingIndexPath = path.join(outDir, 'apps', 'thinking-stairs', 'index.html');
+const thinkingGamePath = path.join(outDir, 'apps', 'thinking-stairs', 'game.js');
+const thinkingStylePath = path.join(outDir, 'apps', 'thinking-stairs', 'style.css');
+if (!fs.existsSync(thinkingIndexPath) || !fs.existsSync(thinkingGamePath) || !fs.existsSync(thinkingStylePath)) {
+  problems.push('thinking-stairs: app assets missing');
+} else {
+  const thinkingIndex = fs.readFileSync(thinkingIndexPath, 'utf8');
+  const thinkingGame = fs.readFileSync(thinkingGamePath, 'utf8');
+  for (const required of ['思考の階段 | LEVEL UP', './game.js', './style.css']) {
+    if (!thinkingIndex.includes(required)) problems.push(`thinking-stairs: missing ${required}`);
+  }
+  for (const required of ['思考の高さより、', '切り替え。', '高い段ほど偉いわけではない', 'THINKING STAIRS']) {
+    if (!thinkingGame.includes(required)) problems.push(`thinking-stairs: game flow missing ${required}`);
   }
 }
 
