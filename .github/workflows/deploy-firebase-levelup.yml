@@ -69,10 +69,11 @@ jobs:
           test -s .dist/firebase/apps/ato-5min/game.js
           test -s .dist/firebase/apps/watashi-zukan/game.js
           grep -F 'signInWithPopup(provider)' .dist/firebase/levelup-account.js >/dev/null
-          ! grep -F 'signInWithRedirect(provider)' .dist/firebase/levelup-account.js
-          ! grep -F 'getRedirectResult()' .dist/firebase/levelup-account.js
+          grep -F 'signInWithRedirect(provider)' .dist/firebase/levelup-account.js >/dev/null
+          grep -F 'getRedirectResult()' .dist/firebase/levelup-account.js >/dev/null
+          grep -F "config.authDomain = location.hostname" .dist/firebase/levelup-account.js >/dev/null
           grep -F "fetch('/__/firebase/init.json'" .dist/firebase/levelup-account.js >/dev/null
-          grep -F "sessionStorage.removeItem('levelup-auth-redirect-pending-v4')" .dist/firebase/levelup-account.js >/dev/null
+          grep -F "sessionStorage.setItem('levelup-auth-redirect-pending-v5'" .dist/firebase/levelup-account.js >/dev/null
           grep -F 'Googleログインが完了しました。' .dist/firebase/levelup-account.js >/dev/null
           grep -F "(code ? '（' + code + '）' : '')" .dist/firebase/levelup-account.js >/dev/null
           grep -F 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js' .dist/firebase/index.html >/dev/null
@@ -95,7 +96,7 @@ jobs:
           ! grep -F 'data-answer="outside"' .dist/firebase/apps/task-separation/index.html
           grep -F '間違えた問題を振り返る' .dist/firebase/apps/task-separation/index.html >/dev/null
           node scripts/audit-firebase-mobile.mjs
-          echo "Mobile loader, Firebase 12 popup auth, explicit diagnostics, inline style, and task-separation checks OK"
+          echo "Mobile loader, Firebase 12 same-origin redirect auth, desktop popup auth, explicit diagnostics, inline style, and task-separation checks OK"
 
       - name: Deploy to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -120,6 +121,8 @@ jobs:
             ! grep -F '/__/firebase/init.js' /tmp/levelup-home.html
 
             curl -fLsS "$base/__/firebase/init.json" -o /tmp/firebase-init.json
+            curl -fLsS "$base/__/auth/handler" -o /tmp/firebase-auth-handler.html
+            test -s /tmp/firebase-auth-handler.html
             node - "$base" <<'NODE'
           const fs = require('fs');
           const base = process.argv[2];
@@ -158,8 +161,10 @@ jobs:
             curl -fLsS "$base/levelup-account.js" -o /tmp/levelup-account.js
             grep -F 'GoogleAuthProvider' /tmp/levelup-account.js >/dev/null
             grep -F 'signInWithPopup(provider)' /tmp/levelup-account.js >/dev/null
-            ! grep -F 'signInWithRedirect(provider)' /tmp/levelup-account.js
-            ! grep -F 'getRedirectResult()' /tmp/levelup-account.js
+            grep -F 'signInWithRedirect(provider)' /tmp/levelup-account.js >/dev/null
+            grep -F 'getRedirectResult()' /tmp/levelup-account.js >/dev/null
+            grep -F "config.authDomain = location.hostname" /tmp/levelup-account.js >/dev/null
+            grep -F "sessionStorage.setItem('levelup-auth-redirect-pending-v5'" /tmp/levelup-account.js >/dev/null
             grep -F "fetch('/__/firebase/init.json'" /tmp/levelup-account.js >/dev/null
             grep -F 'Googleログインが完了しました。' /tmp/levelup-account.js >/dev/null
             grep -F "(code ? '（' + code + '）' : '')" /tmp/levelup-account.js >/dev/null
@@ -169,5 +174,5 @@ jobs:
             grep -F '意味マップ | LEVEL UP' /tmp/meaning-map.html >/dev/null
             curl -fLsS "$base/apps/meaning-map/game.js" -o /tmp/meaning-map.js
             grep -F "const LENSES" /tmp/meaning-map.js >/dev/null
-            echo "OK: $base all ${expected_games} routes + Firebase 12 popup auth + explicit diagnostics + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
+            echo "OK: $base all ${expected_games} routes + Firebase 12 mobile same-origin redirect auth + desktop popup auth + explicit diagnostics + meaning map + inline ato-5min CSS + mobile-safe loaders + two-choice task separation"
           done
