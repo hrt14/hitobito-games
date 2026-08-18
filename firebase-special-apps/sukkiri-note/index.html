@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#10140f" />
+  <meta name="description" content="頭の中のやることをノートに出し、今やる一つだけに絞って、ひとつずつ片づけるLEVEL UPアプリ。" />
+  <title>スッキリノート | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">← <span>LEVEL UP</span></a>
+      <div class="save-state" id="saveState" aria-live="polite"><span class="save-dot"></span>端末に保存</div>
+    </header>
+
+    <section class="screen active" id="captureScreen" data-screen="capture">
+      <div class="hero-copy">
+        <p class="eyebrow">SUKKIRI NOTE / WIP → 1</p>
+        <h1>頭の中、<br><em>ここに全部置く。</em></h1>
+        <p class="lead">覚えておくのをやめる。まずノートに出す。<br>そのあと、今やる一つだけを見る。</p>
+      </div>
+
+      <div class="flow-strip" aria-label="使い方">
+        <div class="flow-step is-current"><b>1</b><span>出す</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><b>2</b><span>一つ選ぶ</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><b>3</b><span>消す</span></div>
+      </div>
+
+      <form class="capture-card" id="captureForm">
+        <label for="brainDump">やらなきゃ、と思っていること</label>
+        <p class="field-help">順番も優先度も考えなくてOK。1行に1つ、思いつくまま。</p>
+        <textarea id="brainDump" rows="7" maxlength="3000" placeholder="例）&#10;資料の骨子を作る&#10;返信する&#10;請求書を出す&#10;旅行の持ち物を確認する"></textarea>
+        <div class="capture-meta">
+          <span id="lineCount">0個くらい</span>
+          <button class="ghost-mini" type="button" id="sampleBtn">例を入れる</button>
+        </div>
+        <button class="primary-btn" type="submit" id="captureBtn">
+          <span>ノートに置く</span><b>→</b>
+        </button>
+      </form>
+
+      <button class="resume-btn hidden" id="resumeBtn" type="button">
+        <span>途中のノートがある</span><b id="resumeCount">0個</b><small>続きから →</small>
+      </button>
+    </section>
+
+    <section class="screen" id="boardScreen" data-screen="board">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">YOUR NOTE</p>
+          <h1>全部ある。<br><em>でも今は一つ。</em></h1>
+        </div>
+        <button class="icon-action" id="addMoreBtn" type="button" aria-label="やることを追加">＋</button>
+      </div>
+
+      <div class="load-meter" aria-live="polite">
+        <div class="paper-stack" aria-hidden="true">
+          <span></span><span></span><span></span>
+          <strong id="stackCount">0</strong>
+        </div>
+        <div class="load-copy">
+          <span>ノートに置いたままのこと</span>
+          <b><strong id="remainingCount">0</strong>個</b>
+          <small>頭の中で同時にやらなくていい。</small>
+        </div>
+      </div>
+
+      <div class="board-prompt">
+        <p>次に片づける一つをタップ</p>
+        <button id="pickTopBtn" class="text-action" type="button">迷ったら一番上から →</button>
+      </div>
+
+      <div class="task-list" id="taskList" aria-live="polite"></div>
+
+      <details class="done-drawer" id="doneDrawer">
+        <summary><span>片づいたもの</span><b id="doneCount">0</b></summary>
+        <div id="doneList" class="done-list"></div>
+      </details>
+    </section>
+
+    <section class="screen focus-screen" id="focusScreen" data-screen="focus">
+      <div class="focus-top">
+        <button class="back-action" id="backBoardBtn" type="button">← ノート</button>
+        <div class="wip-badge"><span>WIP</span><b>1</b></div>
+      </div>
+
+      <div class="focus-stage">
+        <p class="focus-label">いま見るのは、これだけ</p>
+        <article class="focus-paper" id="focusPaper">
+          <span class="paper-pin" aria-hidden="true"></span>
+          <h1 id="focusTitle">やること</h1>
+          <div class="first-step" id="firstStepView">
+            <span>最初の一歩</span>
+            <p id="firstStepText">まず、この一つだけ始める。</p>
+          </div>
+        </article>
+
+        <div class="timer-box" id="timerBox">
+          <span id="timerLabel">まだ始めていない</span>
+          <strong id="timerValue">00:00</strong>
+        </div>
+
+        <div class="focus-actions">
+          <button class="start-btn" id="startTaskBtn" type="button"><span>▶</span><b>この一つを始める</b></button>
+          <button class="done-btn" id="doneTaskBtn" type="button"><span>✓</span><b>終わった</b></button>
+        </div>
+
+        <button class="smaller-toggle" id="smallerToggle" type="button">大きすぎて動けない → もっと小さくする</button>
+        <div class="smaller-panel hidden" id="smallerPanel">
+          <label for="firstStepInput">最初の5分でやることだけ書く</label>
+          <input id="firstStepInput" maxlength="100" placeholder="例：ファイルを開いて見出しを3つ書く" />
+          <div class="step-chips" id="stepChips">
+            <button type="button" data-step="ファイルや画面を開く">開くだけ</button>
+            <button type="button" data-step="3行だけ書く">3行だけ</button>
+            <button type="button" data-step="1通だけ返す">1通だけ</button>
+            <button type="button" data-step="5分だけ調べる">5分だけ</button>
+            <button type="button" data-step="必要な人に1つ聞く">1つ聞く</button>
+          </div>
+          <button class="save-step-btn" id="saveStepBtn" type="button">この一歩にする</button>
+        </div>
+
+        <details class="other-actions">
+          <summary>自分でやる以外の片づけ方</summary>
+          <div>
+            <button type="button" id="delegateBtn">人に渡した / 頼んだ</button>
+            <button type="button" id="dropBtn">やらないと決めた</button>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="screen clear-screen" id="clearScreen" data-screen="clear">
+      <div class="clear-visual" aria-hidden="true">
+        <div class="paper-away">✓</div>
+        <span class="clear-line"></span>
+      </div>
+      <p class="eyebrow" id="clearEyebrow">ONE THING CLOSED</p>
+      <h1 id="clearTitle">一つ、<br><em>頭から消えた。</em></h1>
+      <p class="clear-copy" id="clearCopy">終わったものは、もう覚えておかなくていい。</p>
+      <div class="clear-stats">
+        <div><span>今回</span><b id="elapsedStat">—</b></div>
+        <div><span>残り</span><b><strong id="remainingStat">0</strong>個</b></div>
+      </div>
+      <button class="primary-btn" id="nextOneBtn" type="button"><span id="nextOneLabel">次の一つへ</span><b>→</b></button>
+      <button class="text-action center" id="stayClearBtn" type="button">今日はここで閉じる</button>
+    </section>
+
+    <section class="screen empty-screen" id="emptyScreen" data-screen="empty">
+      <div class="empty-note" aria-hidden="true"><span>✓</span></div>
+      <p class="eyebrow">NOTE = CLEAR</p>
+      <h1>いまのノート、<br><em>空っぽ。</em></h1>
+      <p>一気に全部やったんじゃない。<br>一つずつ、減らした。</p>
+      <div class="today-result"><span>今日片づけた</span><b><strong id="todayDoneCount">0</strong>個</b></div>
+      <button class="primary-btn" id="addAfterClearBtn" type="button"><span>また頭に増えたら書く</span><b>＋</b></button>
+      <a class="text-action center" href="/">LEVEL UPへ戻る</a>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
