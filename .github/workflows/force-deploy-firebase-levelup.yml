@@ -1,0 +1,107 @@
+name: Force deploy LEVEL UP to Firebase
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.firebase-force-deploy'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+concurrency:
+  group: firebase-levelup-force-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare mobile sources
+        run: node scripts/prepare-firebase-mobile.mjs
+
+      - name: Build Firebase bundle
+        run: |
+          set -o pipefail
+          npm run build:firebase 2>&1 | tee /tmp/firebase-build.log
+
+      - name: Assert Thinking Stairs bundle
+        run: |
+          set -euo pipefail
+          test -s .dist/firebase/apps/thinking-stairs/index.html
+          test -s .dist/firebase/apps/thinking-stairs/game.js
+          test -s .dist/firebase/apps/thinking-stairs/style.css
+          grep -F 'data-game="thinking-stairs"' .dist/firebase/index.html >/dev/null
+          grep -F '/apps/thinking-stairs/' .dist/firebase/levelup-catalog.json >/dev/null
+
+      - name: Deploy Firebase Hosting
+        run: |
+          set -o pipefail
+          npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-deploy.log
+
+      - name: Verify Thinking Stairs live
+        run: |
+          set -euo pipefail
+          sleep 5
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            echo "Checking $base"
+            curl -fLsS --max-time 30 "$base/apps/thinking-stairs/" -o /tmp/thinking-stairs.html
+            grep -F '思考の階段 | LEVEL UP' /tmp/thinking-stairs.html >/dev/null
+            curl -fLsS --max-time 30 "$base/" -o /tmp/levelup-home.html
+            grep -F 'data-game="thinking-stairs"' /tmp/levelup-home.html >/dev/null
+          done
+
+      - name: Report success
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Firebase deploy OK: Thinking Stairs ${GITHUB_SHA::7}" \
+            --body "Force Firebase deploy succeeded. Thinking Stairs exists on both hitobito-levelup.web.app and levelup.hitobito.jp, and its home card is present. Commit: $GITHUB_SHA"
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo 'Force Firebase deploy failed.'
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo
+            echo '### Build log tail'
+            echo '```text'
+            if [ -f /tmp/firebase-build.log ]; then tail -n 120 /tmp/firebase-build.log; else echo '(build log unavailable)'; fi
+            echo '```'
+            echo
+            echo '### Deploy log tail'
+            echo '```text'
+            if [ -f /tmp/firebase-deploy.log ]; then tail -n 120 /tmp/firebase-deploy.log; else echo '(deploy log unavailable)'; fi
+            echo '```'
+          } > /tmp/firebase-report.md
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Firebase deploy FAILED: Thinking Stairs ${GITHUB_SHA::7}" \
+            --body-file /tmp/firebase-report.md
