@@ -213,9 +213,6 @@ function scriptFor(slug, pageKind) {
       input.addEventListener('change', () => recordSearch(input.value));
     }
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') finalize('left');
-    });
     window.addEventListener('pagehide', () => finalize('left'));
 
     if (window.LevelUpTelemetry?.complete) {
