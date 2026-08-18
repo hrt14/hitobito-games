@@ -26,6 +26,59 @@ service cloud.firestore {
       return slug is string && slug.matches('^(home|[a-z0-9-]{1,64})$');
     }
 
+    function validDate(date) {
+      return date is string && date.matches('^[0-9]{8}$');
+    }
+
+    function nonNegativeInt(value) {
+      return value is int && value >= 0;
+    }
+
+    function validDailyReport(data, date) {
+      return validDate(date)
+        && data.keys().hasOnly([
+          'date',
+          'sessions',
+          'homeSessions',
+          'gameSessions',
+          'visitorUu',
+          'loginUu',
+          'searches',
+          'completedGames',
+          'leftGames',
+          'gameDurationSec',
+          'lastUpdatedAt'
+        ])
+        && data.date == date
+        && nonNegativeInt(data.sessions)
+        && nonNegativeInt(data.homeSessions)
+        && nonNegativeInt(data.gameSessions)
+        && nonNegativeInt(data.visitorUu)
+        && nonNegativeInt(data.loginUu)
+        && nonNegativeInt(data.searches)
+        && nonNegativeInt(data.completedGames)
+        && nonNegativeInt(data.leftGames)
+        && nonNegativeInt(data.gameDurationSec)
+        && data.lastUpdatedAt == request.time;
+    }
+
+    function validNeedLabel(need, label) {
+      return (need == 'meeting' && label == '会議')
+        || (need == 'tired' && label == '疲れ')
+        || (need == 'procrastination' && label == '先延ばし')
+        || (need == 'relationships' && label == '人間関係')
+        || (need == 'refusal' && label == '断れない')
+        || (need == 'work' && label == '仕事')
+        || (need == 'anxiety' && label == '不安')
+        || (need == 'sleep' && label == '睡眠')
+        || (need == 'comparison' && label == '比較')
+        || (need == 'depressed' && label == '落ち込み')
+        || (need == 'anger' && label == '怒り')
+        || (need == 'overwhelm' && label == '圧倒')
+        || (need == 'motivation' && label == '行動')
+        || (need == 'self' && label == '自分');
+    }
+
     match /levelupUsers/{userId} {
       allow read, create, update, delete: if request.auth != null
         && request.auth.uid == userId;
@@ -53,8 +106,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Search phrases are write-only from the public client. Analysis is done from the
-    // Firebase console/admin side so visitors cannot enumerate other people's searches.
+    // Search phrases stay private. Automated reports expose only fixed need categories.
     match /levelupSearchStats/{termId} {
       allow read: if false;
       allow create: if request.resource.data.keys().hasOnly(['term', 'count', 'lastSearchedAt'])
@@ -72,8 +124,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Stable, privacy-preserving browser visitor records. No email, display name,
-    // device fingerprint or other profile data is stored here.
+    // Stable, privacy-preserving browser visitor records.
     match /levelupVisitors/{visitorId} {
       allow read, delete: if false;
       allow create: if validVisitorId(visitorId)
@@ -95,11 +146,10 @@ service cloud.firestore {
         && request.resource.data.lastSeenAt == request.time;
     }
 
-    // One document per browser visitor per Japan-calendar day. Counting these documents
-    // gives LEVEL UP DAU without storing personal profile information.
+    // One document per browser visitor per Japan-calendar day.
     match /levelupVisitorDays/{date}/visitors/{visitorId} {
       allow read, delete: if false;
-      allow create: if date.matches('^[0-9]{8}$')
+      allow create: if validDate(date)
         && validVisitorId(visitorId)
         && request.resource.data.keys().hasOnly(['date', 'visitorId', 'userId', 'authState', 'lastSlug', 'sessionCount', 'lastSeenAt'])
         && request.resource.data.date == date
@@ -109,7 +159,7 @@ service cloud.firestore {
         && request.resource.data.sessionCount is int
         && request.resource.data.sessionCount == 1
         && request.resource.data.lastSeenAt == request.time;
-      allow update: if date.matches('^[0-9]{8}$')
+      allow update: if validDate(date)
         && validVisitorId(visitorId)
         && request.resource.data.keys().hasOnly(['date', 'visitorId', 'userId', 'authState', 'lastSlug', 'sessionCount', 'lastSeenAt'])
         && request.resource.data.date == resource.data.date
@@ -123,8 +173,7 @@ service cloud.firestore {
         && request.resource.data.lastSeenAt == request.time;
     }
 
-    // One aggregate record per authenticated user. This allows logged-in user totals
-    // and recent-active counts while remaining writeable only by that Firebase user.
+    // One aggregate record per authenticated user.
     match /levelupLoginUsers/{userId} {
       allow read, delete: if false;
       allow create: if request.auth != null
@@ -151,7 +200,7 @@ service cloud.firestore {
       allow read, delete: if false;
       allow create: if request.auth != null
         && request.auth.uid == userId
-        && date.matches('^[0-9]{8}$')
+        && validDate(date)
         && request.resource.data.keys().hasOnly(['date', 'userId', 'lastSlug', 'sessionCount', 'lastSeenAt'])
         && request.resource.data.date == date
         && request.resource.data.userId == userId
@@ -161,7 +210,7 @@ service cloud.firestore {
         && request.resource.data.lastSeenAt == request.time;
       allow update: if request.auth != null
         && request.auth.uid == userId
-        && date.matches('^[0-9]{8}$')
+        && validDate(date)
         && request.resource.data.keys().hasOnly(['date', 'userId', 'lastSlug', 'sessionCount', 'lastSeenAt'])
         && request.resource.data.date == resource.data.date
         && request.resource.data.date == date
@@ -173,8 +222,107 @@ service cloud.firestore {
         && request.resource.data.lastSeenAt == request.time;
     }
 
-    // One opaque document per LEVEL UP page/game session. New analytics fields are
-    // optional for backward compatibility with an already-open pre-deploy page.
+    // Private exact marker for one authenticated user per report day.
+    // It is readable only by that user so the client can transactionally increment loginUu once.
+    match /levelupReportLoginDays/{date}/users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && validDate(date)
+        && request.resource.data.keys().hasOnly(['date', 'userId', 'createdAt'])
+        && request.resource.data.date == date
+        && request.resource.data.userId == userId
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // Sanitized daily report. Public read is intentionally limited to aggregate counters.
+    // No UID, raw search phrase, profile field, or visitor ID is stored here.
+    match /levelupDailyReports/{date} {
+      allow read: if true;
+      allow create: if validDailyReport(request.resource.data, date)
+        && request.resource.data.sessions <= 1
+        && request.resource.data.homeSessions <= 1
+        && request.resource.data.gameSessions <= 1
+        && request.resource.data.visitorUu <= 1
+        && request.resource.data.loginUu <= 1
+        && request.resource.data.searches <= 1
+        && request.resource.data.completedGames <= 1
+        && request.resource.data.leftGames <= 1
+        && request.resource.data.gameDurationSec <= 86400;
+      allow update: if validDailyReport(request.resource.data, date)
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.sessions in [resource.data.sessions, resource.data.sessions + 1]
+        && request.resource.data.homeSessions in [resource.data.homeSessions, resource.data.homeSessions + 1]
+        && request.resource.data.gameSessions in [resource.data.gameSessions, resource.data.gameSessions + 1]
+        && request.resource.data.visitorUu in [resource.data.visitorUu, resource.data.visitorUu + 1]
+        && request.resource.data.loginUu in [resource.data.loginUu, resource.data.loginUu + 1]
+        && request.resource.data.searches in [resource.data.searches, resource.data.searches + 1]
+        && request.resource.data.completedGames in [resource.data.completedGames, resource.data.completedGames + 1]
+        && request.resource.data.leftGames in [resource.data.leftGames, resource.data.leftGames + 1]
+        && request.resource.data.gameDurationSec >= resource.data.gameDurationSec
+        && request.resource.data.gameDurationSec <= resource.data.gameDurationSec + 86400;
+      allow delete: if false;
+
+      match /games/{gameId} {
+        allow read: if true;
+        allow create: if validDate(date)
+          && gameId.matches('^[a-z0-9-]{1,64}$')
+          && request.resource.data.keys().hasOnly(['date', 'slug', 'title', 'sessions', 'completed', 'left', 'durationSec', 'lastUpdatedAt'])
+          && request.resource.data.date == date
+          && request.resource.data.slug == gameId
+          && request.resource.data.title is string
+          && request.resource.data.title.size() >= 1
+          && request.resource.data.title.size() <= 80
+          && nonNegativeInt(request.resource.data.sessions)
+          && request.resource.data.sessions <= 1
+          && nonNegativeInt(request.resource.data.completed)
+          && request.resource.data.completed <= 1
+          && nonNegativeInt(request.resource.data.left)
+          && request.resource.data.left <= 1
+          && nonNegativeInt(request.resource.data.durationSec)
+          && request.resource.data.durationSec <= 86400
+          && request.resource.data.lastUpdatedAt == request.time;
+        allow update: if request.resource.data.keys().hasOnly(['date', 'slug', 'title', 'sessions', 'completed', 'left', 'durationSec', 'lastUpdatedAt'])
+          && request.resource.data.date == resource.data.date
+          && request.resource.data.date == date
+          && request.resource.data.slug == resource.data.slug
+          && request.resource.data.slug == gameId
+          && request.resource.data.title == resource.data.title
+          && request.resource.data.sessions in [resource.data.sessions, resource.data.sessions + 1]
+          && request.resource.data.completed in [resource.data.completed, resource.data.completed + 1]
+          && request.resource.data.left in [resource.data.left, resource.data.left + 1]
+          && request.resource.data.durationSec >= resource.data.durationSec
+          && request.resource.data.durationSec <= resource.data.durationSec + 86400
+          && request.resource.data.lastUpdatedAt == request.time;
+        allow delete: if false;
+      }
+
+      match /needs/{need} {
+        allow read: if true;
+        allow create: if validDate(date)
+          && request.resource.data.keys().hasOnly(['date', 'need', 'label', 'count', 'lastUpdatedAt'])
+          && request.resource.data.date == date
+          && request.resource.data.need == need
+          && validNeedLabel(need, request.resource.data.label)
+          && request.resource.data.count is int
+          && request.resource.data.count == 1
+          && request.resource.data.lastUpdatedAt == request.time;
+        allow update: if request.resource.data.keys().hasOnly(['date', 'need', 'label', 'count', 'lastUpdatedAt'])
+          && request.resource.data.date == resource.data.date
+          && request.resource.data.date == date
+          && request.resource.data.need == resource.data.need
+          && request.resource.data.need == need
+          && request.resource.data.label == resource.data.label
+          && validNeedLabel(need, request.resource.data.label)
+          && request.resource.data.count is int
+          && request.resource.data.count == resource.data.count + 1
+          && request.resource.data.lastUpdatedAt == request.time;
+        allow delete: if false;
+      }
+    }
+
+    // One opaque document per LEVEL UP page/game session.
     match /levelupSessions/{sessionId} {
       allow read, delete: if false;
       allow create: if sessionId.matches('^[a-z0-9]{8,40}$')
