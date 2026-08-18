@@ -29,10 +29,10 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Search phrases are write-only for visitors and readable only to signed-in users.
-    // Obvious email/URL/long-number patterns are filtered in the client before writing.
+    // Search phrases are write-only from the public client. Analysis is done from the
+    // Firebase console/admin side so visitors cannot enumerate other people's searches.
     match /levelupSearchStats/{termId} {
-      allow read: if request.auth != null;
+      allow read: if false;
       allow create: if request.resource.data.keys().hasOnly(['term', 'count', 'lastSearchedAt'])
         && request.resource.data.term is string
         && request.resource.data.term.size() >= 2
@@ -46,6 +46,36 @@ service cloud.firestore {
         && request.resource.data.count == resource.data.count + 1
         && request.resource.data.lastSearchedAt == request.time;
       allow delete: if false;
+    }
+
+    // One opaque document per play session. It records only app/build/status and
+    // sanitized step/action tokens; public clients cannot read or delete session logs.
+    match /levelupSessions/{sessionId} {
+      allow read, delete: if false;
+      allow create: if sessionId.matches('^[a-z0-9]{8,40}$')
+        && request.resource.data.keys().hasOnly(['slug', 'buildSha', 'status', 'lastStep', 'lastAction', 'startedAt', 'lastSeenAt'])
+        && request.resource.data.slug is string
+        && request.resource.data.slug.matches('^[a-z0-9-]{1,64}$')
+        && request.resource.data.buildSha is string
+        && request.resource.data.buildSha.size() >= 4
+        && request.resource.data.buildSha.size() <= 12
+        && request.resource.data.status == 'active'
+        && request.resource.data.lastStep is string
+        && request.resource.data.lastStep.size() <= 60
+        && request.resource.data.lastAction is string
+        && request.resource.data.lastAction.size() <= 80
+        && request.resource.data.startedAt == request.time
+        && request.resource.data.lastSeenAt == request.time;
+      allow update: if request.resource.data.keys().hasOnly(['slug', 'buildSha', 'status', 'lastStep', 'lastAction', 'startedAt', 'lastSeenAt'])
+        && request.resource.data.slug == resource.data.slug
+        && request.resource.data.buildSha == resource.data.buildSha
+        && request.resource.data.startedAt == resource.data.startedAt
+        && request.resource.data.status in ['active', 'left', 'completed']
+        && request.resource.data.lastStep is string
+        && request.resource.data.lastStep.size() <= 60
+        && request.resource.data.lastAction is string
+        && request.resource.data.lastAction.size() <= 80
+        && request.resource.data.lastSeenAt == request.time;
     }
   }
 }
