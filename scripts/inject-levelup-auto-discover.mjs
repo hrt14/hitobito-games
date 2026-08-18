@@ -22,6 +22,18 @@ if (!Array.isArray(catalog.games)) throw new Error('LEVEL UP catalog is invalid.
 const existing = new Set(catalog.games.map((game) => game.slug));
 const missing = manifest.games.filter((game) => game.category === 'levelup' && !existing.has(game.slug));
 
+const AUTO_META = {
+  nukeru: {
+    title: 'ぬける。',
+    kicker: '60–90 SEC RESET',
+    skill: '感情調整 / 切り替え',
+    icon: '↓',
+    forWho: '嫌なことが頭から離れず、考える余力もない人',
+    purpose: '原因分析より先に、今の感情との距離を少し作る',
+    benefit: '約1分で「嫌さ」を測り直し、日常へ戻りやすくする',
+  },
+};
+
 function cleanTitle(value, slug) {
   const title = String(value || slug)
     .replace(/\s*[|｜]\s*LEVEL\s*UP\s*$/i, '')
@@ -41,21 +53,25 @@ function escapeHtml(value) {
 
 function makeGame(item) {
   const meta = GAME_META[item.slug];
+  const special = AUTO_META[item.slug] || {};
   const description = meta?.[1] || '短いプレイを反復して、考え方や行動の型を身につける。';
   return {
     slug: item.slug,
-    title: cleanTitle(item.title, item.slug),
-    kicker: 'NEW THINKING TRAINING',
-    skill: '思考トレーニング',
+    title: special.title || cleanTitle(item.title, item.slug),
+    kicker: special.kicker || 'NEW THINKING TRAINING',
+    skill: special.skill || '思考トレーニング',
     description,
-    icon: 'NEW',
+    icon: special.icon || 'NEW',
     href: `/apps/${encodeURIComponent(item.slug)}/`,
     updateCount: 1,
+    forWho: special.forWho || '考える力を、知識ではなく反射として鍛えたい人',
+    purpose: special.purpose || '短い問題を繰り返して、使える思考の型を増やす',
+    benefit: special.benefit || '初めて見る問題でも、切り口を素早く作りやすくなる',
   };
 }
 
 function makeCard(game) {
-  return `\n  <article class="card is-new" data-game="${escapeHtml(game.slug)}" data-new="true">\n    <button class="favorite" type="button" data-favorite="${escapeHtml(game.slug)}" aria-pressed="false" aria-label="${escapeHtml(game.title)}をお気に入りに追加">♡</button>\n    <a class="card-link" href="${escapeHtml(game.href)}">\n      <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE ${game.updateCount}</span></div>\n      <div class="icon">${escapeHtml(game.icon)}</div>\n      <div class="kicker">${escapeHtml(game.kicker)}</div>\n      <div class="skill">${escapeHtml(game.skill)}</div>\n      <h2>${escapeHtml(game.title)}</h2>\n      <p>${escapeHtml(game.description)}</p>\n      <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">\n        <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">考える力を、知識ではなく反射として鍛えたい人</span></div>\n        <div class="card-value"><span class="card-value-label">なんのため</span><span class="card-value-text">短い問題を繰り返して、使える思考の型を増やす</span></div>\n        <div class="card-value"><span class="card-value-label">ベネフィット</span><span class="card-value-text">初めて見る問題でも、切り口を素早く作りやすくなる</span></div>\n      </div>\n      <div class="play">PLAY <span>↗</span></div>\n    </a>\n  </article>`;
+  return `\n  <article class="card is-new" data-game="${escapeHtml(game.slug)}" data-new="true">\n    <button class="favorite" type="button" data-favorite="${escapeHtml(game.slug)}" aria-pressed="false" aria-label="${escapeHtml(game.title)}をお気に入りに追加">♡</button>\n    <a class="card-link" href="${escapeHtml(game.href)}">\n      <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE ${game.updateCount}</span></div>\n      <div class="icon">${escapeHtml(game.icon)}</div>\n      <div class="kicker">${escapeHtml(game.kicker)}</div>\n      <div class="skill">${escapeHtml(game.skill)}</div>\n      <h2>${escapeHtml(game.title)}</h2>\n      <p>${escapeHtml(game.description)}</p>\n      <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">\n        <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">${escapeHtml(game.forWho)}</span></div>\n        <div class="card-value"><span class="card-value-label">なんのため</span><span class="card-value-text">${escapeHtml(game.purpose)}</span></div>\n        <div class="card-value"><span class="card-value-label">ベネフィット</span><span class="card-value-text">${escapeHtml(game.benefit)}</span></div>\n      </div>\n      <div class="play">PLAY <span>↗</span></div>\n    </a>\n  </article>`;
 }
 
 let html = fs.readFileSync(homePath, 'utf8');
