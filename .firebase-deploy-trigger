@@ -1,4 +1,4 @@
-Deploy LEVEL UP after validator repair
-Includes Thinking Stairs + current Google login fix
-Validator updated for current Meeting Respawn recovery flow
-Triggered at 2026-08-18T18:28:00+09:00
+Deploy LEVEL UP including Nukeru
+Force production deploy after Nukeru merge and outcome-measurement polish
+Target app: /apps/nukeru/
+Triggered at 2026-08-19T07:44:00+09:00
