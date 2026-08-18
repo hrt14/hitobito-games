@@ -4,24 +4,27 @@
 import { CASE01 } from './data/case01.js';
 import { CASE02 } from './data/case02.js';
 import { CASE03 } from './data/case03.js';
+import { CASE04 } from './data/case04.js';
 import { CaseState } from './core/case.js';
 import { findTrigger, visiblePoints, nextRequired } from './core/investigation.js';
 import { buildRecord } from './core/log.js';
 import { Renderer } from './world/render.js';
 import { FieldRenderer } from './world/render-field.js';
 import { SchoolRenderer } from './world/render-school.js';
+import { ArcadeRenderer } from './world/render-arcade.js';
 import { ChaseMode } from './modes/chase-mode.js';
 import { SightMode } from './modes/sight-mode.js';
 import { PassMode } from './modes/pass-mode.js';
+import { VoiceMode } from './modes/voice-mode.js';
 import { Input } from './world/input.js';
 import { Ambience } from './world/audio.js';
 import { buildPath, truncate } from './world/path.js';
 
 const $ = s => document.querySelector(s);
 
-const CASES = [CASE01, CASE02, CASE03];
-const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode };
-const RENDERERS = { field: FieldRenderer, school: SchoolRenderer };
+const CASES = [CASE01, CASE02, CASE03, CASE04];
+const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode, voice: VoiceMode };
+const RENDERERS = { field: FieldRenderer, school: SchoolRenderer, arcade: ArcadeRenderer };
 
 class Game {
   constructor() {
@@ -175,6 +178,12 @@ class Game {
     this.dir.begin(!!cp);
     this.input.setEnabled(true);
     this.refreshObjective();
+  }
+
+  // 歩ける帯。通常はエリアの値。CASE 04 の路地だけ mode 側が広げる
+  band(x) {
+    const a = this.state.areaAt(x);
+    return this.dir.bandAt ? this.dir.bandAt(x, a) : a;
   }
 
   setPartyAt(x, y) {
@@ -411,8 +420,8 @@ class Game {
 
     const limit = this.state.frontier();
     p.x = Math.max(40, Math.min(limit - 26, p.x));
-    const area = this.state.areaAt(p.x);
-    p.y = Math.max(area.bandTop + 6, Math.min(area.bandBottom - 4, p.y));
+    const band = this.band(p.x);
+    p.y = Math.max(band.bandTop + 6, Math.min(band.bandBottom - 4, p.y));
 
     // 実際に動いたときだけ記録する。止まっている間に同じ点を積むと
     // 後続の2人が先頭へ吸い寄せられて3人が重なる（SPEC §49）
@@ -462,8 +471,8 @@ class Game {
 
       this.dir.followerClamp(who, c);
 
-      const area = this.state.areaAt(c.x);
-      c.y = Math.max(area.bandTop + 4, Math.min(area.bandBottom - 2, c.y));
+      const band = this.band(c.x);
+      c.y = Math.max(band.bandTop + 4, Math.min(band.bandBottom - 2, c.y));
     });
   }
 
