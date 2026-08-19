@@ -1,4 +1,4 @@
 Deploy LEVEL UP latest apps
-Force production deploy after それ、本当？ implementation
-Targets include: /apps/sore-honto/
-Trigger commit follows merge c784ea039f443439ff8185c9a6d07254b87f3be9
+Force production deploy after まだ寝てていい。 implementation
+Targets include: /apps/asa-glide/
+Trigger commit follows merge 8563bd7e940ae1f8948f4c390ec87c0006ad0106
