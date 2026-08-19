@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#070909" />
+  <meta name="description" content="開ける方向で道が変わる、1本指の叙述トリック・ホラー迷路。" />
+  <title>恐怖のドア | hitobito play</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="game" class="game" aria-label="恐怖のドア">
+    <div class="noise" aria-hidden="true"></div>
+    <div class="alarm-glow" aria-hidden="true"></div>
+
+    <header class="hud" aria-live="polite">
+      <div class="hud-left">
+        <span class="eyebrow">PROJECT DOOR</span>
+        <strong id="doorCount">DOOR 01 / 13</strong>
+      </div>
+      <div id="wingLabel" class="wing-label">RESEARCH WING B</div>
+    </header>
+
+    <section id="corridor" class="corridor">
+      <div class="ceiling-line" aria-hidden="true"></div>
+      <div class="wall wall-left" aria-hidden="true"></div>
+      <div class="wall wall-right" aria-hidden="true"></div>
+      <div class="floor" aria-hidden="true"></div>
+
+      <div id="storyCard" class="story-card" hidden>
+        <span id="storyKind" class="story-kind">RECORD</span>
+        <p id="storyText"></p>
+      </div>
+
+      <p id="protagonistLine" class="protagonist-line" aria-live="polite"></p>
+
+      <div id="doorRig" class="door-rig">
+        <div id="peekRoom" class="peek-room" aria-hidden="true">
+          <div class="peek-light"></div>
+          <div id="peekSymbol" class="peek-symbol"></div>
+          <div id="peekCaption" class="peek-caption"></div>
+        </div>
+
+        <div class="door-frame" aria-hidden="true">
+          <div class="frame-top"></div>
+          <div class="frame-left"></div>
+          <div class="frame-right"></div>
+        </div>
+
+        <div id="door" class="door" role="button" tabindex="0" aria-label="ドア。上下左右へスワイプして開ける">
+          <div class="door-grain"></div>
+          <div class="door-plate"><span id="doorPlate">B-01</span></div>
+          <div class="door-scratch scratch-a"></div>
+          <div class="door-scratch scratch-b"></div>
+          <div class="handle-wrap">
+            <div class="handle-base"></div>
+            <div class="handle"></div>
+          </div>
+          <div id="bloodMark" class="blood-mark"></div>
+        </div>
+
+        <div id="gestureHint" class="gesture-hint" aria-hidden="true">
+          <span class="hint-up">↑</span>
+          <span class="hint-left">←</span>
+          <span class="hint-center">SWIPE THE DOOR</span>
+          <span class="hint-right">→</span>
+          <span class="hint-down">↓</span>
+        </div>
+      </div>
+
+      <div id="clueStrip" class="clue-strip">
+        <span class="clue-dot"></span>
+        <span id="clueText">床に、濡れた足跡が続いている。</span>
+      </div>
+    </section>
+
+    <section id="intro" class="overlay intro-overlay">
+      <div class="overlay-inner intro-inner">
+        <p class="eyebrow">HITOBITO PLAY / HORROR</p>
+        <h1>恐怖のドア</h1>
+        <p class="intro-copy">開ける方向で、道が変わる。</p>
+        <div class="intro-door-icon" aria-hidden="true"><span></span></div>
+        <button id="startBtn" class="primary-btn">研究区画へ入る</button>
+        <p class="microcopy">イヤホン推奨 / 画面を縦に持って遊べます</p>
+      </div>
+    </section>
+
+    <section id="threat" class="threat" hidden aria-live="assertive">
+      <div class="zombie" aria-hidden="true">
+        <div class="z-head"><i></i><i></i></div>
+        <div class="z-mouth"></div>
+        <div class="z-hand hand-a"></div>
+        <div class="z-hand hand-b"></div>
+      </div>
+      <div class="threat-copy">
+        <strong>閉めろ</strong>
+        <span id="threatHint">逆方向へスワイプ</span>
+      </div>
+      <div class="threat-timer"><i id="threatBar"></i></div>
+    </section>
+
+    <section id="ending" class="overlay ending-overlay" hidden>
+      <div class="overlay-inner ending-inner">
+        <p class="eyebrow">FINAL SECTOR / LAB 00</p>
+        <div class="terminal-card">
+          <div>PROJECT DOOR</div>
+          <div>CHIEF RESEARCHER</div>
+          <strong>黒瀬 仁</strong>
+          <div class="terminal-status">ACCESS: ACCEPTED</div>
+        </div>
+        <p class="ending-dialogue" id="endingDialogue">「さて。第47回を始めよう。」</p>
+        <h2>あなたは、<br>脱出していなかった。</h2>
+        <p>最初から主人公は知っていた。<br>研究所も、実験体も、この道も。</p>
+        <button id="restartBtn" class="primary-btn">もう一度、最初のドアへ</button>
+        <p class="microcopy">2周目では、最初の台詞の意味が変わる。</p>
+      </div>
+    </section>
+
+    <section id="gameOver" class="overlay gameover-overlay" hidden>
+      <div class="overlay-inner">
+        <p class="eyebrow">EXPERIMENT FAILED</p>
+        <h2>捕まった。</h2>
+        <p id="gameOverText">DOOR 04 / 13</p>
+        <button id="retryBtn" class="primary-btn">このドアからやり直す</button>
+      </div>
+    </section>
+
+    <div id="flash" class="flash" aria-hidden="true"></div>
+  </main>
+
+  <script src="./game.js" defer></script>
+</body>
+</html>
