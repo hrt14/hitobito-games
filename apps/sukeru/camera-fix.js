@@ -7,7 +7,14 @@
   const veil = document.getElementById('veil');
   const start = document.getElementById('start');
   const retry = document.getElementById('retry');
+  const errorPanel = document.getElementById('errorPanel');
+  const errorMessage = document.getElementById('errorMessage');
+  const errorTitle = errorPanel?.querySelector('h2');
+  const errorCard = errorPanel?.querySelector('.error-card');
   if (!app || !video || !canvas || !veil) return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   // WebKit/iPhone is sensitive to inline-playback flags on camera-backed video.
   video.muted = true;
@@ -80,7 +87,9 @@
     if (note || !app.classList.contains('is-live')) return;
     note = document.createElement('div');
     note.className = 'camera-stall-note';
-    note.textContent = '映像が黒いままなら、アプリ内ブラウザではなくSafariでこのページを開いてください。';
+    note.textContent = isIOS
+      ? '映像が黒いままなら、右下の「…」からSafariで開いてください。'
+      : '映像が黒いままなら、別のブラウザでこのページを開いてください。';
     app.appendChild(note);
   };
 
@@ -100,6 +109,41 @@
       if (!hasFrame || !advancing) showStallNote();
     }, 4500);
   };
+
+  function renderErrorGuide() {
+    if (!isIOS || !errorPanel || errorPanel.hidden || !errorCard) return;
+
+    if (errorTitle) errorTitle.textContent = 'Safari本体で開いてみてください';
+    if (errorMessage) {
+      errorMessage.textContent = 'iPhoneでは、ChatGPTなどのアプリから開いた画面だとカメラ起動に失敗することがあります。設定ミスとは限りません。';
+    }
+
+    let guide = errorCard.querySelector('.camera-error-guide');
+    if (!guide) {
+      guide = document.createElement('div');
+      guide.className = 'camera-error-guide';
+      guide.innerHTML = `
+        <strong>この画面では</strong>
+        <ol>
+          <li>右下の「…」をタップ</li>
+          <li>「Safariで開く」を選ぶ</li>
+          <li>Safariで「カメラを起動」</li>
+        </ol>
+        <small>Safariでも止まる場合は、アドレス欄のカメラアイコンから許可を確認してください。</small>
+      `;
+      errorCard.insertBefore(guide, retry || null);
+    }
+
+    if (retry) retry.textContent = 'この画面でもう一度試す';
+  }
+
+  if (errorPanel) {
+    new MutationObserver(renderErrorGuide).observe(errorPanel, {
+      attributes: true,
+      attributeFilter: ['hidden'],
+    });
+    renderErrorGuide();
+  }
 
   start?.addEventListener('click', watchCamera);
   retry?.addEventListener('click', watchCamera);
