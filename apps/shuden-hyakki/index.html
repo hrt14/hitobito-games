@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#090a10" />
+  <meta name="description" content="終電後の都電を走らせ、停留場に現れる妖怪だけを乗せる3分間の判断ホラーゲーム。" />
+  <title>都電 百鬼夜行 — 終電のあと —</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app">
+    <section class="screen start-screen active" id="startScreen" aria-labelledby="gameTitle">
+      <div class="start-city" aria-hidden="true">
+        <span class="wire wire-a"></span><span class="wire wire-b"></span>
+        <span class="lamp l1"></span><span class="lamp l2"></span><span class="lamp l3"></span>
+        <div class="tram-start">
+          <div class="tram-sign">貸切</div>
+          <div class="tram-window"></div>
+          <div class="tram-light"></div>
+        </div>
+      </div>
+      <div class="start-copy">
+        <p class="eyebrow">TŌDEN × YŌKAI / NIGHT DUTY</p>
+        <h1 id="gameTitle"><span>都電</span><br>百鬼夜行</h1>
+        <p class="sub">終電のあと、時刻表にない停留場が現れる。</p>
+        <div class="rule">
+          <span class="rule-item yokai"><b>妖怪</b>なら停まる</span>
+          <span class="rule-arrow">／</span>
+          <span class="rule-item human"><b>人間</b>なら通過</span>
+        </div>
+        <button class="primary-btn" id="startBtn">
+          <span>運行を開始</span><small>約3分</small>
+        </button>
+        <button class="text-btn" id="openZukanBtn">妖怪図鑑 <span id="startCollection">0 / 8</span></button>
+      </div>
+    </section>
+
+    <section class="screen game-screen" id="gameScreen" aria-label="運行画面">
+      <header class="hud">
+        <div class="route-info">
+          <span class="service-dot"></span>
+          <div>
+            <small id="timeLabel">00:13</small>
+            <strong id="stopName">夜見一丁目</strong>
+          </div>
+        </div>
+        <div class="hud-stats">
+          <div><small>妖怪</small><strong id="yokaiCount">0</strong></div>
+          <div><small>侵食</small><strong id="dangerCount">0 / 3</strong></div>
+        </div>
+      </header>
+
+      <div class="route-progress" id="routeProgress" aria-label="運行進捗"></div>
+
+      <section class="cab" id="cab">
+        <canvas id="scene" aria-label="運転席から見た停留場"></canvas>
+        <div class="windshield-effects" id="windshieldEffects" aria-hidden="true">
+          <i class="handprint hp1"></i><i class="handprint hp2"></i>
+          <i class="crack crack1"></i><i class="crack crack2"></i>
+          <i class="fog"></i>
+        </div>
+        <div class="approach-banner" id="approachBanner">
+          <small>NEXT STOP</small><strong id="bannerStop">夜見一丁目</strong>
+        </div>
+        <div class="clue-card" id="clueCard">
+          <span class="clue-label">車掌メモ</span>
+          <p id="clueText">ホームをよく見ろ。</p>
+        </div>
+        <div class="feedback" id="feedback" aria-live="polite">
+          <span class="feedback-mark" id="feedbackMark">○</span>
+          <div><strong id="feedbackTitle">正解</strong><p id="feedbackText"></p></div>
+        </div>
+      </section>
+
+      <section class="decision" id="decisionPanel">
+        <p class="prompt">あれは、妖怪か？</p>
+        <div class="decision-buttons">
+          <button class="decision-btn stop" id="stopBtn">
+            <span class="decision-icon">●</span>
+            <span><strong>停まる</strong><small>妖怪だ</small></span>
+          </button>
+          <button class="decision-btn pass" id="passBtn">
+            <span class="decision-icon">→</span>
+            <span><strong>通過</strong><small>人間だ</small></span>
+          </button>
+        </div>
+      </section>
+
+      <footer class="dashboard">
+        <div class="gauge">
+          <span>速度</span><strong id="speedLabel">18</strong><small>km/h</small>
+        </div>
+        <div class="passenger-strip" id="passengerStrip" aria-label="乗車した妖怪"></div>
+        <button class="round-btn" id="muteBtn" aria-label="音を切り替え">♪</button>
+      </footer>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <div class="result-sky" aria-hidden="true"><div class="sun"></div></div>
+      <p class="eyebrow">05:02 / SERVICE ENDED</p>
+      <h2 id="resultTitle">夜を走り切った。</h2>
+      <p class="result-copy" id="resultCopy">朝焼けの線路に、乗客の影だけが残った。</p>
+      <div class="score-card">
+        <div><small>運行評価</small><strong id="rank">A</strong></div>
+        <div><small>正解</small><strong id="correctScore">0 / 12</strong></div>
+        <div><small>新発見</small><strong id="newScore">0</strong></div>
+      </div>
+      <div class="reveal" id="endingReveal">
+        <span>車掌からの伝言</span>
+        <p>「人間を乗せなかったな。よし。<br>この電車は、最初から人のための電車じゃない。」</p>
+      </div>
+      <button class="primary-btn" id="retryBtn"><span>もう一度、夜へ</span><small>妖怪は毎回変わる</small></button>
+      <button class="text-btn" id="resultZukanBtn">集めた妖怪を見る</button>
+    </section>
+
+    <dialog class="zukan" id="zukanDialog">
+      <div class="zukan-head">
+        <div><small>夜見車庫 保管記録</small><h2>妖怪図鑑</h2></div>
+        <button id="closeZukanBtn" aria-label="閉じる">×</button>
+      </div>
+      <div class="zukan-grid" id="zukanGrid"></div>
+      <p class="zukan-note">運行中に正しく停車すると記録される。</p>
+    </dialog>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
