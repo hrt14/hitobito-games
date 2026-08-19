@@ -41,6 +41,15 @@ const AUTO_META = {
     purpose: '原因分析より先に、今の感情との距離を少し作る',
     benefit: '約1分で「嫌さ」を測り直し、日常へ戻りやすくする',
   },
+  'sore-honto': {
+    title: 'それ、本当？',
+    kicker: 'FACT ≠ STORY',
+    skill: '思い込み / 見方をほぐす',
+    icon: '?',
+    forWho: '嫌な出来事があると、最初に浮かんだ意味をそのまま事実のように感じやすい人',
+    purpose: '出来事と「頭が足した意味」を分け、別の可能性を複数持つ反射を鍛える',
+    benefit: '相手の気持ちや未来を即断せず、「まだ確定していない」余白を作りやすくする',
+  },
   kininaranai: {
     title: '気にならない。',
     kicker: 'NOISE FILTER TRAINING',
