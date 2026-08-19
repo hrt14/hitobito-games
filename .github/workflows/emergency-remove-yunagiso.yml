@@ -1,0 +1,94 @@
+name: Emergency remove Yunagiso and verify production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .remove-yunagiso-trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+concurrency:
+  group: emergency-remove-yunagiso
+  cancel-in-progress: false
+
+jobs:
+  remove-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build clean Cloudflare bundle
+        run: |
+          npm run build:hosting
+          cp 404.html .dist/cloudflare/404.html
+          test ! -e .dist/cloudflare/apps/yunagiso/index.html
+          test -e .dist/cloudflare/404.html
+
+      - name: Force production deployment to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .dist/cloudflare --project-name=hitobito-games-normal --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Purge Yunagiso URLs from Cloudflare cache
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          ZONES="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones?name=hitobito.jp")"
+          ZONE_ID="$(printf '%s' "$ZONES" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);process.stdout.write(j.success&&j.result&&j.result[0]?j.result[0].id:'')})")"
+          if [ -n "$ZONE_ID" ]; then
+            curl -sS -X POST \
+              -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache" \
+              --data '{"files":["https://play.hitobito.jp/apps/yunagiso/","https://play.hitobito.jp/apps/yunagiso/index.html","https://play.hitobito.jp/apps/yunagiso/app.js","https://play.hitobito.jp/apps/yunagiso/style.css"]}' > purge.json
+          else
+            echo '{"success":false,"note":"zone lookup unavailable"}' > purge.json
+          fi
+
+      - name: Verify public URL and persist evidence
+        env:
+          VERIFY_URL: https://play.hitobito.jp/apps/yunagiso/
+        run: |
+          set +e
+          mkdir -p ops
+          CACHE_BUST="${VERIFY_URL}?removed=${GITHUB_SHA}"
+          CODE="$(curl -sS -L -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o /tmp/yunagiso-body.html -w '%{http_code}' "$CACHE_BUST")"
+          if grep -Eqi '夕凪荘|yunagiso|旧雨荘' /tmp/yunagiso-body.html; then
+            HAS_GAME=yes
+          else
+            HAS_GAME=no
+          fi
+          BODY_SHA="$(sha256sum /tmp/yunagiso-body.html | awk '{print $1}')"
+          {
+            echo "verified_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "url=${VERIFY_URL}"
+            echo "http_code=${CODE}"
+            echo "contains_yunagiso=${HAS_GAME}"
+            echo "body_sha256=${BODY_SHA}"
+            echo "deploy_commit=${GITHUB_SHA}"
+          } > ops/yunagiso-removal-status.txt
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/yunagiso-removal-status.txt
+          git commit -m 'Record Yunagiso production removal verification' || true
+          git push origin HEAD:main
+
+          if [ "$CODE" != "404" ] || [ "$HAS_GAME" != "no" ]; then
+            echo "Removal verification failed: HTTP ${CODE}, contains_yunagiso=${HAS_GAME}"
+            exit 1
+          fi
+          echo "Removal verified: public URL returns 404 and no Yunagiso content."
