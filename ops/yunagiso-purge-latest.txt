@@ -1,0 +1,7 @@
+checked_at=2026-08-19T11:08:19Z
+url=https://play.hitobito.jp/apps/yunagiso/
+purge_everything_success=no
+http_code=404
+contains_yunagiso=no
+body_sha256=57878e41aec18d63ba04f2d4e1137b3e344b4e6ca0f63353e5cdb6077b383952
+purge_response={"result":[],"result_info":{"page":1,"per_page":20,"total_pages":0,"count":0,"total_count":0},"success":true,"errors":[],"messages":[]}
