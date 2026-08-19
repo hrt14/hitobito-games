@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#071117" />
+  <meta name="description" content="必要なことだけ拾い、どうでもいいノイズは触らず通す。『気にならない』反射を短時間で反復するLEVEL UPトレーニング。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>気にならない。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る"><span class="home-mark">⌂</span><span>LEVEL UP</span></a>
+      <div class="top-status" aria-label="現在の無風レベル"><span>無風Lv.</span><b id="topLevel">1</b></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="音をオフにする">♪</button>
+    </header>
+
+    <section class="screen active start-screen" id="startScreen">
+      <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="hero">
+        <p class="eyebrow">NOISE FILTER TRAINING</p>
+        <h1>気に<br>ならない<span>。</span></h1>
+        <p class="lead">「気にしない」は、まだ反応している。<br><strong>必要なことだけ拾う練習をする。</strong></p>
+      </div>
+
+      <div class="stage-strip" aria-label="ものの見方の3段階">
+        <div><span>01</span><b>感謝する</b></div>
+        <div><span>02</span><b>気にしない</b></div>
+        <div class="active"><span>03</span><b>気にならない</b><em>TRAIN</em></div>
+      </div>
+
+      <div class="rule-card">
+        <div class="rule-visual"><span class="signal-dot"></span><span class="noise-line"></span></div>
+        <div>
+          <small>ルールは1つ</small>
+          <strong>必要なら「拾う」。<br>どうでもいいなら、何もしない。</strong>
+        </div>
+      </div>
+
+      <button class="primary-btn" id="startBtn" type="button"><span>12個、流してみる</span><b>→</b></button>
+      <p class="microcopy">約45秒。タップしないことも、正解です。</p>
+
+      <div class="local-stats" id="localStats" hidden>
+        <div><span>PLAY</span><b id="sessionCount">0</b></div>
+        <div><span>BEST</span><b id="bestScore">0</b><small>%</small></div>
+        <div><span>NOISE PASS</span><b id="lifetimePass">0</b><small>%</small></div>
+      </div>
+    </section>
+
+    <section class="screen training-screen" id="trainingScreen">
+      <div class="training-head">
+        <div class="round-label"><span id="roundText">1 / 12</span><b id="modeLabel">TRAINING</b></div>
+        <div class="score-live"><span>連続通過</span><b id="streakValue">0</b></div>
+      </div>
+
+      <div class="progress-track" aria-hidden="true"><i id="progressFill"></i></div>
+
+      <div class="attention-field" id="attentionField">
+        <div class="field-orbit orbit-a"></div>
+        <div class="field-orbit orbit-b"></div>
+        <div class="field-grid" aria-hidden="true"></div>
+
+        <article class="event-card" id="eventCard" aria-live="polite">
+          <div class="event-top">
+            <span class="event-tag" id="eventTag">日常</span>
+            <span class="timer-number" id="timerNumber">2.4</span>
+          </div>
+          <p id="eventText">相手の返信が、いつもより少し短い。</p>
+          <div class="card-horizon" aria-hidden="true"><i></i><i></i><i></i></div>
+        </article>
+
+        <div class="feedback" id="feedback" aria-live="assertive">
+          <b id="feedbackTitle">通過</b>
+          <span id="feedbackText">それは拾わなくていい。</span>
+        </div>
+      </div>
+
+      <button class="pick-btn" id="pickBtn" type="button">
+        <span class="pick-icon">＋</span>
+        <span><small>対応が必要なら</small><strong>拾う</strong></span>
+      </button>
+      <p class="training-hint" id="trainingHint">何もしなければ、そのまま流れていきます。</p>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <div class="result-halo" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <div class="result-title">
+        <span>今日の無風度</span>
+        <strong><b id="resultScore">0</b><small>%</small></strong>
+      </div>
+
+      <div class="result-bars">
+        <div>
+          <div class="bar-copy"><span>どうでもいいことを通せた</span><b id="noisePassText">0%</b></div>
+          <div class="bar"><i id="noisePassBar"></i></div>
+        </div>
+        <div>
+          <div class="bar-copy"><span>必要なことを拾えた</span><b id="signalCatchText">0%</b></div>
+          <div class="bar"><i id="signalCatchBar"></i></div>
+        </div>
+      </div>
+
+      <div class="level-card">
+        <span class="level-orbit" aria-hidden="true"></span>
+        <small>無風レベル</small>
+        <strong>Lv.<b id="resultLevel">1</b></strong>
+        <p id="levelCopy">小さなノイズを「判断する前に通す」回数を増やしていこう。</p>
+      </div>
+
+      <div class="real-world">
+        <small>NEXT REAL LIFE</small>
+        <strong>次に小さな違和感が来ても、<br>すぐ拾わない。</strong>
+        <p>放っておいて困ることだけ拾う。困らないなら、脳内通知を開かずに通過。</p>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary-btn" id="againBtn" type="button"><span>もう12個</span><b>↻</b></button>
+        <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      </div>
+      <p class="privacy-note">スコアとプレイ回数はこの端末内に保存します。自由記述はありません。</p>
+    </section>
+  </main>
+
+  <div class="screen-flash" id="screenFlash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
