@@ -1,4 +1,4 @@
-name: Purge Yunagiso HTTPS cache
+name: Purge exact Yunagiso HTTPS URL
 
 on:
   push:
@@ -14,24 +14,24 @@ jobs:
   purge:
     runs-on: ubuntu-latest
     steps:
-      - name: Purge Yunagiso prefix from Cloudflare
+      - name: Purge exact Yunagiso HTTPS URL from Cloudflare
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
           ZONES="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones?name=hitobito.jp")"
           ZONE_ID="$(printf '%s' "$ZONES" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success||!j.result||!j.result[0]){console.error(JSON.stringify(j.errors||j));process.exit(1)};process.stdout.write(j.result[0].id)})")"
-          PURGE="$(curl -sS -X POST -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache" --data '{"prefixes":["play.hitobito.jp/apps/yunagiso"]}')"
-          printf '%s' "$PURGE" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors||j));process.exit(1)};console.log('Cloudflare prefix purge succeeded:',j.result?.id||'ok')})"
+          PURGE="$(curl -sS -X POST -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache" --data '{"files":["https://play.hitobito.jp/apps/yunagiso/"]}')"
+          printf '%s' "$PURGE" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors||j));process.exit(1)};console.log('Cloudflare exact URL purge succeeded:',j.result?.id||'ok')})"
 
-      - name: Verify HTTPS no longer serves Yunagiso
+      - name: Verify exact HTTPS URL
         run: |
           set -euo pipefail
-          URL="https://play.hitobito.jp/apps/yunagiso/?purgecheck=$(date +%s)"
-          CODE="$(curl -sS -L -o /tmp/yunagiso.html -w '%{http_code}' "$URL")"
+          URL="https://play.hitobito.jp/apps/yunagiso/"
+          CODE="$(curl -sS -L -H 'Cache-Control: no-cache' -o /tmp/yunagiso.html -w '%{http_code}' "$URL")"
           echo "HTTP=$CODE"
           if grep -q '夕凪荘' /tmp/yunagiso.html; then
-            echo 'Yunagiso content is still being served over HTTPS.'
+            echo 'Yunagiso content is still being served at the exact HTTPS URL.'
             exit 1
           fi
-          echo 'Yunagiso content is not present in HTTPS response.'
+          echo 'Exact HTTPS URL no longer contains Yunagiso content.'
