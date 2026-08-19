@@ -1,0 +1,48 @@
+name: Sync Games Portal
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'scripts/playtest-catalog.mjs'
+      - 'scripts/sync-games-portal.mjs'
+      - 'deploy-targets.json'
+      - '.github/workflows/sync-games-portal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-games-portal
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync latest game links
+        run: node scripts/sync-games-portal.mjs
+
+      - name: Commit portal update
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "Portal already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Sync latest games on portal"
+          git push
