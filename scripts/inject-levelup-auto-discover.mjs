@@ -104,6 +104,15 @@ const AUTO_META = {
     purpose: '曖昧な不安を4つの未検証仮説へ分け、最弱点を見つける',
     benefit: '今日確かめる1アクションが決まり、結果待ちの不安を検証へ変えられる',
   },
+  'kanji-warukatta': {
+    title: '感じ悪かった？',
+    kicker: 'CARE ≠ FEAR',
+    skill: '気遣い / 反芻終了',
+    icon: '✓',
+    forWho: '会話や会議のあと「失礼だったかな」と「嫌われたかな」が混ざって頭から離れない人',
+    purpose: '事実・直せる気遣い・未確認の評価予測を分け、扱う範囲を決める',
+    benefit: '必要な行動だけ1個以下に残し、相手の評価を考え続ける脳内反省会を短く終えやすくする',
+  },
   'life-plus-one': {
     title: 'LIFE +1',
     kicker: 'AI LIFE DELTA',

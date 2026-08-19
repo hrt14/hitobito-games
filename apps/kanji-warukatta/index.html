@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f0e8" />
+  <meta name="description" content="相手への気遣いだけ残して、嫌われたかもという脳内反省会を短く終えるLEVEL UPアプリ。" />
+  <title>感じ悪かった？ | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ">← LEVEL UP</a>
+      <span class="session-count" id="sessionCount" aria-label="終了した反省会の回数">0 END</span>
+    </header>
+
+    <section class="screen is-active" id="startScreen" data-screen="start">
+      <div class="eyebrow">CARE ≠ FEAR</div>
+      <h1>感じ悪かった？</h1>
+      <p class="lead">気遣いだけ残して、<br />嫌われたかもは終わらせる。</p>
+
+      <div class="thought-cloud" aria-hidden="true">
+        <span>失礼だったかな</span>
+        <span>よく思われないかな</span>
+        <span>感じ悪かったかな</span>
+      </div>
+
+      <div class="meter-block">
+        <div class="meter-head">
+          <label for="beforeRange">いま、どのくらい頭を占領してる？</label>
+          <strong><span id="beforeValue">6</span><small>/10</small></strong>
+        </div>
+        <input id="beforeRange" type="range" min="0" max="10" value="6" />
+      </div>
+
+      <button class="primary-button" id="startButton" type="button">反省会を1分だけ開く</button>
+      <p class="tiny-note">相手の気持ちを当てるアプリではありません。自分が扱える部分だけ整理します。</p>
+    </section>
+
+    <section class="screen" id="factScreen" data-screen="fact" aria-labelledby="factTitle">
+      <div class="step-label">01 / 03　FACT</div>
+      <h2 id="factTitle">何が、実際に起きた？</h2>
+      <p class="screen-copy">評価や想像を抜いて、カメラに映ることだけ。</p>
+
+      <textarea id="factInput" maxlength="100" rows="4" placeholder="例：会議で、相手の提案にすぐ「難しいです」と返した"></textarea>
+      <div class="input-foot"><span id="factCount">0 / 100</span><button class="text-button" id="noFactButton" type="button">具体的なことは思い当たらない</button></div>
+
+      <div class="example-strip" aria-label="事実の例">
+        <button class="chip" type="button" data-fact="返事が少し短かった">返事が短かった</button>
+        <button class="chip" type="button" data-fact="少し強めの言い方をした">強めに言った</button>
+        <button class="chip" type="button" data-fact="相手の提案を断った">断った</button>
+      </div>
+
+      <button class="primary-button" id="factNextButton" type="button" disabled>これが事実</button>
+    </section>
+
+    <section class="screen" id="careScreen" data-screen="care" aria-labelledby="careTitle">
+      <div class="step-label">02 / 03　CARE</div>
+      <h2 id="careTitle">相手への気遣いとして、<br />直せることはある？</h2>
+      <div class="fact-card">
+        <span>確認した事実</span>
+        <p id="factPreview"></p>
+      </div>
+
+      <div class="choice-stack" role="group" aria-label="直せることがあるか">
+        <button class="choice-button" type="button" data-care="repair"><b>ある</b><span>一言だけ補足・謝るなど</span></button>
+        <button class="choice-button" type="button" data-care="next"><b>次回だけ変える</b><span>今は連絡せず、次の行動を整える</span></button>
+        <button class="choice-button" type="button" data-care="none"><b>ない</b><span>具体的な修正点は見つからない</span></button>
+      </div>
+
+      <div class="repair-panel" id="repairPanel" hidden>
+        <label for="repairInput">やるなら、1個だけ</label>
+        <input id="repairInput" maxlength="60" placeholder="例：次に会ったとき一言だけ補足する" />
+        <div class="repair-presets">
+          <button class="chip" type="button" data-repair="一言だけ謝る">一言だけ謝る</button>
+          <button class="chip" type="button" data-repair="意図を短く補足する">意図を短く補足する</button>
+          <button class="chip" type="button" data-repair="次回は言い方を少し柔らかくする">次回だけ変える</button>
+        </div>
+        <button class="primary-button" id="repairNextButton" type="button">これ以上は増やさない</button>
+      </div>
+    </section>
+
+    <section class="screen" id="fearScreen" data-screen="fear" aria-labelledby="fearTitle">
+      <div class="step-label">03 / 03　FEAR</div>
+      <h2 id="fearTitle">残りは、<br />相手の頭の中。</h2>
+      <p class="screen-copy">ここから先は、今の自分には確認できません。</p>
+
+      <div class="fear-stack" id="fearStack" aria-label="手放す考え">
+        <button class="fear-card" type="button"><span>よく思われなかったかも</span><small>タップして外す →</small></button>
+        <button class="fear-card" type="button"><span>嫌われたかも</span><small>タップして外す →</small></button>
+        <button class="fear-card" type="button"><span>感じ悪い人と思われたかも</span><small>タップして外す →</small></button>
+      </div>
+      <p class="counter" id="fearCounter" aria-live="polite">3個、未確定の想像が残っています</p>
+    </section>
+
+    <section class="screen" id="resultScreen" data-screen="result" aria-labelledby="resultTitle">
+      <div class="result-mark" aria-hidden="true">✓</div>
+      <div class="step-label">REFLECTION CLOSED</div>
+      <h2 id="resultTitle">反省会、終了。</h2>
+      <p class="screen-copy" id="resultCopy">扱えることだけ残しました。</p>
+
+      <div class="keep-card" id="keepCard">
+        <span>残すのはこれだけ</span>
+        <strong id="keepAction">やることなし</strong>
+      </div>
+
+      <div class="rule-card">
+        <span>この件のルール</span>
+        <p>新しい事実が来るまで、<br /><b>相手の評価を再審しない。</b></p>
+      </div>
+
+      <div class="meter-block result-meter">
+        <div class="meter-head">
+          <label for="afterRange">いまは、どのくらい頭を占領してる？</label>
+          <strong><span id="afterValue">3</span><small>/10</small></strong>
+        </div>
+        <input id="afterRange" type="range" min="0" max="10" value="3" />
+      </div>
+
+      <button class="end-button" id="endButton" type="button"><span>この件を閉じる</span><small>長押し 0.8秒</small></button>
+      <div class="hold-progress" aria-hidden="true"><span id="holdProgress"></span></div>
+      <p class="result-delta" id="resultDelta" aria-live="polite"></p>
+    </section>
+
+    <section class="screen" id="closedScreen" data-screen="closed" aria-labelledby="closedTitle">
+      <div class="closed-orb" aria-hidden="true"></div>
+      <div class="eyebrow">DONE FOR NOW</div>
+      <h2 id="closedTitle">もう考えなくていい。</h2>
+      <p class="lead compact">気遣いは残した。<br />自己保身の想像は、ここで終了。</p>
+      <div class="closed-summary" id="closedSummary"></div>
+      <button class="secondary-button" id="againButton" type="button">別の件を整理する</button>
+      <a class="primary-button link-button" href="/">LEVEL UPへ戻る</a>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
