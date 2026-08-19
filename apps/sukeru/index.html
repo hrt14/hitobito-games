@@ -6,8 +6,7 @@
   <meta name="theme-color" content="#090b0f" />
   <meta name="description" content="画面をひたすらこすると、背面カメラの向こう側が少しずつ見えてくる。" />
   <title>すける。</title>
-  <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./camera-fix.css" />
+  <link rel="stylesheet" href="./style.css?v=20260819-1816" />
 </head>
 <body>
   <main id="app" class="app is-boot">
@@ -48,16 +47,14 @@
 
     <section id="errorPanel" class="error-panel" hidden role="alert">
       <div class="error-card">
-        <p class="eyebrow">CAMERA PERMISSION</p>
-        <h2>カメラの許可が必要です</h2>
-        <p id="errorMessage">「許可」を選んだあと、下のボタンを押してください。</p>
-        <button id="retry" class="retry" type="button">許可したらもう一度</button>
+        <p class="eyebrow">CAMERA</p>
+        <h2 id="errorTitle">カメラを起動できません</h2>
+        <p id="errorMessage">もう一度試してください。</p>
+        <button id="retry" class="retry" type="button">もう一度</button>
       </div>
     </section>
   </main>
 
-  <script src="./game.js"></script>
-  <script src="./camera-fix.js"></script>
-  <script src="./camera-launch-fix.js"></script>
+  <script src="./game.js?v=20260819-1816"></script>
 </body>
 </html>
