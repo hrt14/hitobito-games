@@ -1,2 +1,2 @@
-Production deploy trigger: REMOVE-YUNAGISO-404
-Reason: make removed Yunagiso URL return 404 and purge stale Cloudflare cache
+Production deploy trigger: DREAM-HOUSE-RUNTIME-FIX
+Reason: deploy runtime-fixed DREAM HOUSE to play.hitobito.jp
