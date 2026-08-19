@@ -41,6 +41,15 @@ const AUTO_META = {
     purpose: '聞く・調べる・分析・実験・委任など、問題解決の入口を増やす',
     benefit: '初めての問題でも「別方向の一手」を複数出しやすくなる',
   },
+  'idea-lenses-40': {
+    title: '発想筋40',
+    kicker: '40 IDEA LENSES',
+    skill: '発想力 / 打ち手づくり',
+    icon: '✳',
+    forWho: '困ったとき、いつも同じ打ち手しか思いつかない人',
+    purpose: '40の変形視点を反射で呼び出せるようにする',
+    benefit: '1つの問題から複数方向の打ち手を素早く出しやすくする',
+  },
 };
 
 function cleanTitle(value, slug) {
