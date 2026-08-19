@@ -17,7 +17,7 @@ const humanOnlySlugs = new Set(policy.targets.humanTestOnly.slugs || []);
 
 const START = '<!-- AUTO-LATEST-GAMES:START -->';
 const END = '<!-- AUTO-LATEST-GAMES:END -->';
-const LIMIT = 12;
+const LIMIT = 24;
 
 const THEMES = {
   horror: { tag: 'HORROR', icon: '◉', g1: '#321722', g2: '#09080b', glow: 'rgba(255,92,104,.18)' },
