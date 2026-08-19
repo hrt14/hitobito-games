@@ -1,4 +1,4 @@
-Deploy LEVEL UP latest apps
-Force production deploy after まだ寝てていい。 implementation
-Targets include: /apps/asa-glide/
-Trigger commit follows merge 8563bd7e940ae1f8948f4c390ec87c0006ad0106
+Deploy LEVEL UP corrected newest ordering
+Use apps/<slug>/index.html first-added Git commit timestamp, including time to the second.
+Do not treat later catalogue registration as a new release.
+Triggered 2026-08-20 06:43 JST.
