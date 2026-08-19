@@ -41,6 +41,15 @@ const AUTO_META = {
     purpose: '聞く・調べる・分析・実験・委任など、問題解決の入口を増やす',
     benefit: '初めての問題でも「別方向の一手」を複数出しやすくなる',
   },
+  atsumaru: {
+    title: '集まる？',
+    kicker: 'UNCERTAINTY → TEST',
+    skill: '集客不安 / 仮説検証',
+    icon: '?',
+    forWho: '新しい企画やコンテストを始めたいが「人が来なかったら」と不安な人',
+    purpose: '曖昧な不安を4つの未検証仮説へ分け、最弱点を見つける',
+    benefit: '今日確かめる1アクションが決まり、結果待ちの不安を検証へ変えられる',
+  },
 };
 
 function cleanTitle(value, slug) {
