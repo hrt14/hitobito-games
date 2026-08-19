@@ -1,2 +1,2 @@
-Production deploy trigger: JIGOKUSO
-Reason: deploy renamed Jigokuso game to play.hitobito.jp
+Production deploy trigger: JIGOKUSO-NAME-FIX
+Reason: deploy final Jigokuso naming to play.hitobito.jp
