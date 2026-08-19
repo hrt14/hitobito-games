@@ -46,7 +46,7 @@
     },
   };
 
-  const state = { task:'', cause:null, microAction:'', launchedAt:0, leftAt:0, hasLeft:false, countdownTimer:null, returnTimer:null };
+  const state = { task:'', cause:null, microAction:'', launchedAt:0, leftAt:0, hasLeft:false, countdownTimer:null, returnTimer:null, rescueOptions:[] };
 
   function loadHistory(){
     try {
@@ -58,6 +58,26 @@
 
   function saveHistory(){
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); } catch {}
+  }
+
+  function savePending(){
+    try {
+      localStorage.setItem(`${STORAGE_KEY}.pending`, JSON.stringify({
+        task:state.task, cause:state.cause?.id || null, action:state.microAction, launchedAt:state.launchedAt || Date.now(),
+      }));
+    } catch {}
+  }
+
+  function clearPending(){
+    try { localStorage.removeItem(`${STORAGE_KEY}.pending`); } catch {}
+  }
+
+  function loadPending(){
+    try {
+      const pending = JSON.parse(localStorage.getItem(`${STORAGE_KEY}.pending`) || 'null');
+      if (!pending?.task || !pending?.action || Date.now() - Number(pending.launchedAt || 0) > 2 * 60 * 60 * 1000) { clearPending(); return null; }
+      return pending;
+    } catch { clearPending(); return null; }
   }
 
   function vibrate(pattern=8){ try { navigator.vibrate?.(pattern); } catch {} }
@@ -101,9 +121,16 @@
       `「${task}」に使う道具・資料を1つだけ手元に出す。`,
       `30秒タイマーを始めて「${task}」に触る。続けるかは後。`,
     ];
-    $('rescueGrid').innerHTML = options.map((text, index) => `
-      <button class="rescue-btn" type="button" data-rescue="${index}"><b>0${index+1}</b><span>${text}</span></button>`).join('');
-    $('rescueGrid').dataset.options = JSON.stringify(options);
+    state.rescueOptions = options;
+    const grid = $('rescueGrid');
+    grid.replaceChildren();
+    options.forEach((text, index) => {
+      const button = document.createElement('button');
+      button.className = 'rescue-btn'; button.type = 'button'; button.dataset.rescue = String(index);
+      const number = document.createElement('b'); number.textContent = `0${index+1}`;
+      const copy = document.createElement('span'); copy.textContent = text;
+      button.append(number, copy); grid.append(button);
+    });
     setScreen('rescueScreen');
   }
 
@@ -137,6 +164,7 @@
       $('goBtn').hidden = false;
       $('alreadyStartedBtn').hidden = false;
       state.launchedAt = Date.now();
+      savePending();
       vibrate([10,30,15]);
       $('flash').classList.remove('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
     }, 780);
@@ -144,6 +172,7 @@
 
   function markGo(){
     state.launchedAt = state.launchedAt || Date.now();
+    savePending();
     $('goBtn').hidden = true;
     $('launchNote').textContent = 'ここから先はアプリの外。対象だけ開いて、30秒触ってください。';
     $('launchTitle').innerHTML = 'ここを閉じて、<br>今やる。';
@@ -167,6 +196,7 @@
   }
 
   function finishSuccess(){
+    clearPending();
     record(true);
     $('resultAction').textContent = state.microAction;
     renderStats();
@@ -179,6 +209,7 @@
   }
 
   function retrySmaller(){
+    clearPending();
     record(false);
     shrinkAgain();
   }
@@ -207,22 +238,22 @@
   }
 
   function reset(){
-    clearLaunchTimers();
-    state.task=''; state.cause=null; state.microAction=''; state.launchedAt=0; state.leftAt=0; state.hasLeft=false;
+    clearLaunchTimers(); clearPending();
+    state.task=''; state.cause=null; state.microAction=''; state.launchedAt=0; state.leftAt=0; state.hasLeft=false; state.rescueOptions=[];
     $('taskInput').value=''; $('startBtn').disabled=true;
     renderStats(); setScreen('startScreen');
   }
 
   $('taskInput').addEventListener('input', () => {
     state.task = cleanTask($('taskInput').value);
-    $('startBtn').disabled = state.task.length < 2;
+    $('startBtn').disabled = state.task.length < 1;
   });
   $('taskInput').addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && !$('startBtn').disabled) { event.preventDefault(); $('startBtn').click(); }
   });
   $('startBtn').addEventListener('click', () => {
     state.task = cleanTask($('taskInput').value);
-    if (state.task.length < 2) return;
+    if (state.task.length < 1) return;
     setScreen('causeScreen'); vibrate(8);
   });
   $('causeGrid').addEventListener('click', (event) => {
@@ -233,8 +264,7 @@
   $('smallerBtn').addEventListener('click', shrinkAgain);
   $('rescueGrid').addEventListener('click', (event) => {
     const button = event.target.closest('[data-rescue]'); if (!button) return;
-    const options = JSON.parse($('rescueGrid').dataset.options || '[]');
-    state.microAction = options[Number(button.dataset.rescue)] || state.microAction;
+    state.microAction = state.rescueOptions[Number(button.dataset.rescue)] || state.microAction;
     $('microAction').value = state.microAction;
     beginLaunch();
   });
@@ -259,4 +289,11 @@
   });
 
   renderCauses(); renderStats();
+  const pending = loadPending();
+  if (pending) {
+    state.task = pending.task; state.cause = causes.find((cause) => cause.id === pending.cause) || null;
+    state.microAction = pending.action; state.launchedAt = Number(pending.launchedAt || Date.now()); state.hasLeft = true;
+    $('checkTask').textContent = state.microAction;
+    setScreen('checkScreen');
+  }
 })();
