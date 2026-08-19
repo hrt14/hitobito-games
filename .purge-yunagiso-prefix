@@ -1,3 +1,3 @@
-triggered_at=2026-08-19T20:00:00+09:00
-prefix=play.hitobito.jp/apps/yunagiso
-reason=purge stale HTTPS Yunagiso cache
+triggered_at=2026-08-19T20:05:00+09:00
+url=https://play.hitobito.jp/apps/yunagiso/
+reason=purge this exact HTTPS URL
