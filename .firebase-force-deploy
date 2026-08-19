@@ -1,3 +1,3 @@
-Force deploy LEVEL UP after sore-honto implementation
-Triggered at 2026-08-19T19:45:00+09:00
-Reason: それ、本当？ must be present on LEVEL UP home and live route; verify all catalog routes
+Force deploy LEVEL UP after kanji-warukatta implementation
+Source merge: 168dfc6e5d9810c815ef511eb6db9149dc804cf1
+Reason: 感じ悪かった？ must be present on LEVEL UP home and live route; verify all catalog routes on both production domains
