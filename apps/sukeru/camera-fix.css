@@ -1,0 +1,23 @@
+/* iPhone camera visibility hotfix: the scratch canvas is the opaque layer. */
+.app.is-live .veil {
+  opacity: .06 !important;
+}
+
+.camera-stall-note {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  width: min(calc(100% - 32px), 460px);
+  transform: translateX(-50%);
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(10, 12, 16, .88);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.65;
+  text-align: center;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
