@@ -50,6 +50,15 @@ const AUTO_META = {
     purpose: '40の変形視点を反射で呼び出せるようにする',
     benefit: '1つの問題から複数方向の打ち手を素早く出しやすくする',
   },
+  atsumaru: {
+    title: '集まる？',
+    kicker: 'UNCERTAINTY → TEST',
+    skill: '集客不安 / 仮説検証',
+    icon: '?',
+    forWho: '新しい企画やコンテストを始めたいが「人が来なかったら」と不安な人',
+    purpose: '曖昧な不安を4つの未検証仮説へ分け、最弱点を見つける',
+    benefit: '今日確かめる1アクションが決まり、結果待ちの不安を検証へ変えられる',
+  },
 };
 
 function cleanTitle(value, slug) {
