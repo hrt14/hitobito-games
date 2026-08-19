@@ -1,0 +1,3 @@
+Emergency production removal verification: 2026-08-19T19:46+09:00
+Target: https://play.hitobito.jp/apps/yunagiso/
+Expected: HTTP 404 and no Yunagiso content
