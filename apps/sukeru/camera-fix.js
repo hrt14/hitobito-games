@@ -7,6 +7,9 @@
   const veil = document.getElementById('veil');
   const start = document.getElementById('start');
   const retry = document.getElementById('retry');
+  const errorPanel = document.getElementById('errorPanel');
+  const errorMessage = document.getElementById('errorMessage');
+  const errorTitle = errorPanel?.querySelector('h2');
   if (!app || !video || !canvas || !veil) return;
 
   // WebKit/iPhone is sensitive to inline-playback flags on camera-backed video.
@@ -72,15 +75,46 @@
       veil.style.setProperty('opacity', '0.06', 'important');
     }
   };
-  new MutationObserver(forceClearVeil).observe(app, { attributes: true, attributeFilter: ['class'] });
+
+  const syncPermissionOverlay = () => {
+    if (!errorPanel) return;
+
+    if (app.classList.contains('is-live')) {
+      errorPanel.hidden = true;
+      errorPanel.style.display = 'none';
+      return;
+    }
+
+    if (!errorPanel.hidden) {
+      errorPanel.style.removeProperty('display');
+      if (errorTitle) errorTitle.textContent = 'カメラの許可が必要です';
+      if (errorMessage) errorMessage.textContent = '初回はカメラの許可が必要です。「許可」を選んだあと、もう一度押してください。';
+      if (retry) retry.textContent = '許可したらもう一度';
+    }
+  };
+
+  const appObserver = new MutationObserver(() => {
+    forceClearVeil();
+    syncPermissionOverlay();
+  });
+  appObserver.observe(app, { attributes: true, attributeFilter: ['class'] });
+
+  if (errorPanel) {
+    new MutationObserver(syncPermissionOverlay).observe(errorPanel, {
+      attributes: true,
+      attributeFilter: ['hidden'],
+    });
+  }
+
   forceClearVeil();
+  syncPermissionOverlay();
 
   let note = null;
   const showStallNote = () => {
     if (note || !app.classList.contains('is-live')) return;
     note = document.createElement('div');
     note.className = 'camera-stall-note';
-    note.textContent = '映像が黒いままなら、アプリ内ブラウザではなくSafariでこのページを開いてください。';
+    note.textContent = '映像が黒いままなら、Safariでこのページを開いてください。';
     app.appendChild(note);
   };
 
