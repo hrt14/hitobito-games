@@ -41,6 +41,15 @@ const AUTO_META = {
     purpose: '必要な信号だけ拾い、どうでもいいノイズは触らず通す反射を鍛える',
     benefit: '「気にしない」と言い聞かせる前に、小さなノイズを通過させやすくする',
   },
+  matomaru: {
+    title: 'まとまる。',
+    kicker: 'THINK IN 3',
+    skill: '思考整理 / 構造化',
+    icon: '≡',
+    forWho: '情報が多いと全部を同時に考えてしまい、結論が出るまで時間がかかる人',
+    purpose: '「要するに・なぜ・だから」の3点へ落とす順番を反射化する',
+    benefit: '会議・企画・問題整理で、結論と次の一手を短時間で作りやすくなる',
+  },
   uchite: {
     title: '打ち手を増やせ。',
     kicker: 'OPTION TRAINING',
