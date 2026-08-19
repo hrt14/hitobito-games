@@ -59,6 +59,15 @@ const AUTO_META = {
     purpose: '曖昧な不安を4つの未検証仮説へ分け、最弱点を見つける',
     benefit: '今日確かめる1アクションが決まり、結果待ちの不安を検証へ変えられる',
   },
+  'life-plus-one': {
+    title: 'LIFE +1',
+    kicker: 'AI LIFE DELTA',
+    skill: '自己理解 / 振り返り',
+    icon: '+1',
+    forWho: '毎日いろいろやっているのに、何も進んでいない気がする人',
+    purpose: '今日の出来事から、昨日までになかった人生の差分を見つける',
+    benefit: '大きな成果がない日でも、経験・回復・学び・関係などの蓄積を確認できる',
+  },
 };
 
 function cleanTitle(value, slug) {
