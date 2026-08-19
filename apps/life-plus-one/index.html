@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#080b0a" />
+  <meta name="description" content="今日起きたことから、人生に増えたものを見つける。AIが今日の+1を言語化するLEVEL UPアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>LIFE +1 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <button class="history-button" id="historyButton" type="button" aria-controls="historyPanel" aria-expanded="false">これまで</button>
+    </header>
+
+    <section class="screen active" id="inputScreen">
+      <div class="constellation" id="constellation" aria-hidden="true"></div>
+      <div class="hero">
+        <p class="eyebrow">FIND TODAY'S LIFE DELTA</p>
+        <h1>LIFE <span>+1</span></h1>
+        <p class="tagline">今日も、人生の累計最高記録。</p>
+        <div class="life-total" aria-label="これまで見つけた人生のプラス">
+          <span>LIFE</span><strong>+<b id="lifeTotal">0</b></strong>
+        </div>
+      </div>
+
+      <div class="entry-card">
+        <label for="todayInput">今日、何があった？</label>
+        <textarea id="todayInput" maxlength="1000" rows="4" placeholder="そのまま一言で。例：会議のあと20分歩いたら、少し頭が戻った"></textarea>
+        <div class="examples" aria-label="入力例">
+          <button type="button" data-example="気が重かったメールを1通返した">メールを1通返した</button>
+          <button type="button" data-example="仕事で失敗した。準備が足りなかった">仕事で失敗した</button>
+          <button type="button" data-example="疲れていたので、今日は早めに休んだ">早めに休んだ</button>
+        </div>
+        <button class="primary-button" id="findButton" type="button" disabled>
+          <span>+1を見つける</span><b>→</b>
+        </button>
+        <p class="microcopy" id="modeCopy">ログイン中はAIが分析。未ログインでも簡易判定で使えます。</p>
+      </div>
+
+      <section class="today-section" id="todaySection" hidden>
+        <div class="section-head"><span>TODAY</span><strong id="todayCount">+0</strong></div>
+        <div class="mini-list" id="todayList"></div>
+      </section>
+    </section>
+
+    <section class="screen analysis-screen" id="analysisScreen" aria-live="polite">
+      <div class="scan-orbit"><i></i><i></i><b>+1</b></div>
+      <p class="eyebrow">LOOKING FOR THE DELTA</p>
+      <h2>今日増えたものを<br>探しています。</h2>
+      <div class="scan-words" id="scanWords"><span>経験</span><span>知識</span><span>回復</span></div>
+      <p class="analysis-note">褒めるためではなく、昨日までになかった差分を探します。</p>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <div class="result-top">
+        <p class="eyebrow" id="resultSource">TODAY'S +1</p>
+        <div class="plus-mark">+1</div>
+        <div class="category" id="resultCategory">PROGRESS</div>
+        <h2 id="resultTitle">小さな前進が1つ増えた</h2>
+      </div>
+
+      <div class="result-detail" id="foundResult">
+        <article><span>+1</span><p id="resultAdded"></p></article>
+        <article><span>WHY</span><p id="resultReason"></p></article>
+        <article><span>LIFE</span><p id="resultLife"></p></article>
+      </div>
+
+      <div class="no-plus" id="noPlusResult" hidden>
+        <p id="noPlusMessage">今日はまだ、はっきりした+1を決めなくてもよさそう。</p>
+      </div>
+
+      <section class="hidden-plus" id="hiddenPlusSection" hidden>
+        <p>ほかにも増えている</p>
+        <div id="hiddenPlusList"></div>
+      </section>
+
+      <div class="result-actions">
+        <button class="primary-button add-button" id="addButton" type="button"><span>人生に追加する</span><b>＋</b></button>
+        <button class="secondary-button" id="differentButton" type="button">ちょっと違う</button>
+        <button class="secondary-button" id="retryButton" type="button" hidden>もう一度書く</button>
+      </div>
+      <p class="privacy-note">入力内容と結果はこの端末に保存します。ログイン中のAI分析では入力文をサーバー経由でOpenAI APIへ送信します。APIキーはブラウザには保存しません。</p>
+    </section>
+
+    <section class="screen saved-screen" id="savedScreen">
+      <div class="record-burst" id="recordBurst"><span>NEW LIFE RECORD</span><b id="savedTotal">+1</b></div>
+      <h2>今日も、<br>人生の累計最高記録。</h2>
+      <p id="savedLine">昨日までなかったものが、今日ひとつ増えました。</p>
+      <button class="primary-button" id="anotherButton" type="button"><span>もうひとつ見つける</span><b>＋</b></button>
+      <button class="secondary-button" id="openHistoryButton" type="button">これまでを見る</button>
+    </section>
+  </main>
+
+  <aside class="history-panel" id="historyPanel" aria-hidden="true">
+    <div class="history-backdrop" id="historyBackdrop"></div>
+    <div class="history-sheet" role="dialog" aria-modal="true" aria-label="これまでのLIFE +1">
+      <header><div><p class="eyebrow">MY LIFE</p><h2>これまで増えたもの</h2></div><button id="historyClose" type="button" aria-label="閉じる">×</button></header>
+      <div class="history-summary" id="historySummary"></div>
+      <div class="history-list" id="historyList"></div>
+      <button class="danger-link" id="clearButton" type="button">この端末の記録を消す</button>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
