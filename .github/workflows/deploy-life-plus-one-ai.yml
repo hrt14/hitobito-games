@@ -1,0 +1,40 @@
+name: Deploy LIFE +1 AI Function
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - 'firebase.json'
+      - '.github/workflows/deploy-life-plus-one-ai.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install function dependencies
+        run: npm install --prefix functions
+
+      - name: Deploy LIFE +1 AI
+        run: npx --yes firebase-tools@latest deploy --only functions:analyzeLifePlusOne --project hitobito-levelup --non-interactive

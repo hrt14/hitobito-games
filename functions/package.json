@@ -1,0 +1,11 @@
+{
+  "name": "hitobito-levelup-functions",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "22" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "latest",
+    "firebase-functions": "latest"
+  }
+}
