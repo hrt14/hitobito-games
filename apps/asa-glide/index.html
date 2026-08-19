@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#090b16" />
+  <meta name="description" content="起きたくない朝でも、とりあえず開いていい。寝たままスマホを触るところから、自然に朝の最初の一歩へつなぐLEVEL UPアプリ。" />
+  <title>まだ寝てていい。 | LEVEL UP</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;
+      --wake:0;
+      --wakePct:5%;
+      --starOpacity:.71;
+      --sunOpacity:.1;
+      --sunScale:.74;
+      --orbGlow:34px;
+      --bg0:#070914;
+      --bg1:#11152a;
+      --text:#f8f7f2;
+      --muted:#a7abb9;
+      --line:rgba(255,255,255,.12);
+      --panel:rgba(255,255,255,.065);
+      --panel2:rgba(255,255,255,.095);
+      --sun:#ffd979;
+      --peach:#ffaf82;
+      --sky:#9bd3ff;
+      --green:#b8f2c7;
+      --shadow:0 24px 70px rgba(0,0,0,.34);
+    }
+    *{box-sizing:border-box}
+    html{min-height:100%;background:var(--bg0)}
+    body{margin:0;min-height:100dvh;color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;background:radial-gradient(circle at 82% 0%,rgba(116,151,220,.11),transparent 34%),linear-gradient(180deg,#0b0e1c 0%,#080a13 100%)}
+    button,input{font:inherit}
+    button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .sky{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+    .stars{position:absolute;inset:0;opacity:var(--starOpacity);transition:opacity .6s;background-image:radial-gradient(circle at 8% 14%,#fff 0 1px,transparent 1.7px),radial-gradient(circle at 21% 31%,#fff 0 1px,transparent 1.6px),radial-gradient(circle at 38% 10%,#fff 0 1px,transparent 1.6px),radial-gradient(circle at 56% 27%,#fff 0 1px,transparent 1.7px),radial-gradient(circle at 72% 13%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 91% 34%,#fff 0 1px,transparent 1.7px),radial-gradient(circle at 17% 67%,#fff 0 1px,transparent 1.6px),radial-gradient(circle at 80% 70%,#fff 0 1px,transparent 1.7px);background-size:390px 390px}
+    .sunrise{position:absolute;left:50%;bottom:-125px;width:260px;height:260px;border-radius:50%;transform:translateX(-50%) scale(var(--sunScale));opacity:var(--sunOpacity);background:radial-gradient(circle,#fff6c7 0 14%,#ffd77a 35%,#ffad7e 57%,rgba(255,172,119,.06) 71%);filter:blur(6px);transition:opacity .5s,transform .5s,filter .5s;box-shadow:0 0 90px rgba(255,189,109,.28)}
+    .app{position:relative;z-index:1;width:min(100% - 22px,560px);margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 0 max(24px,env(safe-area-inset-bottom))}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:42px}
+    .brand{display:flex;align-items:center;gap:8px;color:#cfd3df;font-size:10px;font-weight:950;letter-spacing:.15em;text-transform:uppercase}
+    .brand i{width:8px;height:8px;border-radius:50%;background:var(--sun);box-shadow:0 0 18px rgba(255,217,121,.55)}
+    .home{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:#c5c9d5;text-decoration:none;padding:0 13px;font-size:11px;font-weight:850}
+    .screen{display:none;min-height:calc(100dvh - 92px);animation:enter .3s ease both}
+    .screen.active{display:flex;flex-direction:column}
+    @keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .center{justify-content:center;text-align:center;padding:20px 5px 52px}
+    .eyebrow{color:var(--sun);font-size:10px;font-weight:950;letter-spacing:.18em;text-transform:uppercase;margin-bottom:11px}
+    h1{margin:0;font-size:clamp(46px,13vw,68px);line-height:.94;letter-spacing:-.065em;font-weight:950}
+    .lead{margin:17px auto 0;max-width:420px;color:#c1c5d0;font-size:14px;line-height:1.85}.lead strong{color:#fff}
+    .soft-note{margin:10px auto 0;color:#7e8495;font-size:11px;line-height:1.65}
+    .actions{display:grid;gap:10px;margin-top:26px}
+    .primary,.secondary,.ghost{width:100%;border:0;border-radius:20px;min-height:60px;font-weight:950;cursor:pointer;transition:transform .15s,filter .15s,background .2s}
+    .primary{background:linear-gradient(135deg,#ffe391,#ffb876);color:#21190f;box-shadow:0 15px 34px rgba(255,184,103,.16);font-size:15px}
+    .secondary{background:rgba(255,255,255,.085);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:14px}
+    .ghost{min-height:48px;background:transparent;color:#888e9f;font-size:12px}
+    .primary:active,.secondary:active,.ghost:active,.task:active,.wake-orb:active{transform:scale(.98)}
+    .glide{padding:18px 2px 18px;justify-content:space-between}
+    .glide-copy{text-align:center;padding:18px 12px 0}.glide-copy h2{margin:0;font-size:34px;letter-spacing:-.045em;line-height:1.08}.glide-copy p{margin:11px auto 0;color:#aeb3c2;font-size:13px;line-height:1.75;min-height:46px;max-width:410px}
+    .wake-zone{display:grid;place-items:center;flex:1;min-height:310px;padding:16px 0}
+    .wake-orb{position:relative;width:min(68vw,290px);aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.13);background:radial-gradient(circle at 42% 35%,rgba(255,239,184,.22),rgba(255,187,111,.08) 35%,rgba(255,255,255,.025) 62%);box-shadow:0 0 var(--orbGlow) rgba(255,195,111,.14),inset 0 0 0 8px rgba(255,255,255,.018);cursor:pointer;user-select:none;overflow:hidden;transition:box-shadow .3s,background .3s,transform .15s}
+    .wake-orb:before{content:"";position:absolute;inset:14%;border:1px dashed rgba(255,255,255,.12);border-radius:50%}.wake-orb span{position:absolute;inset:0;display:grid;place-items:center;padding:38px;color:#f4f0e8;font-weight:900;font-size:14px;line-height:1.6;text-align:center}
+    .wake-fill{position:absolute;left:0;right:0;bottom:0;height:var(--wakePct);background:linear-gradient(180deg,rgba(255,209,130,.03),rgba(255,189,111,.18));transition:height .25s}
+    .progress{margin:0 auto;width:min(86%,380px);height:4px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}.progress i{display:block;height:100%;width:var(--wakePct);border-radius:inherit;background:linear-gradient(90deg,#9ccfff,#ffd376);transition:width .25s}
+    .glide-bottom{text-align:center;padding-bottom:8px}.glide-bottom small{display:block;margin:10px 0 5px;color:#777d8d;font-size:10px}
+    .choose{padding:18px 0 22px}.choose-head{text-align:left;padding:8px 2px 14px}.choose-head .eyebrow{margin-bottom:8px}.choose-head h2{margin:0;font-size:36px;line-height:1.04;letter-spacing:-.05em}.choose-head p{margin:10px 0 0;color:#aeb2bf;font-size:12px;line-height:1.7}
+    .task-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+    .task{position:relative;min-height:116px;border-radius:22px;border:1px solid rgba(255,255,255,.11);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.045));color:#fff;text-align:left;padding:15px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.13);transition:transform .15s,border-color .2s,opacity .2s}.task .icon{font-size:27px;display:block;margin-bottom:16px}.task strong{display:block;font-size:15px;letter-spacing:-.02em}.task small{display:block;color:#888e9e;font-size:9px;font-weight:850;margin-top:4px}.task.done{opacity:.38;filter:saturate(.4)}.task.done:after{content:"できた";position:absolute;right:10px;top:10px;border-radius:999px;background:rgba(184,242,199,.13);color:var(--green);padding:5px 8px;font-size:8px;font-weight:950}
+    .task.rest{grid-column:1/-1;min-height:74px;display:flex;align-items:center;gap:14px;padding:13px 16px}.task.rest .icon{margin:0;font-size:23px}.task.rest small{margin-top:2px}
+    .edit-row{display:flex;justify-content:center;margin-top:14px}.edit-btn{border:0;background:transparent;color:#858b9b;min-height:44px;padding:0 12px;font-size:11px;font-weight:850}
+    .focus{justify-content:center;padding:26px 2px 52px;text-align:center}.focus-card{padding:28px 20px;border:1px solid rgba(255,255,255,.13);border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.095),rgba(255,255,255,.05));box-shadow:var(--shadow)}.focus-icon{font-size:58px;margin-bottom:18px}.focus h2{margin:0;font-size:42px;line-height:1;letter-spacing:-.055em}.focus p{margin:16px auto 0;max-width:390px;color:#b8bdca;font-size:14px;line-height:1.8}.focus .actions{margin-top:21px}
+    .success{justify-content:center;padding:24px 2px 52px;text-align:center}.success-ring{width:118px;height:118px;margin:0 auto 24px;border-radius:50%;display:grid;place-items:center;font-size:49px;background:radial-gradient(circle,rgba(255,222,135,.28),rgba(255,183,111,.08) 54%,transparent 56%);border:1px solid rgba(255,221,137,.2);box-shadow:0 0 70px rgba(255,188,105,.18);animation:pulse 2.8s ease-in-out infinite}@keyframes pulse{50%{transform:scale(1.035)}}.success h2{margin:0;font-size:42px;letter-spacing:-.055em;line-height:1.02}.success p{margin:14px auto 0;max-width:400px;color:#bbc0cc;font-size:14px;line-height:1.8}.tiny-stat{margin-top:17px;color:#858b9b;font-size:10px;font-weight:850}
+    .sleep{justify-content:center;text-align:center;padding:30px 8px 54px}.sleep .moon{font-size:70px;margin-bottom:20px;filter:drop-shadow(0 15px 35px rgba(0,0,0,.35))}.sleep h2{margin:0;font-size:40px;letter-spacing:-.05em}.sleep p{margin:14px auto 0;max-width:390px;color:#9ca1b1;font-size:13px;line-height:1.8}
+    .sheet{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;background:rgba(0,0,0,.52);backdrop-filter:blur(8px);padding:0}.sheet.open{display:flex}.sheet-card{width:100%;max-height:86dvh;overflow:auto;background:#111521;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.12);padding:20px max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));box-shadow:0 -25px 80px rgba(0,0,0,.45)}.sheet-bar{width:42px;height:4px;border-radius:99px;background:rgba(255,255,255,.16);margin:0 auto 18px}.sheet h3{margin:0;font-size:24px;letter-spacing:-.035em}.sheet p{margin:8px 0 15px;color:#9298a8;font-size:11px;line-height:1.6}.toggle-list{display:grid;gap:8px}.toggle{display:flex;align-items:center;gap:12px;min-height:54px;padding:0 14px;border-radius:16px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04)}.toggle input{width:20px;height:20px;accent-color:#ffc978}.toggle span{font-size:13px;font-weight:850}.custom-row{display:flex;gap:8px;margin-top:14px}.custom-row input{flex:1;min-width:0;min-height:50px;border-radius:15px;border:1px solid rgba(255,255,255,.11);background:rgba(0,0,0,.22);color:#fff;padding:0 13px;outline:none}.custom-row button{flex:0 0 auto;border:0;border-radius:15px;background:#f7d78a;color:#251f14;font-size:12px;font-weight:950;padding:0 15px}.custom-list{display:grid;gap:7px;margin-top:10px}.custom-item{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.04);font-size:12px;font-weight:800}.custom-item button{border:0;background:transparent;color:#8e94a4;min-height:40px;font-size:11px}.sheet-close{margin-top:15px}
+    @media (max-width:370px){.app{width:min(100% - 16px,560px)}h1{font-size:45px}.choose-head h2{font-size:32px}.task{min-height:108px;padding:13px}.focus h2,.success h2{font-size:36px}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true"><div class="stars"></div><div class="sunrise"></div></div>
+  <main class="app">
+    <header class="topbar"><div class="brand"><i></i><span>LEVEL UP / MORNING</span></div><a class="home" href="/">HOME</a></header>
+    <section class="screen center active" id="startScreen">
+      <div class="eyebrow">NO PRESSURE MORNING</div><h1>まだ寝てて<br>いい。</h1>
+      <p class="lead">朝いちばんにスマホを触ったら、ここへ。<br><strong>起きる覚悟はいりません。</strong></p>
+      <div class="actions"><button class="primary" id="startBtn" type="button">寝たまま、朝を始める</button><button class="ghost" id="sleepBtn" type="button">まだ寝る</button></div>
+      <p class="soft-note">全部やる必要なし。最初の1個で成功。</p>
+    </section>
+    <section class="screen glide" id="glideScreen">
+      <div class="glide-copy"><div class="eyebrow">WAKE GLIDE</div><h2>触ってるだけでいい。</h2><p id="glideMessage">丸をゆっくり触る。まだ何もしなくていい。</p></div>
+      <div class="wake-zone"><button class="wake-orb" id="wakeOrb" type="button" aria-label="触って朝を少し進める"><div class="wake-fill"></div><span id="orbLabel">ゆっくり<br>なぞる</span></button></div>
+      <div class="glide-bottom"><div class="progress" aria-hidden="true"><i></i></div><small id="glideSmall">起きなくてOK</small><button class="ghost" id="showChoicesBtn" type="button">もう選べそう →</button></div>
+    </section>
+    <section class="screen choose" id="chooseScreen">
+      <div class="choose-head"><div class="eyebrow">JUST PICK ONE</div><h2>今できそうなの、どれ？</h2><p>順番なし。全部やらなくていい。いちばん軽そうなものを1つ。</p></div>
+      <div class="task-grid" id="taskGrid"></div><div class="edit-row"><button class="edit-btn" id="editBtn" type="button">朝の選択肢を編集</button></div>
+    </section>
+    <section class="screen focus" id="focusScreen"><div class="focus-card"><div class="focus-icon" id="focusIcon">💧</div><h2 id="focusTitle">水を飲む</h2><p id="focusCopy">スマホはここに置いて、これだけ。終わったら戻ってきて。</p><div class="actions"><button class="primary" id="doneBtn" type="button">やった</button><button class="secondary" id="skipBtn" type="button">今はやらない</button></div></div></section>
+    <section class="screen success" id="successScreen"><div class="success-ring">☀️</div><div class="eyebrow">MORNING STARTED</div><h2 id="successTitle">もう起動してる。</h2><p id="successCopy">1個できた。今日はこれで成功。もう1個いけそうなら続ける。</p><div class="tiny-stat" id="tinyStat"></div><div class="actions"><button class="primary" id="moreBtn" type="button">もう1個だけ見る</button><button class="ghost" id="finishBtn" type="button">今日はここまで</button></div></section>
+    <section class="screen sleep" id="sleepScreen"><div class="moon">🌙</div><div class="eyebrow">STILL SLEEPY</div><h2>おやすみ。</h2><p>開いたのに何もしなくて大丈夫。起きたくなったら、またここから。</p><div class="actions"><button class="secondary" id="backFromSleepBtn" type="button">やっぱり少し触る</button></div></section>
+  </main>
+  <div class="sheet" id="editSheet" role="dialog" aria-modal="true" aria-labelledby="editTitle"><div class="sheet-card"><div class="sheet-bar"></div><h3 id="editTitle">朝の選択肢</h3><p>自分の朝にあるものだけ残す。チェックは「義務」ではなく、候補に出すかどうかです。</p><div class="toggle-list" id="toggleList"></div><div class="custom-row"><input id="customInput" maxlength="16" placeholder="例：薬を飲む" /><button id="addCustomBtn" type="button">追加</button></div><div class="custom-list" id="customList"></div><button class="secondary sheet-close" id="closeSheetBtn" type="button">閉じる</button></div></div>
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY='levelup-asa-glide-v1';
+      const BASE_TASKS=[
+        {id:'curtain',icon:'🪟',title:'カーテンを見る',note:'まだ布団の中でも'},
+        {id:'water',icon:'💧',title:'水を飲む',note:'ひと口でOK'},
+        {id:'toilet',icon:'🚽',title:'トイレ',note:'ついでに立つ'},
+        {id:'teeth',icon:'🪥',title:'歯みがき',note:'朝のスイッチ'},
+        {id:'change',icon:'👕',title:'着替える',note:'全部じゃなくても'},
+        {id:'face',icon:'🫧',title:'顔を洗う',note:'水で目を覚ます'},
+        {id:'breakfast',icon:'🍞',title:'朝ごはん',note:'何かひと口'}
+      ];
+      const WAKE_MESSAGES=['丸をゆっくり触る。まだ何もしなくていい。','目を開けなくてもいい。指だけ起こす。','少し朝が入ってきた。まだ布団の中でOK。','そろそろ「できそうなもの」を見るだけ見てみる？','ここまで来たら、1個だけ選べば朝は成功。'];
+      const $=id=>document.getElementById(id); const screens=[...document.querySelectorAll('.screen')];
+      const els={startScreen:$('startScreen'),glideScreen:$('glideScreen'),chooseScreen:$('chooseScreen'),focusScreen:$('focusScreen'),successScreen:$('successScreen'),sleepScreen:$('sleepScreen'),startBtn:$('startBtn'),sleepBtn:$('sleepBtn'),wakeOrb:$('wakeOrb'),glideMessage:$('glideMessage'),orbLabel:$('orbLabel'),glideSmall:$('glideSmall'),showChoicesBtn:$('showChoicesBtn'),taskGrid:$('taskGrid'),focusIcon:$('focusIcon'),focusTitle:$('focusTitle'),focusCopy:$('focusCopy'),doneBtn:$('doneBtn'),skipBtn:$('skipBtn'),successTitle:$('successTitle'),successCopy:$('successCopy'),tinyStat:$('tinyStat'),moreBtn:$('moreBtn'),finishBtn:$('finishBtn'),backFromSleepBtn:$('backFromSleepBtn'),editBtn:$('editBtn'),editSheet:$('editSheet'),toggleList:$('toggleList'),customInput:$('customInput'),addCustomBtn:$('addCustomBtn'),customList:$('customList'),closeSheetBtn:$('closeSheetBtn')};
+      const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+      const defaultState=()=>({date:today(),wake:.05,completed:[],enabled:BASE_TASKS.map(t=>t.id),custom:[],startedDays:[],totalActions:0});
+      function loadState(){try{const raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(!raw||typeof raw!=='object')return defaultState();const base=defaultState();const merged={...base,...raw};merged.enabled=Array.isArray(raw.enabled)?raw.enabled:base.enabled;merged.custom=Array.isArray(raw.custom)?raw.custom.filter(Boolean).map((item,i)=>typeof item==='string'?{id:`legacy-${i}`,title:item}:item).filter(item=>item&&item.id&&item.title):[];merged.startedDays=Array.isArray(raw.startedDays)?raw.startedDays:[];if(merged.date!==today()){merged.date=today();merged.wake=.05;merged.completed=[]}merged.completed=Array.isArray(merged.completed)?merged.completed:[];return merged}catch{return defaultState()}}
+      let state=loadState(),selectedTask=null,dragging=false,lastPoint=null;
+      function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch{}}
+      function show(screen){screens.forEach(s=>s.classList.toggle('active',s===screen));window.scrollTo(0,0)}
+      function setWake(value){state.wake=Math.max(.05,Math.min(1,value));const root=document.documentElement.style;root.setProperty('--wake',state.wake.toFixed(3));root.setProperty('--wakePct',`${Math.round(state.wake*100)}%`);root.setProperty('--starOpacity',String(Math.max(.14,.74-state.wake*.58)));root.setProperty('--sunOpacity',String(Math.min(.94,.06+state.wake*.88)));root.setProperty('--sunScale',String(.72+state.wake*.28));root.setProperty('--orbGlow',`${Math.round(30+state.wake*70)}px`);const idx=Math.min(WAKE_MESSAGES.length-1,Math.floor(state.wake*WAKE_MESSAGES.length));els.glideMessage.textContent=WAKE_MESSAGES[idx];if(state.wake<.28){els.orbLabel.innerHTML='ゆっくり<br>なぞる';els.glideSmall.textContent='起きなくてOK'}else if(state.wake<.58){els.orbLabel.innerHTML='もう少し<br>触る';els.glideSmall.textContent='指だけ起きてきた'}else if(state.wake<.82){els.orbLabel.innerHTML='朝が<br>近い';els.glideSmall.textContent='選択肢を見るだけでもOK'}else{els.orbLabel.innerHTML='1個だけ<br>選べそう';els.glideSmall.textContent='全部やる必要なし'}save()}
+      function nudgeWake(amount=.065){setWake(state.wake+amount);if(navigator.vibrate&&state.wake>.8)navigator.vibrate(8)}
+      function getTasks(){const base=BASE_TASKS.filter(t=>state.enabled.includes(t.id));const custom=state.custom.map(item=>({id:item.id,icon:'○',title:item.title,note:'自分の朝'}));return[...base,...custom]}
+      function escapeHtml(value){return String(value).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]))}
+      function renderTasks(){const tasks=getTasks();els.taskGrid.innerHTML='';const rest=document.createElement('button');rest.type='button';rest.className='task rest';rest.innerHTML='<span class="icon">😴</span><span><strong>まだゴロゴロ</strong><small>それも選べる</small></span>';rest.addEventListener('click',()=>{setWake(Math.max(.2,state.wake-.08));show(els.glideScreen)});els.taskGrid.appendChild(rest);tasks.forEach(task=>{const btn=document.createElement('button');btn.type='button';btn.className='task'+(state.completed.includes(task.id)?' done':'');btn.innerHTML=`<span class="icon">${escapeHtml(task.icon)}</span><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.note)}</small>`;btn.addEventListener('click',()=>selectTask(task));els.taskGrid.appendChild(btn)})}
+      function selectTask(task){if(state.completed.includes(task.id))return;selectedTask=task;els.focusIcon.textContent=task.icon;els.focusTitle.textContent=task.title;els.focusCopy.textContent=task.id==='curtain'?'起きなくてもいい。カーテンの方を見るだけでも十分。できたら戻ってきて。':'スマホはここに置いて、これだけ。完璧にやらなくていい。終わったら戻ってきて。';show(els.focusScreen)}
+      function completeSelected(){if(!selectedTask)return;if(!state.completed.includes(selectedTask.id))state.completed.push(selectedTask.id);state.totalActions=Number(state.totalActions||0)+1;if(!state.startedDays.includes(today()))state.startedDays.push(today());state.startedDays=state.startedDays.slice(-120);setWake(Math.min(1,state.wake+.18));save();const count=state.completed.length;els.successTitle.textContent=count===1?'もう起動してる。':'朝が進んだ。';els.successCopy.textContent=count===1?'1個できた。今日はこれで成功。もう1個いけそうなら続ける。':`${count}個目。続けても、ここで終わってもいい。`;els.tinyStat.textContent=state.startedDays.length>1?`これまで「朝が始まった」日 ${state.startedDays.length}日`:'今日の最初の1個、完了';show(els.successScreen);selectedTask=null}
+      function renderEditor(){els.toggleList.innerHTML='';BASE_TASKS.forEach(task=>{const label=document.createElement('label');label.className='toggle';const checked=state.enabled.includes(task.id)?'checked':'';label.innerHTML=`<input type="checkbox" data-task-id="${task.id}" ${checked}><span>${escapeHtml(task.icon)} ${escapeHtml(task.title)}</span>`;label.querySelector('input').addEventListener('change',e=>{if(e.target.checked&&!state.enabled.includes(task.id))state.enabled.push(task.id);if(!e.target.checked)state.enabled=state.enabled.filter(id=>id!==task.id);save();renderTasks()});els.toggleList.appendChild(label)});els.customList.innerHTML='';state.custom.forEach((item,i)=>{const row=document.createElement('div');row.className='custom-item';row.innerHTML=`<span>○ ${escapeHtml(item.title)}</span><button type="button">削除</button>`;row.querySelector('button').addEventListener('click',()=>{state.custom.splice(i,1);save();renderEditor();renderTasks()});els.customList.appendChild(row)})}
+      function openEditor(){renderEditor();els.editSheet.classList.add('open')} function closeEditor(){els.editSheet.classList.remove('open')}
+      function addCustom(){const value=els.customInput.value.trim();if(!value||state.custom.length>=6)return;state.custom.push({id:`custom-${Date.now().toString(36)}`,title:value});els.customInput.value='';save();renderEditor();renderTasks()}
+      els.startBtn.addEventListener('click',()=>{setWake(Math.max(.08,state.wake));show(els.glideScreen)});els.sleepBtn.addEventListener('click',()=>show(els.sleepScreen));els.backFromSleepBtn.addEventListener('click',()=>show(els.glideScreen));els.showChoicesBtn.addEventListener('click',()=>{setWake(Math.max(.55,state.wake));renderTasks();show(els.chooseScreen)});els.skipBtn.addEventListener('click',()=>{selectedTask=null;renderTasks();show(els.chooseScreen)});els.doneBtn.addEventListener('click',completeSelected);els.moreBtn.addEventListener('click',()=>{renderTasks();show(els.chooseScreen)});els.finishBtn.addEventListener('click',()=>show(els.startScreen));els.editBtn.addEventListener('click',openEditor);els.closeSheetBtn.addEventListener('click',closeEditor);els.editSheet.addEventListener('click',e=>{if(e.target===els.editSheet)closeEditor()});els.addCustomBtn.addEventListener('click',addCustom);els.customInput.addEventListener('keydown',e=>{if(e.key==='Enter')addCustom()});
+      els.wakeOrb.addEventListener('click',()=>nudgeWake(.075));els.wakeOrb.addEventListener('pointerdown',e=>{dragging=true;lastPoint={x:e.clientX,y:e.clientY};try{els.wakeOrb.setPointerCapture(e.pointerId)}catch{}});els.wakeOrb.addEventListener('pointermove',e=>{if(!dragging||!lastPoint)return;const dx=e.clientX-lastPoint.x,dy=e.clientY-lastPoint.y,d=Math.hypot(dx,dy);if(d>10){nudgeWake(Math.min(.04,d/1500));lastPoint={x:e.clientX,y:e.clientY}}});const stopDrag=()=>{dragging=false;lastPoint=null};els.wakeOrb.addEventListener('pointerup',stopDrag);els.wakeOrb.addEventListener('pointercancel',stopDrag);
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden&&screens.includes(els.focusScreen)&&els.focusScreen.classList.contains('active'))els.doneBtn.animate?.([{transform:'scale(1)'},{transform:'scale(1.025)'},{transform:'scale(1)'}],{duration:500})});
+      setWake(state.wake);renderTasks();if(state.completed.length>0)els.startBtn.textContent='今朝の続きから';
+    })();
+  </script>
+</body>
+</html>
