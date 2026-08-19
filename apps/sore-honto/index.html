@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#f3f0e8" />
+  <meta name="description" content="出来事と、自分が足した意味を分ける。別の見方を増やし、思い込みに気づく反射を鍛えるLEVEL UPトレーニング。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>それ、本当？ — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="session-progress" aria-label="トレーニング進行状況"><span id="progressNow">0</span><i></i><span>5</span></div>
+      <button class="icon-btn" id="lensBookBtn" type="button" aria-label="思い込み図鑑を開く">◎</button>
+    </header>
+
+    <section class="screen active start-screen" id="startScreen">
+      <div class="hero-mark" aria-hidden="true">
+        <span class="mark-fact">事実</span><i></i><span class="mark-story">意味</span>
+      </div>
+      <p class="eyebrow">FACT ≠ STORY</p>
+      <h1>それ、<br><em>本当？</em></h1>
+      <p class="lead">出来事はひとつ。<br>でも、頭が足す意味はひとつじゃない。</p>
+
+      <button class="primary-btn" id="trainBtn" type="button">
+        <span><small>30秒 × 5問</small>見方をほぐす</span><b>→</b>
+      </button>
+      <button class="real-btn" id="realBtn" type="button"><span>今の出来事でやる</span><b>＋</b></button>
+
+      <div class="start-stats" id="startStats" hidden>
+        <div><strong id="sessionCount">0</strong><span>SESSIONS</span></div>
+        <div><strong id="realCount">0</strong><span>現実で分けた</span></div>
+        <div><strong id="lensSeen">0/8</strong><span>見つけたレンズ</span></div>
+      </div>
+      <p class="microcopy">正しさを診断するアプリではありません。「そうとも限らない」を増やす練習です。</p>
+    </section>
+
+    <section class="screen" id="scenarioScreen">
+      <div class="round-head"><span>SCENE <b id="roundNo">1</b>/5</span><span id="sceneTag">MESSAGE</span></div>
+      <div class="fact-card">
+        <span class="card-label">カメラに映る事実</span>
+        <p id="factText">メッセージを送って3時間。まだ返信がない。</p>
+      </div>
+      <div class="question-copy">
+        <h2>このとき、<br>頭に浮かびそうなのは？</h2>
+        <p>正解はありません。いちばん近いものをひとつ。</p>
+      </div>
+      <div class="thought-grid" id="thoughtGrid"></div>
+    </section>
+
+    <section class="screen split-screen" id="splitScreen">
+      <p class="eyebrow">SEPARATE IT</p>
+      <h2>いったん、<br>分ける。</h2>
+      <div class="split-stage" id="splitStage">
+        <div class="split-card fact-side" id="factSide">
+          <span>FACT / 事実</span>
+          <p id="splitFactText"></p>
+        </div>
+        <div class="split-rip" aria-hidden="true"><i></i><b>≠</b><i></i></div>
+        <div class="split-card story-side" id="storySide">
+          <span>STORY / 足した意味</span>
+          <p id="splitStoryText"></p>
+        </div>
+      </div>
+      <button class="primary-btn" id="splitBtn" type="button"><span>事実と意味を分ける</span><b>↔</b></button>
+      <p class="microcopy">意味が間違いとは限らない。ただ、まだ「事実」と同じではない。</p>
+    </section>
+
+    <section class="screen" id="alternativesScreen">
+      <div class="alt-orbit" aria-hidden="true"><span>?</span><span>?</span><span>?</span></div>
+      <p class="eyebrow">MORE THAN ONE</p>
+      <h2>ほかに、<br>何がありえる？</h2>
+      <p class="lead small">ポジティブにする必要はありません。<br>「まだ決まっていない」を増やします。</p>
+      <div class="alternative-list" id="alternativeList"></div>
+      <div class="alt-count"><span>別の可能性</span><strong><b id="altCount">0</b> / 2</strong></div>
+      <button class="primary-btn" id="altNextBtn" type="button" disabled><span>2つ見つけた</span><b>→</b></button>
+    </section>
+
+    <section class="screen reveal-screen" id="revealScreen">
+      <p class="eyebrow">NOT DECIDED YET</p>
+      <div class="uncertain-mark" aria-hidden="true">?</div>
+      <h2>事実は1つ。<br><em id="possibilityCount">4</em>通り以上、ありえた。</h2>
+      <div class="lens-chip" id="lensChip"><span>今出たレンズ</span><strong id="lensName">先読み</strong></div>
+      <p class="reveal-copy" id="lensNote"></p>
+      <button class="primary-btn" id="nextRoundBtn" type="button"><span>次の場面</span><b>→</b></button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <p class="eyebrow">5 SCENES COMPLETE</p>
+      <div class="result-score"><span>増やした別の可能性</span><strong id="resultScore">10</strong><small>VIEWS</small></div>
+      <h2>「最初に浮かんだこと」<br>だけが世界じゃない。</h2>
+      <div class="session-lenses" id="sessionLenses"></div>
+      <div class="result-insight" id="resultInsight"></div>
+      <div class="result-actions">
+        <button class="primary-btn" id="againBtn" type="button"><span>もう5問</span><b>↻</b></button>
+        <button class="secondary-btn" id="resultBookBtn" type="button">思い込み図鑑を見る</button>
+        <a class="home-return" href="/">LEVEL UPへ戻る</a>
+      </div>
+      <p class="privacy-note">選択傾向と回数だけをこの端末内に保存します。トレーニング内容から性格や心理状態を診断しません。</p>
+    </section>
+
+    <section class="screen real-screen" id="realScreen">
+      <button class="back-btn" id="realBackBtn" type="button">← 戻る</button>
+      <p class="eyebrow">REAL LIFE</p>
+      <h2>今のことを、<br>2つに分ける。</h2>
+      <label class="field">
+        <span>① カメラに映る「事実」だけ</span>
+        <textarea id="realFact" maxlength="120" placeholder="例：昨日メッセージを送った。まだ返信がない。"></textarea>
+        <small>相手の気持ち・理由・未来予測は入れない</small>
+      </label>
+      <label class="field">
+        <span>② 頭が足した「意味」</span>
+        <textarea id="realStory" maxlength="120" placeholder="例：嫌われたのかもしれない。"></textarea>
+      </label>
+      <button class="primary-btn" id="realSeparateBtn" type="button" disabled><span>分けて見る</span><b>↔</b></button>
+    </section>
+
+    <section class="screen real-alt-screen" id="realAltScreen">
+      <p class="eyebrow">REAL LIFE / ONE MORE</p>
+      <div class="real-pair">
+        <div><span>FACT</span><p id="realFactView"></p></div>
+        <div><span>STORY</span><p id="realStoryView"></p></div>
+      </div>
+      <h2>ほかの可能性を、<br>ひとつだけ。</h2>
+      <label class="field">
+        <span>③ 別の見方</span>
+        <textarea id="realAlternative" maxlength="120" placeholder="例：単に忙しくて、まだ見ていない可能性もある。"></textarea>
+      </label>
+      <button class="primary-btn" id="realFinishBtn" type="button" disabled><span>まだ確定していない</span><b>?</b></button>
+      <p class="privacy-note">ここに入力した文章は保存しません。</p>
+    </section>
+
+    <section class="screen real-done-screen" id="realDoneScreen">
+      <div class="uncertain-mark large" aria-hidden="true">?</div>
+      <p class="eyebrow">SPACE CREATED</p>
+      <h2>答えを変えたんじゃない。<br><em>答えを確定しなかった。</em></h2>
+      <p class="lead small">最初の見方が本当かもしれない。違うかもしれない。<br>今は、それで十分。</p>
+      <button class="primary-btn" id="realAgainBtn" type="button"><span>もう一つ分ける</span><b>↻</b></button>
+      <button class="secondary-btn" id="realToTrainBtn" type="button">5問トレーニングへ</button>
+    </section>
+  </main>
+
+  <dialog class="lens-book" id="lensBook">
+    <div class="book-head">
+      <div><p class="eyebrow">MY LENS BOOK</p><h2>思い込み図鑑</h2></div>
+      <button class="icon-btn" id="closeBookBtn" type="button" aria-label="閉じる">×</button>
+    </div>
+    <p class="book-intro">悪い癖の診断ではありません。あなたがトレーニング中によく選んだ「見方のパターン」です。</p>
+    <div class="lens-list" id="lensList"></div>
+    <div class="book-foot"><span>TOTAL PICKS</span><strong id="totalPicks">0</strong></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
