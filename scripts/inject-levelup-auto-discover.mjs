@@ -32,6 +32,15 @@ const AUTO_META = {
     purpose: '原因分析より先に、今の感情との距離を少し作る',
     benefit: '約1分で「嫌さ」を測り直し、日常へ戻りやすくする',
   },
+  kininaranai: {
+    title: '気にならない。',
+    kicker: 'NOISE FILTER TRAINING',
+    skill: '反応しない / 選別',
+    icon: '○',
+    forWho: '小さな違和感まで全部拾って、頭の中で検討してしまう人',
+    purpose: '必要な信号だけ拾い、どうでもいいノイズは触らず通す反射を鍛える',
+    benefit: '「気にしない」と言い聞かせる前に、小さなノイズを通過させやすくする',
+  },
   uchite: {
     title: '打ち手を増やせ。',
     kicker: 'OPTION TRAINING',
