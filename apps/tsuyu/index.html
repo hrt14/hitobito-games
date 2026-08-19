@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#d9efe5" />
+  <meta name="description" content="一粒の露として、蓮の葉の上の短い朝を生きる。スマホで遊ぶ短編インタラクティブゲーム。" />
+  <title>露の生涯 — TSUYU</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" class="app">
+    <canvas id="world" aria-label="蓮の葉の上を露が滑るゲーム画面"></canvas>
+
+    <header class="hud" aria-live="polite">
+      <a class="home" href="/" aria-label="hitobito PLAYへ戻る">HITO / PLAY</a>
+      <div class="life">
+        <span class="life-label">この朝</span>
+        <span id="lifeTime" class="life-time">0.0</span>
+        <span class="life-unit">秒</span>
+      </div>
+      <button id="motionBtn" class="motion-btn" type="button" hidden>傾けて遊ぶ</button>
+    </header>
+
+    <section id="intro" class="layer intro is-visible">
+      <div class="intro-copy">
+        <p class="eyebrow">A VERY SHORT LIFE</p>
+        <h1>露の<br />生涯</h1>
+        <p class="lead">一滴になって、<br />短い朝を生きる。</p>
+      </div>
+      <button id="startBtn" class="primary" type="button">
+        <span>一滴になる</span><b>→</b>
+      </button>
+      <p class="hint">指で画面をなぞると、葉が傾く</p>
+    </section>
+
+    <section id="moment" class="moment" aria-live="polite">
+      <span id="momentMark" class="moment-mark">✦</span>
+      <div>
+        <p id="momentTitle" class="moment-title"></p>
+        <p id="momentText" class="moment-text"></p>
+      </div>
+    </section>
+
+    <section id="ending" class="layer ending" aria-live="polite">
+      <div class="ending-inner">
+        <p id="endingReason" class="ending-reason"></p>
+        <div class="poem" aria-label="蓮の葉をすべる露ほどの生涯や">
+          <span>蓮の葉を</span>
+          <span>すべる露ほどの</span>
+          <span>生涯や</span>
+        </div>
+        <div class="result">
+          <div><strong id="resultTime">0.0</strong><span>秒の生涯</span></div>
+          <div><strong id="resultMoments">0</strong><span>出会った瞬間</span></div>
+          <div><strong id="resultRipples">0</strong><span>残した波紋</span></div>
+        </div>
+        <button id="againBtn" class="primary quiet" type="button">
+          <span>もう一滴</span><b>↻</b>
+        </button>
+        <p id="legacyText" class="legacy"></p>
+      </div>
+    </section>
+
+    <div id="gesture" class="gesture" aria-hidden="true">
+      <div class="gesture-hand">↗</div>
+      <span>なぞって傾ける</span>
+    </div>
+  </main>
+
+  <script type="module" src="./game.js"></script>
+</body>
+</html>
