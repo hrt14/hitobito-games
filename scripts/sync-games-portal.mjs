@@ -17,7 +17,6 @@ const humanOnlySlugs = new Set(policy.targets.humanTestOnly.slugs || []);
 
 const START = '<!-- AUTO-LATEST-GAMES:START -->';
 const END = '<!-- AUTO-LATEST-GAMES:END -->';
-const LIMIT = 24;
 
 const THEMES = {
   horror: { tag: 'HORROR', icon: '◉', g1: '#321722', g2: '#09080b', glow: 'rgba(255,92,104,.18)' },
@@ -66,6 +65,14 @@ function isPortalGame(slug, category) {
   return true;
 }
 
+let portal = fs.readFileSync(portalPath, 'utf8');
+const markerPattern = new RegExp(`${START}[\\s\\S]*?${END}`, 'm');
+const curatedPortal = portal.replace(markerPattern, '');
+const alreadyLinked = new Set(
+  [...curatedPortal.matchAll(/https:\/\/play\.hitobito\.jp\/apps\/([^/"?#]+)\//g)]
+    .map((match) => decodeURIComponent(match[1])),
+);
+
 const games = fs.readdirSync(appsDir, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name)
@@ -80,18 +87,15 @@ const games = fs.readdirSync(appsDir, { withFileTypes: true })
     return { slug, category, title, description, changedAt: lastChangedAt(slug) };
   })
   .filter((game) => isPortalGame(game.slug, game.category))
-  .sort((a, b) => b.changedAt - a.changedAt || a.slug.localeCompare(b.slug, 'ja'))
-  .slice(0, LIMIT);
+  .filter((game) => !alreadyLinked.has(game.slug))
+  .sort((a, b) => b.changedAt - a.changedAt || a.slug.localeCompare(b.slug, 'ja'));
 
 const cards = games.map((game) => {
   const theme = THEMES[game.category] || THEMES.other;
   return `<a class="card compact" href="https://play.hitobito.jp/apps/${encodeURIComponent(game.slug)}/" style="--g1:${theme.g1};--g2:${theme.g2};--glow:${theme.glow}"><div class="card-top"><span class="tag new">NEW</span><span class="arrow">↗</span></div><div class="mark"><span class="icon">${theme.icon}</span><span class="meta">${escapeHtml(theme.tag)}</span></div><div><h3>${escapeHtml(game.title)}</h3><p>${escapeHtml(game.description)}</p></div></a>`;
 }).join('\n');
 
-const block = `${START}\n<section class="section" id="latest-games"><div class="section-head"><h2>Latest Games</h2><span>新しく作ったゲーム</span></div><div class="grid">\n${cards}\n<a class="card compact" href="https://play.hitobito.jp/" style="--g1:#242a18;--g2:#090b07;--glow:rgba(216,255,91,.18)"><div class="card-top"><span class="tag">ALL GAMES</span><span class="arrow">↗</span></div><div class="mark"><span class="icon">＋</span><span class="meta">FULL CATALOG</span></div><div><h3>すべてのゲーム</h3><p>hitobito PLAY のゲーム一覧を開く。</p></div></a>\n</div></section>\n${END}`;
-
-let portal = fs.readFileSync(portalPath, 'utf8');
-const markerPattern = new RegExp(`${START}[\\s\\S]*?${END}`, 'm');
+const block = `${START}\n<section class="section" id="latest-games"><div class="section-head"><h2>Latest Games</h2><span>トップ未掲載のゲームを自動追加</span></div><div class="grid">\n${cards}\n<a class="card compact" href="https://play.hitobito.jp/" style="--g1:#242a18;--g2:#090b07;--glow:rgba(216,255,91,.18)"><div class="card-top"><span class="tag">ALL GAMES</span><span class="arrow">↗</span></div><div class="mark"><span class="icon">＋</span><span class="meta">FULL CATALOG</span></div><div><h3>すべてのゲーム</h3><p>hitobito PLAY のゲーム一覧を開く。</p></div></a>\n</div></section>\n${END}`;
 
 if (markerPattern.test(portal)) {
   portal = portal.replace(markerPattern, block);
@@ -104,4 +108,4 @@ if (markerPattern.test(portal)) {
 }
 
 fs.writeFileSync(portalPath, portal);
-console.log(`[Portal] Synced ${games.length} latest game links into index.html`);
+console.log(`[Portal] Added ${games.length} unlisted game links to index.html`);
