@@ -1,4 +1,4 @@
 Deploy LEVEL UP latest apps
-Force production deploy after まとまる。 implementation
-Targets include: /apps/matomaru/
-Trigger commit follows merge c9185939123d887c7243f4164b5e573e5cdf2942
+Force production deploy after 90%は、もうある。 implementation
+Targets include: /apps/already-90/
+Trigger commit follows merge 0120da5f9a74fb187d874bcb4996e764cef09497
