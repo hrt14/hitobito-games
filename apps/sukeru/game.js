@@ -89,7 +89,7 @@
     state.progress = clamp(value, 0, 1);
     const shown = Math.floor(state.progress * 100);
     percent.textContent = `${shown}%`;
-    veil.style.opacity = String(clamp(1 - state.progress * 0.94, 0.06, 1));
+    veil.style.opacity = String(clamp(0.72 - state.progress * 0.66, 0.06, 0.72));
 
     const milestone = Math.floor(shown / 25);
     if (milestone > state.milestone && milestone > 0 && shown < 100) {
@@ -193,7 +193,7 @@
     app.classList.remove('is-done');
     done.hidden = true;
     percent.textContent = '0%';
-    veil.style.opacity = '1';
+    veil.style.opacity = '0.72';
     canvas.style.opacity = '1';
     drawCover(0);
     rubHint.hidden = false;
@@ -249,7 +249,7 @@
     } catch (error) {
       const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
       errorMessage.textContent = denied
-        ? 'ブラウザのカメラ許可をオンにして、もう一度試してください。iPhoneではアドレスバーの「ぁあ」→「Webサイトの設定」→「カメラ」から変更できます。'
+        ? 'ブラウザのカメラ許可をオンにして、もう一度試してください。'
         : (error?.message || '背面カメラを起動できませんでした。別のブラウザでもう一度試してください。');
       errorPanel.hidden = false;
     } finally {
