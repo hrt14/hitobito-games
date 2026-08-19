@@ -23,6 +23,15 @@ const existing = new Set(catalog.games.map((game) => game.slug));
 const missing = manifest.games.filter((game) => game.category === 'levelup' && !existing.has(game.slug));
 
 const AUTO_META = {
+  'already-90': {
+    title: '90%は、もうある。',
+    kicker: 'KEEP THE 90',
+    skill: '充足認識 / 1%ずつ軽くする',
+    icon: '90',
+    forWho: '残っている不満や不安ばかりが大きく見えて、すでにあるものを見失いやすい人',
+    purpose: '先に「もうある」を認識し、不快を全部解決ではなく1%単位で扱う反射を鍛える',
+    benefit: '暗い10%が残っていても、明るい90%を視界から消さずに次の一手を選びやすくする',
+  },
   nukeru: {
     title: 'ぬける。',
     kicker: '60–90 SEC RESET',
