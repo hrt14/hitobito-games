@@ -32,6 +32,15 @@ const AUTO_META = {
     purpose: '原因分析より先に、今の感情との距離を少し作る',
     benefit: '約1分で「嫌さ」を測り直し、日常へ戻りやすくする',
   },
+  uchite: {
+    title: '打ち手を増やせ。',
+    kicker: 'OPTION TRAINING',
+    skill: '問題解決 / 発想の幅',
+    icon: '↗',
+    forWho: '困ると同じ考え方を繰り返し、次の一手が出なくなる人',
+    purpose: '聞く・調べる・分析・実験・委任など、問題解決の入口を増やす',
+    benefit: '初めての問題でも「別方向の一手」を複数出しやすくなる',
+  },
 };
 
 function cleanTitle(value, slug) {
@@ -71,7 +80,24 @@ function makeGame(item) {
 }
 
 function makeCard(game) {
-  return `\n  <article class="card is-new" data-game="${escapeHtml(game.slug)}" data-new="true">\n    <button class="favorite" type="button" data-favorite="${escapeHtml(game.slug)}" aria-pressed="false" aria-label="${escapeHtml(game.title)}をお気に入りに追加">♡</button>\n    <a class="card-link" href="${escapeHtml(game.href)}">\n      <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE ${game.updateCount}</span></div>\n      <div class="icon">${escapeHtml(game.icon)}</div>\n      <div class="kicker">${escapeHtml(game.kicker)}</div>\n      <div class="skill">${escapeHtml(game.skill)}</div>\n      <h2>${escapeHtml(game.title)}</h2>\n      <p>${escapeHtml(game.description)}</p>\n      <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">\n        <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">${escapeHtml(game.forWho)}</span></div>\n        <div class="card-value"><span class="card-value-label">なんのため</span><span class="card-value-text">${escapeHtml(game.purpose)}</span></div>\n        <div class="card-value"><span class="card-value-label">ベネフィット</span><span class="card-value-text">${escapeHtml(game.benefit)}</span></div>\n      </div>\n      <div class="play">PLAY <span>↗</span></div>\n    </a>\n  </article>`;
+  return `
+  <article class="card is-new" data-game="${escapeHtml(game.slug)}" data-new="true">
+    <button class="favorite" type="button" data-favorite="${escapeHtml(game.slug)}" aria-pressed="false" aria-label="${escapeHtml(game.title)}をお気に入りに追加">♡</button>
+    <a class="card-link" href="${escapeHtml(game.href)}">
+      <div class="card-top"><span class="number">NEW</span><span class="updates">UPDATE ${game.updateCount}</span></div>
+      <div class="icon">${escapeHtml(game.icon)}</div>
+      <div class="kicker">${escapeHtml(game.kicker)}</div>
+      <div class="skill">${escapeHtml(game.skill)}</div>
+      <h2>${escapeHtml(game.title)}</h2>
+      <p>${escapeHtml(game.description)}</p>
+      <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">
+        <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">${escapeHtml(game.forWho)}</span></div>
+        <div class="card-value"><span class="card-value-label">なんのため</span><span class="card-value-text">${escapeHtml(game.purpose)}</span></div>
+        <div class="card-value"><span class="card-value-label">ベネフィット</span><span class="card-value-text">${escapeHtml(game.benefit)}</span></div>
+      </div>
+      <div class="play">PLAY <span>↗</span></div>
+    </a>
+  </article>`;
 }
 
 let html = fs.readFileSync(homePath, 'utf8');
