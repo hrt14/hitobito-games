@@ -234,6 +234,16 @@
     setTimeout(() => els.todayInput.focus(), 120);
   }
 
+  function reviseEntry() {
+    showScreen('inputScreen');
+    els.findButton.disabled = !els.todayInput.value.trim();
+    setTimeout(() => {
+      els.todayInput.focus();
+      els.todayInput.setSelectionRange(els.todayInput.value.length, els.todayInput.value.length);
+    }, 120);
+    showToast('少し書き足して、もう一度探せます');
+  }
+
   function showToast(message) {
     clearTimeout(toastTimer); els.toast.textContent = message; els.toast.classList.add('show');
     toastTimer = setTimeout(() => els.toast.classList.remove('show'), 2200);
@@ -255,7 +265,7 @@
   els.findButton.addEventListener('click', findPlus);
   document.querySelectorAll('[data-example]').forEach(button => button.addEventListener('click', () => { els.todayInput.value = button.dataset.example || ''; els.findButton.disabled = false; els.todayInput.focus(); }));
   els.addButton.addEventListener('click', addCurrent);
-  els.differentButton.addEventListener('click', () => { currentResult = localAnalyze(currentResult.rawInput); currentResult.rawInput = els.todayInput.value.trim(); currentResult.createdAt = new Date().toISOString(); renderResult(currentResult); showToast('別の見方で探し直しました'); });
+  els.differentButton.addEventListener('click', reviseEntry);
   els.retryButton.addEventListener('click', resetEntry);
   els.anotherButton.addEventListener('click', resetEntry);
   els.historyButton.addEventListener('click', openHistory);
