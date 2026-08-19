@@ -1,4 +1,4 @@
-Deploy LEVEL UP including 集まる？
-Force production deploy after atsumaru implementation
-Target app: /apps/atsumaru/
-Triggered at 2026-08-19T12:32:00+09:00
+Deploy LEVEL UP latest apps
+Force production deploy after concurrent LEVEL UP implementations
+Targets include: /apps/atsumaru/ and /apps/uchite/
+Triggered at 2026-08-19T12:36:00+09:00
