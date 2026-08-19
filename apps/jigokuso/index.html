@@ -100,5 +100,19 @@
   </section>
 
   <script src="./app.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const replaceLegacyName = (root = document.body) => {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach((node) => {
+          if (node.nodeValue.includes('夕凪荘')) node.nodeValue = node.nodeValue.replaceAll('夕凪荘', '地獄荘');
+        });
+      };
+      replaceLegacyName();
+      new MutationObserver(() => replaceLegacyName()).observe(document.body, { childList: true, subtree: true, characterData: true });
+    });
+  </script>
 </body>
 </html>
