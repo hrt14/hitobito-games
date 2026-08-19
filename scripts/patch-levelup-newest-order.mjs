@@ -32,8 +32,19 @@ function gitTimestamps(args) {
 function levelupReleasedAt(slug) {
   if (!/^[a-z0-9-]+$/.test(slug)) return 0;
 
-  // Prefer the first commit that registered this slug as a LEVEL UP app.
-  // This represents catalogue release more accurately than the app file's creation date.
+  // Newest must mean when the app itself first appeared in Git, down to the commit second.
+  // This avoids an old app becoming "NEW" merely because it was registered in the LEVEL UP catalogue later.
+  const appHistory = gitTimestamps([
+    'log',
+    '--reverse',
+    '--diff-filter=A',
+    '--format=%ct',
+    '--',
+    `apps/${slug}/index.html`,
+  ]);
+  if (appHistory.length) return appHistory[0];
+
+  // Fallback only for legacy/special entries without a normal apps/<slug>/index.html history.
   const needle = `'${slug}': ['levelup'`;
   const catalogHistory = gitTimestamps([
     'log',
@@ -43,18 +54,7 @@ function levelupReleasedAt(slug) {
     '--',
     catalogSource,
   ]);
-  if (catalogHistory.length) return catalogHistory[0];
-
-  // Fallback for legacy/special apps that predate the catalogue metadata.
-  const appHistory = gitTimestamps([
-    'log',
-    '--reverse',
-    '--diff-filter=A',
-    '--format=%ct',
-    '--',
-    `apps/${slug}/index.html`,
-  ]);
-  return appHistory[0] || 0;
+  return catalogHistory[0] || 0;
 }
 
 let html = fs.readFileSync(homePath, 'utf8');
@@ -68,7 +68,7 @@ html = html.replace(/<article\b([^>]*\bdata-game="([^"]+)"[^>]*)>/g, (match, att
 });
 
 const oldSelection = "    const newGames = cards.filter((card) => card.dataset.new === 'true' && !favoriteSet.has(card)).slice(0, 3);";
-const newSelection = `    // ${marker}: newest means actual LEVEL UP release time, not DOM/card insertion order.\n    const newGames = cards\n      .filter((card) => !favoriteSet.has(card))\n      .sort((a, b) => {\n        const ar = Number(a.dataset.releasedAt || 0);\n        const br = Number(b.dataset.releasedAt || 0);\n        return br - ar || originalIndex.get(a) - originalIndex.get(b);\n      })\n      .slice(0, 3);`;
+const newSelection = `    // ${marker}: newest means actual app creation time (epoch seconds), not DOM/card insertion order.\n    const newGames = cards\n      .filter((card) => !favoriteSet.has(card))\n      .sort((a, b) => {\n        const ar = Number(a.dataset.releasedAt || 0);\n        const br = Number(b.dataset.releasedAt || 0);\n        return br - ar || originalIndex.get(a) - originalIndex.get(b);\n      })\n      .slice(0, 3);`;
 
 if (!html.includes(marker)) {
   if (!html.includes(oldSelection)) {
