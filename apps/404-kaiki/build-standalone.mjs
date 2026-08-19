@@ -24,6 +24,7 @@ const ORDER = [
   'core/teketeke.js',
   'core/lure.js',
   'core/ninmenken.js',
+  'core/loop.js',
   'core/log.js',
   'world/path.js',
   'world/input.js',
@@ -32,16 +33,18 @@ const ORDER = [
   'world/render-field.js',
   'world/render-school.js',
   'world/render-arcade.js',
+  'world/render-station.js',
   'modes/chase-mode.js',
   'modes/sight-mode.js',
   'modes/pass-mode.js',
   'modes/voice-mode.js',
+  'modes/loop-mode.js',
   'main.js',
 ];
 
 // CASE データは同じ名前（WORLD, SPEED, POINTS …）を並べて持つので、
 // そのまま連結すると衝突する。1本ずつブロックに閉じて集約だけを外へ出す
-const CASE_FILES = [['data/case01.js', 'CASE01'], ['data/case02.js', 'CASE02'], ['data/case03.js', 'CASE03'], ['data/case04.js', 'CASE04']];
+const CASE_FILES = [['data/case01.js', 'CASE01'], ['data/case02.js', 'CASE02'], ['data/case03.js', 'CASE03'], ['data/case04.js', 'CASE04'], ['data/case05.js', 'CASE05']];
 
 const strip = src => src
   .replace(/^\s*import\s+[^;]*?from\s*['"][^'"]+['"]\s*;?\s*$/gm, '')

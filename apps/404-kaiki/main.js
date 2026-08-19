@@ -5,6 +5,7 @@ import { CASE01 } from './data/case01.js';
 import { CASE02 } from './data/case02.js';
 import { CASE03 } from './data/case03.js';
 import { CASE04 } from './data/case04.js';
+import { CASE05 } from './data/case05.js';
 import { CaseState } from './core/case.js';
 import { findTrigger, visiblePoints, nextRequired } from './core/investigation.js';
 import { buildRecord } from './core/log.js';
@@ -12,19 +13,21 @@ import { Renderer } from './world/render.js';
 import { FieldRenderer } from './world/render-field.js';
 import { SchoolRenderer } from './world/render-school.js';
 import { ArcadeRenderer } from './world/render-arcade.js';
+import { StationRenderer } from './world/render-station.js';
 import { ChaseMode } from './modes/chase-mode.js';
 import { SightMode } from './modes/sight-mode.js';
 import { PassMode } from './modes/pass-mode.js';
 import { VoiceMode } from './modes/voice-mode.js';
+import { LoopMode } from './modes/loop-mode.js';
 import { Input } from './world/input.js';
 import { Ambience } from './world/audio.js';
 import { buildPath, truncate } from './world/path.js';
 
 const $ = s => document.querySelector(s);
 
-const CASES = [CASE01, CASE02, CASE03, CASE04];
-const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode, voice: VoiceMode };
-const RENDERERS = { field: FieldRenderer, school: SchoolRenderer, arcade: ArcadeRenderer };
+const CASES = [CASE01, CASE02, CASE03, CASE04, CASE05];
+const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode, voice: VoiceMode, loop: LoopMode };
+const RENDERERS = { field: FieldRenderer, school: SchoolRenderer, arcade: ArcadeRenderer, station: StationRenderer };
 
 class Game {
   constructor() {
@@ -422,6 +425,9 @@ class Game {
     p.x = Math.max(40, Math.min(limit - 26, p.x));
     const band = this.band(p.x);
     p.y = Math.max(band.bandTop + 6, Math.min(band.bandBottom - 4, p.y));
+
+    // 世界が輪になっている CASE は、ここで縫い目を越える（CASE 05）
+    if (this.dir.onMoved) this.dir.onMoved(p);
 
     // 実際に動いたときだけ記録する。止まっている間に同じ点を積むと
     // 後続の2人が先頭へ吸い寄せられて3人が重なる（SPEC §49）

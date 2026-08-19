@@ -8,13 +8,18 @@ export class Input {
     this.point = { x: 0, y: 0 };
     this.enabled = true;
     this.tapped = false;
+    this.down = false;   // 指／マウスが物理的に触れているか
     this.keys = new Set();
     this._attach(canvas);
   }
 
   setEnabled(v) {
     this.enabled = v;
-    if (!v) { this.vx = 0; this.vy = 0; this.active = false; }
+    if (!v) { this.vx = 0; this.vy = 0; this.active = false; return; }
+    // 会話で一度切ったあと、キーや指を押しっぱなしでも操作が戻るようにする。
+    // 押し直しを要求すると、会話明けに「動けなくなった」ように見える
+    if (this.down) { this.active = true; this.origin = { ...this.point }; }
+    this._fromKeys();
   }
 
   consumeTap() { const t = this.tapped; this.tapped = false; return t; }
@@ -24,14 +29,16 @@ export class Input {
     const R = 42;
     const start = (x, y) => {
       this.tapped = true;
+      this.down = true;
+      this.point = { x, y };
       if (!this.enabled) return;
       this.active = true;
       this.origin = { x, y };
       this.point = { x, y };
     };
     const move = (x, y) => {
-      if (!this.active || !this.enabled) return;
       this.point = { x, y };
+      if (!this.active || !this.enabled) return;
       let dx = x - this.origin.x, dy = y - this.origin.y;
       const d = Math.hypot(dx, dy);
       if (d > R) { dx = dx / d * R; dy = dy / d * R; this.origin = { x: x - dx, y: y - dy }; }
@@ -43,7 +50,7 @@ export class Input {
       this.vx = (dx / m) * k;
       this.vy = (dy / m) * k;
     };
-    const end = () => { this.active = false; this.vx = 0; this.vy = 0; };
+    const end = () => { this.down = false; this.active = false; this.vx = 0; this.vy = 0; };
 
     canvas.addEventListener('touchstart', e => {
       e.preventDefault();
