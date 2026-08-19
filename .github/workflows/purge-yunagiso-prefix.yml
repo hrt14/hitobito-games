@@ -1,4 +1,4 @@
-name: Purge stale Cloudflare Pages cache
+name: Remove Yunagiso from old HTTPS URL
 
 on:
   push:
@@ -9,50 +9,56 @@ on:
 
 permissions:
   contents: write
+  deployments: write
 
 jobs:
-  purge:
+  remove:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Purge all hitobito.jp Cloudflare cache and verify
-        env:
-          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          set +e
-          mkdir -p ops
-          ZONES="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones?name=hitobito.jp")"
-          ZONE_ID="$(printf '%s' "$ZONES" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const j=JSON.parse(s);process.stdout.write(j.success&&j.result&&j.result[0]?j.result[0].id:'')}catch(e){}})")"
-          PURGE_SUCCESS=no
-          PURGE_RESPONSE="$ZONES"
-          if [ -n "$ZONE_ID" ]; then
-            PURGE_RESPONSE="$(curl -sS -X POST -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache" --data '{"purge_everything":true}')"
-            printf '%s' "$PURGE_RESPONSE" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const j=JSON.parse(s);process.exit(j.success?0:1)}catch(e){process.exit(1)}})"
-            [ $? -eq 0 ] && PURGE_SUCCESS=yes
-          fi
+      - name: Build current Cloudflare bundle
+        run: npm run build:hosting
 
+      - name: Install explicit old-URL tombstone
+        run: |
+          cp 404.html .dist/cloudflare/404.html
+          mkdir -p .dist/cloudflare/apps/yunagiso
+          cp 404.html .dist/cloudflare/apps/yunagiso/index.html
+          test ! -e apps/yunagiso/index.html
+          grep -q 'このゲームはありません' .dist/cloudflare/apps/yunagiso/index.html
+
+      - name: Deploy bundle with Yunagiso tombstone
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .dist/cloudflare --project-name=hitobito-games-normal
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify exact old HTTPS URL
+        run: |
+          set -euo pipefail
           URL="https://play.hitobito.jp/apps/yunagiso/"
           CODE="$(curl -sS -L -H 'Cache-Control: no-cache' -o /tmp/yunagiso.html -w '%{http_code}' "$URL")"
-          if grep -q '夕凪荘' /tmp/yunagiso.html; then CONTENT_PRESENT=yes; else CONTENT_PRESENT=no; fi
-          BODY_SHA="$(sha256sum /tmp/yunagiso.html | awk '{print $1}')"
+          OLD=no
+          grep -q '夕凪荘' /tmp/yunagiso.html && OLD=yes || true
+          TOMBSTONE=no
+          grep -q 'このゲームはありません' /tmp/yunagiso.html && TOMBSTONE=yes || true
+          mkdir -p ops
           {
             echo "checked_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "url=$URL"
-            echo "purge_everything_success=$PURGE_SUCCESS"
             echo "http_code=$CODE"
-            echo "contains_yunagiso=$CONTENT_PRESENT"
-            echo "body_sha256=$BODY_SHA"
-            echo "purge_response=$PURGE_RESPONSE"
+            echo "contains_yunagiso=$OLD"
+            echo "contains_tombstone=$TOMBSTONE"
           } > ops/yunagiso-purge-latest.txt
-
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add ops/yunagiso-purge-latest.txt
-          git commit -m "Record Yunagiso purge verification" || true
+          git commit -m "Record Yunagiso tombstone verification" || true
           git pull --rebase origin main || true
           git push origin HEAD:main || true
-
-          test "$PURGE_SUCCESS" = yes
-          test "$CONTENT_PRESENT" = no
+          test "$OLD" = no
+          test "$TOMBSTONE" = yes
