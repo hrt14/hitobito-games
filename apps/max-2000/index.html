@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#050607">
+<title>最大2,000円</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app">
+  <header class="top"><div class="brand"><b>P</b> UNDERPASS / LOT 009</div><div id="clock" class="clock">02:09</div></header>
+
+  <div class="screen">
+    <div class="sceneWrap" id="sceneWrap">
+      <div id="scene" class="scene" data-anomaly="none">
+        <svg viewBox="0 0 1080 1320" preserveAspectRatio="none" role="img" aria-label="高架下の夜の駐車場">
+          <defs>
+            <linearGradient id="ceiling" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#5d5b54"/><stop offset="1" stop-color="#34332f"/></linearGradient>
+            <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c1b8a6"/><stop offset="1" stop-color="#5c584f"/></linearGradient>
+            <linearGradient id="asphalt" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#242724"/><stop offset="1" stop-color="#0e1110"/></linearGradient>
+            <linearGradient id="car" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d3c8b5"/><stop offset=".5" stop-color="#8b8174"/><stop offset="1" stop-color="#403b37"/></linearGradient>
+            <radialGradient id="lampGlow"><stop stop-color="#fffde6" stop-opacity="1"/><stop offset=".18" stop-color="#fffbd5" stop-opacity=".7"/><stop offset=".6" stop-color="#ffffff" stop-opacity=".15"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+            <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".65"/></filter>
+            <pattern id="fencePat" width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 18H36" stroke="#555951" stroke-width="4"/></pattern>
+          </defs>
+          <rect width="1080" height="1320" fill="#101210"/>
+          <path d="M0 0H1080V295H975L935 385H175L92 330H0Z" fill="url(#ceiling)"/>
+          <path d="M0 255L182 370H938L979 288" fill="none" stroke="#7d7970" stroke-width="20" opacity=".5"/>
+          <path d="M0 287L170 385H947" fill="none" stroke="#262725" stroke-width="9" opacity=".8"/>
+          <path d="M122 30C202 38 300 19 410 35S611 29 760 37" fill="none" stroke="#6d6962" stroke-width="4" opacity=".22"/>
+          <g id="beamCrack"><path d="M565 182l22 18-17 27 26 18-15 35" fill="none" stroke="#171817" stroke-width="5" opacity=".9"/><path d="M588 199l29-10M570 226l-28 8" stroke="#171817" stroke-width="3"/></g>
+          <rect x="0" y="350" width="1080" height="520" fill="#6d675c"/>
+          <rect x="170" y="385" width="720" height="360" fill="url(#wall)"/>
+          <rect x="464" y="336" width="183" height="357" fill="#32413f" opacity=".8"/>
+          <rect x="476" y="420" width="158" height="286" fill="#252c2a" stroke="#4c504a" stroke-width="10"/>
+          <path d="M493 435H623M493 506H623M493 577H623M493 648H623" stroke="#4b4d48" stroke-width="10"/>
+          <path d="M539 347v355" stroke="#4b4d48" stroke-width="12" opacity=".75"/>
+          <rect x="760" y="470" width="183" height="260" fill="#34342f" opacity=".78"/>
+          <path d="M675 420C768 390 761 520 862 472S980 485 1020 445" fill="none" stroke="#1e211f" stroke-width="8"/>
+          <path d="M681 425C790 431 745 620 875 596" fill="none" stroke="#252826" stroke-width="5"/>
+          <g id="gateClosed">
+            <rect x="148" y="690" width="778" height="278" fill="#232624" opacity=".28"/>
+            <rect x="148" y="690" width="778" height="278" fill="url(#fencePat)" opacity=".72"/>
+            <path d="M148 690H926M148 968H926M358 690v278M704 690v278" stroke="#4c504a" stroke-width="11"/>
+          </g>
+          <g id="gateOpen">
+            <rect x="148" y="690" width="500" height="278" fill="#232624" opacity=".28"/>
+            <rect x="148" y="690" width="500" height="278" fill="url(#fencePat)" opacity=".72"/>
+            <path d="M148 690H648M148 968H648M358 690v278" stroke="#4c504a" stroke-width="11"/>
+            <path d="M648 690l265 54-22 224-243 0Z" fill="url(#fencePat)" stroke="#4c504a" stroke-width="11" opacity=".78"/>
+          </g>
+          <g id="sheetNormal" filter="url(#shadow)"><path d="M266 698q40-95 92-34l38 18 47 122-183 6z" fill="#d8d3c6"/><path d="M315 690q24-40 62-15l22 25" fill="none" stroke="#87847b" stroke-width="10"/><path d="M247 739q62 5 181 59l-12 70-191-2z" fill="#171b1a"/></g>
+          <g id="sheetTall" filter="url(#shadow)"><path d="M255 706q37-198 100-139 41 37 47 125l38 15 24 104-213 6z" fill="#d7d3c8"/><path d="M315 603q35-28 62 9" fill="none" stroke="#8f8c82" stroke-width="10"/><path d="M247 751q62 5 201 59l-18 70-205-2z" fill="#171b1a"/></g>
+          <g id="parkingSign" filter="url(#shadow)">
+            <rect x="270" y="414" width="373" height="212" rx="6" fill="#faf7d9" stroke="#a9a58e" stroke-width="8"/>
+            <rect x="280" y="426" width="354" height="32" fill="#364bc4"/><text x="457" y="449" fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700">24H PARKING</text>
+            <rect x="292" y="472" width="77" height="78" rx="3" fill="#3049c5"/><text x="330" y="528" fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="58" font-weight="900">P</text>
+            <text x="392" y="494" fill="#5d5a4e" font-family="sans-serif" font-size="17" font-weight="700">24時間 最大</text>
+            <g id="signPriceNormal"><text x="535" y="530" fill="#ec5d28" text-anchor="middle" font-family="sans-serif" font-size="54" font-weight="900">2,000</text><text x="602" y="530" fill="#6b6659" font-family="sans-serif" font-size="18" font-weight="700">円</text></g>
+            <g id="signPriceBad"><text x="530" y="530" fill="#d6201e" text-anchor="middle" font-family="sans-serif" font-size="49" font-weight="900">20,000</text><text x="608" y="530" fill="#6b6659" font-family="sans-serif" font-size="18" font-weight="700">円</text></g>
+            <text x="392" y="565" fill="#47463f" font-family="sans-serif" font-size="17">8:00–20:00</text><text x="520" y="565" fill="#47463f" font-family="sans-serif" font-size="17" font-weight="700">30分 / 300円</text>
+            <text x="392" y="593" fill="#47463f" font-family="sans-serif" font-size="17">20:00–8:00</text><text x="520" y="593" fill="#47463f" font-family="sans-serif" font-size="17" font-weight="700">60分 / 200円</text>
+            <rect x="280" y="600" width="354" height="17" fill="#f08c1d"/>
+            <path d="M292 626v118M628 626v118" stroke="#5f625b" stroke-width="10"/>
+          </g>
+          <path d="M0 882H1080V1320H0Z" fill="url(#asphalt)"/>
+          <path d="M0 1008H1080" stroke="#a9aaa0" stroke-width="10" opacity=".65"/>
+          <path d="M383 947L166 1320" stroke="#f17f10" stroke-width="22"/>
+          <path d="M877 947L1026 1320" stroke="#f17f10" stroke-width="22"/>
+          <path d="M566 975v345" stroke="#c5c6bb" stroke-width="10" opacity=".75"/>
+          <g id="stopNormal" filter="url(#shadow)"><path d="M354 1110L690 1130 707 1180 371 1166Z" fill="#b9b9ad"/><path d="M371 1166l336 14-22 30-327-19z" fill="#656861"/></g>
+          <g id="stopGone"><path d="M367 1138h337" stroke="#40443f" stroke-width="4" opacity=".45"/></g>
+          <g id="carGroup" filter="url(#shadow)">
+            <path d="M0 795q115-35 245 0l60 54 26 288-70 135H0Z" fill="url(#car)"/>
+            <path d="M0 820q105-22 210 0l72 52-12 98-270-13z" fill="#18201f" stroke="#5c605c" stroke-width="8"/>
+            <path d="M250 891l66 19 11 114-59 3z" fill="#8e8578"/>
+            <g id="mirrorNormal"><path d="M278 915q56-9 65 34-8 35-61 29z" fill="#7d7469" stroke="#b2a897" stroke-width="5"/></g>
+            <g id="mirrorGone"><path d="M290 920l23 4" stroke="#4d4841" stroke-width="7"/></g>
+            <circle cx="244" cy="1168" r="76" fill="#171918" stroke="#7f817a" stroke-width="16"/><circle cx="244" cy="1168" r="45" fill="#8c8e88"/><path d="M244 1126v84M202 1168h84M216 1140l57 57M273 1140l-57 57" stroke="#4e514d" stroke-width="8"/>
+            <path d="M282 1057h35" stroke="#d9d2c4" stroke-width="9" stroke-linecap="round"/>
+          </g>
+          <rect x="927" y="758" width="153" height="562" fill="#d2d0c6"/><rect x="936" y="795" width="145" height="10" fill="#99988f"/>
+          <g id="bayNormal"><text x="995" y="860" fill="#42433f" font-family="monospace" font-size="30">010L</text></g>
+          <g id="bayBad"><text x="995" y="860" fill="#42433f" font-family="monospace" font-size="30">001L</text></g>
+          <g id="postNormal"><rect x="865" y="848" width="42" height="170" fill="#d3d1c7"/><rect x="872" y="888" width="28" height="85" fill="#d55245"/><text x="887" y="913" fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="900">←</text><text x="887" y="939" fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="900">3</text></g>
+          <g id="postFlip"><rect x="865" y="848" width="42" height="170" fill="#d3d1c7"/><rect x="872" y="888" width="28" height="85" fill="#d55245"/><text x="887" y="913" fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="900">→</text><text x="887" y="939" fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="900">3</text></g>
+          <g id="lampNormal"><rect x="926" y="543" width="20" height="287" fill="#dcded4"/><ellipse cx="939" cy="540" rx="31" ry="20" fill="#fffde8"/><circle cx="940" cy="545" r="175" fill="url(#lampGlow)"/></g>
+          <g id="lampRed"><rect x="926" y="543" width="20" height="287" fill="#d0c8c1"/><ellipse cx="939" cy="540" rx="31" ry="20" fill="#ff3b33"/><circle cx="940" cy="545" r="175" fill="#ff2828" opacity=".22"/></g>
+          <g id="shadowFigure" opacity=".94" filter="url(#shadow)"><ellipse cx="620" cy="720" rx="35" ry="44" fill="#080908"/><path d="M575 912q2-148 46-156 49 10 55 156z" fill="#070807"/><path d="M591 758l-58 139M650 758l67 136" stroke="#070807" stroke-width="24" stroke-linecap="round"/><circle cx="608" cy="716" r="4" fill="#d9d7c5"/><circle cx="633" cy="716" r="4" fill="#d9d7c5"/></g>
+          <rect x="0" y="0" width="1080" height="1320" fill="#000" opacity=".08"/>
+        </svg>
+      </div>
+      <button class="hotspot hs-sign" data-target="sign" aria-label="料金看板"></button>
+      <button class="hotspot hs-car" data-target="mirror" aria-label="車"></button>
+      <button class="hotspot hs-sheet" data-target="sheet" aria-label="カバーのかかった車両"></button>
+      <button class="hotspot hs-fence" data-target="gate" aria-label="フェンス"></button>
+      <button class="hotspot hs-beam" data-target="beam" aria-label="高架の梁"></button>
+      <button class="hotspot hs-lamp" data-target="lamp" aria-label="照明"></button>
+      <button class="hotspot hs-pillar" data-target="bay" aria-label="駐車番号"></button>
+      <button class="hotspot hs-stop" data-target="stop" aria-label="車止め"></button>
+      <button class="hotspot hs-post" data-target="post" aria-label="番号ポール"></button>
+      <button class="hotspot hs-shadow" data-target="shadow" aria-label="フェンスの奥"></button>
+      <div class="hud"><div id="phase" class="phase look">記憶中</div><div id="round" class="round">ROUND 1 / 8</div></div>
+      <div id="blackout" class="blackout"><span>……</span></div>
+      <div id="scan" class="scan"><i></i></div>
+      <div id="flash" class="flash"></div>
+      <div id="toast" class="toast"></div>
+    </div>
+    <div class="controls">
+      <div class="stats"><div id="feeStat" class="stat fee"><small>ご利用料金 / MAX ¥2,000</small><b id="fee">¥0</b></div><div class="stat"><small>時刻</small><b id="gameTime">02:09</b></div></div>
+      <div class="message"><span id="message">暗転前の景色を覚えてください</span><button id="noneBtn" class="none" disabled>変化なし</button></div>
+    </div>
+  </div>
+
+  <section id="intro" class="overlay">
+    <div class="card">
+      <div class="eyebrow">UNDER THE VIADUCT / 02:09</div>
+      <h1 class="title">最大<em>2,000円</em></h1>
+      <p class="desc">暗転する前の駐車場を覚える。<br>明かりが戻ったら、<b style="color:#fff">変わった場所を1つタップ。</b></p>
+      <div class="how"><div><b>01 覚える</b>数秒だけ<br>基準の景色を見る</div><div><b>02 見つける</b>暗転後の<br>違和感をタップ</div><div><b>03 払わない</b>誤タップ・見逃しで<br>料金が加算</div></div>
+      <p class="desc">何も変わっていないと思ったら「変化なし」。<br><b style="color:#ffe27b">¥2,000に達する前に8:00まで耐える。</b></p>
+      <button id="start" class="primary">駐車する <span>›</span></button>
+      <div class="smallnote">音は控えめ。イヤホン推奨。画面は縦向き推奨。</div>
+    </div>
+  </section>
+
+  <section id="ending" class="overlay hidden"><div class="card"><div id="endEyebrow" class="eyebrow">08:00 / EXIT OPEN</div><h2 id="endTitle" class="endTitle">精算できます。</h2><p id="endText" class="desc"></p><div id="receipt" class="receipt"></div><button id="restart" class="primary">もう一度駐車する <span>↻</span></button></div></section>
+</main>
+<script src="game.js"></script>
+</body>
+</html>
