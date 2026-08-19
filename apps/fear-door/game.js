@@ -40,7 +40,7 @@
     {
       plate:'A-11', wing:'CONTROL ACCESS', clue:'指を触れていないのに、掌紋センサーが待機状態になった。',
       line:'「ここは手間が省ける。」',
-      story:['SYSTEM','WELCOME BACK, CHIEF. BIOMETRIC PROFILE READY.'],
+      story:['SYSTEM','BIOMETRIC PROFILE MATCH / HIGH-LEVEL ACCESS READY'],
       outcomes:{left:'advance',right:'danger',up:'advance',down:'dead'},
       previews:{left:['safe','制御盤の青い光','▥'],right:['danger','人影が壁に揺れる','♙'],up:['safe','上階へ続く梯子','↑'],down:['dead','水没している','≈']}
     },
