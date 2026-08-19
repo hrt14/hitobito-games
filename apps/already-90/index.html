@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0b0d0d" />
+  <meta name="description" content="暗い10%だけに視線を奪われない。すでにある90%を見つけ、残る不快を1%ずつ軽くするLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>90%は、もうある。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <button class="reset-link" id="resetBtn" type="button">RESET</button>
+    </header>
+
+    <section class="world-card" aria-label="100マスの視線トレーニング">
+      <div class="world-copy">
+        <div>
+          <p class="eyebrow">SEE WHAT IS ALREADY HERE</p>
+          <h1><span id="percentValue">90</span><small>%</small><br><b>は、もうある。</b></h1>
+        </div>
+        <p id="worldCaption">暗い10%を見る前に、<br>明るい90%を視界から消さない。</p>
+      </div>
+      <div class="grid-wrap">
+        <div class="life-grid" id="lifeGrid" aria-label="90個の明るいマスと10個の暗いマス"></div>
+        <div class="grid-glow" aria-hidden="true"></div>
+      </div>
+      <div class="legend"><span><i class="on"></i>もうある</span><span><i></i>まだ気になる</span></div>
+    </section>
+
+    <section class="panel active" id="introPanel" data-step="0">
+      <p class="step-label">START</p>
+      <h2>足りない方から<br>数えない。</h2>
+      <p class="lead">100点にするゲームではありません。<br>まず「すでにある」を見つけてから、残る嫌さを1%ずつ小さくします。</p>
+      <button class="primary" id="startBtn" type="button"><span>90%を見にいく</span><b>→</b></button>
+      <p class="microcopy">※ 90/100は人生の点数ではなく、視線を切り替えるための比喩です。</p>
+    </section>
+
+    <section class="panel" id="alreadyPanel" data-step="1">
+      <p class="step-label">01 / ALREADY HERE</p>
+      <h2>今日、すでにあるものを<br>3つだけ見つける。</h2>
+      <p class="lead small">全部ある必要はありません。今の自分に当てはまるものだけ。</p>
+      <div class="gift-grid" id="giftGrid"></div>
+      <div class="selection-status"><strong id="giftCount">0</strong><span>/ 3</span></div>
+      <button class="primary" id="giftNextBtn" type="button" disabled><span>この90%を残したまま進む</span><b>→</b></button>
+    </section>
+
+    <section class="panel" id="burdenPanel" data-step="2">
+      <p class="step-label">02 / THE 10%</p>
+      <h2>残っている10%は、<br>いま何に近い？</h2>
+      <p class="lead small">消そうとしなくていい。名前だけ付けます。</p>
+      <div class="burden-grid" id="burdenGrid"></div>
+      <button class="primary" id="burdenNextBtn" type="button" disabled><span>全部ではなく、1%へ</span><b>→</b></button>
+    </section>
+
+    <section class="panel" id="onePanel" data-step="3">
+      <p class="step-label" id="oneStepLabel">03 / ONE PERCENT</p>
+      <h2>10%全部じゃなく、<br><span>1%だけ</span>軽くする。</h2>
+      <p class="lead small" id="burdenEcho">いま選んだ不快を、ほんの少しだけ。</p>
+      <div class="move-list" id="moveList"></div>
+      <div class="swipe-zone" id="swipeZone" hidden>
+        <p>選んだ一手を、暗い1%にのせる。</p>
+        <div class="dark-card" id="darkCard" role="button" tabindex="0" aria-label="上へスワイプして1%を軽くする">
+          <span class="dark-label" id="darkLabel">気になる1%</span>
+          <strong id="moveLabel">あとで考える</strong>
+          <i></i><i></i><i></i>
+        </div>
+        <div class="swipe-hint" id="swipeHint">↑ 上へスワイプ</div>
+        <button class="secondary" id="swipeFallbackBtn" type="button">タップで1%だけ軽くする ↑</button>
+      </div>
+    </section>
+
+    <section class="panel result-panel" id="resultPanel" data-step="4">
+      <p class="step-label">NOW</p>
+      <div class="result-number"><strong id="resultPercent">91</strong><span>%</span></div>
+      <h2>全部は解決していない。<br>でも、<span>明るい方は消えていない。</span></h2>
+      <div class="kept-box">
+        <p>今日、残した90%</p>
+        <div class="kept-list" id="keptList"></div>
+      </div>
+      <p class="result-copy" id="resultCopy">残り9%が気になってもいい。<br>今日は、1%だけ小さくできた。</p>
+      <div class="result-actions">
+        <button class="primary" id="anotherBtn" type="button"><span>もう1%だけ</span><b>+1</b></button>
+        <button class="secondary" id="finishBtn" type="button">今日はここまで</button>
+      </div>
+      <div class="history" id="historyBox" hidden><span>この端末で</span><strong id="historySessions">0</strong><span>回、90%を見直した</span></div>
+    </section>
+
+    <section class="panel finish-panel" id="finishPanel" data-step="5">
+      <p class="step-label">KEEP THE 90</p>
+      <h2>100%になってから<br>幸せになる必要はない。</h2>
+      <p class="lead">残っている不快に取り組むときも、すでにあるものを画面の外へ追い出さない。</p>
+      <div class="finish-orb"><strong id="finishPercent">91%</strong><span>明るい方を見失わなかった</span></div>
+      <button class="primary" id="againBtn" type="button"><span>もう一度、90%を見る</span><b>↻</b></button>
+      <a class="home-bottom" href="/">LEVEL UPへ戻る</a>
+    </section>
+  </main>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
