@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#090b08" />
+  <meta name="description" content="先延ばし中のタスクを、30秒の着手まで小さくして実際に始めるLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>今やる。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="step-dots" id="stepDots" aria-label="進行状況"><i class="active"></i><i></i><i></i><i></i></div>
+      <button class="reset-btn" id="resetBtn" type="button" aria-label="最初からやり直す">↻</button>
+    </header>
+
+    <section class="screen active" id="startScreen" data-step="0">
+      <div class="hero-mark" aria-hidden="true"><span>NOW</span></div>
+      <div class="hero-copy">
+        <p class="eyebrow">PROCRASTINATION → START</p>
+        <h1>今やる<span>。</span></h1>
+        <p class="lead">やる気を待たない。<br><strong>最初の30秒だけ作る。</strong></p>
+      </div>
+
+      <label class="task-card" for="taskInput">
+        <span>いま先延ばししてること</span>
+        <input id="taskInput" type="text" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="例：資料の1ページ目を作る" />
+      </label>
+
+      <button class="primary-btn" id="startBtn" type="button" disabled><span>先延ばしを止める</span><b>→</b></button>
+      <p class="microcopy">全部終わらせません。始めるところまで。</p>
+
+      <div class="local-stats" id="localStats" hidden>
+        <div><span>着手率</span><strong id="startRate">0%</strong></div>
+        <div><span>よく止まる理由</span><strong id="topCause">—</strong></div>
+      </div>
+    </section>
+
+    <section class="screen" id="causeScreen" data-step="1">
+      <div class="screen-copy compact">
+        <p class="eyebrow">STEP 1 / FIND THE FRICTION</p>
+        <h2>何が、<br>引っかかってる？</h2>
+        <p>考え込まず、いちばん近いものを1つ。</p>
+      </div>
+      <div class="cause-grid" id="causeGrid"></div>
+    </section>
+
+    <section class="screen" id="actionScreen" data-step="2">
+      <div class="screen-copy compact">
+        <p class="eyebrow">STEP 2 / MAKE IT SMALLER</p>
+        <h2>完成じゃない。<br><span>入口だけ。</span></h2>
+        <p id="prescriptionLead">先延ばしの引っかかりに合わせて、着手サイズまで小さくします。</p>
+      </div>
+
+      <div class="task-preview"><span>元のタスク</span><p id="taskPreview"></p></div>
+
+      <div class="action-card">
+        <div class="action-label"><span>30秒の一手</span><b id="causeBadge">START</b></div>
+        <textarea id="microAction" rows="3" maxlength="120" aria-label="30秒で始める最初の一手"></textarea>
+        <p id="actionHint">必要なら、自分が本当にできるサイズまで書き換えてください。</p>
+      </div>
+
+      <button class="primary-btn" id="prepareBtn" type="button"><span>これで始める</span><b>→</b></button>
+      <button class="text-btn" id="smallerBtn" type="button">まだ重い → もっと小さくする</button>
+    </section>
+
+    <section class="screen launch-screen" id="launchScreen" data-step="3">
+      <div class="launch-orbit" aria-hidden="true"><i></i><i></i></div>
+      <p class="eyebrow">STEP 3 / LEAVE THIS APP</p>
+      <div class="countdown" id="countdown">3</div>
+      <h2 id="launchTitle">30秒だけ、<br>始める。</h2>
+      <div class="launch-action" id="launchAction"></div>
+      <p class="launch-note" id="launchNote">この画面を閉じて、対象の画面・道具を開いてください。戻ってきたら着手できたか記録します。</p>
+      <button class="primary-btn launch-btn" id="goBtn" type="button" hidden><span>今すぐ始める</span><b>↗</b></button>
+      <button class="secondary-btn" id="alreadyStartedBtn" type="button" hidden>もう始めた</button>
+    </section>
+
+    <section class="screen" id="checkScreen" data-step="3">
+      <div class="screen-copy centered">
+        <p class="eyebrow">CHECK / DID YOU START?</p>
+        <h2>始められた？</h2>
+        <p>終わってなくてOK。手をつけたかだけ。</p>
+      </div>
+      <div class="check-task" id="checkTask"></div>
+      <div class="check-actions">
+        <button class="success-btn" id="didStartBtn" type="button"><span>始めた</span><b>✓</b></button>
+        <button class="retry-btn" id="notYetBtn" type="button"><span>まだ</span><b>↓</b></button>
+      </div>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen" data-step="4">
+      <div class="result-burst" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="eyebrow">PROCRASTINATION BROKEN</p>
+      <div class="result-word">着手<span>。</span></div>
+      <p class="result-copy">全部終わっていなくていい。<br><strong>「やってない」からは、もう抜けた。</strong></p>
+      <div class="result-card">
+        <span>今回の最初の一手</span>
+        <p id="resultAction"></p>
+      </div>
+      <div class="result-stats"><span>これまで <b id="resultSessions">0</b>回</span><span>着手率 <b id="resultRate">0%</b></span></div>
+      <button class="primary-btn" id="againBtn" type="button"><span>また止まったら使う</span><b>↻</b></button>
+      <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      <p class="privacy-note">入力したタスク名・理由・着手結果はこの端末内に保存します。自由記述の内容を外部送信する処理はこのアプリにはありません。</p>
+    </section>
+
+    <section class="screen rescue-screen" id="rescueScreen" data-step="2">
+      <div class="screen-copy compact">
+        <p class="eyebrow">TOO BIG → TINY</p>
+        <h2>まだ動けないなら、<br><span>さらに小さく。</span></h2>
+        <p>やることを変えず、「開始」の粒だけ小さくします。</p>
+      </div>
+      <div class="rescue-grid" id="rescueGrid"></div>
+      <button class="text-btn" id="backActionBtn" type="button">自分で書き直す ←</button>
+    </section>
+  </main>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
