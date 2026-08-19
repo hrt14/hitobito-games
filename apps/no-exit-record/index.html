@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="description" content="一枚の黒い乗車券から始まる、地下鉄記憶ミステリー。存在しない駅を乗り継ぎ、改札を出る方法を探せ。" />
+  <title>未出場 — NO EXIT RECORD</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main id="game" class="game" aria-live="polite">
+    <div class="noise" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <header class="hud">
+      <button id="homeBtn" class="hud-btn" type="button" aria-label="playトップへ" title="playトップへ">←</button>
+      <div class="hud-title">
+        <span class="hud-kicker">CITY UNDERGROUND / LOST RECORD</span>
+        <strong>未出場</strong>
+      </div>
+      <div class="hud-actions">
+        <button id="soundBtn" class="hud-btn" type="button" aria-label="音を切り替える">♪</button>
+        <button id="resetBtn" class="hud-btn" type="button" aria-label="最初からやり直す">↻</button>
+      </div>
+    </header>
+
+    <section id="scene" class="scene"></section>
+
+    <aside id="ticketDock" class="ticket-dock hidden" aria-label="乗車券">
+      <button id="ticket" class="ticket" type="button" aria-label="乗車券を確認する">
+        <span class="ticket-cut ticket-cut-a"></span>
+        <span class="ticket-cut ticket-cut-b"></span>
+        <span class="ticket-label">CITY UNDERGROUND</span>
+        <span class="ticket-route"><b id="ticketFrom">K-17</b><i>→</i><b id="ticketTo">???</b></span>
+        <span class="ticket-code">PASSENGER / <b id="ticketCode">NO RECORD</b></span>
+        <span class="ticket-stamps" id="ticketStamps" aria-label="取得した刻印"></span>
+      </button>
+      <div id="ticketHint" class="ticket-hint">TAP TICKET</div>
+    </aside>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <button id="modalClose" class="modal-close" type="button" aria-label="閉じる">×</button>
+        <div id="modalEyebrow" class="modal-eyebrow"></div>
+        <h2 id="modalTitle"></h2>
+        <div id="modalBody" class="modal-body"></div>
+        <button id="modalAction" class="primary-btn hidden" type="button"></button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+  </main>
+
+  <script type="module" src="./game.js"></script>
+</body>
+</html>
