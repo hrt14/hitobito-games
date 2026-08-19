@@ -1,4 +1,4 @@
-triggered_at=2026-08-19T20:07:00+09:00
+triggered_at=2026-08-19T20:09:00+09:00
 url=https://play.hitobito.jp/apps/yunagiso/
-action=purge_everything
-reason=Cloudflare Pages stale asset persisted after targeted purge
+action=purge_everything_and_verify
+reason=confirm exact HTTPS URL no longer serves old game
