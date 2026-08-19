@@ -2,6 +2,13 @@ name: Deploy LIFE +1 AI Function
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - 'firebase.json'
+      - '.github/workflows/deploy-life-plus-one-ai.yml'
 
 permissions:
   contents: read
