@@ -1,2 +1,2 @@
-Production deploy trigger: REMOVE-YUNAGISO
-Reason: remove Yunagiso from play.hitobito.jp
+Production deploy trigger: REMOVE-YUNAGISO-404
+Reason: make removed Yunagiso URL return 404 and purge stale Cloudflare cache
