@@ -1,3 +1,4 @@
 Deploy LEVEL UP: Firestore enabled
 Force Firebase Hosting rebuild and deploy Firestore security rules now that the (default) Cloud Firestore database exists in hitobito-levelup.
 Triggered after Firestore creation on 2026-08-21 JST.
+Deploy LEVEL UP rename: viewpoint-exam → 視点100本ノック (2026-08-21 JST).

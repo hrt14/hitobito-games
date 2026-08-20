@@ -31,7 +31,7 @@ const catalog = [
   {slug:'extra-load',title:'疲れを増やすな。',kicker:'DROP THE EXTRA LOAD',skill:'思考負荷 / 省エネ',description:'「全部背負う・完璧にする・同時に抱える・反芻する・今決める」を見抜き、必要な分だけ考える反射を鍛える。',icon:'−',updateCount:20},
   {slug:'mou-owatta',title:'もう終わった',kicker:'END THE LOOP',skill:'切り替え / 反芻停止',description:'終わった出来事を反芻せず、事実と次に変えられることだけ拾って思考を終了する。',icon:'END',updateCount:1},
   {slug:'name-it',title:'名前をつけろ',kicker:'NAME THE FEELING',skill:'感情認識',description:'いま感じている感情に名前をつけ、ぼんやり抱えず認識する反射を鍛える。',icon:'Aa',updateCount:1},
-  {slug:'viewpoint-exam',title:'物の見方検定',kicker:'FIND ANOTHER VIEW',skill:'視点転換',description:'嫌な出来事にも別の見方を何通りも作り、視点を切り替える型を反復する。',icon:'↻',updateCount:1},
+  {slug:'viewpoint-exam',title:'視点100本ノック',kicker:'FIND ANOTHER VIEW',skill:'視点転換',description:'嫌な出来事にも別の見方を何通りも作り、視点を切り替える型を反復する。',icon:'↻',updateCount:1},
   {slug:'jinsei-title',title:'人生にタイトルをつけろ',kicker:'EDIT THE STORY',skill:'意味づけ / 編集',description:'同じ出来事でもタイトルを変えると意味が変わる。人生の出来事を編集する力を鍛える。',icon:'T',updateCount:1},
   {slug:'meaning-map',title:'意味マップ',kicker:'CONNECT WHAT YOU DO',skill:'意味づけ / 目的',description:'仕事や日常を「一貫性・目的・重要感」の3方向へつなぎ、意味を見つける型を鍛える。',icon:'⌘',updateCount:1},
   {slug:'main-character',title:'主人公で行け。',kicker:'LIVE YOUR STORY',skill:'自己決定',description:'周囲の「普通」ではなく、自分が人生の主人公ならどう動くかを選び続ける。',icon:'★',updateCount:1},
