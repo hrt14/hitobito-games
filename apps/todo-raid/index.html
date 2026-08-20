@@ -7,6 +7,7 @@
   <meta name="description" content="現実のタスク完了が、そのままRPGの攻撃と成長になるゲーミフィケーションToDo。" />
   <title>TODO RAID | LEVEL UP</title>
   <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./quality-v2.css" />
 </head>
 <body>
   <div id="app" class="app-shell">
@@ -29,11 +30,24 @@
           <div id="rankBadge" class="rank-badge">BRONZE III</div>
         </div>
 
+        <div id="areaBadge" class="area-badge">🌱 着手の草原</div>
         <div class="boss-stage" aria-live="polite">
+          <div id="worldScene" class="world-scene scene-grassland" aria-hidden="true">
+            <div class="scene-sky"></div>
+            <div class="scene-sun"></div>
+            <div class="scene-cloud scene-cloud-a"></div>
+            <div class="scene-cloud scene-cloud-b"></div>
+            <div class="scene-landmark"></div>
+            <div class="scene-ground-back"></div>
+            <div class="scene-ground-front"></div>
+            <div class="scene-detail scene-detail-a"></div>
+            <div class="scene-detail scene-detail-b"></div>
+          </div>
           <div class="boss-aura"></div>
           <div id="bossSprite" class="boss-sprite" role="img" aria-label="ボス">🐉</div>
           <div id="damagePop" class="damage-pop" aria-hidden="true"></div>
           <div id="comboPop" class="combo-pop" aria-hidden="true"></div>
+          <div id="worldCaption" class="world-caption">着手の草原</div>
         </div>
 
         <div class="hp-block">
@@ -52,10 +66,10 @@
         <div class="momentum-copy">
           <div class="eyebrow">MOMENTUM</div>
           <div class="momentum-title"><span id="comboText">0</span> COMBO</div>
-          <div id="nextRewardText" class="muted">あと1個でコンボ開始</div>
+          <div id="nextRewardText" class="muted">あと3個で宝箱</div>
         </div>
         <div class="chest-wrap">
-          <button id="chestBtn" class="chest-btn locked" disabled aria-label="宝箱を開ける">🎁</button>
+          <button id="chestBtn" class="chest-btn locked" disabled aria-label="宝箱を開ける">🎁<span id="chestCount" class="chest-count hidden">0</span></button>
           <div class="chest-pips" id="chestPips" aria-label="宝箱までの進捗"></div>
         </div>
       </section>
@@ -73,9 +87,9 @@
           <label class="sr-only" for="taskInput">タスク名</label>
           <input id="taskInput" maxlength="80" placeholder="例：企画書の1ページ目を作る" required />
           <div class="difficulty-row" role="group" aria-label="難易度">
-            <button type="button" class="difficulty active" data-diff="easy">小 20</button>
-            <button type="button" class="difficulty" data-diff="normal">中 45</button>
-            <button type="button" class="difficulty" data-diff="hard">大 90</button>
+            <button type="button" class="difficulty active" data-diff="easy">小 · 20XP</button>
+            <button type="button" class="difficulty" data-diff="normal">中 · 45XP</button>
+            <button type="button" class="difficulty" data-diff="hard">大 · 90XP</button>
           </div>
           <button class="primary-btn" type="submit">クエスト化する</button>
         </form>
