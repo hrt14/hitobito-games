@@ -1,0 +1,55 @@
+name: Publish LEVEL UP daily report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '48 19 * * *' # 04:48 JST
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: firebase-levelup-production
+  cancel-in-progress: false
+
+jobs:
+  publish-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare current LEVEL UP game sources for mobile
+        run: node scripts/prepare-firebase-mobile.mjs
+
+      - name: Build LEVEL UP bundle
+        run: npm run build:firebase
+
+      - name: Export sanitized daily report JSON
+        run: node scripts/export-levelup-daily-report.mjs
+
+      - name: Deploy hosting with report
+        run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
+
+      - name: Verify report endpoint
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl -fLsS https://levelup.hitobito.jp/reports/latest.json -o /tmp/report.json
+          node -e "const r=require('/tmp/report.json'); if(!r.schemaVersion||!r.current) process.exit(1); console.log(r.current.date, r.current.available)"
