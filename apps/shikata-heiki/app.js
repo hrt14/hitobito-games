@@ -1,35 +1,27 @@
 const $=s=>document.querySelector(s);
-const scenarios=[
-{tag:'予定外',text:'予定が30分ずれた。',thought:'「予定どおりに進んでほしかった」',xp:3},
-{tag:'対人',text:'返信がまだ来ない。',thought:'「普通はもう返ってくるはず」',xp:4},
-{tag:'仕事',text:'自分の提案が通らなかった。',thought:'「せっかく考えたのに」',xp:8},
-{tag:'結果',text:'期待した数字に届かなかった。',thought:'「もっと上手くいくと思った」',xp:10},
-{tag:'予定外',text:'楽しみにしていた予定が中止になった。',thought:'「今日を楽しみにしていたのに」',xp:7},
-{tag:'対人',text:'相手の反応が思ったより薄かった。',thought:'「もっと喜んでくれると思った」',xp:6},
-{tag:'仕事',text:'急な変更が入って、やり直しになった。',thought:'「今さら変えないでほしい」',xp:9},
-{tag:'日常',text:'欲しかったものが売り切れていた。',thought:'「今日買えるつもりだった」',xp:3},
-{tag:'対人',text:'こちらの意図がうまく伝わらなかった。',thought:'「ちゃんと分かってほしかった」',xp:7},
-{tag:'結果',text:'頑張ったのに、評価は普通だった。',thought:'「もっと報われると思った」',xp:10},
-{tag:'日常',text:'電車が遅れている。',thought:'「時間どおり来てほしい」',xp:3},
-{tag:'仕事',text:'準備したのに、本番で使われなかった。',thought:'「何のためにやったんだ」',xp:8}
+const screens=['homeScreen','pickScreen','expectScreen','controlScreen','actionScreen','resultScreen','practiceScreen'];
+const presets=[
+{label:'予定が崩れた',event:'予定どおりに進まなかった。',expect:'予定どおりに進んでほしかった'},
+{label:'相手が期待どおりじゃない',event:'相手の反応が思ったものと違った。',expect:'期待した反応をしてほしかった'},
+{label:'結果が出なかった',event:'期待した結果にならなかった。',expect:'もっと良い結果になると思っていた'},
+{label:'断られた・通らなかった',event:'自分の希望や提案が通らなかった。',expect:'受け入れてもらいたかった'},
+{label:'急に変更された',event:'途中で予定や条件が変わった。',expect:'このまま進んでほしかった'},
+{label:'待たされた',event:'思ったより待つことになった。',expect:'もっと早く進んでほしかった'}
 ];
-const stages=[
-{label:'LEVEL 1 · 我慢できる',cue:'嫌でもいい。反応を増やさず、流す。',echo:'「なんで？」'},
-{label:'LEVEL 2 · 気にしない',cue:'思い通りじゃない。それだけ。次。',echo:'「まあ、いいか」'},
-{label:'LEVEL 3 · 感謝できる',cue:'予定外も、耐性を育てる1回になる。',echo:'「経験値」'},
-{label:'LEVEL 4 · 気にならない',cue:'処理しなくていい。起きた。……次。',echo:'……'}
+const practice=[
+'電車が5分遅れた。','欲しかったものが売り切れていた。','返信が今日中に来なかった。','会議の予定が急に変わった。','準備した案が採用されなかった。','相手の反応が薄かった。','雨で予定を変えることになった。','思ったより時間がかかった。'
 ];
-let deck=[],index=0,earned=0,currentLevel=0,startX=0,deltaX=0,dragging=false,animating=false;
-let totalXp=Number(localStorage.getItem('unplannedToleranceXp')||0);$('#xp').textContent=totalXp;
-function levelFromXp(xp){return xp>=240?3:xp>=120?2:xp>=50?1:0}
-function shuffle(){return [...scenarios].sort(()=>Math.random()-.5).slice(0,8)}
-function show(id){['intro','training','real','result'].forEach(x=>$('#'+x).hidden=x!==id)}
-function begin(){deck=shuffle();index=0;earned=0;currentLevel=levelFromXp(totalXp);show('training');render()}
-function render(){animating=false;const s=stages[currentLevel],item=deck[index];$('#levelLabel').textContent=s.label;$('#cue').textContent=s.cue;$('#echo').textContent=s.echo;$('#count').textContent=index+1;$('#progress').style.width=((index+1)/deck.length*100)+'%';$('#tag').textContent=item.tag;$('#scenario').textContent=item.text;$('#thought').textContent=item.thought;resetCard()}
-function resetCard(){const c=$('#card');c.classList.remove('dragging');c.style.transition='transform .24s ease,opacity .24s ease';c.style.transform='translate3d(0,0,0) rotate(0)';c.style.opacity='1'}
-function fly(dir=1){if(animating)return;animating=true;const c=$('#card');const item=deck[index];earned+=item.xp;c.style.transition='transform .28s cubic-bezier(.2,.8,.2,1),opacity .25s';c.style.transform=`translate3d(${dir*125}vw,-6vh,0) rotate(${dir*18}deg)`;c.style.opacity='0';if(navigator.vibrate)navigator.vibrate(12);setTimeout(next,220)}
-function next(){index++;if(index>=deck.length)return finish();currentLevel=levelFromXp(totalXp+earned);render()}
-function finish(){totalXp+=earned;localStorage.setItem('unplannedToleranceXp',String(totalXp));$('#xp').textContent=totalXp;const lv=levelFromXp(totalXp);$('#earned').textContent=earned;$('#resultTitle').textContent=stages[lv].label.replace(/^LEVEL \d · /,'')+'へ。';$('#resultCopy').textContent=lv===3?'目標は「気にしないようにする」ことではなく、そもそも反応しなくなること。':'思い通りにならなかった回数を、耐性の経験値に変えていく。';$('#path').innerHTML=stages.map((s,i)=>`<div class="${i<=lv?'done':''}">${i+1}<br>${s.label.split('· ')[1]}</div>`).join('');show('result')}
-$('#startBtn').onclick=begin;$('#againBtn').onclick=begin;$('#realBtn').onclick=()=>show('real');$('#backBtn').onclick=()=>show('intro');$('#tapFallback').onclick=()=>fly(1);
-$('#realStart').onclick=()=>{const text=$('#realText').value.trim();if(!text){$('#realText').focus();return}deck=[{tag:'いま',text,thought:'「こうなってほしかった」',xp:12}];index=0;earned=0;currentLevel=levelFromXp(totalXp);show('training');render()};
-const card=$('#card');card.addEventListener('pointerdown',e=>{if(animating)return;dragging=true;startX=e.clientX;deltaX=0;card.setPointerCapture?.(e.pointerId);card.classList.add('dragging')});card.addEventListener('pointermove',e=>{if(!dragging||animating)return;deltaX=e.clientX-startX;card.style.transform=`translate3d(${deltaX}px,0,0) rotate(${deltaX/18}deg)`;card.style.opacity=String(Math.max(.35,1-Math.abs(deltaX)/320))});function release(){if(!dragging||animating)return;dragging=false;card.classList.remove('dragging');Math.abs(deltaX)>72?fly(deltaX>0?1:-1):resetCard()}card.addEventListener('pointerup',release);card.addEventListener('pointercancel',release);card.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')fly(-1);if(e.key==='ArrowRight'||e.key==='Enter')fly(1)});
+let selected=null,startX=0,dx=0,drag=false,animating=false,practiceDeck=[],practiceIndex=0;
+let done=Number(localStorage.getItem('shikataHeikiDone')||0);$('#doneCount').textContent=done+'回';
+function show(id){screens.forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo(0,0)}
+function buildChoices(){const box=$('#choices');box.innerHTML='';presets.forEach(p=>{const b=document.createElement('button');b.className='choice';b.innerHTML=`<b>${p.label}</b><span>→</span>`;b.onclick=()=>choose(p);box.appendChild(b)})}
+function choose(p){selected={...p};$('#eventText').textContent=selected.event;$('#factText').textContent=selected.event;$('#expectText').textContent='「'+selected.expect+'」';show('expectScreen');resetExpect()}
+function resetExpect(){animating=false;const c=$('#expectCard');c.style.transition='transform .2s ease,opacity .2s';c.style.transform='translateX(0) rotate(0)';c.style.opacity='1'}
+function releaseExpectation(dir=1){if(animating)return;animating=true;const c=$('#expectCard');c.style.transition='transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s';c.style.transform=`translateX(${dir*120}vw) rotate(${dir*12}deg)`;c.style.opacity='0';navigator.vibrate?.(10);setTimeout(()=>show('controlScreen'),230)}
+function complete(action=''){done++;localStorage.setItem('shikataHeikiDone',String(done));$('#doneCount').textContent=done+'回';$('#resultEvent').textContent=selected?.event||'思い通りにならない出来事';$('#resultAction').textContent=action?`次にやること：${action}`:'変えられない部分は、ここで終わり。';const level=done>=30?4:done>=15?3:done>=5?2:1;const names=['','我慢できる','気にしない','感謝できる','気にならない'];$('#levelupText').textContent=`いまの段階：${names[level]}　｜　練習 ${done}回`;$('#resultTitle').textContent=action?'次に変えられることだけやる。':'これは、ここまで。';$('#resultCopy').textContent=action?'思い通りじゃなかった。でも、全部を取り戻さなくていい。':'変えられないことを、頭の中で何度もやり直さない。';show('resultScreen')}
+function startPractice(){practiceDeck=[...practice].sort(()=>Math.random()-.5).slice(0,5);practiceIndex=0;show('practiceScreen');renderPractice()}
+function renderPractice(){const finished=practiceIndex>=practiceDeck.length;if(finished){done++;localStorage.setItem('shikataHeikiDone',String(done));$('#doneCount').textContent=done+'回';selected={event:'思い通りにならない練習を5問完了した。'};completePracticeResult();return}$('#practiceNo').textContent=`${practiceIndex+1} / 5`;$('#practiceEvent').textContent=practiceDeck[practiceIndex]}
+function completePracticeResult(){const level=done>=30?4:done>=15?3:done>=5?2:1;const names=['','我慢できる','気にしない','感謝できる','気にならない'];$('#resultEvent').textContent='予定外を5回、止まらず通した。';$('#resultAction').textContent='現実でも「思った通りじゃない」で止まり続けない。';$('#levelupText').textContent=`いまの段階：${names[level]}　｜　練習 ${done}回`;$('#resultTitle').textContent='予定外は、起きる。';$('#resultCopy').textContent='問題は「起きたこと」より、そのあと何度も抵抗し続けること。';show('resultScreen')}
+$('#nowBtn').onclick=()=>show('pickScreen');$('#practiceBtn').onclick=startPractice;$('#pickBack').onclick=()=>show('homeScreen');$('#customBtn').onclick=()=>{$('#customBox').hidden=false;$('#customText').focus()};$('#customGo').onclick=()=>{const v=$('#customText').value.trim();if(!v)return $('#customText').focus();choose({event:v,expect:'こうなってほしかった'})};$('#expectTap').onclick=()=>releaseExpectation(1);$('#canBtn').onclick=()=>show('actionScreen');$('#cantBtn').onclick=()=>complete('');$('#actionDone').onclick=()=>complete($('#actionText').value.trim());$('#skipAction').onclick=()=>complete('');$('#finishBtn').onclick=()=>show('homeScreen');$('#againBtn').onclick=()=>show('pickScreen');$('#practiceBack').onclick=()=>show('homeScreen');$('#practiceNext').onclick=()=>{practiceIndex++;renderPractice()};
+const card=$('#expectCard');card.addEventListener('pointerdown',e=>{if(animating)return;drag=true;startX=e.clientX;dx=0;card.setPointerCapture?.(e.pointerId)});card.addEventListener('pointermove',e=>{if(!drag||animating)return;dx=e.clientX-startX;card.style.transform=`translateX(${dx}px) rotate(${dx/22}deg)`;card.style.opacity=String(Math.max(.35,1-Math.abs(dx)/300))});function endDrag(){if(!drag)return;drag=false;Math.abs(dx)>70?releaseExpectation(dx>0?1:-1):resetExpect()}card.addEventListener('pointerup',endDrag);card.addEventListener('pointercancel',endDrag);card.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')releaseExpectation(-1);if(e.key==='ArrowRight'||e.key==='Enter')releaseExpectation(1)});
+buildChoices();
