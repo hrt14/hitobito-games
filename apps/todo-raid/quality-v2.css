@@ -1,0 +1,102 @@
+/* TODO RAID quality pass v2: the world name must be visible as an actual place. */
+.area-badge { display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);font-size:10px;font-weight:950;letter-spacing:.04em;position:relative;z-index:5; }
+.boss-stage { height:215px;border-radius:20px;overflow:hidden;margin:8px -4px 0;isolation:isolate;border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06); }
+.world-scene { position:absolute;inset:0;overflow:hidden;z-index:-3;transition:background .45s ease; }
+.world-scene::after { content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(2,6,23,.18) 72%,rgba(2,6,23,.48));pointer-events:none; }
+.scene-sky,.scene-sun,.scene-cloud,.scene-landmark,.scene-ground-back,.scene-ground-front,.scene-detail { position:absolute; }
+.scene-sky { inset:0; }
+.scene-sun { width:46px;height:46px;border-radius:50%;right:28px;top:22px;box-shadow:0 0 28px currentColor; }
+.scene-cloud { width:58px;height:16px;border-radius:999px;background:rgba(255,255,255,.74);filter:blur(.2px);opacity:.8; }
+.scene-cloud::before,.scene-cloud::after { content:"";position:absolute;border-radius:50%;background:inherit; }
+.scene-cloud::before { width:24px;height:24px;left:9px;top:-10px; }
+.scene-cloud::after { width:31px;height:31px;right:8px;top:-15px; }
+.scene-cloud-a { left:26px;top:38px;transform:scale(.72); }
+.scene-cloud-b { right:92px;top:65px;transform:scale(.46);opacity:.5; }
+.scene-ground-back,.scene-ground-front { left:-12%;width:124%;border-radius:50% 50% 0 0/100% 100% 0 0; }
+.scene-ground-back { bottom:28px;height:88px; }
+.scene-ground-front { bottom:-28px;height:105px; }
+.scene-landmark { left:50%;transform:translateX(-50%); }
+.scene-detail { font-size:20px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.18)); }
+.world-caption { position:absolute;left:10px;bottom:8px;z-index:4;padding:5px 8px;border-radius:999px;background:rgba(2,6,23,.48);backdrop-filter:blur(8px);font-size:9px;font-weight:900;letter-spacing:.08em;color:#fff;border:1px solid rgba(255,255,255,.1); }
+.boss-aura { z-index:1;width:132px;height:132px; }
+.boss-sprite { z-index:3;font-size:88px; }
+.damage-pop,.combo-pop { z-index:5; }
+
+/* 1. 着手の草原 */
+.scene-grassland .scene-sky { background:linear-gradient(180deg,#6dd5ff 0%,#bdefff 54%,#ecffd7 100%); }
+.scene-grassland .scene-sun { background:#fff4a3;color:rgba(255,232,114,.7); }
+.scene-grassland .scene-ground-back { background:#63bd58;bottom:33px;height:95px;transform:rotate(-2deg);box-shadow:-120px 22px 0 #74cc62,150px 12px 0 #55aa4c; }
+.scene-grassland .scene-ground-front { background:linear-gradient(180deg,#3c9f45,#1f7a36); }
+.scene-grassland .scene-landmark { bottom:40px;width:54px;height:78px;background:linear-gradient(90deg,transparent 41%,#7b4a29 41% 59%,transparent 59%); }
+.scene-grassland .scene-landmark::before { content:"";position:absolute;width:70px;height:62px;border-radius:55% 45% 50% 50%;background:#2f8f3b;left:-8px;top:-24px;box-shadow:-25px 18px 0 -8px #4aaa43,25px 14px 0 -7px #59b94e; }
+.scene-grassland .scene-detail-a { left:34px;bottom:26px; }
+.scene-grassland .scene-detail-a::after { content:"🌼  🌱"; }
+.scene-grassland .scene-detail-b { right:20px;bottom:18px; }
+.scene-grassland .scene-detail-b::after { content:"🌿  🌼"; }
+
+/* 2. 集中の遺跡 */
+.scene-ruins .scene-sky { background:linear-gradient(180deg,#6f9fb9 0%,#b4cbd1 58%,#d4d7c7 100%); }
+.scene-ruins .scene-sun { background:#e9efe3;color:rgba(224,238,222,.5);opacity:.65; }
+.scene-ruins .scene-cloud { opacity:.35; }
+.scene-ruins .scene-ground-back { background:#657a6a;bottom:26px;height:72px; }
+.scene-ruins .scene-ground-front { background:linear-gradient(180deg,#394f42,#25372f); }
+.scene-ruins .scene-landmark { bottom:42px;width:130px;height:88px;background:repeating-linear-gradient(90deg,transparent 0 10px,#8d9890 10px 26px,transparent 26px 38px);border-top:10px solid #9da69e;border-bottom:9px solid #6c776f;filter:drop-shadow(0 8px 6px rgba(0,0,0,.28)); }
+.scene-ruins .scene-landmark::after { content:"";position:absolute;left:47px;bottom:-18px;width:38px;height:62px;border:10px solid #a4aca5;border-bottom:0;border-radius:20px 20px 0 0; }
+.scene-ruins .scene-detail-a::after { content:"🪨"; }.scene-ruins .scene-detail-a{left:24px;bottom:19px}.scene-ruins .scene-detail-b::after{content:"🌿"}.scene-ruins .scene-detail-b{right:24px;bottom:20px}
+
+/* 3. 完了の火山 */
+.scene-volcano .scene-sky { background:linear-gradient(180deg,#3b1521 0%,#9f3923 48%,#e27530 100%); }
+.scene-volcano .scene-sun { background:#ffbe63;color:rgba(255,130,51,.75);opacity:.88; }
+.scene-volcano .scene-cloud { background:rgba(73,40,41,.72);opacity:.7; }
+.scene-volcano .scene-ground-back { background:#38262a;bottom:23px;height:73px; }
+.scene-volcano .scene-ground-front { background:linear-gradient(180deg,#2d2022,#171316);box-shadow:inset 0 10px 0 rgba(238,91,35,.12); }
+.scene-volcano .scene-landmark { bottom:43px;width:150px;height:110px;background:linear-gradient(135deg,transparent 49%,#4b2527 50%) left/50% 100% no-repeat,linear-gradient(225deg,transparent 49%,#4b2527 50%) right/50% 100% no-repeat; }
+.scene-volcano .scene-landmark::after { content:"";position:absolute;left:58px;bottom:-2px;width:34px;height:91px;background:linear-gradient(180deg,#ffb33b,#f04b21 45%,transparent 46%);clip-path:polygon(43% 0,72% 42%,56% 42%,70% 100%,35% 100%,48% 48%,30% 48%);filter:drop-shadow(0 0 12px #ff6b2c); }
+.scene-volcano .scene-detail-a::after { content:"🔥"; }.scene-volcano .scene-detail-a{left:25px;bottom:21px}.scene-volcano .scene-detail-b::after{content:"🪨"}.scene-volcano .scene-detail-b{right:22px;bottom:18px}
+
+/* 4. 余白の空中都市 */
+.scene-skycity .scene-sky { background:linear-gradient(180deg,#4f6dc8 0%,#8cbfff 47%,#edf5ff 100%); }
+.scene-skycity .scene-sun { background:#fff6cc;color:rgba(255,244,199,.55); }
+.scene-skycity .scene-cloud { opacity:.88; }
+.scene-skycity .scene-ground-back { background:rgba(255,255,255,.76);bottom:10px;height:62px;filter:blur(2px); }
+.scene-skycity .scene-ground-front { background:linear-gradient(180deg,rgba(230,240,255,.78),rgba(132,161,210,.88));bottom:-46px;height:94px; }
+.scene-skycity .scene-landmark { bottom:50px;width:154px;height:58px;background:#d7e5ef;clip-path:polygon(10% 70%,24% 70%,28% 20%,40% 20%,43% 55%,53% 55%,57% 0,69% 0,73% 55%,86% 55%,92% 78%,100% 78%,100% 100%,0 100%);box-shadow:0 7px 18px rgba(35,55,100,.25); }
+.scene-skycity .scene-landmark::after { content:"";position:absolute;left:28px;right:28px;bottom:-12px;height:18px;border-radius:50%;background:rgba(255,255,255,.72);filter:blur(5px); }
+.scene-skycity .scene-detail-a::after { content:"☁️"; }.scene-skycity .scene-detail-a{left:18px;bottom:16px}.scene-skycity .scene-detail-b::after{content:"☁️"}.scene-skycity .scene-detail-b{right:16px;bottom:20px}
+
+/* 5. 伝説のゼロ件城 */
+.scene-castle .scene-sky { background:linear-gradient(180deg,#161629 0%,#433052 48%,#b05e45 100%); }
+.scene-castle .scene-sun { width:36px;height:36px;background:#ffe8a8;color:rgba(255,211,117,.44);right:36px;top:31px; }
+.scene-castle .scene-cloud { background:rgba(92,77,98,.7);opacity:.42; }
+.scene-castle .scene-ground-back { background:#25252c;bottom:23px;height:62px; }
+.scene-castle .scene-ground-front { background:linear-gradient(180deg,#16171c,#0b0c10); }
+.scene-castle .scene-landmark { bottom:43px;width:144px;height:82px;background:#343640;clip-path:polygon(0 22%,10% 22%,10% 0,25% 0,25% 22%,39% 22%,39% 6%,61% 6%,61% 22%,75% 22%,75% 0,90% 0,90% 22%,100% 22%,100% 100%,0 100%);box-shadow:0 8px 16px rgba(0,0,0,.35); }
+.scene-castle .scene-landmark::before { content:"";position:absolute;left:57px;bottom:0;width:30px;height:42px;background:#15161b;border-radius:18px 18px 0 0; }
+.scene-castle .scene-detail-a::after { content:"🏴"; }.scene-castle .scene-detail-a{left:30px;bottom:20px}.scene-castle .scene-detail-b::after{content:"✨"}.scene-castle .scene-detail-b{right:30px;bottom:24px}
+
+/* World map previews: every name gets a clearly different silhouette. */
+.world-node { min-height:126px;padding:10px 12px 10px 10px;gap:11px;background:#101827; }
+.world-thumb { position:relative;flex:0 0 114px;height:96px;border-radius:17px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#182336; }
+.world-thumb > div { position:absolute; }
+.world-thumb .thumb-sky { inset:0; }
+.world-thumb .thumb-ground { left:-8%;right:-8%;bottom:-20px;height:58px;border-radius:50% 50% 0 0; }
+.world-thumb .thumb-landmark { left:50%;bottom:24px;transform:translateX(-50%); }
+.world-thumb > span { position:absolute;left:8px;top:7px;font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2)); }
+.world-grassland .thumb-sky{background:linear-gradient(#6dd5ff,#d8f9ff)}.world-grassland .thumb-ground{background:#3e9b45}.world-grassland .thumb-landmark{width:10px;height:43px;background:#784923}.world-grassland .thumb-landmark::before{content:"";position:absolute;width:46px;height:35px;border-radius:50%;background:#349141;left:-18px;top:-22px;box-shadow:15px 8px 0 -5px #57b74f,-14px 7px 0 -6px #52af4b}
+.world-ruins .thumb-sky{background:linear-gradient(#7195a8,#c7d0c7)}.world-ruins .thumb-ground{background:#425448}.world-ruins .thumb-landmark{width:72px;height:47px;background:repeating-linear-gradient(90deg,#929b95 0 10px,transparent 10px 17px);border-top:6px solid #a7aea9}
+.world-volcano .thumb-sky{background:linear-gradient(#421927,#d05e2a)}.world-volcano .thumb-ground{background:#2b2022}.world-volcano .thumb-landmark{width:86px;height:58px;background:#4a2928;clip-path:polygon(50% 0,100% 100%,0 100%)}.world-volcano .thumb-landmark::after{content:"";position:absolute;left:40px;top:10px;width:7px;height:45px;background:#ff6b2d;transform:rotate(7deg);box-shadow:0 0 8px #ff7b2d}
+.world-skycity .thumb-sky{background:linear-gradient(#5474ce,#dff1ff)}.world-skycity .thumb-ground{background:rgba(245,249,255,.78);bottom:-29px}.world-skycity .thumb-landmark{width:75px;height:42px;background:#dce8f2;clip-path:polygon(0 75%,20% 75%,26% 20%,42% 20%,47% 60%,59% 60%,65% 0,82% 0,85% 75%,100% 75%,100% 100%,0 100%)}
+.world-castle .thumb-sky{background:linear-gradient(#17182c,#a45343)}.world-castle .thumb-ground{background:#16171c}.world-castle .thumb-landmark{width:78px;height:50px;background:#343640;clip-path:polygon(0 20%,14% 20%,14% 0,32% 0,32% 20%,68% 20%,68% 0,86% 0,86% 20%,100% 20%,100% 100%,0 100%)}
+.world-copy { flex:1;min-width:0; }.world-copy small{line-height:1.45}.world-state{font-size:8px}.world-node:not(.locked) .world-thumb{box-shadow:0 8px 22px rgba(0,0,0,.22)}
+
+/* Task clarity and recovery. */
+.task-item { grid-template-columns:56px 1fr auto; }
+.attack-btn { width:52px;height:52px;padding:4px 3px;border-radius:16px;display:grid;place-items:center;align-content:center;gap:0;cursor:pointer; }
+.attack-btn span { font-size:21px;line-height:1; }.attack-btn small{font-size:8px;font-weight:950;color:#dbeafe;margin-top:2px}.attack-btn:active{transform:scale(.92)}
+.task-side { display:grid;justify-items:end;gap:4px; }.task-delete{width:28px;height:28px;border:0;border-radius:9px;background:transparent;color:#64748b;font-size:18px;line-height:1}.task-delete:active{background:rgba(239,68,68,.15);color:#fecaca}.task-damage{font-size:10px}.difficulty{min-height:42px}
+.chest-btn { position:relative; }.chest-count{position:absolute;right:-5px;top:-6px;min-width:21px;height:21px;padding:0 5px;border-radius:999px;display:grid;place-items:center;background:#ef4444;color:white;font-size:10px;font-weight:1000;border:2px solid #111827;box-shadow:0 4px 10px rgba(0,0,0,.3)}
+.unlock-line { color:#fde68a !important;display:inline-block;margin-top:5px;font-size:15px !important; }
+
+@media (max-width: 390px) {
+  .boss-stage{height:202px}.boss-sprite{font-size:80px}.world-thumb{flex-basis:101px;height:88px}.world-node{padding:9px;gap:9px}.world-copy strong{font-size:14px}.task-item{grid-template-columns:52px 1fr auto;gap:8px}.attack-btn{width:48px;height:48px}.task-damage{font-size:9px}
+}
