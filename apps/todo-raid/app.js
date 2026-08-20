@@ -15,11 +15,11 @@
     { name: '無限TODO皇帝', emoji: '👑', hp: 2600 }
   ];
   const WORLDS = [
-    { name: '着手の草原', emoji: '🌱', desc: '最初の一歩が最強の武器。', glow: 'rgba(34,197,94,.14)' },
-    { name: '集中の遺跡', emoji: '🏛️', desc: '雑念を倒して、流れに乗る。', glow: 'rgba(56,189,248,.14)' },
-    { name: '完了の火山', emoji: '🌋', desc: '中途半端を終わらせる。', glow: 'rgba(249,115,22,.15)' },
-    { name: '余白の空中都市', emoji: '☁️', desc: '終えたぶんだけ、時間が戻る。', glow: 'rgba(167,139,250,.16)' },
-    { name: '伝説のゼロ件城', emoji: '🏰', desc: 'やるべきことを、やる。', glow: 'rgba(251,191,36,.16)' }
+    { name: '着手の草原', emoji: '🌱', theme: 'grassland', desc: '最初の一歩が最強の武器。' },
+    { name: '集中の遺跡', emoji: '🏛️', theme: 'ruins', desc: '雑念を倒して、流れに乗る。' },
+    { name: '完了の火山', emoji: '🌋', theme: 'volcano', desc: '中途半端を終わらせる。' },
+    { name: '余白の空中都市', emoji: '☁️', theme: 'skycity', desc: '終えたぶんだけ、時間が戻る。' },
+    { name: '伝説のゼロ件城', emoji: '🏰', theme: 'castle', desc: 'やるべきことを、やる。' }
   ];
   const COMPANIONS = [
     { id:'slime', name:'着手スライム', emoji:'🟢', rarity:'R', effect:'最初の1個を祝う' },
@@ -38,7 +38,7 @@
   function defaultState() {
     return {
       date: todayKey(), tasks: [], completedToday: 0, totalCompleted: 0,
-      combo: 0, chestProgress: 0, chestReady: false,
+      combo: 0, chestProgress: 0, chestReady: false, pendingChests: 0,
       xp: 0, level: 1, gold: 0, shards: 0,
       bossIndex: 0, bossHp: BOSSES[0].hp, bossKills: 0,
       unlockedWorld: 0, companions: [], summons: 0,
@@ -53,6 +53,9 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const parsed = { ...defaultState(), ...JSON.parse(raw) };
+      if (!Number.isFinite(parsed.pendingChests)) parsed.pendingChests = parsed.chestReady ? 1 : 0;
+      if (parsed.chestReady && parsed.pendingChests < 1) parsed.pendingChests = 1;
+      parsed.chestReady = parsed.pendingChests > 0;
       rollover(parsed);
       return parsed;
     } catch (_) { return defaultState(); }
@@ -69,7 +72,7 @@
     s.completedToday = 0;
     s.combo = 0;
     s.chestProgress = 0;
-    s.chestReady = false;
+    s.chestReady = s.pendingChests > 0;
     s.daily = { first:false, three:false, hard:false };
     s.tasks = s.tasks.filter(t => !t.completed);
     s.lastActiveDate = today;
@@ -114,9 +117,14 @@
 
   function renderBoss() {
     const boss = BOSSES[state.bossIndex % BOSSES.length];
+    const world = WORLDS[Math.min(state.unlockedWorld, WORLDS.length - 1)];
     $('bossName').textContent = boss.name;
     $('bossSprite').textContent = boss.emoji;
     $('bossSprite').setAttribute('aria-label', boss.name);
+    $('areaBadge').textContent = `${world.emoji} ${world.name}`;
+    $('worldCaption').textContent = world.name;
+    $('worldScene').className = `world-scene scene-${world.theme}`;
+    document.body.dataset.world = world.theme;
     $('hpText').textContent = `${Math.max(0,state.bossHp)} / ${boss.hp}`;
     $('hpFill').style.width = `${clamp((state.bossHp / boss.hp) * 100,0,100)}%`;
   }
@@ -140,20 +148,27 @@
       item.className = `task-item${task.completed?' completed':''}`;
       item.style.setProperty('--taskColor', d.color);
       item.innerHTML = `
-        <button class="attack-btn" data-complete="${task.id}" ${task.completed?'disabled':''} aria-label="${escapeHtml(task.title)}を完了">${task.completed?'✓':'⚔️'}</button>
+        <button class="attack-btn" data-complete="${task.id}" ${task.completed?'disabled':''} aria-label="${escapeHtml(task.title)}を完了"><span>${task.completed?'✓':'⚔️'}</span><small>${task.completed?'完了':'倒す'}</small></button>
         <div class="task-copy"><div class="task-title">${escapeHtml(task.title)}</div><div class="task-meta">${d.label}クエスト · +${d.xp}XP · +${d.gold}G</div></div>
-        <div class="task-damage">-${d.damage} HP</div>`;
+        <div class="task-side"><div class="task-damage">-${d.damage} HP</div>${task.completed?'':`<button class="task-delete" data-delete="${task.id}" aria-label="${escapeHtml(task.title)}を削除">×</button>`}</div>`;
       list.appendChild(item);
     });
   }
 
   function renderMomentum() {
     $('comboText').textContent = state.combo;
-    const next = state.chestReady ? '宝箱を開けられる！' : `あと${3-state.chestProgress}個で宝箱`;
+    state.chestReady = state.pendingChests > 0;
+    const untilNext = 3 - state.chestProgress;
+    const next = state.pendingChests > 0
+      ? `宝箱 ${state.pendingChests}個待機 · 次まであと${untilNext}個`
+      : `あと${untilNext}個で宝箱`;
     $('nextRewardText').textContent = state.combo ? `${state.combo}連続中 · ${next}` : next;
-    $('chestBtn').disabled = !state.chestReady;
-    $('chestBtn').className = `chest-btn ${state.chestReady?'ready':'locked'}`;
-    $('chestPips').innerHTML = [0,1,2].map(i=>`<i class="${i<state.chestProgress || state.chestReady?'on':''}"></i>`).join('');
+    $('chestBtn').disabled = state.pendingChests < 1;
+    $('chestBtn').className = `chest-btn ${state.pendingChests > 0?'ready':'locked'}`;
+    $('chestCount').textContent = state.pendingChests;
+    $('chestCount').classList.toggle('hidden', state.pendingChests < 1);
+    $('chestBtn').setAttribute('aria-label', state.pendingChests > 0 ? `宝箱を開ける。${state.pendingChests}個待機` : '宝箱を開ける');
+    $('chestPips').innerHTML = [0,1,2].map(i=>`<i class="${i<state.chestProgress?'on':''}"></i>`).join('');
   }
 
   function renderDaily() {
@@ -169,8 +184,8 @@
 
   function renderWorld() {
     $('worldMap').innerHTML = WORLDS.map((w,i)=>`
-      <div class="world-node ${i<=state.unlockedWorld?'':'locked'}" style="--nodeGlow:${w.glow}">
-        <div class="world-emoji">${w.emoji}</div>
+      <div class="world-node world-${w.theme} ${i<=state.unlockedWorld?'':'locked'}">
+        <div class="world-thumb" aria-hidden="true"><div class="thumb-sky"></div><div class="thumb-landmark"></div><div class="thumb-ground"></div><span>${w.emoji}</span></div>
         <div class="world-copy"><strong>${w.name}</strong><small>${w.desc}</small></div>
         <div class="world-state">${i<state.unlockedWorld?'CLEARED':i===state.unlockedWorld?'NOW':'LOCKED'}</div>
       </div>`).join('');
@@ -202,7 +217,11 @@
     state.shards += 1;
     addXp(d.xp + Math.min(state.combo-1,5)*3);
     state.chestProgress += 1;
-    if (state.chestProgress >= 3) { state.chestReady = true; state.chestProgress = 3; }
+    if (state.chestProgress >= 3) {
+      state.pendingChests += Math.floor(state.chestProgress / 3);
+      state.chestProgress %= 3;
+      state.chestReady = true;
+    }
     state.daily.first = true;
     if (state.completedToday >= 3) state.daily.three = true;
     if (task.diff === 'hard') state.daily.hard = true;
@@ -236,27 +255,30 @@
     state.bossKills += 1;
     state.gold += 120 + state.bossKills * 20;
     state.shards += 2;
+    const previousWorld = state.unlockedWorld;
     state.unlockedWorld = Math.min(WORLDS.length-1, state.bossKills);
+    const newlyUnlocked = state.unlockedWorld > previousWorld ? WORLDS[state.unlockedWorld] : null;
     state.bossIndex = (state.bossIndex + 1) % BOSSES.length;
     state.bossHp = BOSSES[state.bossIndex].hp;
     save();
     setTimeout(()=>{
       bossEl.classList.remove('defeated');
-      showReward('BOSS DEFEATED!', `<strong>${defeated.name} 撃破</strong><br>+${120 + state.bossKills*20}G · 召喚石 +2<br>新しいエリアが進んだ。`);
+      const areaLine = newlyUnlocked ? `<br><strong class="unlock-line">${newlyUnlocked.emoji} ${newlyUnlocked.name} 解放！</strong>` : '<br>最終エリアで戦いは続く。';
+      showReward('BOSS DEFEATED!', `<strong>${defeated.name} 撃破</strong><br>+${120 + state.bossKills*20}G · 召喚石 +2${areaLine}`);
       render();
     },680);
   }
 
   function openChest() {
-    if (!state.chestReady) return;
+    if (state.pendingChests < 1) return;
     const roll = (state.totalCompleted * 17 + state.gold * 3 + Date.now()) % 100;
     let gold = 50, shards = 1, label = 'COMMON CHEST';
     if (roll > 82) { gold = 180; shards = 3; label = 'GOLD CHEST'; }
     else if (roll > 45) { gold = 90; shards = 2; label = 'SILVER CHEST'; }
-    state.gold += gold; state.shards += shards; state.chestReady = false; state.chestProgress = 0;
+    state.gold += gold; state.shards += shards; state.pendingChests -= 1; state.chestReady = state.pendingChests > 0;
     save(); render();
     tone(620,.12); vibrate([30,40,30]);
-    showReward(label, `<strong>+${gold} GOLD</strong><br>召喚石 +${shards}<br><span class="muted">次の3タスクでまた宝箱。</span>`);
+    showReward(label, `<strong>+${gold} GOLD</strong><br>召喚石 +${shards}<br><span class="muted">宝箱が残っていても、現実のタスクはそのまま進めてOK。</span>`);
   }
 
   function summon() {
@@ -297,6 +319,13 @@
     showToast('クエスト追加。倒しにいこう。');
   }
 
+  function deleteTask(id) {
+    const task = state.tasks.find(t => t.id === id);
+    if (!task || task.completed) return;
+    state.tasks = state.tasks.filter(t => t.id !== id);
+    save(); render(); showToast('クエストを削除した。');
+  }
+
   function escapeHtml(str) { return String(str).replace(/[&<>'"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c])); }
   function vibrate(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
 
@@ -323,7 +352,11 @@
   document.querySelectorAll('.difficulty').forEach(btn=>btn.addEventListener('click',()=>{
     selectedDiff=btn.dataset.diff; document.querySelectorAll('.difficulty').forEach(b=>b.classList.toggle('active',b===btn));
   }));
-  $('taskList').addEventListener('click',e=>{ const btn=e.target.closest('[data-complete]'); if(btn) completeTask(btn.dataset.complete); });
+  $('taskList').addEventListener('click',e=>{
+    const deleteBtn=e.target.closest('[data-delete]');
+    if(deleteBtn){ deleteTask(deleteBtn.dataset.delete); return; }
+    const btn=e.target.closest('[data-complete]'); if(btn) completeTask(btn.dataset.complete);
+  });
   $('chestBtn').addEventListener('click',openChest); $('summonBtn').addEventListener('click',summon);
   $('rewardCloseBtn').addEventListener('click',closeReward); $('rewardModal').addEventListener('click',e=>{ if(e.target===$('rewardModal')) closeReward(); });
   $('soundBtn').addEventListener('click',()=>{ state.sound=!state.sound; save(); render(); showToast(state.sound?'サウンド ON':'サウンド OFF'); });
