@@ -31,16 +31,28 @@ function fields(doc) {
   return Object.fromEntries(Object.entries(doc?.fields || {}).map(([k, v]) => [k, scalar(v)]));
 }
 
+function unavailableDay(date, blockedReason = null) {
+  return { date, available: false, metrics: null, games: [], needs: [], blockedReason };
+}
+
 async function getJson(url) {
   const res = await fetch(url, { headers: { accept: 'application/json' } });
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GET ${url} -> ${res.status} ${await res.text()}`);
+  if (!res.ok) {
+    const body = await res.text();
+    const error = new Error(`GET ${url} -> ${res.status}`);
+    error.status = res.status;
+    error.reportCode = res.status === 403 && body.includes('SERVICE_DISABLED') && body.includes('firestore.googleapis.com')
+      ? 'firestore_api_disabled'
+      : 'firestore_unavailable';
+    throw error;
+  }
   return res.json();
 }
 
 async function loadDay(date) {
   const rootDoc = await getJson(`${base}/levelupDailyReports/${date}`);
-  if (!rootDoc) return { date, available: false, metrics: null, games: [], needs: [] };
+  if (!rootDoc) return unavailableDay(date);
   const [gamesRaw, needsRaw] = await Promise.all([
     getJson(`${base}/levelupDailyReports/${date}/games?pageSize=100`),
     getJson(`${base}/levelupDailyReports/${date}/needs?pageSize=100`),
@@ -65,22 +77,36 @@ async function loadDay(date) {
       avgDurationSec: g.sessions ? (g.durationSec || 0) / g.sessions : null,
     })),
     needs,
+    blockedReason: null,
   };
 }
 
 const reportDate = tokyoDay(-1);
 const previousDate = tokyoDay(-2);
-const [current, previous] = await Promise.all([loadDay(reportDate), loadDay(previousDate)]);
+let current;
+let previous;
+let blockedReason = null;
+
+try {
+  [current, previous] = await Promise.all([loadDay(reportDate), loadDay(previousDate)]);
+} catch (error) {
+  blockedReason = error?.reportCode || 'firestore_unavailable';
+  current = unavailableDay(reportDate, blockedReason);
+  previous = unavailableDay(previousDate, blockedReason);
+  console.warn(`[LEVEL UP report] Firestore unavailable: ${blockedReason}`);
+}
+
 const payload = {
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
   timezone: 'Asia/Tokyo',
   current,
   previous,
+  blockedReason,
   privacy: 'Aggregates only. No UID, raw search term, profile field, or visitor ID.',
 };
 
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, `${reportDate}.json`), JSON.stringify(current, null, 2) + '\n');
 fs.writeFileSync(path.join(outDir, 'latest.json'), JSON.stringify(payload, null, 2) + '\n');
-console.log(`Exported LEVEL UP report ${reportDate} (available=${current.available})`);
+console.log(`Exported LEVEL UP report ${reportDate} (available=${current.available}, blocked=${blockedReason || 'none'})`);
