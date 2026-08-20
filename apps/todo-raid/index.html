@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="現実のタスク完了が、そのままRPGの攻撃と成長になるゲーミフィケーションToDo。" />
+  <title>TODO RAID | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <button id="homeBtn" class="icon-btn" aria-label="LEVEL UPへ戻る">←</button>
+      <div class="brand-wrap">
+        <div class="brand">TODO RAID</div>
+        <div class="tagline">現実を進めるほど、世界が進む。</div>
+      </div>
+      <button id="soundBtn" class="icon-btn" aria-label="サウンド切替">♪</button>
+    </header>
+
+    <main id="todayView" class="view active" data-view="today">
+      <section class="hero-card">
+        <div class="hero-topline">
+          <div>
+            <div class="eyebrow">TODAY'S BOSS</div>
+            <h1 id="bossName">先延ばしドラゴン</h1>
+          </div>
+          <div id="rankBadge" class="rank-badge">BRONZE III</div>
+        </div>
+
+        <div class="boss-stage" aria-live="polite">
+          <div class="boss-aura"></div>
+          <div id="bossSprite" class="boss-sprite" role="img" aria-label="ボス">🐉</div>
+          <div id="damagePop" class="damage-pop" aria-hidden="true"></div>
+          <div id="comboPop" class="combo-pop" aria-hidden="true"></div>
+        </div>
+
+        <div class="hp-block">
+          <div class="hp-row"><span>HP</span><strong id="hpText">600 / 600</strong></div>
+          <div class="meter hp-meter"><div id="hpFill" class="meter-fill hp-fill"></div></div>
+        </div>
+
+        <div class="reward-strip">
+          <div><span class="mini-label">LV</span><strong id="levelText">1</strong></div>
+          <div class="grow"><span class="mini-label">XP</span><div class="meter xp-meter"><div id="xpFill" class="meter-fill xp-fill"></div></div></div>
+          <div><span class="mini-label">GOLD</span><strong id="goldText">0</strong></div>
+        </div>
+      </section>
+
+      <section class="momentum-card">
+        <div class="momentum-copy">
+          <div class="eyebrow">MOMENTUM</div>
+          <div class="momentum-title"><span id="comboText">0</span> COMBO</div>
+          <div id="nextRewardText" class="muted">あと1個でコンボ開始</div>
+        </div>
+        <div class="chest-wrap">
+          <button id="chestBtn" class="chest-btn locked" disabled aria-label="宝箱を開ける">🎁</button>
+          <div class="chest-pips" id="chestPips" aria-label="宝箱までの進捗"></div>
+        </div>
+      </section>
+
+      <section class="task-section">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">YOUR QUESTS</div>
+            <h2>今日、倒すこと</h2>
+          </div>
+          <button id="quickAddBtn" class="small-btn">＋ 追加</button>
+        </div>
+
+        <form id="taskForm" class="task-form hidden" autocomplete="off">
+          <label class="sr-only" for="taskInput">タスク名</label>
+          <input id="taskInput" maxlength="80" placeholder="例：企画書の1ページ目を作る" required />
+          <div class="difficulty-row" role="group" aria-label="難易度">
+            <button type="button" class="difficulty active" data-diff="easy">小 20</button>
+            <button type="button" class="difficulty" data-diff="normal">中 45</button>
+            <button type="button" class="difficulty" data-diff="hard">大 90</button>
+          </div>
+          <button class="primary-btn" type="submit">クエスト化する</button>
+        </form>
+
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon">⚔️</div>
+          <strong>最初の敵をつくろう</strong>
+          <span>今日やることを1つ入れるだけ。</span>
+          <button id="emptyAddBtn" class="primary-btn">最初のクエストを追加</button>
+        </div>
+
+        <div id="taskList" class="task-list"></div>
+      </section>
+
+      <section class="daily-card">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">DAILY MISSION</div>
+            <h2>今日の3ミッション</h2>
+          </div>
+          <div id="dailyCount" class="circle-count">0/3</div>
+        </div>
+        <div id="dailyList" class="daily-list"></div>
+      </section>
+    </main>
+
+    <main id="adventureView" class="view" data-view="adventure">
+      <section class="screen-title">
+        <div class="eyebrow">ADVENTURE</div>
+        <h1>現実を進めて、世界を解放</h1>
+        <p>ボスを倒すたび、新しい土地が開く。</p>
+      </section>
+      <div id="worldMap" class="world-map"></div>
+      <section class="stats-grid" id="statsGrid"></section>
+    </main>
+
+    <main id="collectionView" class="view" data-view="collection">
+      <section class="screen-title">
+        <div class="eyebrow">COMPANIONS</div>
+        <h1>仲間コレクション</h1>
+        <p>タスクを完了すると召喚石がたまる。5個で1回召喚。</p>
+      </section>
+      <section class="summon-card">
+        <div class="summon-orb">✦</div>
+        <div>
+          <div class="mini-label">SUMMON SHARDS</div>
+          <strong><span id="shardText">0</span> / 5</strong>
+        </div>
+        <button id="summonBtn" class="primary-btn" disabled>召喚する</button>
+      </section>
+      <div id="collectionGrid" class="collection-grid"></div>
+    </main>
+
+    <nav class="bottom-nav" aria-label="メインナビゲーション">
+      <button class="nav-btn active" data-target="today"><span>⚔️</span><small>今日</small></button>
+      <button class="nav-btn" data-target="adventure"><span>🗺️</span><small>冒険</small></button>
+      <button class="nav-btn" data-target="collection"><span>✨</span><small>仲間</small></button>
+    </nav>
+  </div>
+
+  <div id="rewardModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="rewardTitle">
+    <div class="modal-card reward-modal-card">
+      <div id="rewardBurst" class="reward-burst">✦</div>
+      <div class="eyebrow">REWARD</div>
+      <h2 id="rewardTitle">宝箱！</h2>
+      <div id="rewardBody" class="reward-body"></div>
+      <button id="rewardCloseBtn" class="primary-btn">受け取る</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
