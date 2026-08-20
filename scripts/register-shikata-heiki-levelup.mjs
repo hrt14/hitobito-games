@@ -14,7 +14,7 @@ if (!fs.existsSync(path.join(source, 'index.html'))) throw new Error(`${slug}: i
 if (!fs.existsSync(firebaseManifestPath)) throw new Error('Firebase manifest missing. Run build:hosting first.');
 
 const firebaseManifest = JSON.parse(fs.readFileSync(firebaseManifestPath, 'utf8'));
-const title = '思い通りにならなくても平気';
+const title = '思い通りじゃなくて普通。';
 const existing = firebaseManifest.games.find((game) => game.slug === slug);
 if (existing) Object.assign(existing, { category: 'levelup', title });
 else firebaseManifest.games.push({ slug, category: 'levelup', title });
