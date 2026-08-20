@@ -578,6 +578,7 @@
   }
 
   function tickFocusTimers() {
+    if (document.visibilityState !== 'visible') return;
     const now = Date.now();
     document.querySelectorAll('[data-focus-timer]').forEach(el=>{
       const task = state.tasks.find(t=>t.id===el.dataset.focusTimer);
@@ -587,7 +588,7 @@
       const bar = document.querySelector(`[data-focus-bar="${CSS.escape(task.id)}"]`);
       if (bar) bar.style.setProperty('--focus-progress', `${Math.round(focusProgress(task, now)*100)}%`);
     });
-    checkFocusMilestones(document.visibilityState === 'visible');
+    checkFocusMilestones(true);
   }
 
   $('taskForm').addEventListener('submit', e=>{
