@@ -1,8 +1,8 @@
 {
-  "publishedAt": "2026-08-20T02:48:50.326Z",
-  "reportDate": "20260819",
+  "publishedAt": "2026-08-20T20:11:12.988Z",
+  "reportDate": "20260820",
   "available": false,
   "blockedReason": "firestore_api_disabled",
-  "generatedAt": "2026-08-20T02:48:35.992Z",
-  "workflowRun": "32325924355"
+  "generatedAt": "2026-08-20T20:10:59.901Z",
+  "workflowRun": "32412633110"
 }
