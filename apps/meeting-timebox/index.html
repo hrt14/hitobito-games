@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0d0b" />
+  <meta name="description" content="会議を時間どおりに終える判断を反射化するLEVEL UPトレーニング。" />
+  <title>時間で終わる。｜LEVEL UP</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;color:#f4f7f1;background:#090c0a;--bg:#090c0a;--panel:#111712;--panel2:#172019;--line:#283329;--muted:#98a498;--lime:#d6ff4a;--lime2:#a9d72c;--danger:#ff8c78}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:#f4f7f1}body{-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}button,input{font:inherit}button{touch-action:manipulation}.app{width:min(100%,560px);margin:0 auto;min-height:100svh;padding:calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px}.brand{font-size:11px;font-weight:900;letter-spacing:.18em;color:var(--lime)}.home{display:inline-flex;width:40px;height:40px;border-radius:50%;align-items:center;justify-content:center;border:1px solid var(--line);color:#e9eee7;text-decoration:none;background:#0e130f}.stats{display:flex;gap:7px}.pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;color:#c8d1c8;background:#0e130f}.pill strong{color:var(--lime);margin-left:4px}.screen{display:none;flex:1;min-height:0}.screen.active{display:flex;flex-direction:column}.hero{padding:34px 4px 18px}.eyebrow{font-size:12px;font-weight:900;color:var(--lime);letter-spacing:.08em;margin-bottom:10px}.hero h1{font-size:clamp(38px,12vw,58px);line-height:.95;letter-spacing:-.065em;margin:0;font-weight:950}.hero p{margin:18px 0 0;color:#a8b2a7;line-height:1.75;font-size:14px}.rule-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 18px}.rule{min-height:86px;border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:12px;display:flex;flex-direction:column;justify-content:space-between}.rule b{font-size:18px;letter-spacing:-.04em}.rule span{font-size:10px;color:#879286}.actions{display:grid;gap:10px;margin-top:auto}.primary,.secondary,.choice,.smallbtn{border:0;border-radius:16px;min-height:54px;padding:14px 16px;font-weight:900}.primary{background:var(--lime);color:#111609}.secondary{background:var(--panel);color:#eef4eb;border:1px solid var(--line)}.smallbtn{min-height:46px;background:#141a15;color:#dfe7db;border:1px solid var(--line)}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 18px}.tab{border:1px solid var(--line);background:#0f1410;color:#aab4a9;border-radius:14px;padding:11px 10px;font-weight:850}.tab.active{background:#1c251d;color:var(--lime);border-color:#465943}.progress{height:7px;background:#1c241d;border-radius:999px;overflow:hidden;margin:10px 0 18px}.progress i{display:block;height:100%;background:var(--lime);width:0;transition:width .2s ease}.qmeta{display:flex;justify-content:space-between;align-items:center;color:#8f9b8f;font-size:11px;margin-bottom:10px}.scenario{background:linear-gradient(180deg,#151c16,#111611);border:1px solid var(--line);border-radius:22px;padding:19px;margin-bottom:12px}.scenario .clock{display:inline-flex;border-radius:999px;padding:6px 9px;background:#222d22;color:var(--lime);font-size:11px;font-weight:900;margin-bottom:13px}.scenario h2{font-size:25px;line-height:1.22;letter-spacing:-.04em;margin:0 0 8px}.scenario p{font-size:13px;line-height:1.65;color:#9fa99e;margin:0}.choices{display:grid;gap:9px}.choice{text-align:left;background:#121713;color:#eef3ea;border:1px solid var(--line);font-weight:750;line-height:1.45}.choice:active{transform:scale(.985)}.choice.correct{border-color:#8cb32d;background:#202b14;color:#efffc0}.choice.wrong{border-color:#8a463d;background:#271916;color:#ffd7d0}.choice:disabled{opacity:1}.feedback{display:none;margin-top:12px;border-radius:16px;padding:13px 14px;background:#172018;border:1px solid #334534;font-size:13px;line-height:1.55}.feedback.show{display:block}.next{display:none;margin-top:10px}.next.show{display:block}.result{padding-top:26px;text-align:center}.score{font-size:72px;line-height:1;font-weight:950;letter-spacing:-.07em;color:var(--lime)}.result h2{font-size:25px;margin:8px 0 6px}.result p{color:#99a599;font-size:13px;line-height:1.7}.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0;text-align:left}.metric{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}.metric span{display:block;color:#879287;font-size:10px}.metric b{display:block;font-size:20px;margin-top:5px}.takeaway{background:#1b2515;border:1px solid #425632;border-radius:18px;padding:15px;text-align:left;margin-bottom:14px}.takeaway span{display:block;font-size:10px;color:#a4b77c;margin-bottom:6px;font-weight:850}.takeaway b{font-size:16px;line-height:1.5}.live-setup{padding-top:22px}.live-setup h2{font-size:30px;margin:0 0 6px}.live-setup>p{color:#98a398;font-size:13px;line-height:1.6;margin:0 0 18px}.durations{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.duration{min-height:52px;border-radius:15px;border:1px solid var(--line);background:#121713;color:#dde5da;font-weight:900}.duration.active{border-color:#6f8b40;background:#202a17;color:var(--lime)}.field{display:grid;gap:7px;margin:8px 0 14px}.field label{font-size:11px;font-weight:800;color:#a1aca0}.field input{width:100%;border:1px solid var(--line);border-radius:15px;background:#111612;color:#f2f5ef;padding:14px;outline:none}.field input:focus{border-color:#779449}.timer-wrap{display:flex;justify-content:center;padding:28px 0 18px}.timer-ring{--p:0deg;width:min(64vw,250px);aspect-ratio:1;border-radius:50%;padding:10px;background:conic-gradient(var(--lime) var(--p),#1a231a 0)}.timer-core{width:100%;height:100%;border-radius:50%;background:#0e130f;border:1px solid #293629;display:flex;flex-direction:column;align-items:center;justify-content:center}.time{font-size:52px;line-height:1;font-weight:950;letter-spacing:-.06em}.caption{font-size:11px;color:#8e998d;margin-top:7px}.phase{text-align:center;font-size:24px;font-weight:950;letter-spacing:-.04em;margin-bottom:12px}.instruction{border-radius:18px;padding:15px;background:#1a2415;border:1px solid #435a2b;color:#e9f7c3;line-height:1.55;font-size:14px}.live-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.live-counts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.counter{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:11px 12px}.counter span{font-size:10px;color:#8d988d}.counter b{float:right;font-size:18px;color:var(--lime)}.finish{margin-top:auto;padding-top:12px}.review-title{text-align:center;padding:30px 0 12px}.review-title .mark{font-size:46px}.review-title h2{font-size:28px;margin:5px 0}.review-title p{color:#98a398;font-size:13px}.cause-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cause{border:1px solid var(--line);background:#121713;color:#e9eee6;border-radius:14px;padding:12px;font-weight:800}.cause.active{border-color:#739047;background:#1e2918;color:var(--lime)}.prescription{margin-top:12px;background:#192315;border:1px solid #3d512d;border-radius:17px;padding:14px;line-height:1.6;font-size:13px;color:#e2edcf}.hidden{display:none!important}@media(max-height:720px){.hero{padding-top:16px}.hero h1{font-size:42px}.hero p{margin-top:12px}.rule{min-height:72px}.scenario{padding:15px}.scenario h2{font-size:21px}.choice{min-height:48px;padding:11px 13px}.timer-wrap{padding:12px 0}.timer-ring{width:190px}.time{font-size:44px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <div class="top">
+    <a class="home" href="/" aria-label="LEVEL UPトップへ">←</a>
+    <div class="brand">LEVEL UP / MEETING</div>
+    <div class="stats"><span class="pill">BEST <strong id="bestTop">0</strong></span><span class="pill">XP <strong id="xpTop">0</strong></span></div>
+  </div>
+
+  <section class="screen active" id="homeScreen">
+    <div class="hero">
+      <div class="eyebrow">時間を守るのも、会議力。</div>
+      <h1>時間で<br>終わる。</h1>
+      <p>会議が伸びるのは、時計を見ないからだけじゃない。<br><b>残り時間を見たあと、何をやめるか。</b>その判断を反射にする。</p>
+    </div>
+    <div class="rule-strip">
+      <div class="rule"><span>残り10分</span><b>深掘りを<br>止める</b></div>
+      <div class="rule"><span>脱線したら</span><b>逃がして<br>戻る</b></div>
+      <div class="rule"><span>残り5分</span><b>決めて<br>締める</b></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="trainStart">10問で鍛える</button>
+      <button class="secondary" id="liveOpen">本番の会議で使う</button>
+    </div>
+  </section>
+
+  <section class="screen" id="trainScreen">
+    <div class="tabs"><button class="tab active" id="tabTrain">反射トレーニング</button><button class="tab" id="tabLive">本番モード</button></div>
+    <div class="progress"><i id="progressBar"></i></div>
+    <div class="qmeta"><span id="qNo">1 / 10</span><span>連続正解 <b id="streakText">0</b></span></div>
+    <div class="scenario">
+      <span class="clock" id="clockChip">残り10分</span>
+      <h2 id="scenarioTitle"></h2>
+      <p id="scenarioSub"></p>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <button class="primary next" id="nextBtn">次へ</button>
+  </section>
+
+  <section class="screen" id="resultScreen">
+    <div class="result">
+      <div class="eyebrow">MEETING ENDING SKILL</div>
+      <div class="score" id="scoreText">0/10</div>
+      <h2 id="rankText">終了反射を育てよう</h2>
+      <p>正解数より大事なのは、現場で「ここから締める」に切り替えられること。</p>
+      <div class="result-grid">
+        <div class="metric"><span>正解</span><b id="correctMetric">0</b></div>
+        <div class="metric"><span>最長連続</span><b id="streakMetric">0</b></div>
+        <div class="metric"><span>獲得XP</span><b id="xpMetric">+0</b></div>
+      </div>
+      <div class="takeaway"><span>今日持って帰る1ルール</span><b id="takeawayText"></b></div>
+    </div>
+    <div class="actions"><button class="primary" id="retryBtn">もう10問</button><button class="secondary" id="resultLiveBtn">このまま会議で使う</button></div>
+  </section>
+
+  <section class="screen" id="liveSetupScreen">
+    <div class="tabs"><button class="tab" id="setupTrainTab">反射トレーニング</button><button class="tab active">本番モード</button></div>
+    <div class="live-setup">
+      <div class="eyebrow">LIVE MEETING</div>
+      <h2>何分で終わる？</h2>
+      <p>開始時点で終わりを決める。残り10分・5分・90秒で、画面が自動的に終了モードへ切り替わる。</p>
+      <div class="durations" id="durations">
+        <button class="duration active" data-min="30">30分</button>
+        <button class="duration" data-min="45">45分</button>
+        <button class="duration" data-min="60">60分</button>
+      </div>
+      <div class="field"><label for="goalInput">最後に何が決まっていれば成功？</label><input id="goalInput" maxlength="80" placeholder="例：来月やる施策を3つ決める" /></div>
+      <button class="primary" id="liveStart">会議スタート</button>
+    </div>
+  </section>
+
+  <section class="screen" id="liveScreen">
+    <div class="timer-wrap"><div class="timer-ring" id="timerRing"><div class="timer-core"><div class="time" id="timeText">30:00</div><div class="caption" id="timeCaption">残り時間</div></div></div></div>
+    <div class="phase" id="phaseText">ゴールを揃える</div>
+    <div class="instruction" id="instructionText">最初に「今日決めること」を共有する。</div>
+    <div class="live-actions"><button class="smallbtn" id="parkBtn">↘ 論点を逃がす</button><button class="smallbtn" id="decisionBtn">✓ 決定を記録</button></div>
+    <div class="live-counts"><div class="counter"><span>パーキング</span><b id="parkCount">0</b></div><div class="counter"><span>決定</span><b id="decisionCount">0</b></div></div>
+    <div class="finish"><button class="secondary" id="rescueBtn">残り90秒モードへ</button><button class="primary" style="width:100%;margin-top:8px" id="finishBtn">会議を終了する</button></div>
+  </section>
+
+  <section class="screen" id="reviewScreen">
+    <div class="review-title"><div class="mark" id="reviewMark">✓</div><h2 id="reviewHeading">時間内に終了</h2><p id="reviewSub">次回はさらに自然に終われる。</p></div>
+    <div class="result-grid"><div class="metric"><span>予定</span><b id="plannedMetric">30分</b></div><div class="metric"><span>実際</span><b id="actualMetric">30分</b></div><div class="metric"><span>差</span><b id="diffMetric">±0分</b></div></div>
+    <div class="eyebrow" style="margin-top:8px">時間を奪った最大の原因は？</div>
+    <div class="cause-grid" id="causeGrid"><button class="cause" data-cause="脱線">脱線した</button><button class="cause" data-cause="深掘り">深掘りしすぎた</button><button class="cause" data-cause="決断">決めるのが遅れた</button><button class="cause" data-cause="話す">自分が話しすぎた</button></div>
+    <div class="prescription" id="prescription">1つ選ぶと、次回のルールを1つだけ作ります。</div>
+    <div class="actions"><button class="primary" id="againLiveBtn">次の会議へ</button><button class="secondary" id="backHomeBtn">ホームへ</button></div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const screens = [...document.querySelectorAll('.screen')];
+  const STORAGE_KEY = 'levelup.meeting-timebox.v1';
+  const questions = [
+    {time:'残り10分',title:'新しい重要論点が出た。',sub:'相手もかなり話したそう。',choices:['今から詳しく聞く','次回論点に置いて、今日の決定へ戻る','終了時間を延ばせるか聞く'],answer:1,why:'残り10分は「情報を増やす」から「決める」へ切り替える。'},
+    {time:'残り5分',title:'まだ結論が出ていない。',sub:'追加情報があれば、もっと良い判断ができそう。',choices:['追加情報を集める','今日決められる範囲を決める','次回まで保留にして何も決めない'],answer:1,why:'残り5分は完璧より、次へ進める決定を作る。'},
+    {time:'開始3分',title:'背景説明が長く始まった。',sub:'今日のゴールはまだ共有していない。',choices:['そのまま全部聞く','最初に「今日決めること」を確認する','急いで自分の提案を話す'],answer:1,why:'序盤でゴールを揃えると、後で何を切るか判断できる。'},
+    {time:'残り12分',title:'本題から外れた話が盛り上がった。',sub:'有意義ではあるが、今日の目的とは違う。',choices:['有意義なので続ける','論点をメモして本題へ戻す','強引に話を遮る'],answer:1,why:'脱線は捨てない。でも今やらない。パーキングして戻る。'},
+    {time:'残り4分',title:'決定事項は出たが、担当が決まっていない。',sub:'「誰かがやる」状態。',choices:['時間なのでそのまま終了','担当と期限だけ決めて終了','議論を最初から整理し直す'],answer:1,why:'締めは「何を・誰が・いつまで」。ここまで作って終わる。'},
+    {time:'残り20分',title:'同じ論点を3周している。',sub:'新しい情報はほとんど増えていない。',choices:['もう一周議論する','選択肢を絞って判断へ移る','別の話題へ逃げる'],answer:1,why:'情報が増えない議論は深掘りではなくループ。選択肢を絞る。'},
+    {time:'残り8分',title:'「あと1個だけ」と別テーマが出た。',sub:'5分程度で済みそうに見える。',choices:['5分なら扱う','パーキングして締めに入る','会議を15分延長する'],answer:1,why:'「あと1個だけ」が超過の入口。残り10分を切ったら新テーマを始めない。'},
+    {time:'残り2分',title:'最後に質問が出た。',sub:'丁寧に答えると5分以上かかる。',choices:['全部答え切る','要点だけ返し、続きは次回へ送る','次の予定を遅らせる'],answer:1,why:'時間を守ることも品質。続き方を設計して終了する。'},
+    {time:'開始1分',title:'議題が6個ある。',sub:'全部重要そうに見える。',choices:['上から全部やる','今日決める最重要議題を確認する','まず近況共有から始める'],answer:1,why:'全部扱う前提を捨て、終了時に残したい成果を先に固定する。'},
+    {time:'残り90秒',title:'まだ話したいことが残っている。',sub:'しかし次の予定が迫っている。',choices:['重要なので続ける','決定・担当・期限だけ確認して終える','タイマーを無視する'],answer:1,why:'最後の90秒は新しい思考を止め、終了処理だけをする。'}
+  ];
+  let state = {q:0,correct:0,streak:0,bestStreak:0,xp:0,best:0,planned:30,total:1800,remaining:1800,elapsed:0,parked:0,decisions:0,timer:null,answered:false};
+
+  function load(){try{const p=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');state.xp=Number(p.xp)||0;state.best=Number(p.best)||0;}catch{} renderTop();}
+  function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({xp:state.xp,best:state.best}))}catch{}}
+  function renderTop(){$('xpTop').textContent=state.xp;$('bestTop').textContent=state.best;}
+  function show(id){screens.forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo({top:0,behavior:'auto'});}
+  function openLive(){show('liveSetupScreen');}
+
+  function startTraining(){state.q=0;state.correct=0;state.streak=0;state.bestStreak=0;renderQuestion();show('trainScreen');}
+  function renderQuestion(){state.answered=false;const q=questions[state.q];$('qNo').textContent=`${state.q+1} / ${questions.length}`;$('streakText').textContent=state.streak;$('progressBar').style.width=`${state.q/questions.length*100}%`;$('clockChip').textContent=q.time;$('scenarioTitle').textContent=q.title;$('scenarioSub').textContent=q.sub;$('feedback').classList.remove('show');$('nextBtn').classList.remove('show');$('choices').innerHTML='';q.choices.forEach((text,i)=>{const b=document.createElement('button');b.className='choice';b.type='button';b.textContent=text;b.addEventListener('click',()=>answer(i,b));$('choices').appendChild(b);});}
+  function answer(index,button){if(state.answered)return;state.answered=true;const q=questions[state.q];const buttons=[...$('choices').querySelectorAll('button')];buttons.forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct')});if(index===q.answer){state.correct++;state.streak++;state.bestStreak=Math.max(state.bestStreak,state.streak);button.textContent='✓ '+button.textContent;$('feedback').textContent='正解。'+q.why;}else{state.streak=0;button.classList.add('wrong');button.textContent='× '+button.textContent;$('feedback').textContent='ここは切り替える。'+q.why;}$('streakText').textContent=state.streak;$('feedback').classList.add('show');$('nextBtn').classList.add('show');}
+  function nextQuestion(){state.q++;if(state.q<questions.length){renderQuestion();return;}finishTraining();}
+  function finishTraining(){const earned=state.correct*10;state.xp+=earned;state.best=Math.max(state.best,state.correct);save();renderTop();$('scoreText').textContent=`${state.correct}/10`;$('correctMetric').textContent=state.correct;$('streakMetric').textContent=state.bestStreak;$('xpMetric').textContent=`+${earned}`;$('rankText').textContent=state.correct>=9?'時間で終わる反射、かなり強い。':state.correct>=7?'終了モードへ切り替えられる。':state.correct>=5?'残り10分の判断を固めよう。':'まず「新しい話を始めない」から。';$('takeawayText').textContent=state.correct>=8?'残り10分になったら、新しい情報を増やすより「何を決めるか」に切り替える。':'残り10分を見たら「深掘り終了」と頭の中で宣言する。';show('resultScreen');}
+
+  function setDuration(min){state.planned=min;document.querySelectorAll('.duration').forEach(b=>b.classList.toggle('active',Number(b.dataset.min)===min));}
+  function format(sec){const abs=Math.abs(sec);return `${sec<0?'+':''}${String(Math.floor(abs/60)).padStart(2,'0')}:${String(abs%60).padStart(2,'0')}`;}
+  function renderTimer(){const ratio=Math.min(1,Math.max(0,state.elapsed/state.total));$('timerRing').style.setProperty('--p',`${ratio*360}deg`);$('timeText').textContent=format(state.remaining);$('timeCaption').textContent=state.remaining>=0?'残り時間':'超過時間';let phase='深掘りする',text='今日のゴールに必要な論点だけを深掘りする。';if(state.elapsed<Math.min(300,state.total*.12)){phase='ゴールを揃える';text='最初に「今日決めること」を共有する。';}if(state.remaining<=600){phase='決めるモード';text='残り10分。新しい情報を増やさない。「では今日は何を決めますか？」へ。';}if(state.remaining<=300){phase='締めるモード';text='残り5分。決定・担当・期限を作る。新しい論点は禁止。';}if(state.remaining<=90){phase='終了処理';text='残り90秒。①決まったこと ②誰が ③いつまで。これだけ確認して終える。';}if(state.remaining<=0){phase='時間です';text='ここからは延長ではなく終了処理。続きは次回へ送る。';}$('phaseText').textContent=phase;$('instructionText').textContent=text;}
+  function startLive(){clearInterval(state.timer);state.total=state.planned*60;state.remaining=state.total;state.elapsed=0;state.parked=0;state.decisions=0;$('parkCount').textContent='0';$('decisionCount').textContent='0';state.timer=setInterval(()=>{state.elapsed++;state.remaining--;renderTimer();},1000);renderTimer();show('liveScreen');}
+  function finishMeeting(){clearInterval(state.timer);state.timer=null;const actual=Math.max(1,Math.ceil(state.elapsed/60));const diff=actual-state.planned;$('plannedMetric').textContent=state.planned+'分';$('actualMetric').textContent=actual+'分';$('diffMetric').textContent=(diff>0?'+':'')+diff+'分';$('reviewMark').textContent=diff<=0?'✓':'+';$('reviewHeading').textContent=diff<=0?'時間内に終了':diff<=5?`あと${diff}分縮める`:`今回は${diff}分オーバー`;$('reviewSub').textContent=diff<=0?'終了時刻を守れた。次回も同じ型で。':'反省を増やさず、原因を1つだけ選ぶ。';if(diff<=0){state.xp+=30;save();renderTop();}show('reviewScreen');}
+  const prescriptions={脱線:'次回の1ルール：本題以外が出た瞬間に「パーキングします」と言う。そこで議論しない。',深掘り:'次回の1ルール：残り10分になったら、情報不足でも「では今日は何を決めますか？」へ移る。',決断:'次回の1ルール：会議の60%地点で選択肢を最大3つまで絞る。',話す:'次回の1ルール：自分が2分続けて話したら、一度止めて相手へ返す。'};
+
+  $('trainStart').addEventListener('click',startTraining);$('liveOpen').addEventListener('click',openLive);$('tabLive').addEventListener('click',openLive);$('setupTrainTab').addEventListener('click',startTraining);$('nextBtn').addEventListener('click',nextQuestion);$('retryBtn').addEventListener('click',startTraining);$('resultLiveBtn').addEventListener('click',openLive);$('durations').addEventListener('click',e=>{const b=e.target.closest('[data-min]');if(b)setDuration(Number(b.dataset.min));});$('liveStart').addEventListener('click',startLive);$('parkBtn').addEventListener('click',()=>{state.parked++;$('parkCount').textContent=state.parked;$('instructionText').textContent='捨てずに逃がした。今の議題へ戻る。';});$('decisionBtn').addEventListener('click',()=>{state.decisions++;$('decisionCount').textContent=state.decisions;});$('rescueBtn').addEventListener('click',()=>{state.remaining=Math.min(state.remaining,90);renderTimer();});$('finishBtn').addEventListener('click',finishMeeting);$('causeGrid').addEventListener('click',e=>{const b=e.target.closest('[data-cause]');if(!b)return;document.querySelectorAll('.cause').forEach(x=>x.classList.toggle('active',x===b));$('prescription').textContent=prescriptions[b.dataset.cause];});$('againLiveBtn').addEventListener('click',openLive);$('backHomeBtn').addEventListener('click',()=>show('homeScreen'));
+  load();
+})();
+</script>
+</body>
+</html>
