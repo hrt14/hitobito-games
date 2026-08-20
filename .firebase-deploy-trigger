@@ -1,4 +1,3 @@
-Deploy LEVEL UP corrected newest ordering
-Use apps/<slug>/index.html first-added Git commit timestamp, including time to the second.
-Do not treat later catalogue registration as a new release.
-Triggered 2026-08-20 06:43 JST.
+Deploy LEVEL UP: 思い通りにならなくても平気
+Force Firebase Hosting rebuild after adding apps/shikata-heiki and LEVEL UP registration.
+Triggered 2026-08-20 13:51 JST.
