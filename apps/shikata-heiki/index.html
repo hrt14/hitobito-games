@@ -4,48 +4,66 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0b0e0a">
-<meta name="description" content="思い通りにならない出来事をスワイプで流し、我慢→気にしない→感謝→気にならないの4段階を反復するLEVEL UPトレーニング。">
+<meta name="description" content="思い通りにならなかった瞬間に、期待と事実を分け、変えられないことを手放して次へ戻るLEVEL UPアプリ。">
 <title>思い通りにならなくても平気 — LEVEL UP</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <main class="app">
-<header class="topbar"><a href="/" class="home">⌂ <span>LEVEL UP</span></a><div class="xp"><span>耐性EXP</span><b id="xp">0</b></div></header>
-<section class="intro" id="intro">
-<p class="eyebrow">UNPLANNED TOLERANCE</p>
+<header class="topbar"><a href="/" class="home">⌂ <span>LEVEL UP</span></a><div class="streak"><span>平気トレーニング</span><b id="doneCount">0回</b></div></header>
+
+<section class="screen active" id="homeScreen">
+<p class="eyebrow">WHEN THINGS DON'T GO YOUR WAY</p>
 <h1>思い通りに<br>ならなくても<span>平気。</span></h1>
-<p class="lead">予定どおりじゃない。相手が期待どおりじゃない。結果が思ったほどじゃない。<br><strong>それでも、次へ行ける反射をつくる。</strong></p>
-<div class="levels">
-<div><b>1</b><span>我慢できる</span></div><div><b>2</b><span>気にしない</span></div><div><b>3</b><span>感謝できる</span></div><div><b>4</b><span>気にならない</span></div>
+<p class="lead">予定、相手、結果。<br>「こうなるはずだった」が外れたときに、<strong>30秒で頭を戻す。</strong></p>
+<button class="primary" id="nowBtn"><span>今の1件を軽くする</span><b>→</b></button>
+<button class="ghost" id="practiceBtn">何もない時に練習する</button>
+<p class="micro">考え込むアプリではありません。1件だけ処理して終わります。</p>
+<div class="ladder"><div class="on">1<br><b>我慢できる</b></div><div>2<br><b>気にしない</b></div><div>3<br><b>感謝できる</b></div><div>4<br><b>気にならない</b></div></div>
+</section>
+
+<section class="screen" id="pickScreen" hidden>
+<p class="step">1 / 3</p><h2>何が思い通りじゃなかった？</h2><p class="sub">近いものを1つ。説明しなくて大丈夫。</p>
+<div class="choices" id="choices"></div>
+<button class="ghost small" id="customBtn">自分で一言入力する</button>
+<div class="customBox" id="customBox" hidden><input id="customText" maxlength="60" placeholder="例：提案が通らなかった"><button class="primary compact" id="customGo"><span>これで進む</span><b>→</b></button></div>
+<button class="textbtn" id="pickBack">← 戻る</button>
+</section>
+
+<section class="screen" id="expectScreen" hidden>
+<p class="step">2 / 3</p><p class="label">起きたこと</p><h2 id="eventText"></h2>
+<div class="expectCard" id="expectCard" tabindex="0" role="button" aria-label="期待を横にスワイプして手放す">
+<p>頭の中に残っている期待</p><strong id="expectText"></strong><span>← 横にスワイプして外す →</span>
 </div>
-<button id="startBtn" class="primary">トレーニング開始 <span>→</span></button>
-<button id="realBtn" class="ghost">今まさに起きたことを流す</button>
-<p class="micro">横スワイプ。考え込まない。1セット約60秒。</p>
+<p class="sub center">期待を消すのではなく、<br><strong>「現実」と「こうなってほしかった」を分ける。</strong></p>
+<button class="ghost small" id="expectTap">タップでも外せる</button>
 </section>
-<section class="training" id="training" hidden>
-<div class="hud"><span id="levelLabel">LEVEL 1 · 我慢できる</span><span><b id="count">1</b>/8</span></div>
-<div class="progress"><i id="progress"></i></div>
-<div class="stage" id="stage">
-<div class="echo" id="echo">「なんで？」</div>
-<article class="card" id="card" tabindex="0" role="button" aria-label="カードを横にスワイプして流す">
-<p class="tag" id="tag">予定外</p><h2 id="scenario">予定が30分ずれた。</h2><p id="thought">「予定どおりに進んでほしかった」</p><div class="swipehint">← 流す →</div>
-</article>
-</div>
-<p class="cue" id="cue">嫌でもいい。反応を増やさず、流す。</p>
-<button class="ghost small" id="tapFallback">タップでも流せる →</button>
+
+<section class="screen" id="controlScreen" hidden>
+<p class="step">3 / 3</p><p class="label">事実だけ残す</p><h2 id="factText"></h2>
+<p class="sub">ここから先、自分で変えられる部分はある？</p>
+<div class="controlChoices"><button class="control yes" id="canBtn"><b>ある</b><span>次の一手だけ決める</span></button><button class="control no" id="cantBtn"><b>ない</b><span>ここで終わりにする</span></button></div>
 </section>
-<section class="real" id="real" hidden>
-<p class="eyebrow">RIGHT NOW</p><h2>いまの「思い通りじゃない」を<br>一言だけ。</h2>
-<textarea id="realText" maxlength="80" placeholder="例：返信が来ない"></textarea>
-<button class="primary" id="realStart">これを流す <span>→</span></button><button class="ghost" id="backBtn">戻る</button>
-<p class="micro">入力内容は送信しません。この端末にも保存しません。</p>
+
+<section class="screen" id="actionScreen" hidden>
+<p class="step">LAST</p><h2>じゃあ、<br>1個だけ。</h2><p class="sub">全部取り戻さなくていい。次に変えられることを1つだけ。</p>
+<input class="actionInput" id="actionText" maxlength="60" placeholder="例：別案を1つ送る">
+<button class="primary" id="actionDone"><span>これで終わる</span><b>✓</b></button>
+<button class="textbtn" id="skipAction">決めずに終わる</button>
 </section>
-<section class="result" id="result" hidden>
-<p class="eyebrow">SET COMPLETE</p><div class="resultMark">+<b id="earned">0</b><span>耐性EXP</span></div>
-<h2 id="resultTitle">思い通りじゃなくても、進める。</h2>
-<p id="resultCopy">今日の予定外は、耐性の材料になった。</p>
-<div class="path" id="path"></div>
-<button class="primary" id="againBtn">もう1セット <span>↻</span></button><a href="/" class="ghost link">LEVEL UPへ戻る</a>
+
+<section class="screen result" id="resultScreen" hidden>
+<p class="eyebrow">DONE</p><div class="resultIcon">○</div><h2 id="resultTitle">これは、ここまで。</h2><p id="resultCopy">思い通りじゃなかった。でも、それ以上は増やさない。</p>
+<div class="resultBox"><span>今日の練習</span><b id="resultEvent"></b><small id="resultAction"></small></div>
+<div class="levelup" id="levelupText"></div>
+<button class="primary" id="finishBtn"><span>日常に戻る</span><b>→</b></button>
+<button class="ghost" id="againBtn">もう1件やる</button>
+</section>
+
+<section class="screen" id="practiceScreen" hidden>
+<p class="eyebrow">PRACTICE</p><h2>思い通りにならない練習</h2><p class="sub">実際に起きる前に、軽い予定外を流す練習。5問だけ。</p>
+<div class="practiceCard" id="practiceCard"><span id="practiceNo">1 / 5</span><h3 id="practiceEvent"></h3><p>「こうなるはずだった」を外して次へ。</p><button class="primary" id="practiceNext"><span>まあ、そうなることもある</span><b>→</b></button></div>
+<button class="textbtn" id="practiceBack">← 戻る</button>
 </section>
 </main>
 <script src="./app.js"></script>
