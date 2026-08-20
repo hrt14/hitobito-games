@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#111310" />
+  <meta name="description" content="人生は思い通りにいかない。それを前提に、現実を受け入れて次へ進む反射を鍛えるLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>思い定める。 | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="level-chip"><span id="mindLevel">Lv.1</span><b id="mindName">抵抗する</b></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="音をオフにする">♪</button>
+    </header>
+
+    <section class="screen active start-screen" id="startScreen">
+      <div class="hero-symbol" aria-hidden="true"><span>≠</span><i></i></div>
+      <p class="eyebrow">ACCEPT REALITY. MOVE WHAT MOVES.</p>
+      <h1>思い定める<span>。</span></h1>
+      <p class="lead">人生は、思い通りにいかない。<br><strong>それを異常事態にしない。</strong></p>
+      <div class="mantra-card">
+        <span>今日の前提</span>
+        <b>「ズレる。崩れる。断られる。<br>それでも普通に進める。」</b>
+      </div>
+      <button class="primary-btn" id="trainBtn" type="button"><span>反射を鍛える</span><b>→</b></button>
+      <button class="secondary-btn" id="realBtn" type="button">今、思い通りにいかなかった</button>
+      <div class="start-stats" id="startStats" hidden>
+        <span>TRAIN <b id="sessionCount">0</b></span>
+        <span>ACCEPT <b id="acceptRate">0%</b></span>
+      </div>
+    </section>
+
+    <section class="screen train-screen" id="trainScreen">
+      <div class="hud">
+        <div><span id="stageLabel">LEVEL 1 / 受け止める</span><b><i id="roundNow">1</i>/<i id="roundTotal">12</i></b></div>
+        <div class="progress"><i id="progressBar"></i></div>
+      </div>
+
+      <div class="training-copy">
+        <p class="eyebrow" id="trainingKicker">REALITY CARD</p>
+        <h2 id="trainingTitle">まず、起きたことを<br>確定させる。</h2>
+      </div>
+
+      <div class="card-stage" id="cardStage">
+        <div class="accept-zone" aria-hidden="true"><span>↑</span><b>起きた。ここまでは確定。</b></div>
+        <article class="reality-card" id="realityCard" tabindex="0" role="button" aria-label="カードを上へスワイプして現実を受け入れる">
+          <div class="scene"><span id="sceneTag">仕事</span><i id="sceneIcon">◆</i></div>
+          <div class="expected"><span>こうなるはず</span><b id="expectedText">予定どおり終わる</b></div>
+          <div class="divider"><span>≠</span></div>
+          <div class="actual"><span>実際</span><b id="actualText">終わらなかった</b></div>
+          <div class="swipe-hint" id="swipeHint">上へスワイプして「事実」にする</div>
+        </article>
+      </div>
+
+      <div class="control-panel" id="controlPanel" aria-hidden="true">
+        <p>ここから先は？</p>
+        <div class="control-actions">
+          <button class="control-btn movable" id="movableBtn" type="button"><span>動かせる</span><b>次の一手へ</b></button>
+          <button class="control-btn fixed" id="fixedBtn" type="button"><span>動かせない</span><b>ここで離す</b></button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" role="status" aria-live="polite" aria-hidden="true">
+        <span id="feedbackMark">✓</span>
+        <div><b id="feedbackTitle">その事実は、もう戦わなくていい。</b><p id="feedbackText"></p></div>
+      </div>
+    </section>
+
+    <section class="screen real-screen" id="realScreen">
+      <p class="eyebrow">REAL LIFE / 30 SEC</p>
+      <h2>何が、思い通りに<br>いかなかった？</h2>
+      <p class="subcopy">長く説明しなくていい。ひとことで十分。</p>
+      <label class="real-input-wrap">
+        <span>実際に起きたこと</span>
+        <textarea id="realInput" maxlength="100" placeholder="例：会議が予定より30分長引いた"></textarea>
+        <small><b id="charCount">0</b>/100</small>
+      </label>
+      <button class="primary-btn" id="realAcceptBtn" type="button"><span>もう起きた。ここまでは確定。</span><b>↑</b></button>
+      <button class="text-btn" id="realSkipBtn" type="button">書かずに進む</button>
+    </section>
+
+    <section class="screen real-control-screen" id="realControlScreen">
+      <p class="eyebrow">CONTROL SPLIT</p>
+      <div class="accepted-fact"><span>確定した事実</span><b id="acceptedFact">思い通りにいかなかった。</b></div>
+      <h2>次に動かせる部分は<br>残ってる？</h2>
+      <div class="big-choice">
+        <button id="realMovableBtn" type="button"><span>ある</span><b>次だけ動かす</b></button>
+        <button id="realFixedBtn" type="button"><span>ない</span><b>ここで終える</b></button>
+      </div>
+    </section>
+
+    <section class="screen next-screen" id="nextScreen">
+      <p class="eyebrow">ONE NEXT MOVE</p>
+      <h2>取り返さない。<br>次を1つだけ。</h2>
+      <label class="next-input-wrap">
+        <span>自分で動かす一手</span>
+        <input id="nextInput" maxlength="60" placeholder="例：次回は25分で終了アラームを入れる" />
+      </label>
+      <button class="primary-btn" id="nextDoneBtn" type="button"><span>これだけ動かす</span><b>→</b></button>
+      <button class="text-btn" id="nextSkipBtn" type="button">決めずに終える</button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <div class="result-ring" aria-hidden="true"><i></i><span>○</span></div>
+      <p class="eyebrow">REALITY ACCEPTED</p>
+      <h2 id="resultTitle">事実はそのまま。<br>次だけ動かす。</h2>
+      <p class="result-copy" id="resultCopy">思い通りに戻す必要はない。残っている一手だけで十分。</p>
+      <div class="result-mantra">
+        <span>思い定める</span>
+        <b>人生は思い通りにいかない。<br>だから、思い通りにいかなくても普通。</b>
+      </div>
+      <div class="result-level"><span>NEXT MINDSET</span><b id="resultLevel">Lv.1 抵抗する → Lv.2 受け入れる</b></div>
+      <button class="primary-btn" id="againBtn" type="button"><span>もう一度鍛える</span><b>↻</b></button>
+      <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      <p class="privacy-note">入力内容はこの端末内にも保存しません。トレーニング回数と正答率だけ端末内に保存します。</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
