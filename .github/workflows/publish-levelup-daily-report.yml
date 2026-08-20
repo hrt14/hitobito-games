@@ -2,6 +2,13 @@ name: Publish LEVEL UP daily report
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.levelup-daily-report-trigger'
+      - '.github/workflows/publish-levelup-daily-report.yml'
+      - 'scripts/export-levelup-daily-report.mjs'
   schedule:
     - cron: '48 19 * * *' # 04:48 JST
 
