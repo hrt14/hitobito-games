@@ -34,15 +34,6 @@ jobs:
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v3
-
-      - name: Ensure Firestore API is enabled
-        run: |
-          set -euo pipefail
-          gcloud services enable firestore.googleapis.com --project=hitobito-levelup
-          gcloud firestore databases list --project=hitobito-levelup --format=json
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -57,7 +48,8 @@ jobs:
       - name: Build LEVEL UP bundle
         run: npm run build:firebase
 
-      - name: Deploy Firestore analytics rules
+      - name: Deploy Firestore analytics rules when available
+        continue-on-error: true
         run: npx --yes firebase-tools@latest deploy --only firestore:rules --project hitobito-levelup --non-interactive
 
       - name: Export sanitized daily report JSON
@@ -71,7 +63,7 @@ jobs:
           set -euo pipefail
           sleep 5
           curl -fLsS https://levelup.hitobito.jp/reports/latest.json -o /tmp/report.json
-          node -e "const r=require('/tmp/report.json'); if(!r.schemaVersion||!r.current) process.exit(1); console.log(r.current.date, r.current.available)"
+          node -e "const r=require('/tmp/report.json'); if(!r.schemaVersion||!r.current) process.exit(1); console.log(r.current.date, r.current.available, r.blockedReason || 'ok')"
 
       - name: Record successful report publish
         env:
@@ -85,6 +77,7 @@ jobs:
             publishedAt: new Date().toISOString(),
             reportDate: r.current?.date || null,
             available: Boolean(r.current?.available),
+            blockedReason: r.blockedReason || null,
             generatedAt: r.generatedAt || null,
             workflowRun: process.env.GITHUB_RUN_ID || null,
           };
