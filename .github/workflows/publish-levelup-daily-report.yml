@@ -13,7 +13,7 @@ on:
     - cron: '48 19 * * *' # 04:48 JST
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -31,7 +31,7 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           project_id: hitobito-levelup
-          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          workload_identity_provider: projects/995292381518/locations/globalWorkloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
       - name: Setup Node
@@ -60,3 +60,26 @@ jobs:
           sleep 5
           curl -fLsS https://levelup.hitobito.jp/reports/latest.json -o /tmp/report.json
           node -e "const r=require('/tmp/report.json'); if(!r.schemaVersion||!r.current) process.exit(1); console.log(r.current.date, r.current.available)"
+
+      - name: Record successful report publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/report.json', 'utf8'));
+          const status = {
+            publishedAt: new Date().toISOString(),
+            reportDate: r.current?.date || null,
+            available: Boolean(r.current?.available),
+            generatedAt: r.generatedAt || null,
+            workflowRun: process.env.GITHUB_RUN_ID || null,
+          };
+          fs.writeFileSync('/tmp/report-status.json', JSON.stringify(status, null, 2) + '\n');
+          NODE
+          content=$(base64 -w0 /tmp/report-status.json)
+          sha=$(gh api "repos/${GITHUB_REPOSITORY}/contents/.levelup-daily-report-status.json" --jq '.sha' 2>/dev/null || true)
+          args=(--method PUT "repos/${GITHUB_REPOSITORY}/contents/.levelup-daily-report-status.json" -f message='Record LEVEL UP daily report publish' -f content="$content" -f branch=main)
+          if [ -n "$sha" ]; then args+=(-f sha="$sha"); fi
+          gh api "${args[@]}" >/dev/null
