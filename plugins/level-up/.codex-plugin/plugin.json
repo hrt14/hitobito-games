@@ -1,0 +1,37 @@
+{
+  "name": "level-up",
+  "version": "0.1.0",
+  "description": "Turn an already-understood problem into a short, concrete practice instead of more explanation.",
+  "author": {
+    "name": "株式会社まんがびと",
+    "url": "https://mangabito.biz/?page_id=6081"
+  },
+  "homepage": "https://levelup.hitobito.jp/",
+  "repository": "https://github.com/hrt14/hitobito-games",
+  "keywords": [
+    "practice",
+    "self-improvement",
+    "procrastination",
+    "rumination",
+    "focus",
+    "boundaries"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "LEVEL UP",
+    "shortDescription": "説明より先に、30〜90秒の実践。",
+    "longDescription": "ChatGPTが会話からすでに理解した悩みや目標を、もう一度診断し直さず、その場で30〜90秒の短い練習に変えます。先延ばし、反芻、気持ちの切り替え、境界線、集中、優先順位、会話などを、読むだけではなく実際に判断・選択・行動する形で練習します。",
+    "developerName": "株式会社まんがびと",
+    "category": "Productivity",
+    "websiteURL": "https://levelup.hitobito.jp/",
+    "privacyPolicyURL": "https://levelup.hitobito.jp/privacy/",
+    "termsOfServiceURL": "https://levelup.hitobito.jp/terms/",
+    "defaultPrompt": [
+      "会議で変なことを言った気がして引きずってる。1分で切り替える練習をしたい",
+      "仕事を先延ばししてる。今すぐ動けるようにして",
+      "相手の反応が気になりすぎる。課題を分ける練習をしたい",
+      "やることが多すぎる。一個に絞る練習をしたい"
+    ],
+    "brandColor": "#D8FF5B"
+  }
+}

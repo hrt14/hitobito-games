@@ -1,0 +1,17 @@
+{
+  "name": "hitobito-local",
+  "plugins": [
+    {
+      "name": "level-up",
+      "source": {
+        "source": "local",
+        "path": "./plugins/level-up"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
