@@ -2,139 +2,55 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#f4f0e8" />
-  <meta name="description" content="相手への気遣いだけ残して、嫌われたかもという脳内反省会を短く終えるLEVEL UPアプリ。" />
-  <title>感じ悪かった？ | LEVEL UP</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#f5f1e8" />
+  <meta name="description" content="会議・メッセージ・メールの失言やモヤモヤを、必要なら一度だけ修正し、残りはスワイプで流す。短時間リセットと反射トレーニング。" />
+  <title>流せ。 | LEVEL UP</title>
+  <style>
+    :root{--bg:#f5f1e8;--paper:#fffdf7;--ink:#171714;--muted:#777268;--line:#ddd6c8;--accent:#ff5a36;--good:#287a57;--shadow:0 22px 60px rgba(40,31,20,.12);--safe:env(safe-area-inset-bottom,0px)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif}body{overscroll-behavior:none}button,input{font:inherit}button{color:inherit}.app{min-height:100dvh;max-width:520px;margin:auto;padding:0 18px calc(24px + var(--safe));display:flex;flex-direction:column}.topbar{height:58px;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}.brand{font-size:11px;letter-spacing:.14em;font-weight:800;color:var(--muted)}.home-link,.icon-btn{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.35);text-decoration:none}.icon-btn{cursor:pointer}.screen{flex:1;display:flex;flex-direction:column;min-height:0}.eyebrow{margin-top:14px;font-size:12px;letter-spacing:.12em;font-weight:900;color:var(--accent)}h1,h2,p{margin-top:0}.hero{font-size:62px;line-height:.9;letter-spacing:-.07em;margin:18px 0 14px;font-weight:950}.hero em{font-style:normal;color:var(--accent)}.lead{font-size:17px;line-height:1.7;color:#4e4a43;margin-bottom:26px}.mode{border:0;border-radius:28px;padding:22px;text-align:left;cursor:pointer;box-shadow:var(--shadow);margin-bottom:13px;position:relative;overflow:hidden}.mode.primary{background:var(--ink);color:white}.mode.secondary{background:var(--paper);border:1px solid var(--line)}.mode .kicker{font-size:11px;letter-spacing:.12em;font-weight:900;opacity:.64}.mode strong{display:block;font-size:25px;line-height:1.15;margin:6px 0 8px;letter-spacing:-.03em}.mode span{display:block;font-size:13px;line-height:1.55;opacity:.72;max-width:85%}.mode .arrow{position:absolute;right:20px;bottom:18px;font-size:28px;opacity:.72}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:5px}.stat{background:rgba(255,255,255,.42);border:1px solid var(--line);border-radius:18px;padding:14px;text-align:left;cursor:pointer}.stat b{font-size:23px}.stat span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}.section-title{font-size:34px;line-height:1.06;letter-spacing:-.045em;margin:16px 0 10px}.section-copy{font-size:15px;line-height:1.7;color:var(--muted)}.progress{height:3px;background:#e7e0d4;overflow:hidden;border-radius:99px}.progress i{display:block;height:100%;background:var(--accent);width:var(--p)}.occupancy{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:20px}.occupancy button{border:1px solid var(--line);border-radius:20px;background:var(--paper);padding:16px 5px 14px;cursor:pointer}.occupancy b{display:block;font-size:24px}.occupancy span{font-size:11px;color:var(--muted)}.swipe-stage{position:relative;flex:1;min-height:390px;margin:12px 0 6px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none}.swipe-card{position:absolute;width:min(92%,420px);min-height:300px;background:var(--paper);border:1px solid var(--line);border-radius:30px;box-shadow:var(--shadow);padding:26px;display:flex;flex-direction:column;justify-content:space-between;transform-origin:50% 110%;will-change:transform,opacity;cursor:grab}.swipe-card:active{cursor:grabbing}.swipe-card.back{transform:scale(.95) translateY(13px);opacity:.62}.card-no{font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:900}.card-text{font-size:31px;line-height:1.2;letter-spacing:-.04em;font-weight:900;margin:18px 0}.card-foot{font-size:13px;color:var(--muted);line-height:1.55}.swipe-labels{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:850;color:var(--muted);margin:0 12px 10px}.swipe-labels b{color:var(--ink)}.judge-left,.judge-right{position:absolute;top:28px;padding:8px 12px;border-radius:999px;font-size:13px;font-weight:900;opacity:0;pointer-events:none}.judge-left{right:24px;background:#ece8df}.judge-right{left:24px;background:#e0f1e8;color:#14583b}.hint{text-align:center;color:var(--muted);font-size:12px;margin:0 0 10px}.primary-btn,.ghost-btn{width:100%;border:0;border-radius:18px;padding:17px 18px;font-weight:900;cursor:pointer}.primary-btn{background:var(--ink);color:white}.primary-btn.accent{background:var(--accent)}.ghost-btn{background:transparent;border:1px solid var(--line);margin-top:9px}.repair{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:22px;margin-top:16px}.repair .script{background:#f0eadf;border-radius:16px;padding:15px;font-size:14px;line-height:1.65;margin-top:12px}.repair-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.repair-grid button{border:1px solid var(--line);background:white;border-radius:14px;padding:11px 7px;font-size:12px;font-weight:800}.release-stage{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:420px}.release-stack{position:relative;height:330px;touch-action:none}.release-card{position:absolute;inset:0;background:var(--ink);color:white;border-radius:30px;padding:26px;display:flex;flex-direction:column;justify-content:center;text-align:center;box-shadow:var(--shadow);will-change:transform,opacity}.release-card:nth-last-child(2){transform:scale(.96) translateY(10px);opacity:.65}.release-card:nth-last-child(n+3){transform:scale(.92) translateY(20px);opacity:.25}.release-card small{font-size:11px;letter-spacing:.15em;opacity:.5;font-weight:900}.release-card strong{font-size:36px;line-height:1.15;letter-spacing:-.05em;margin-top:12px}.release-card span{font-size:13px;opacity:.62;margin-top:18px}.done-mark{width:94px;height:94px;border-radius:50%;background:var(--ink);color:white;display:grid;place-items:center;font-size:40px;margin:34px auto 22px}.done-title{text-align:center;font-size:38px;letter-spacing:-.055em;margin:0 0 10px}.done-copy{text-align:center;line-height:1.7;color:var(--muted)}.next-card{margin:18px 0;background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:20px}.next-card b{display:block;font-size:20px;margin-bottom:6px}.next-card span{font-size:13px;line-height:1.55;color:var(--muted)}.score{font-size:68px;line-height:1;font-weight:950;letter-spacing:-.07em}.score small{font-size:16px;color:var(--muted);letter-spacing:0}.feedback{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0}.feedback.good{border-color:#b7d8c8}.feedback b{display:block;font-size:16px;margin-bottom:5px}.feedback p{font-size:13px;line-height:1.6;color:var(--muted);margin:0}.footer-note{margin-top:auto;padding:24px 2px 4px;font-size:10px;line-height:1.55;color:#918b80;text-align:center}.toast{position:fixed;left:50%;bottom:calc(22px + var(--safe));transform:translate(-50%,18px);background:#111;color:white;padding:10px 14px;border-radius:999px;font-size:12px;font-weight:800;opacity:0;transition:.2s;pointer-events:none;z-index:20}.toast.show{opacity:1;transform:translate(-50%,0)}.swipe-burst{position:fixed;pointer-events:none;font-size:13px;font-weight:950;z-index:30;animation:burst .45s ease forwards}@keyframes burst{to{transform:translateY(-28px) scale(1.1);opacity:0}}@media(max-height:720px){.hero{font-size:50px}.swipe-stage{min-height:330px}.swipe-card{min-height:260px}.release-stack{height:290px}.release-stage{min-height:350px}.card-text{font-size:27px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.swipe-card,.release-card{transition:none!important}}
+  </style>
 </head>
 <body>
-  <main class="app-shell">
-    <header class="topbar">
-      <a class="home-link" href="/" aria-label="LEVEL UPトップへ">← LEVEL UP</a>
-      <span class="session-count" id="sessionCount" aria-label="終了した反省会の回数">0 END</span>
-    </header>
-
-    <section class="screen is-active" id="startScreen" data-screen="start">
-      <div class="eyebrow">CARE ≠ FEAR</div>
-      <h1>感じ悪かった？</h1>
-      <p class="lead">気遣いだけ残して、<br />嫌われたかもは終わらせる。</p>
-
-      <div class="thought-cloud" aria-hidden="true">
-        <span>失礼だったかな</span>
-        <span>よく思われないかな</span>
-        <span>感じ悪かったかな</span>
-      </div>
-
-      <div class="meter-block">
-        <div class="meter-head">
-          <label for="beforeRange">いま、どのくらい頭を占領してる？</label>
-          <strong><span id="beforeValue">6</span><small>/10</small></strong>
-        </div>
-        <input id="beforeRange" type="range" min="0" max="10" value="6" />
-      </div>
-
-      <button class="primary-button" id="startButton" type="button">反省会を1分だけ開く</button>
-      <p class="tiny-note">相手の気持ちを当てるアプリではありません。自分が扱える部分だけ整理します。</p>
-    </section>
-
-    <section class="screen" id="factScreen" data-screen="fact" aria-labelledby="factTitle">
-      <div class="step-label">01 / 03　FACT</div>
-      <h2 id="factTitle">何が、実際に起きた？</h2>
-      <p class="screen-copy">評価や想像を抜いて、カメラに映ることだけ。</p>
-
-      <textarea id="factInput" maxlength="100" rows="4" placeholder="例：会議で、相手の提案にすぐ「難しいです」と返した"></textarea>
-      <div class="input-foot"><span id="factCount">0 / 100</span><button class="text-button" id="noFactButton" type="button">具体的なことは思い当たらない</button></div>
-
-      <div class="example-strip" aria-label="事実の例">
-        <button class="chip" type="button" data-fact="返事が少し短かった">返事が短かった</button>
-        <button class="chip" type="button" data-fact="少し強めの言い方をした">強めに言った</button>
-        <button class="chip" type="button" data-fact="相手の提案を断った">断った</button>
-      </div>
-
-      <button class="primary-button" id="factNextButton" type="button" disabled>これが事実</button>
-    </section>
-
-    <section class="screen" id="careScreen" data-screen="care" aria-labelledby="careTitle">
-      <div class="step-label">02 / 03　CARE</div>
-      <h2 id="careTitle">相手への気遣いとして、<br />直せることはある？</h2>
-      <div class="fact-card">
-        <span>確認した事実</span>
-        <p id="factPreview"></p>
-      </div>
-
-      <div class="choice-stack" role="group" aria-label="直せることがあるか">
-        <button class="choice-button" type="button" data-care="repair"><b>ある</b><span>一言だけ補足・謝るなど</span></button>
-        <button class="choice-button" type="button" data-care="next"><b>次回だけ変える</b><span>今は連絡せず、次の行動を整える</span></button>
-        <button class="choice-button" type="button" data-care="none"><b>ない</b><span>具体的な修正点は見つからない</span></button>
-      </div>
-
-      <div class="repair-panel" id="repairPanel" hidden>
-        <label for="repairInput">やるなら、1個だけ</label>
-        <input id="repairInput" maxlength="60" placeholder="例：次に会ったとき一言だけ補足する" />
-        <div class="repair-presets">
-          <button class="chip" type="button" data-repair="一言だけ謝る">一言だけ謝る</button>
-          <button class="chip" type="button" data-repair="意図を短く補足する">意図を短く補足する</button>
-          <button class="chip" type="button" data-repair="次回は言い方を少し柔らかくする">次回だけ変える</button>
-        </div>
-        <button class="primary-button" id="repairNextButton" type="button">これ以上は増やさない</button>
-      </div>
-    </section>
-
-    <section class="screen" id="fearScreen" data-screen="fear" aria-labelledby="fearTitle">
-      <div class="step-label">03 / 03　FEAR</div>
-      <h2 id="fearTitle">残りは、<br />相手の頭の中。</h2>
-      <p class="screen-copy">ここから先は、今の自分には確認できません。</p>
-
-      <div class="fear-stack" id="fearStack" aria-label="手放す考え">
-        <button class="fear-card" type="button"><span>よく思われなかったかも</span><small>タップして外す →</small></button>
-        <button class="fear-card" type="button"><span>嫌われたかも</span><small>タップして外す →</small></button>
-        <button class="fear-card" type="button"><span>感じ悪い人と思われたかも</span><small>タップして外す →</small></button>
-      </div>
-      <p class="counter" id="fearCounter" aria-live="polite">3個、未確定の想像が残っています</p>
-    </section>
-
-    <section class="screen" id="resultScreen" data-screen="result" aria-labelledby="resultTitle">
-      <div class="result-mark" aria-hidden="true">✓</div>
-      <div class="step-label">REFLECTION CLOSED</div>
-      <h2 id="resultTitle">反省会、終了。</h2>
-      <p class="screen-copy" id="resultCopy">扱えることだけ残しました。</p>
-
-      <div class="keep-card" id="keepCard">
-        <span>残すのはこれだけ</span>
-        <strong id="keepAction">やることなし</strong>
-      </div>
-
-      <div class="rule-card">
-        <span>この件のルール</span>
-        <p>新しい事実が来るまで、<br /><b>相手の評価を再審しない。</b></p>
-      </div>
-
-      <div class="meter-block result-meter">
-        <div class="meter-head">
-          <label for="afterRange">いまは、どのくらい頭を占領してる？</label>
-          <strong><span id="afterValue">3</span><small>/10</small></strong>
-        </div>
-        <input id="afterRange" type="range" min="0" max="10" value="3" />
-      </div>
-
-      <button class="end-button" id="endButton" type="button"><span>この件を閉じる</span><small>長押し 0.8秒</small></button>
-      <div class="hold-progress" aria-hidden="true"><span id="holdProgress"></span></div>
-      <p class="result-delta" id="resultDelta" aria-live="polite"></p>
-    </section>
-
-    <section class="screen" id="closedScreen" data-screen="closed" aria-labelledby="closedTitle">
-      <div class="closed-orb" aria-hidden="true"></div>
-      <div class="eyebrow">DONE FOR NOW</div>
-      <h2 id="closedTitle">もう考えなくていい。</h2>
-      <p class="lead compact">気遣いは残した。<br />自己保身の想像は、ここで終了。</p>
-      <div class="closed-summary" id="closedSummary"></div>
-      <button class="secondary-button" id="againButton" type="button">別の件を整理する</button>
-      <a class="primary-button link-button" href="/">LEVEL UPへ戻る</a>
-    </section>
-  </main>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="./app.js"></script>
+<main id="app" class="app" aria-live="polite"></main><div class="toast" id="toast"></div>
+<script>
+(() => {
+'use strict';
+const $app=document.getElementById('app'),$toast=document.getElementById('toast'),KEY='hitobito.nagase.v1';
+const state=load();let flow=null,training=null;
+const releaseWords=['相手の評価の想像','脳内リプレイ','もっと良い言い方探し','自己採点','明日の心配','もう終わった会話'];
+const trainCases=[
+{t:'会議で言い間違えたが、その場ですぐ言い直した。',a:'flow',why:'修正はもう済んでいる。ここから先の反芻は、追加の改善を生みにくい。'},
+{t:'チャットで相手の名前を間違えたまま送った。',a:'repair',why:'具体的な誤りがあるので、短く一度だけ訂正する価値がある。'},
+{t:'メール送信後、「少し素っ気なく見えたかも」と急に不安になった。',a:'flow',why:'相手の受け取り方はまだ事実ではない。具体的な問題がなければ追加送信しない。'},
+{t:'会議で相手の話を遮り、そのまま話し続けてしまった。',a:'repair',why:'具体的な行動がある。次の自然な機会に一言だけ詫びれば十分。'},
+{t:'送ったメッセージより、あとからもっと良い言い方を思いついた。',a:'flow',why:'「もっと良くできた」は無限に続く。必要十分なら終了してよい。'},
+{t:'メールで納期を1週間間違えて伝えた。',a:'repair',why:'相手の判断に影響する事実誤認なので、早めに訂正する。'},
+{t:'雑談で気の利いた返しができなかった。',a:'flow',why:'うまくいかなかった感覚と、修正すべき問題は別。出来栄えの自己採点は流す。'},
+{t:'冗談が特定の相手を傷つけた可能性が、相手の反応から具体的に見える。',a:'repair',why:'具体的なサインがある時は、推測を重ねるより短く確認・謝罪する。'},
+{t:'会議後、「あの発言で能力が低いと思われたかも」と考え始めた。',a:'flow',why:'相手の評価は読めない。事実として直せる点がないなら、次の仕事へ戻る。'},
+{t:'共有した数字に桁の誤りがあることに気づいた。',a:'repair',why:'具体的な情報の誤り。訂正は短く、言い訳を重ねず一度で終える。'}];
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{resets:0,trainBest:0,history:[]}}catch{return{resets:0,trainBest:0,history:[]}}}function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}function vib(ms=10){try{navigator.vibrate?.(ms)}catch{}}function toast(msg){$toast.textContent=msg;$toast.classList.add('show');setTimeout(()=>$toast.classList.remove('show'),1100)}function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function header(progress=0,close='home'){return `<div class="topbar"><a class="home-link" href="/" aria-label="LEVEL UPへ戻る">⌂</a><div class="brand">LEVEL UP / NAGASE</div><button class="icon-btn" data-nav="${close}" aria-label="閉じる">×</button></div>${progress?`<div class="progress"><i style="--p:${progress}%"></i></div>`:''}`}
+function screen(html,progress=0,close='home'){$app.innerHTML=header(progress,close)+`<section class="screen">${html}</section>`;window.scrollTo({top:0,behavior:'instant'});bindBase()}function footer(){return `<div class="footer-note">これはセルフケア／振り返り用のツールです。相手の気持ちを断定したり、医療的な効果を保証するものではありません。</div>`}
+function bindBase(){$app.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click',e=>{const n=e.currentTarget.dataset.nav;({home,history:historyScreen}[n]||home)()}));$app.querySelectorAll('[data-action]').forEach(el=>el.addEventListener('click',e=>handleAction(e.currentTarget.dataset.action,e.currentTarget)))}function handleAction(a){if(a==='resetStart')return resetStart();if(a==='trainStart')return trainStart();if(a==='again')return resetStart();if(a==='erase'){localStorage.removeItem(KEY);state.resets=0;state.trainBest=0;state.history=[];toast('記録を消しました');setTimeout(home,500)}}
+function home(){const last=state.history[0];screen(`<div class="eyebrow">失言・モヤモヤを、あとに残さない。</div><h1 class="hero">流せ<em>。</em></h1><p class="lead">会議、メッセージ、メール。「感じ悪かったかな」「もっと上手く言えたのに」が始まったら、必要な修正だけ残して、残りをスワイプで捨てる。</p><button class="mode primary" data-action="resetStart"><span class="kicker">FAST RELIEF / 45 SEC</span><strong>今すぐ流す</strong><span>頭の中の再生を止めて、次の行動へ戻る。</span><b class="arrow">→</b></button><button class="mode secondary" data-action="trainStart"><span class="kicker">TRAIN / 2 MIN</span><strong>気にしない筋を育てる</strong><span>「修正する／流す」の判断をスワイプで反射化。</span><b class="arrow">↗</b></button><div class="stats"><button class="stat" data-nav="history"><b>${state.resets}</b><span>流し切った回数</span></button><button class="stat" data-action="trainStart"><b>${state.trainBest||0}<small>/10</small></b><span>トレーニング最高</span></button></div>${last?`<p class="hint" style="margin-top:14px">前回の占有率：${last.before}% → ${last.after}%</p>`:''}${footer()}`)}
+function resetStart(){flow={start:Date.now(),before:70,after:20,repair:null};screen(`<div class="eyebrow">FAST RELIEF · 0 / 4</div><h2 class="section-title">頭の中を、どのくらい占領してる？</h2><p class="section-copy">正確じゃなくていい。いちばん近い数字を選ぶ。</p><div class="occupancy">${[30,50,70,90].map(v=>`<button data-occ="${v}"><b>${v}</b><span>%</span></button>`).join('')}</div><div class="next-card"><b>ここでの目的</b><span>「気にしないように頑張る」ではなく、必要な処理を終えて、脳に“終了”を教えること。</span></div>${footer()}`,6);$app.querySelectorAll('[data-occ]').forEach(b=>b.onclick=()=>{flow.before=+b.dataset.occ;sortingDeck()})}
+function sortingDeck(){const cards=[{t:'相手がどう思ったか',foot:'これは自分には確認できない。',correct:'left'},{t:'自分の言い方が完璧じゃなかった',foot:'完璧さと、修正の必要性は別。',correct:'left'},{t:'具体的な誤り・失礼があるなら、一度だけ直す',foot:'直せる事実だけは残す。',correct:'right'},{t:'直す点がなければ、追加メッセージしない',foot:'不安の処理と、相手への修正を混ぜない。',correct:'right'}];screen(`<div class="eyebrow">FAST RELIEF · 1 / 4</div><h2 class="section-title">残すものだけ、残す。</h2><p class="section-copy">左＝捨てる。右＝残す。考え込まず、リズムで。</p><div class="swipe-stage" id="sortStage"></div><div class="swipe-labels"><span>← <b>捨てる</b></span><span><b>残す</b> →</span></div><p class="hint">カードを左右へスワイプ</p>`,24);swipeSequence(document.getElementById('sortStage'),cards,{onDone:repairJudge,labelMode:true})}
+function repairJudge(){const cards=[{t:'いま、具体的に直すものがある？',foot:'誤情報、約束、名前、傷つける表現など。「相手が嫌ったかも」は含めない。'}];screen(`<div class="eyebrow">FAST RELIEF · 2 / 4</div><h2 class="section-title">修正か、終了か。</h2><p class="section-copy">右＝修正する。左＝もう終わり。</p><div class="swipe-stage" id="judgeStage"></div><div class="swipe-labels"><span>← <b>もう終わり</b></span><span><b>1回だけ修正</b> →</span></div><p class="hint">答えは「気分」ではなく、具体的な事実で決める。</p>`,46);swipeSequence(document.getElementById('judgeStage'),cards,{decision:true,onDecision:d=>{flow.repair=d==='right';d==='right'?repairScreen():releaseScreen()}})}
+function repairScreen(){const scripts={meeting:'さっきの言い方、少し強く聞こえたかもしれません。意図は○○でした。失礼しました。',message:'さっきの表現が適切ではありませんでした。○○という意図です。失礼しました。',mail:'先ほどのメールの○○は誤りです。正しくは△△です。失礼しました。'};screen(`<div class="eyebrow">FAST RELIEF · 2.5 / 4</div><h2 class="section-title">修正は、1回・短く。</h2><p class="section-copy">説明しすぎない。自分の不安を相手に処理してもらわない。必要な訂正だけで終える。</p><div class="repair"><b>型：事実 → 修正 → 終了</b><div class="repair-grid"><button data-script="meeting">会議</button><button data-script="message">メッセージ</button><button data-script="mail">メール</button></div><div class="script" id="script">場面を選ぶと、短い型が出ます。</div><button class="ghost-btn" id="copyScript" style="display:none">文面をコピー</button></div><button class="primary-btn" id="repairDone">修正はここまで。流す →</button>`,58);let current='';$app.querySelectorAll('[data-script]').forEach(b=>b.onclick=()=>{current=scripts[b.dataset.script];document.getElementById('script').textContent=current;document.getElementById('copyScript').style.display='block'});document.getElementById('copyScript').onclick=()=>navigator.clipboard?.writeText(current).then(()=>toast('コピーしました')).catch(()=>toast('長押しでコピーしてください'));document.getElementById('repairDone').onclick=releaseScreen}
+function releaseScreen(){screen(`<div class="eyebrow">FAST RELIEF · 3 / 4</div><h2 class="section-title">残りは、捨てる。</h2><p class="section-copy">考えずに全部スワイプ。方向はどちらでもいい。</p><div class="release-stage"><div class="release-stack" id="releaseStack"></div><p class="hint" id="releaseHint">6枚。テンポよく。</p></div>`,74);const stack=document.getElementById('releaseStack');let left=releaseWords.length;releaseWords.slice().reverse().forEach(word=>{const el=document.createElement('div');el.className='release-card';el.innerHTML=`<small>LET IT GO</small><strong>${esc(word)}</strong><span>左右どちらでも、外へ。</span>`;stack.appendChild(el)});const activate=()=>{const card=stack.lastElementChild;if(!card){finishReset();return}bindSwipe(card,{onSwipe:()=>{left--;document.getElementById('releaseHint').textContent=left?`${left}枚。止まらず次へ。`:'流し切った。';setTimeout(activate,80)}})};activate()}
+function finishReset(){screen(`<div class="eyebrow">FAST RELIEF · 4 / 4</div><div class="done-mark">✓</div><h2 class="done-title">この件は、閉じた。</h2><p class="done-copy">必要なら1回だけ直した。<br>それ以外は、もう考える仕事ではない。</p><div class="next-card"><b>次に戻るものを1つだけ</b><span>仕事、食事、移動、休憩。いま目の前にある現実へ戻る。気になったら、またここで流せばいい。</span></div><h3 style="margin:10px 0 5px">いまの頭の占有率は？</h3><div class="occupancy">${[10,20,40,60].map(v=>`<button data-after="${v}"><b>${v}</b><span>%</span></button>`).join('')}</div>`,92);$app.querySelectorAll('[data-after]').forEach(b=>b.onclick=()=>complete(+b.dataset.after))}
+function complete(after){flow.after=after;state.resets++;state.history.unshift({at:Date.now(),before:flow.before,after,repair:flow.repair,duration:Math.round((Date.now()-flow.start)/1000)});state.history=state.history.slice(0,20);save();vib(24);screen(`<div class="eyebrow">DONE</div><h2 class="section-title">${flow.before}% → ${after}%</h2><p class="section-copy">ゼロにする必要はない。次へ戻れたら成功。</p><button class="primary-btn accent" data-nav="home">次へ進む</button><button class="ghost-btn" data-action="again">もう1件流す</button>${footer()}`,100)}
+function trainStart(){training={i:0,score:0,cases:[...trainCases].sort(()=>Math.random()-.5).slice(0,10)};renderTrain()}function renderTrain(){const c=training.cases[training.i];if(!c)return trainDone();screen(`<div class="eyebrow">TRAIN · ${training.i+1} / ${training.cases.length}</div><h2 class="section-title">修正する？ 流す？</h2><p class="section-copy">右＝修正。左＝流す。判断基準を体に入れる。</p><div class="swipe-stage" id="trainStage"></div><div class="swipe-labels"><span>← <b>流す</b></span><span><b>修正する</b> →</span></div><div id="trainFeedback"></div>`,(training.i/training.cases.length)*100);swipeSequence(document.getElementById('trainStage'),[{t:c.t,foot:'具体的に直せる事実があるか？'}],{decision:true,onDecision:d=>trainAnswer(d==='right'?'repair':'flow',c)})}
+function trainAnswer(ans,c){const ok=ans===c.a;if(ok)training.score++;vib(ok?18:8);document.getElementById('trainFeedback').innerHTML=`<div class="feedback ${ok?'good':''}"><b>${ok?'その判断でOK。':'ここは逆。'}</b><p>${esc(c.why)}</p></div><button class="primary-btn" id="nextTrain">次のカード →</button>`;document.getElementById('nextTrain').onclick=()=>{training.i++;renderTrain()}}
+function trainDone(){state.trainBest=Math.max(state.trainBest||0,training.score);save();const msg=training.score>=9?'かなり反射化できてる。':training.score>=7?'いい。判断の軸ができてきた。':'「具体的な修正点があるか」に戻ると強い。';screen(`<div class="eyebrow">TRAIN COMPLETE</div><div class="score">${training.score}<small> / 10</small></div><h2 class="section-title">${msg}</h2><div class="feedback"><b>覚えるのは4つだけ</b><p>① 相手の頭の中を読まない<br>② 具体的な誤りだけ直す<br>③ 修正は1回・短く<br>④ それ以外は次へ進む</p></div><button class="primary-btn accent" data-action="trainStart">もう10問</button><button class="ghost-btn" data-nav="home">ホームへ</button>${footer()}`,100)}
+function historyScreen(){const rows=state.history.length?state.history.map((h,i)=>`<div class="feedback"><b>${i+1}. ${h.before}% → ${h.after}%</b><p>${h.repair===true?'1回修正して終了':h.repair===false?'修正せず終了':'判断前に終了'} · ${h.duration||'-'}秒</p></div>`).join(''):'<p class="section-copy">まだ記録はありません。</p>';screen(`<div class="eyebrow">HISTORY</div><h2 class="section-title">流した記録</h2>${rows}<button class="ghost-btn" data-action="erase">端末内の記録を消す</button>${footer()}`)}
+function swipeSequence(stage,cards,opts={}){let idx=0;const next=()=>{stage.innerHTML='';if(idx>=cards.length){setTimeout(()=>opts.onDone?.(),120);return}if(idx+1<cards.length){const back=makeCard(cards[idx+1],idx+2,cards.length);back.classList.add('back');stage.appendChild(back)}const card=makeCard(cards[idx],idx+1,cards.length);stage.appendChild(card);bindSwipe(card,{onSwipe:dir=>{if(opts.labelMode){const correct=cards[idx].correct;if(correct&&dir!==correct)toast(correct==='left'?'これは捨ててOK':'これは残す')}idx++;if(opts.decision){opts.onDecision?.(dir);return}setTimeout(next,90)}})};next()}
+function makeCard(c,n,total){const el=document.createElement('article');el.className='swipe-card';el.innerHTML=`<div><div class="card-no">${String(n).padStart(2,'0')} / ${String(total).padStart(2,'0')}</div><div class="judge-right">残す / 修正</div><div class="judge-left">捨てる / 流す</div><div class="card-text">${esc(c.t)}</div></div><div class="card-foot">${esc(c.foot||'')}</div>`;return el}
+function bindSwipe(card,{onSwipe}={}){let active=false,startX=0,startY=0,x=0,y=0;const move=e=>{if(!active)return;x=e.clientX-startX;y=e.clientY-startY;card.style.transform=`translate(${x}px,${y*.18}px) rotate(${x/18}deg)`;const p=Math.min(1,Math.abs(x)/110),l=card.querySelector('.judge-left'),r=card.querySelector('.judge-right');if(l)l.style.opacity=x<0?p:0;if(r)r.style.opacity=x>0?p:0};const finish=()=>{if(!active)return;active=false;if(Math.abs(x)>78)fly(x>0?'right':'left');else{card.style.transition='transform .18s ease';card.style.transform='';setTimeout(()=>card.style.transition='',190)}};const fly=dir=>{vib(12);const out=(dir==='right'?1:-1)*(window.innerWidth+260);card.style.transition='transform .22s ease, opacity .22s';card.style.transform=`translate(${out}px,${y*.2}px) rotate(${dir==='right'?18:-18}deg)`;card.style.opacity='0';burst(dir==='right'?'→':'←',dir==='right'?window.innerWidth*.7:window.innerWidth*.3,window.innerHeight*.56);setTimeout(()=>{card.remove();onSwipe?.(dir)},190)};card.addEventListener('pointerdown',e=>{active=true;startX=e.clientX;startY=e.clientY;x=0;y=0;card.setPointerCapture?.(e.pointerId)});card.addEventListener('pointermove',move);card.addEventListener('pointerup',finish);card.addEventListener('pointercancel',finish);card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','左右にスワイプ');card.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();x=e.key==='ArrowRight'?100:-100;fly(x>0?'right':'left')}})}
+function burst(t,x,y){const b=document.createElement('div');b.className='swipe-burst';b.textContent=t;b.style.left=x+'px';b.style.top=y+'px';document.body.appendChild(b);setTimeout(()=>b.remove(),500)}home();
+})();
+</script>
 </body>
 </html>
