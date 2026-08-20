@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#151722" />
-  <meta name="description" content="どんな出来事にも別の見方を瞬時に作る反射を鍛えるゲーム。物の見方検定。" />
-  <title>物の見方検定 | Level Up Games</title>
+  <meta name="description" content="どんな出来事にも別の見方を瞬時に作る反射を鍛えるゲーム。視点100本ノック。" />
+  <title>視点100本ノック | Level Up Games</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -22,26 +22,26 @@
         <i class="ray ray-4"></i><i class="ray ray-5"></i><i class="ray ray-6"></i>
       </div>
 
-      <p class="eyebrow">REFRAME REFLEX TEST</p>
-      <h1 id="game-title">物の見方<br>検定</h1>
+      <p class="eyebrow">VIEWPOINT REFLEX DRILL</p>
+      <h1 id="game-title">視点100本<br>ノック</h1>
       <p class="tagline">不幸は選べない。<br><strong>見方は選べる。</strong></p>
-      <p class="home-copy">嫌な出来事を消すのではなく、<br>別の見方を<strong>瞬時に何個作れるか</strong>を鍛える。</p>
+      <p class="home-copy">ひとつの出来事を、<br><strong>何通りにも見られる頭</strong>をつくる。</p>
 
       <button id="start-game" class="primary-button" type="button">
-        <span>検定をはじめる</span><small>10問・約3分</small>
+        <span>トレーニングをはじめる</span><small>10問・約3分</small>
       </button>
       <button id="open-howto" class="text-button" type="button">遊び方</button>
 
       <div class="record-card" id="record-card">
         <div><span>自己ベスト</span><strong id="best-score">—</strong></div>
         <div><span>累計 VIEW</span><strong id="total-views">0</strong></div>
-        <div><span>最高段位</span><strong id="best-rank">未受検</strong></div>
+        <div><span>最高段位</span><strong id="best-rank">未挑戦</strong></div>
       </div>
     </section>
 
     <section id="screen-game" class="screen" aria-live="polite">
       <header class="game-header">
-        <button id="quit-game" class="icon-button back" type="button" aria-label="検定をやめる">×</button>
+        <button id="quit-game" class="icon-button back" type="button" aria-label="トレーニングをやめる">×</button>
         <div class="round-block"><span>ROUND</span><strong><b id="round-number">1</b>/10</strong></div>
         <div class="score-block"><span>SCORE</span><strong id="score">0</strong></div>
       </header>
@@ -96,7 +96,7 @@
     </section>
 
     <section id="screen-result" class="screen">
-      <p class="eyebrow">EXAM RESULT</p>
+      <p class="eyebrow">TRAINING RESULT</p>
       <div id="rank-seal" class="rank-seal"><span>段位</span><strong id="rank-name">見方の達人</strong></div>
       <h2 class="result-title">あなたの見方は<br><span id="result-level">かなり柔らかい。</span></h2>
 
@@ -120,7 +120,7 @@
         <div><span>達人</span><small>意味を自分で選べる</small></div>
       </div>
 
-      <button id="retry-game" class="primary-button" type="button">もう一度受ける</button>
+      <button id="retry-game" class="primary-button" type="button">もう一度挑戦</button>
       <button id="open-dictionary-result" class="secondary-button" type="button">見方の型図鑑</button>
       <button id="back-home" class="text-button" type="button">トップへ戻る</button>
     </section>
