@@ -1,71 +1,121 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0b0e0a">
-<meta name="description" content="思い通りにならなかった瞬間に、期待と事実を分け、変えられないことを手放して次へ戻るLEVEL UPアプリ。">
-<title>思い通りにならなくても平気 — LEVEL UP</title>
-<link rel="stylesheet" href="./style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="目標は持つ。でも現実がその通りになることまでは求めない。予定と現実のズレを『普通』として受け入れる反射を鍛えるLEVEL UPトレーニング。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>思い通りじゃなくて普通。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-<main class="app">
-<header class="topbar"><a href="/" class="home">⌂ <span>LEVEL UP</span></a><div class="streak"><span>平気トレーニング</span><b id="doneCount">0回</b></div></header>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る"><span>⌂</span><b>LEVEL UP</b></a>
+      <div class="top-stat"><span>ズレ耐性</span><b>Lv.<i id="topLevel">1</i></b></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="音をオフにする">♪</button>
+    </header>
 
-<section class="screen active" id="homeScreen">
-<p class="eyebrow">WHEN THINGS DON'T GO YOUR WAY</p>
-<h1>思い通りに<br>ならなくても<span>平気。</span></h1>
-<p class="lead">予定、相手、結果。<br>「こうなるはずだった」が外れたときに、<strong>30秒で頭を戻す。</strong></p>
-<button class="primary" id="nowBtn"><span>今の1件を軽くする</span><b>→</b></button>
-<button class="ghost" id="practiceBtn">何もない時に練習する</button>
-<p class="micro">考え込むアプリではありません。1件だけ処理して終わります。</p>
-<div class="ladder"><div class="on">1<br><b>我慢できる</b></div><div>2<br><b>気にしない</b></div><div>3<br><b>感謝できる</b></div><div>4<br><b>気にならない</b></div></div>
-</section>
+    <section class="screen active start-screen" id="startScreen">
+      <div class="hero-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="eyebrow">REALITY GAP TRAINING</p>
+      <h1>思い通り<br>じゃなくて<br><em>普通。</em></h1>
+      <p class="lead">目標は持つ。<br><strong>でも、現実がその通りになることまでは求めない。</strong></p>
 
-<section class="screen" id="pickScreen" hidden>
-<p class="step">1 / 3</p><h2>何が思い通りじゃなかった？</h2><p class="sub">近いものを1つ。説明しなくて大丈夫。</p>
-<div class="choices" id="choices"></div>
-<button class="ghost small" id="customBtn">自分で一言入力する</button>
-<div class="customBox" id="customBox" hidden><input id="customText" maxlength="60" placeholder="例：提案が通らなかった"><button class="primary compact" id="customGo"><span>これで進む</span><b>→</b></button></div>
-<button class="textbtn" id="pickBack">← 戻る</button>
-</section>
+      <div class="principle">
+        <div class="mini-lines" aria-hidden="true"><span class="plan"></span><span class="real"></span></div>
+        <p><small>受け入れる ≠ 諦める</small><b>まず「違った」を置く。<br>変えられるなら、そのあと動く。</b></p>
+      </div>
 
-<section class="screen" id="expectScreen" hidden>
-<p class="step">2 / 3</p><p class="label">起きたこと</p><h2 id="eventText"></h2>
-<div class="expectCard" id="expectCard" tabindex="0" role="button" aria-label="期待を横にスワイプして手放す">
-<p>頭の中に残っている期待</p><strong id="expectText"></strong><span>← 横にスワイプして外す →</span>
-</div>
-<p class="sub center">期待を消すのではなく、<br><strong>「現実」と「こうなってほしかった」を分ける。</strong></p>
-<button class="ghost small" id="expectTap">タップでも外せる</button>
-</section>
+      <button class="primary-btn" id="startBtn" type="button"><span>12個のズレで鍛える</span><b>→</b></button>
+      <button class="secondary-btn" id="realBtn" type="button">今の「思い通りじゃない」を手放す</button>
+      <p class="microcopy">約60秒。カードを横へスワイプするだけ。</p>
 
-<section class="screen" id="controlScreen" hidden>
-<p class="step">3 / 3</p><p class="label">事実だけ残す</p><h2 id="factText"></h2>
-<p class="sub">ここから先、自分で変えられる部分はある？</p>
-<div class="controlChoices"><button class="control yes" id="canBtn"><b>ある</b><span>次の一手だけ決める</span></button><button class="control no" id="cantBtn"><b>ない</b><span>ここで終わりにする</span></button></div>
-</section>
+      <div class="stats" id="localStats" hidden>
+        <div><span>PLAY</span><b id="sessionCount">0</b></div>
+        <div><span>ACCEPT</span><b id="acceptCount">0</b></div>
+        <div><span>BEST</span><b id="bestTime">–</b><small>s</small></div>
+      </div>
+    </section>
 
-<section class="screen" id="actionScreen" hidden>
-<p class="step">LAST</p><h2>じゃあ、<br>1個だけ。</h2><p class="sub">全部取り戻さなくていい。次に変えられることを1つだけ。</p>
-<input class="actionInput" id="actionText" maxlength="60" placeholder="例：別案を1つ送る">
-<button class="primary" id="actionDone"><span>これで終わる</span><b>✓</b></button>
-<button class="textbtn" id="skipAction">決めずに終わる</button>
-</section>
+    <section class="screen training-screen" id="trainingScreen">
+      <div class="training-head">
+        <div><span id="roundText">1 / 12</span><b id="stageLabel">小さなズレ</b></div>
+        <div class="speed"><small>戻る速さ</small><b id="speedText">–</b></div>
+      </div>
+      <div class="progress"><i id="progressFill"></i></div>
 
-<section class="screen result" id="resultScreen" hidden>
-<p class="eyebrow">DONE</p><div class="resultIcon">○</div><h2 id="resultTitle">これは、ここまで。</h2><p id="resultCopy">思い通りじゃなかった。でも、それ以上は増やさない。</p>
-<div class="resultBox"><span>今日の練習</span><b id="resultEvent"></b><small id="resultAction"></small></div>
-<div class="levelup" id="levelupText"></div>
-<button class="primary" id="finishBtn"><span>日常に戻る</span><b>→</b></button>
-<button class="ghost" id="againBtn">もう1件やる</button>
-</section>
+      <div class="gap-field" id="gapField">
+        <div class="axis" aria-hidden="true"></div>
+        <article class="gap-card" id="gapCard" tabindex="0" role="button" aria-label="横にスワイプして、予定と現実のズレを受け入れる">
+          <span class="tag" id="eventTag">予定</span>
+          <div class="pair">
+            <div class="pair-row plan-row"><small>PLAN</small><p id="planText">今日は予定通り進む</p><span class="rail"><i></i></span></div>
+            <div class="pair-row real-row"><small>REAL</small><p id="realText">急な予定が入った</p><span class="rail"><i id="gapDot"></i></span></div>
+          </div>
+          <div class="swipe-cue" id="swipeCue"><span>↔</span><b>横へスワイプ</b><small>ズレを異常扱いしない</small></div>
+        </article>
+        <div class="feedback" id="feedback" aria-live="assertive"><b id="feedbackTitle">ズレた。普通。</b><span id="feedbackText">現実は、予定のコピーではない。</span></div>
+      </div>
 
-<section class="screen" id="practiceScreen" hidden>
-<p class="eyebrow">PRACTICE</p><h2>思い通りにならない練習</h2><p class="sub">実際に起きる前に、軽い予定外を流す練習。5問だけ。</p>
-<div class="practiceCard" id="practiceCard"><span id="practiceNo">1 / 5</span><h3 id="practiceEvent"></h3><p>「こうなるはずだった」を外して次へ。</p><button class="primary" id="practiceNext"><span>まあ、そうなることもある</span><b>→</b></button></div>
-<button class="textbtn" id="practiceBack">← 戻る</button>
-</section>
-</main>
-<script src="./app.js"></script>
+      <button class="fallback-btn" id="fallbackBtn" type="button">スワイプできない場合はこちら</button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <div class="result-mark"><span>今日の</span><strong>ズレ耐性</strong><b id="resultLevel">Lv.1</b></div>
+      <p class="result-copy" id="resultCopy">小さなズレを「失敗」ではなく、ただの現実として置く練習が始まった。</p>
+
+      <div class="result-metric">
+        <div><small>平均で受け入れるまで</small><b><i id="avgTime">0.0</i>s</b></div>
+        <div><small>今回受け入れたズレ</small><b><i id="sessionAccept">12</i>個</b></div>
+      </div>
+
+      <div class="reality-rule">
+        <span>REAL LIFE</span>
+        <strong>目標は方向。<br>現実は結果。</strong>
+        <p>ズレた瞬間に、まず「そうなったか」。必要なら、そのあと1つだけ修正する。</p>
+      </div>
+
+      <button class="primary-btn" id="againBtn" type="button"><span>もう12個</span><b>↻</b></button>
+      <button class="secondary-btn" id="resultRealBtn" type="button">今のズレを1つ手放す</button>
+      <a class="back-link" href="/">LEVEL UPへ戻る</a>
+      <p class="privacy-note">プレイ回数とトレーニング時間だけ、この端末内に保存します。</p>
+    </section>
+
+    <section class="screen real-screen" id="realScreen">
+      <div class="real-head">
+        <button class="close-btn" id="closeRealBtn" type="button" aria-label="戻る">←</button>
+        <div><small>REAL GAP</small><b>今のズレを置く</b></div>
+      </div>
+
+      <div class="input-step" id="inputStep">
+        <label>本当は、どうなるはずだった？<textarea id="wishInput" rows="2" maxlength="80" placeholder="例：今日中に資料を終える"></textarea></label>
+        <label>実際は、どうなった？<textarea id="actualInput" rows="2" maxlength="80" placeholder="例：急な会議で終わらなかった"></textarea></label>
+        <button class="primary-btn" id="makeGapBtn" type="button"><span>ズレをそのまま見る</span><b>→</b></button>
+        <p class="privacy-note">入力内容は保存しません。</p>
+      </div>
+
+      <div class="release-step" id="releaseStep" hidden>
+        <div class="real-pair">
+          <div><small>PLAN</small><p id="wishPreview"></p></div>
+          <div><small>REAL</small><p id="actualPreview"></p></div>
+        </div>
+        <div class="release-track" id="releaseTrack"><div class="release-knob" id="releaseKnob"><span>→</span></div><p>右へスライドして、現実を置く</p></div>
+        <div class="release-result" id="releaseResult" hidden>
+          <span>ACCEPTED</span>
+          <strong>違った。<br>それだけ。</strong>
+          <p>これは「良かった」と思う練習ではない。<br>起きたことを、起きたこととして置く練習。</p>
+          <label class="optional-action">変えられることがあるなら、1つだけ <input id="actionInput" maxlength="60" placeholder="なければ空欄でOK" /></label>
+          <button class="primary-btn" id="finishRealBtn" type="button"><span>ここで終わる</span><b>✓</b></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
 </body>
 </html>
