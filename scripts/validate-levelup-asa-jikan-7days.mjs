@@ -30,6 +30,8 @@ if (!errors.length) {
   for (const marker of required) if (!source.includes(marker)) errors.push(`source marker missing: ${marker}`);
   for (const marker of ['トマト酢','成長ホルモンを最大','最初の90分で','睡眠は短いほど']) if (source.includes(marker)) errors.push(`unsupported claim marker present: ${marker}`);
   if (!built.includes('7-DAY MORNING RESET')) errors.push('built app missing core experience');
+  if (!built.includes('const y=d.getFullYear()')) errors.push('built app must use browser-local calendar date for daily logs');
+  if (built.includes('function todayKey(){ return new Date().toISOString().slice(0,10); }')) errors.push('built app still uses UTC date for daily logs');
   if (!home.includes('data-game="asa-jikan-7days" data-new="true"')) errors.push('LEVEL UP home card missing');
   if (!catalog.games?.some((item) => item.slug === 'asa-jikan-7days')) errors.push('LEVEL UP catalog entry missing');
 }
