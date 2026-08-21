@@ -117,15 +117,12 @@ const cards = games.map((game) => {
 
 const block = `${START}\n<section class="section" id="latest-games"><div class="section-head"><h2>Latest Games</h2><span>追加された新しい順に自動更新</span></div><div class="grid">\n${cards}\n</div></section>\n${END}`;
 
-if (markerPattern.test(portal)) {
-  portal = portal.replace(markerPattern, block);
-} else {
-  const anchor = '<section class="section"><div class="section-head"><h2>Games</h2>';
-  if (!portal.includes(anchor)) {
-    throw new Error('Could not find the Games section anchor in index.html');
-  }
-  portal = portal.replace(anchor, `${block}\n${anchor}`);
+portal = portal.replace(markerPattern, '');
+const featuredAnchor = '<section class="section featured-section">';
+if (!portal.includes(featuredAnchor)) {
+  throw new Error('Could not find the Featured section anchor in index.html');
 }
+portal = portal.replace(featuredAnchor, `${block}\n${featuredAnchor}`);
 
 portal = keepOnlyExternalCards(portal, 'Games');
 portal = keepOnlyExternalCards(portal, 'More Games');
