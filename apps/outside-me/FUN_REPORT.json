@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "outside-me",
+  "funStatement": "家の中で毎回ひとつだけ手掛かりを調べ、得た情報で『玄関の外にいる自分』と『部屋の中にいる自分』のどちらを信じるかを更新し続けることが楽しい。",
+  "coreLoop": [
+    "雨の家と玄関カメラの違和感を観察する",
+    "限られた時間で一か所だけ調べる／誰かを信じる",
+    "選ぶ",
+    "文章・映像・音・家の状態が選択に応じて変化する",
+    "新しい矛盾をもとに次の選択を変える"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "安全を優先して玄関から離れるほど情報を失い、情報を集めるほど『外の自分』が玄関へ近づく。",
+    "consequence": "見た手掛かりと信じた相手が、後続の文章、選択肢、侵入経路、最終的に『どちらが家に残るか』を変える。"
+  },
+  "highestMoment": "玄関を開ける直前、ドアホン映像の『外の自分』が消え、代わりにカメラの内側から今の自分の背中が映っていることに気づく5秒。",
+  "oneMoreRunReason": "前回見なかった部屋の手掛かりを先に取れば、同じ怪異の正体と結末が反転するため、別の順番を試したくなる。2周目以降はゲームが前回の結末を覚えて文章も変わる。",
+  "playtest": {
+    "method": "real browser playtest",
+    "first10Seconds": {"pass": false, "evidence": "未実装。ブラウザ試遊前。"},
+    "first30Seconds": {"pass": false, "evidence": "未実装。ブラウザ試遊前。"},
+    "threeMinutes": {"pass": false, "evidence": "未実装。ブラウザ試遊前。"},
+    "tenMinutes": {"pass": false, "evidence": "未実装。ブラウザ試遊前。"},
+    "retryDesire": {"pass": false, "evidence": "未実装。ブラウザ試遊前。"},
+    "noReward": {"pass": false, "evidence": "未実装。ブラウザ試遊前。"}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未検証。",
+    "coreLoop": "未検証。",
+    "inputFeel": "未検証。",
+    "decisionQuality": "未検証。",
+    "masteryDepth": "未検証。",
+    "surpriseVariation": "未検証。",
+    "riskReward": "未検証。",
+    "pacing": "未検証。",
+    "retryDesire": "未検証。",
+    "uniqueness": "未検証。"
+  },
+  "verifiedAt": null
+}
