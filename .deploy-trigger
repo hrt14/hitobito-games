@@ -1,2 +1,2 @@
-Production deploy trigger: PLAY-HAMBURGER-LIVE-VERIFY-20260822-R2
-Reason: redeploy play.hitobito.jp after fixing the live hamburger verification command
+Production deploy trigger: DEEP-SEA-WALK-20260822-0244
+Reason: publish 深海をただ散歩する to play.hitobito.jp and run the normal-games production verification flow
