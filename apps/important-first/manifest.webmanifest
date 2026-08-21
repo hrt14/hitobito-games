@@ -1,0 +1,11 @@
+{
+  "name": "重要を先にする｜4象限トレーニング",
+  "short_name": "重要を先に",
+  "description": "重要度と緊急度を瞬時に見分け、重要なことを先に守る判断トレーニング。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0d0b",
+  "theme_color": "#0a0d0b",
+  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

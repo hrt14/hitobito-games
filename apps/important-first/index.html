@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+  <meta name="theme-color" content="#0a0d0b" />
+  <meta name="description" content="目の前の急ぎに反応する前に、重要度と緊急度で判断する。重要なことを先に守る4象限トレーニング。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>重要を先にする｜緊急に振り回されない4象限トレーニング | LEVEL UP</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <button class="brand" id="homeBtn" type="button" aria-label="LEVEL UPホームへ戻る">
+        <span class="brand-dot" aria-hidden="true"></span><span>LEVEL UP</span>
+      </button>
+      <button class="ghost-btn" id="recordBtn" type="button">記録</button>
+    </header>
+
+    <section class="screen active" data-screen="home">
+      <div class="hero">
+        <p class="eyebrow">IMPORTANT &gt; URGENT</p>
+        <h1>重要を<br><em>先にする。</em></h1>
+        <p class="lead">「急いでる」に反応する前に、<br>本当に効く方を選ぶ。</p>
+      </div>
+
+      <div class="today-card" id="todayCard">
+        <div class="today-top"><span class="tiny">TODAY'S Q2</span><span id="todayStatus">未予約</span></div>
+        <strong id="todayTitle">重要だけど、まだ急ぎじゃないことを1つ守る</strong>
+        <p id="todayMeta">先に時間を確保すると、未来の火事を減らしやすい。</p>
+        <div class="today-actions">
+          <button class="mini-primary" id="reserveBtn" type="button">今日のQ2を予約</button>
+          <button class="mini-ghost hidden" id="completeQ2Btn" type="button">できた</button>
+        </div>
+      </div>
+
+      <button class="start-card" id="startTraining" type="button">
+        <span class="start-kicker">8 JUDGMENTS / 約2分</span>
+        <span class="start-title">4象限を反射にする</span>
+        <span class="start-copy">カードを「今やる / 予定を守る / 任せる / やらない」へ仕分ける。</span>
+        <span class="start-arrow">→</span>
+      </button>
+
+      <div class="matrix-preview" aria-label="重要度と緊急度の4象限">
+        <div class="axis axis-y">重要度 ↑</div>
+        <div class="matrix-cell q2"><span>Q2</span><strong>予定を守る</strong><small>重要 / 緊急でない</small></div>
+        <div class="matrix-cell q1"><span>Q1</span><strong>今やる</strong><small>重要 / 緊急</small></div>
+        <div class="matrix-cell q4"><span>Q4</span><strong>やらない</strong><small>重要でない / 緊急でない</small></div>
+        <div class="matrix-cell q3"><span>Q3</span><strong>任せる・断る</strong><small>重要でない / 緊急</small></div>
+        <div class="axis axis-x">緊急度 →</div>
+      </div>
+      <p class="definition">重要 = 目的・価値・長期成果に効く。緊急 = 今すぐ注意を要求する。</p>
+    </section>
+
+    <section class="screen" data-screen="training">
+      <div class="training-head">
+        <div><span class="tiny">JUDGMENT</span><strong id="progressText">1 / 8</strong></div>
+        <div class="score-chip"><span>連続</span><strong id="comboText">0</strong></div>
+      </div>
+      <div class="progress"><span id="progressBar"></span></div>
+
+      <div class="task-card" id="taskCard" role="group" aria-label="仕分けるタスク">
+        <span class="scene-tag" id="sceneTag">仕事</span>
+        <p id="sceneText"></p>
+        <div class="signal-row">
+          <span id="urgentSignal">緊急度 ?</span>
+          <span id="importantSignal">重要度 ?</span>
+        </div>
+        <small>下の象限へドラッグ / タップでもOK</small>
+      </div>
+
+      <div class="drop-matrix" id="dropMatrix">
+        <button class="drop q2" data-q="2" type="button"><span>Q2</span><strong>予定を守る</strong><small>重要 × まだ急ぎでない</small></button>
+        <button class="drop q1" data-q="1" type="button"><span>Q1</span><strong>今やる</strong><small>重要 × 緊急</small></button>
+        <button class="drop q4" data-q="4" type="button"><span>Q4</span><strong>やらない</strong><small>重要でない × 緊急でない</small></button>
+        <button class="drop q3" data-q="3" type="button"><span>Q3</span><strong>任せる・断る</strong><small>重要でない × 緊急</small></button>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite">
+        <span class="feedback-mark" id="feedbackMark">✓</span>
+        <div><strong id="feedbackTitle"></strong><p id="feedbackCopy"></p></div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="reserve">
+      <button class="back-btn" data-back="home" type="button">← 戻る</button>
+      <p class="eyebrow">PROTECT Q2</p>
+      <h2>今日、先に守るのは？</h2>
+      <p class="sub">入力は不要。今の自分にいちばん効く1つを選ぶ。</p>
+      <div class="reserve-grid" id="reserveGrid"></div>
+      <div class="when-panel hidden" id="whenPanel">
+        <span class="tiny">いつ守る？</span>
+        <strong id="reserveChoice"></strong>
+        <div class="when-grid">
+          <button data-when="朝" type="button">朝</button>
+          <button data-when="昼" type="button">昼</button>
+          <button data-when="夜" type="button">夜</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen result-screen" data-screen="result">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <h2 id="resultTitle">重要センサー、起動。</h2>
+      <p class="result-copy" id="resultCopy"></p>
+      <div class="result-grid">
+        <div><span>判断精度</span><strong id="accuracyResult">0%</strong></div>
+        <div><span>Q2守備</span><strong id="q2Result">0/2</strong></div>
+        <div><span>緊急トラップ回避</span><strong id="trapResult">0/4</strong></div>
+      </div>
+      <div class="lesson-card" id="lessonCard"></div>
+      <button class="primary" id="againBtn" type="button">もう1セット</button>
+      <button class="secondary" id="resultReserveBtn" type="button">今日のQ2を予約する</button>
+      <button class="text-btn" id="resultHomeBtn" type="button">ホームへ</button>
+    </section>
+
+    <section class="screen" data-screen="record">
+      <button class="back-btn" data-back="home" type="button">← 戻る</button>
+      <p class="eyebrow">DECISION LOG</p>
+      <h2>重要を選べた記録</h2>
+      <div class="record-grid">
+        <div><span>トレーニング</span><strong id="recordSessions">0</strong><small>回</small></div>
+        <div><span>累計判断</span><strong id="recordJudgments">0</strong><small>回</small></div>
+        <div><span>最高精度</span><strong id="recordBest">—</strong><small>%</small></div>
+        <div><span>Q2実行</span><strong id="recordQ2">0</strong><small>回</small></div>
+      </div>
+      <div class="rank-card"><span class="tiny">CURRENT LEVEL</span><strong id="recordRank">重要度ビギナー</strong><p id="recordRankCopy"></p></div>
+      <button class="text-btn danger" id="resetBtn" type="button">記録をリセット</button>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
