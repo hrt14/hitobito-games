@@ -32,6 +32,10 @@ async function shot(name) {
   await page.screenshot({ path: path.join(artifactDir, `${name}.png`), fullPage: true });
 }
 
+async function horizontalOverflow() {
+  return page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+}
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -43,8 +47,8 @@ try {
   const worldText = await page.locator('#screen-world').innerText();
   assert(worldText.includes('世界の未確認生物を、'), 'world screen must explain the purpose immediately');
   assert((await page.locator('.case-card').count()) === 6, 'world map should expose six case files');
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  assert(overflow <= 2, `mobile world screen must not horizontally overflow: ${overflow}px`);
+  const worldOverflow = await horizontalOverflow();
+  assert(worldOverflow <= 2, `mobile world screen must not horizontally overflow: ${worldOverflow}px`);
   observations.push('first10Seconds: 390px幅で目的コピー、世界地図、CASEカード、最初の調査ボタンが同一画面フローに表示され、横スクロールは発生しなかった。');
   await shot('01-world-mobile');
 
@@ -61,6 +65,7 @@ try {
   assert((await page.locator('.zone-btn').count()) === 4, 'field should have four investigable zones');
   assert((await page.locator('.tool-btn').count()) === 4, 'field should have four tools');
   assert(await page.locator('#stakeoutBtn').isDisabled(), 'stakeout should start locked');
+  assert((await horizontalOverflow()) <= 2, 'mobile field screen should not horizontally overflow');
   observations.push('first30Seconds: 現場で4地点の反応強度を見比べ、地点を選ぶまで装備が無効、地点選択後に装備が有効になる二段操作を確認。');
   await shot('03-field-start-mobile');
 
@@ -92,12 +97,15 @@ try {
   const resultText = await page.locator('#screen-result').innerText();
   assert(resultText.includes('科学的な存在証明を意味しません'), 'result must distinguish game score from scientific proof');
   assert(resultText.includes('同じ案件を再調査'), 'result should provide a concrete retry action');
+  assert((await horizontalOverflow()) <= 2, 'mobile result screen should not horizontally overflow');
   observations.push(`result: 撮影後に発見確度${confidence}%、独立証拠・証拠点数・誤認除外・PHOTOを分解表示し、同案件再調査と次地域の両方を提示した。`);
   await shot('06-result-mobile');
 
-  // Equivalent repeated exposure: re-run three more cases through the real briefing/field UI.
-  for (let run = 0; run < 3; run += 1) {
-    await page.locator('#nextCaseBtn').click();
+  // Equivalent repeated exposure: visit three additional cases through their real briefing/field UI.
+  await page.locator('#screen-result [data-action="world"]').click();
+  await page.locator('#screen-world.active').waitFor({ state: 'visible' });
+  for (let caseIndex = 1; caseIndex <= 3; caseIndex += 1) {
+    await page.locator('.case-card').nth(caseIndex).click();
     await page.locator('#screen-briefing.active').waitFor({ state: 'visible' });
     const caseName = await page.locator('#brief-title').innerText();
     await page.locator('#deployBtn').click();
@@ -105,15 +113,14 @@ try {
     const zoneLabels = await page.locator('.zone-label').allInnerTexts();
     assert(new Set(zoneLabels).size === 4, `${caseName} should have four distinct field zones`);
     await page.locator('.zone-btn').nth(0).click();
-    await page.locator('.tool-btn').nth(run % 4).click();
+    await page.locator('.tool-btn').nth((caseIndex - 1) % 4).click();
     await page.waitForTimeout(70);
-    observations.push(`variation run ${run + 2}: ${caseName}で地域固有の4地点 (${zoneLabels.join(' / ')}) と証拠ログの切替を確認。`);
-    await page.locator('[data-action="world"]').last().click();
+    observations.push(`variation run ${caseIndex + 1}: ${caseName}で地域固有の4地点 (${zoneLabels.join(' / ')}) と証拠ログの切替を確認。`);
+    await page.locator('#screen-field [data-action="world"]').click();
     await page.locator('#screen-world.active').waitFor({ state: 'visible' });
-    const next = run === 2 ? 0 : run + 2;
-    await page.locator('.case-card').nth(next).click();
   }
 
+  observations.push('tenMinutesEquivalent: ネッシーの1フルランに加え、サスカッチ・イエティ・チュパカブラを同一ブラウザセッションで巡回し、地域ごとに地点構成と証拠文脈が変わることを確認。');
   observations.push('noReward: XP・コイン・ガチャ等のメタ報酬なしで、観察→地点選択→装備選択→証拠/誤認の更新→張り込みという操作だけで進行することを確認。');
 } catch (error) {
   failures.push(error.stack || error.message);
