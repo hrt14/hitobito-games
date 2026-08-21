@@ -13,13 +13,13 @@ if (!fs.existsSync(appsDir)) {
 const marker = 'id="levelup-nav-fixed"';
 const snippet = `
 <style id="levelup-nav-fixed-style">
-  #levelup-nav-fixed{position:fixed;z-index:2147483647;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI",sans-serif;color:#f5f7f0}
-  #levelup-nav-toggle{width:46px;height:46px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.24);border-radius:15px;background:rgba(12,16,24,.82);color:#d8ff5b;box-shadow:0 8px 28px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer}
-  #levelup-nav-toggle svg{width:23px;height:23px;display:block}
+  #levelup-nav-fixed{position:fixed;z-index:2147483647;top:max(10px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI",sans-serif;color:#f5f7f0}
+  #levelup-nav-toggle{width:42px;height:42px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.24);border-radius:14px;background:rgba(12,16,24,.82);color:#d8ff5b;box-shadow:0 8px 28px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer}
+  #levelup-nav-toggle svg{width:21px;height:21px;display:block}
   #levelup-nav-toggle:hover,#levelup-nav-toggle:focus-visible{border-color:rgba(216,255,91,.58);background:rgba(24,31,18,.92)}
   #levelup-nav-toggle:focus-visible{outline:3px solid rgba(216,255,91,.5);outline-offset:3px}
   #levelup-nav-toggle:active{transform:scale(.94)}
-  #levelup-nav-menu{position:absolute;top:54px;left:0;width:min(260px,calc(100vw - 20px));padding:8px;border:1px solid rgba(216,255,91,.22);border-radius:18px;background:rgba(12,16,14,.96);box-shadow:0 18px 54px rgba(0,0,0,.44);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;transform:translateY(-5px) scale(.98);pointer-events:none;transition:.14s ease;transform-origin:top left}
+  #levelup-nav-menu{position:absolute;top:50px;left:0;width:min(260px,calc(100vw - 16px));padding:8px;border:1px solid rgba(216,255,91,.22);border-radius:18px;background:rgba(12,16,14,.96);box-shadow:0 18px 54px rgba(0,0,0,.44);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;transform:translateY(-5px) scale(.98);pointer-events:none;transition:.14s ease;transform-origin:top left}
   #levelup-nav-fixed.open #levelup-nav-menu{opacity:1;transform:none;pointer-events:auto}
   .levelup-nav-item{width:100%;min-height:46px;display:flex;align-items:center;gap:11px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:#f3f5ef;text-decoration:none;font:inherit;font-size:13px;font-weight:850;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .levelup-nav-item:hover,.levelup-nav-item:focus-visible{background:rgba(216,255,91,.1);color:#e9ff9c;outline:none}
