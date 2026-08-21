@@ -22,42 +22,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify deployed tag and Firebase Analytics config
+      - name: Verify deployed GA4 tag
         id: verify
         run: |
           set -euo pipefail
-          node -e "const fs=require('fs');fs.writeFileSync('/tmp/ga4-status.json',JSON.stringify({verifiedAt:new Date().toISOString(),active:false,bases:{}},null,2)+'\n')"
+          expected_id='G-7754RC4QGC'
+          node -e "const fs=require('fs');fs.writeFileSync('/tmp/ga4-status.json',JSON.stringify({verifiedAt:new Date().toISOString(),active:false,expectedMeasurementId:'G-7754RC4QGC',bases:{}},null,2)+'\n')"
 
           all_ok=true
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             tag_ok=false
-            measurement_ok=false
-            measurement_id=''
+            runtime_measurement_ok=false
+            runtime_measurement_id=''
 
-            for attempt in 1 2 3 4 5 6 7 8 9; do
+            for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
               if curl -fLsS --max-time 30 "$base/" -o /tmp/levelup-home.html \
-                && grep -F 'data-levelup-ga4' /tmp/levelup-home.html >/dev/null; then
+                && grep -F 'data-levelup-ga4' /tmp/levelup-home.html >/dev/null \
+                && grep -F "$expected_id" /tmp/levelup-home.html >/dev/null \
+                && grep -F 'https://www.googletagmanager.com/gtag/js?id=G-7754RC4QGC' /tmp/levelup-home.html >/dev/null; then
                 tag_ok=true
               fi
 
               if curl -fLsS --max-time 30 "$base/__/firebase/init.json" -o /tmp/firebase-init.json; then
-                measurement_id=$(node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('/tmp/firebase-init.json','utf8'));process.stdout.write(String(c.measurementId||''))" 2>/dev/null || true)
-                if printf '%s' "$measurement_id" | grep -Eq '^G-[A-Za-z0-9]+$'; then
-                  measurement_ok=true
+                runtime_measurement_id=$(node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('/tmp/firebase-init.json','utf8'));process.stdout.write(String(c.measurementId||''))" 2>/dev/null || true)
+                if [ "$runtime_measurement_id" = "$expected_id" ]; then
+                  runtime_measurement_ok=true
                 fi
               fi
 
-              if [ "$tag_ok" = true ] && [ "$measurement_ok" = true ]; then
+              if [ "$tag_ok" = true ]; then
                 break
               fi
               sleep 10
             done
 
-            if [ "$tag_ok" != true ] || [ "$measurement_ok" != true ]; then
+            if [ "$tag_ok" != true ]; then
               all_ok=false
             fi
 
-            BASE="$base" TAG_OK="$tag_ok" MEASUREMENT_OK="$measurement_ok" MEASUREMENT_ID="$measurement_id" node -e "const fs=require('fs');const p='/tmp/ga4-status.json';const s=JSON.parse(fs.readFileSync(p,'utf8'));s.bases[process.env.BASE]={tagInjected:process.env.TAG_OK==='true',measurementIdAvailable:process.env.MEASUREMENT_OK==='true',measurementId:process.env.MEASUREMENT_OK==='true'?process.env.MEASUREMENT_ID:null};fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n')"
+            BASE="$base" TAG_OK="$tag_ok" RUNTIME_OK="$runtime_measurement_ok" RUNTIME_ID="$runtime_measurement_id" node -e "const fs=require('fs');const p='/tmp/ga4-status.json';const s=JSON.parse(fs.readFileSync(p,'utf8'));s.bases[process.env.BASE]={tagInjected:process.env.TAG_OK==='true',configuredMeasurementId:'G-7754RC4QGC',runtimeMeasurementIdAvailable:process.env.RUNTIME_OK==='true',runtimeMeasurementId:process.env.RUNTIME_ID||null};fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n')"
           done
 
           ALL_OK="$all_ok" node -e "const fs=require('fs');const p='/tmp/ga4-status.json';const s=JSON.parse(fs.readFileSync(p,'utf8'));s.verifiedAt=new Date().toISOString();s.active=process.env.ALL_OK==='true';s.workflowRun=process.env.GITHUB_RUN_ID||null;fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n')"
@@ -77,8 +80,8 @@ jobs:
           if [ -n "$sha" ]; then args+=(-f sha="$sha"); fi
           gh api "${args[@]}" >/dev/null
 
-      - name: Fail when GA4 is not active
+      - name: Fail when GA4 tag is not live
         if: steps.verify.outputs.all_ok != 'true'
         run: |
-          echo 'LEVEL UP GA4 is not active on every production base URL.' >&2
+          echo 'LEVEL UP GA4 tag G-7754RC4QGC is not live on every production base URL.' >&2
           exit 1
