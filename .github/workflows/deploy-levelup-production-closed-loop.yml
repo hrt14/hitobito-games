@@ -42,6 +42,11 @@ jobs:
       - name: Install Functions dependencies
         run: npm install --prefix functions
 
+      - name: Deploy Firestore rules directly via Firebase Admin SDK
+        run: |
+          set -o pipefail
+          node functions/deploy-firestore-rules.mjs 2>&1 | tee /tmp/firestore-rules-direct.log
+
       - name: Prepare current LEVEL UP game sources for mobile
         run: node scripts/prepare-firebase-mobile.mjs
 
@@ -101,8 +106,18 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save --ignore-scripts puppeteer-core@24.16.0
-          node scripts/verify-levelup-feedback-browser.mjs 2>&1 | tee /tmp/feedback-browser-smoke.log
-          grep -F 'REAL FEEDBACK WRITE VERIFIED IN BROWSER' /tmp/feedback-browser-smoke.log >/dev/null
+          : > /tmp/feedback-browser-smoke.log
+          for attempt in $(seq 1 18); do
+            echo "Browser feedback write attempt $attempt/18" | tee -a /tmp/feedback-browser-smoke.log
+            if node scripts/verify-levelup-feedback-browser.mjs 2>&1 | tee -a /tmp/feedback-browser-smoke.log; then
+              if grep -F 'REAL FEEDBACK WRITE VERIFIED IN BROWSER' /tmp/feedback-browser-smoke.log >/dev/null; then
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "Production browser feedback write did not succeed after rules propagation retries." | tee -a /tmp/feedback-browser-smoke.log
+          exit 1
 
       - name: Deploy Cloud Functions when IAM allows it
         id: functions_deploy
@@ -145,6 +160,7 @@ jobs:
             echo
             if [ "$JOB_STATUS" = "success" ]; then
               echo "Verified production conditions:"
+              echo "- Firestore security rules were released directly through Firebase Admin SDK"
               echo "- exact commit SHA is live on hitobito-levelup.web.app"
               echo "- exact commit SHA is live on levelup.hitobito.jp"
               echo "- top page and kokkara-best both contain the shared hamburger navigation"
@@ -157,6 +173,11 @@ jobs:
               fi
             else
               echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
+              echo
+              echo "### Direct Firestore rules release log"
+              echo '```text'
+              if [ -f /tmp/firestore-rules-direct.log ]; then tail -n 160 /tmp/firestore-rules-direct.log; else echo '(not available)'; fi
+              echo '```'
               echo
               echo "### Browser feedback write smoke log"
               echo '```text'
