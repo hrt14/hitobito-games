@@ -19,6 +19,7 @@ const feedbackTypes = {
   bug: 'バグ',
   idea: 'アイデア',
 };
+const feedbackTypeSet = new Set(Object.keys(feedbackTypes));
 
 async function github(path, options = {}) {
   const response = await fetch(`${apiBase}${path}`, {
@@ -90,6 +91,106 @@ function bodyFor(id, data) {
 `このIssueはLEVEL UPの「改善要望」ボタンから自動生成されました。ChappyはこのIssueを改善候補として読めます。\n`;
 }
 
+function validSessionFeedback(raw, docs) {
+  if (!raw || raw.v !== 1) return null;
+  const type = String(raw.type || '');
+  const message = String(raw.message || '').trim();
+  const appSlug = String(raw.appSlug || '');
+  const appTitle = String(raw.appTitle || '').trim();
+  const pageTitle = String(raw.pageTitle || '').trim();
+  const pagePath = String(raw.pagePath || '');
+  const screenLabel = String(raw.screenLabel || '').trim();
+  const buildSha = String(raw.buildSha || '');
+  const viewport = String(raw.viewport || '');
+  if (!feedbackTypeSet.has(type)) return null;
+  if (message.length < 2 || message.length > 800) return null;
+  if (!/^(home|[a-z0-9-]{1,64})$/.test(appSlug)) return null;
+  if (!appTitle || appTitle.length > 100) return null;
+  if (!pageTitle || pageTitle.length > 120) return null;
+  if (!pagePath.startsWith('/') || pagePath.length > 300) return null;
+  if (screenLabel.length > 120) return null;
+  if (!/^(local|[a-f0-9]{4,12})$/.test(buildSha)) return null;
+  if (!/^\d{2,5}x\d{2,5}$/.test(viewport)) return null;
+  if (docs.some((doc) => doc.data()?.slug !== appSlug || doc.data()?.buildSha !== buildSha)) return null;
+  return { type, message, appSlug, appTitle, pageTitle, pagePath, screenLabel, buildSha, viewport };
+}
+
+async function markSessionGroup(docs, batchId, state) {
+  const batch = db.batch();
+  for (const doc of docs) {
+    batch.update(doc.ref, {
+      status: 'completed',
+      lastStep: `feedback-${state}:${batchId}`.slice(0, 60),
+      lastSeenAt: FieldValue.serverTimestamp(),
+    });
+  }
+  await batch.commit();
+}
+
+async function syncSessionFallbacks() {
+  const lower = 'feedback-v1:';
+  const upper = 'feedback-v1;';
+  const snap = await db.collection('levelupSessions')
+    .where('lastStep', '>=', lower)
+    .where('lastStep', '<', upper)
+    .limit(300)
+    .get();
+  const groups = new Map();
+  for (const doc of snap.docs) {
+    const step = String(doc.data()?.lastStep || '');
+    const match = /^feedback-v1:([a-z0-9]{8,24}):(\d{2})\/(\d{2})$/.exec(step);
+    if (!match) continue;
+    const [, batchId, indexText, totalText] = match;
+    const index = Number(indexText);
+    const total = Number(totalText);
+    if (index < 1 || total < 1 || total > 99 || index > total) continue;
+    const group = groups.get(batchId) || { total, parts: new Map(), docs: [] };
+    if (group.total !== total) group.invalid = true;
+    group.parts.set(index, String(doc.data()?.lastAction || ''));
+    group.docs.push(doc);
+    groups.set(batchId, group);
+  }
+
+  for (const [batchId, group] of groups) {
+    if (group.invalid || group.parts.size !== group.total) continue;
+    let complete = true;
+    const chunks = [];
+    for (let i = 1; i <= group.total; i += 1) {
+      if (!group.parts.has(i)) { complete = false; break; }
+      chunks.push(group.parts.get(i));
+    }
+    if (!complete) continue;
+
+    let raw;
+    try { raw = JSON.parse(chunks.join('')); } catch { raw = null; }
+    const payload = validSessionFeedback(raw, group.docs);
+    if (!payload) {
+      console.warn(`Invalid session feedback batch ${batchId}; quarantining ${group.docs.length} chunks.`);
+      if (!dryRun) await markSessionGroup(group.docs, batchId, 'invalid');
+      continue;
+    }
+
+    const feedbackRef = db.collection('levelupFeedback').doc(`session-${batchId}`);
+    const exists = await feedbackRef.get();
+    if (!exists.exists && !dryRun) {
+      const createdAt = group.docs
+        .map((doc) => doc.data()?.startedAt)
+        .filter(Boolean)
+        .sort((a, b) => (a?.toMillis?.() || 0) - (b?.toMillis?.() || 0))[0] || FieldValue.serverTimestamp();
+      await feedbackRef.set({
+        schemaVersion: 1,
+        source: 'levelup-feedback-session-fallback',
+        ...payload,
+        status: 'new',
+        syncStatus: 'pending',
+        createdAt,
+      });
+    }
+    if (!dryRun) await markSessionGroup(group.docs, batchId, 'done');
+    console.log(`Recovered session feedback ${batchId}: ${oneLine(payload.message, 90)}`);
+  }
+}
+
 async function findExistingIssue(feedbackId) {
   const q = encodeURIComponent(`repo:${repo} in:body "levelup-feedback-id:${feedbackId}"`);
   const result = await github(`/search/issues?q=${q}&per_page=5`);
@@ -149,6 +250,7 @@ async function syncClosed() {
   }
 }
 
+await syncSessionFallbacks();
 const label = await ensureLabel();
 await syncPending(label);
 await syncClosed();
