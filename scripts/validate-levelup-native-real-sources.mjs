@@ -49,6 +49,12 @@ const apps = {
   'kanji-warukatta': {
     scripts: [], files: [], refs: ['FAST RELIEF', 'data-after='], checkViewport: false,
   },
+  'fail-forward': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: ['id="ending"'],
+  },
+  'dont-change-people': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: ['id="retryBtn"'], checkViewport: false,
+  },
 };
 
 const errors = [];
