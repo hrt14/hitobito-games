@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "last-gate-defense",
+  "funStatement": "3本の進路を見比べ、いちばん危険な列へ重い一撃を撃ち込む判断と、ぎりぎりで城門を守り切る瞬間が気持ちいい防衛ゲーム。",
+  "coreLoop": [
+    "3本の進路に迫る敵の種類と距離を見る",
+    "どの列へ主砲を撃つかを数秒で決める",
+    "主砲と緊急スキルを使って危険な敵を止める",
+    "撃ち漏らしと被害を見て次の優先列を変える",
+    "波の合間に次の戦い方を変える強化を1つ選ぶ"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "高威力の主砲を今の小集団に使って安全を取るか、数秒待って危険な大集団へ温存するか。さらに強化では火力・連射・耐久の全部を同時には伸ばせない。",
+    "consequence": "撃つ列と強化の組み合わせで、次の波に残る敵数、城門の耐久、主砲の回転率が変わり、その後の優先順位も変化する。"
+  },
+  "highestMoment": "城門直前まで3列に敵が詰まり、主砲で中央を止めた直後に油壺で左右もまとめて焼き、耐久1桁で波をしのぐ5秒。",
+  "oneMoreRunReason": "失敗時に『どの列へ早く撃ちすぎたか』『火力と耐久のどちらを伸ばすべきだったか』が分かり、別の強化構成をすぐ試せる。",
+  "playtest": {
+    "method": "real browser playtest pending implementation",
+    "first10Seconds": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
+    "first30Seconds": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
+    "threeMinutes": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
+    "tenMinutes": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
+    "retryDesire": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
+    "noReward": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"}
+  },
+  "scores": {
+    "first10Seconds": 0,
+    "coreLoop": 0,
+    "inputFeel": 0,
+    "decisionQuality": 0,
+    "masteryDepth": 0,
+    "surpriseVariation": 0,
+    "riskReward": 0,
+    "pacing": 0,
+    "retryDesire": 0,
+    "uniqueness": 0
+  },
+  "scoreEvidence": {
+    "first10Seconds": "ブラウザ試遊後に記録する。",
+    "coreLoop": "ブラウザ試遊後に記録する。",
+    "inputFeel": "ブラウザ試遊後に記録する。",
+    "decisionQuality": "ブラウザ試遊後に記録する。",
+    "masteryDepth": "ブラウザ試遊後に記録する。",
+    "surpriseVariation": "ブラウザ試遊後に記録する。",
+    "riskReward": "ブラウザ試遊後に記録する。",
+    "pacing": "ブラウザ試遊後に記録する。",
+    "retryDesire": "ブラウザ試遊後に記録する。",
+    "uniqueness": "ブラウザ試遊後に記録する。"
+  },
+  "verifiedAt": "2026-08-22T02:23:00+09:00"
+}
