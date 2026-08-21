@@ -1,5 +1,17 @@
 {
-  "verifiedAt": "2026-08-21T10:10:36.979Z",
+  "verifiedAt": "2026-08-21T10:16:14.724Z",
   "active": false,
-  "bases": {}
+  "bases": {
+    "https://hitobito-levelup.web.app": {
+      "tagInjected": true,
+      "measurementIdAvailable": false,
+      "measurementId": null
+    },
+    "https://levelup.hitobito.jp": {
+      "tagInjected": true,
+      "measurementIdAvailable": false,
+      "measurementId": null
+    }
+  },
+  "workflowRun": "32471599801"
 }
