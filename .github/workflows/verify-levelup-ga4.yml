@@ -26,14 +26,7 @@ jobs:
         id: verify
         run: |
           set -euo pipefail
-          node - <<'NODE'
-          const fs = require('fs');
-          fs.writeFileSync('/tmp/ga4-status.json', JSON.stringify({
-            verifiedAt: new Date().toISOString(),
-            active: false,
-            bases: {},
-          }, null, 2) + '\n');
-          NODE
+          node -e "const fs=require('fs');fs.writeFileSync('/tmp/ga4-status.json',JSON.stringify({verifiedAt:new Date().toISOString(),active:false,bases:{}},null,2)+'\n')"
 
           all_ok=true
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
@@ -64,26 +57,10 @@ jobs:
               all_ok=false
             fi
 
-            BASE="$base" TAG_OK="$tag_ok" MEASUREMENT_OK="$measurement_ok" MEASUREMENT_ID="$measurement_id" node - <<'NODE'
-            const fs = require('fs');
-            const status = JSON.parse(fs.readFileSync('/tmp/ga4-status.json', 'utf8'));
-            status.bases[process.env.BASE] = {
-              tagInjected: process.env.TAG_OK === 'true',
-              measurementIdAvailable: process.env.MEASUREMENT_OK === 'true',
-              measurementId: process.env.MEASUREMENT_OK === 'true' ? process.env.MEASUREMENT_ID : null,
-            };
-            fs.writeFileSync('/tmp/ga4-status.json', JSON.stringify(status, null, 2) + '\n');
-            NODE
+            BASE="$base" TAG_OK="$tag_ok" MEASUREMENT_OK="$measurement_ok" MEASUREMENT_ID="$measurement_id" node -e "const fs=require('fs');const p='/tmp/ga4-status.json';const s=JSON.parse(fs.readFileSync(p,'utf8'));s.bases[process.env.BASE]={tagInjected:process.env.TAG_OK==='true',measurementIdAvailable:process.env.MEASUREMENT_OK==='true',measurementId:process.env.MEASUREMENT_OK==='true'?process.env.MEASUREMENT_ID:null};fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n')"
           done
 
-          ALL_OK="$all_ok" node - <<'NODE'
-          const fs = require('fs');
-          const status = JSON.parse(fs.readFileSync('/tmp/ga4-status.json', 'utf8'));
-          status.verifiedAt = new Date().toISOString();
-          status.active = process.env.ALL_OK === 'true';
-          status.workflowRun = process.env.GITHUB_RUN_ID || null;
-          fs.writeFileSync('/tmp/ga4-status.json', JSON.stringify(status, null, 2) + '\n');
-          NODE
+          ALL_OK="$all_ok" node -e "const fs=require('fs');const p='/tmp/ga4-status.json';const s=JSON.parse(fs.readFileSync(p,'utf8'));s.verifiedAt=new Date().toISOString();s.active=process.env.ALL_OK==='true';s.workflowRun=process.env.GITHUB_RUN_ID||null;fs.writeFileSync(p,JSON.stringify(s,null,2)+'\n')"
 
           cat /tmp/ga4-status.json
           echo "all_ok=$all_ok" >> "$GITHUB_OUTPUT"
