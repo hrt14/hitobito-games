@@ -1,0 +1,55 @@
+name: PLAY FUN Gate
+
+on:
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'docs/PLAY_FUN_FIRST.md'
+      - 'docs/FUN_REPORT_TEMPLATE.json'
+      - 'scripts/validate-play-fun-gate.mjs'
+      - 'AGENTS.md'
+      - 'apps/AGENTS.md'
+      - 'GAME_QUALITY.md'
+      - '.github/workflows/play-fun-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'docs/PLAY_FUN_FIRST.md'
+      - 'docs/FUN_REPORT_TEMPLATE.json'
+      - 'scripts/validate-play-fun-gate.mjs'
+      - 'AGENTS.md'
+      - 'apps/AGENTS.md'
+      - 'GAME_QUALITY.md'
+      - '.github/workflows/play-fun-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fun-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate PLAY gameplay changes on pull request
+        if: github.event_name == 'pull_request'
+        run: >-
+          node scripts/validate-play-fun-gate.mjs
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
+
+      - name: Validate PLAY gameplay changes on main push
+        if: github.event_name == 'push'
+        run: >-
+          node scripts/validate-play-fun-gate.mjs
+          --base "${{ github.event.before }}"
+          --head "${{ github.sha }}"
