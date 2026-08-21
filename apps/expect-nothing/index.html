@@ -2,11 +2,12 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#08111f">
   <meta name="description" content="LEVEL UP『期待しない』— 人への期待を、自分でできる行動へ戻す反射ゲーム。">
   <title>期待しない | LEVEL UP</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./real-life.css">
 </head>
 <body>
   <main class="app" id="app">
@@ -78,6 +79,7 @@
       </div>
       <div class="skill-grid" id="skillGrid"></div>
       <div class="final-mantra"><span>次に腹が立ったら</span><b>「俺はいま、何を期待してた？」</b></div>
+      <button class="expect-real-launch" id="realExpectationButton" type="button">今の期待を1件、自分側に戻す →</button>
       <div class="report-actions">
         <button class="primary-btn" id="retryBtn" type="button"><span>RETRY</span><b>もう一度鍛える</b></button>
         <button class="secondary-btn" id="shareBtn" type="button">結果をコピー</button>
@@ -98,6 +100,49 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
+
+  <div class="expect-real-modal" id="realExpectationModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="realExpectationTitle">
+    <div class="expect-real-card">
+      <div class="expect-real-top">
+        <div><span class="expect-real-kicker">REAL LIFE / RETURN CONTROL</span><h3 id="realExpectationTitle">いまの「〜してくれるはず」を<br>自分側に戻す。</h3></div>
+        <button class="expect-real-close" id="realExpectationClose" type="button" aria-label="閉じる">×</button>
+      </div>
+
+      <section id="realExpectationClassify">
+        <label class="expect-real-field"><span>いま相手に期待していること</span><textarea id="realExpectationText" maxlength="160" placeholder="例：今日中に返事をくれるはず。これくらい察してくれるはず。"></textarea></label>
+        <div class="expect-real-meter"><div><span>いまの期待の引っかかり</span><strong><b id="realExpectationBeforeValue">7</b>/10</strong></div><input id="realExpectationBefore" type="range" min="0" max="10" value="7"></div>
+        <button class="expect-real-primary" id="realExpectationNext" type="button" disabled>どの期待か仕分ける</button>
+        <div class="expect-real-patterns" aria-label="期待の型">
+          <button type="button" data-expect-trap="mindread"><small>MIND READ</small>察してくれるはず</button>
+          <button type="button" data-expect-trap="normal"><small>NORMAL</small>普通はこうするはず</button>
+          <button type="button" data-expect-trap="assume"><small>ASSUME</small>やってある・返ってくるはず</button>
+          <button type="button" data-expect-trap="result"><small>RESULT</small>評価・賛成・反応があるはず</button>
+          <button type="button" data-expect-trap="return"><small>RETURN</small>これだけしたから返してくれるはず</button>
+        </div>
+      </section>
+
+      <section id="realExpectationActionStep" hidden>
+        <div class="expect-real-cut">
+          <div><small>今回の型</small><strong id="realExpectationPatternLabel"></strong></div>
+          <div><small>相手側へ返す</small><strong id="realExpectationRelease"></strong></div>
+          <div><small>自分側に残す</small><strong id="realExpectationKeep"></strong></div>
+        </div>
+        <label class="expect-real-field"><span id="realExpectationPrompt">自分側でできる一手は？</span><textarea id="realExpectationAction" maxlength="180"></textarea></label>
+        <div class="expect-real-meter"><div><span>自分側に戻した後の引っかかり</span><strong><b id="realExpectationAfterValue">7</b>/10</strong></div><input id="realExpectationAfter" type="range" min="0" max="10" value="7"></div>
+        <small>下がっていなくてもOK。相手を変えずに動ける形になったかを見る。</small>
+        <button class="expect-real-primary" id="realExpectationFinish" type="button">Before / Afterを見る</button>
+      </section>
+
+      <section class="expect-real-done" id="realExpectationDone" hidden>
+        <h4 id="realExpectationDoneTitle">期待を、自分の一手に戻せた。</h4>
+        <div class="expect-real-summary" id="realExpectationDoneSummary"></div>
+        <div class="expect-real-history" id="realExpectationHistory" hidden></div>
+        <button class="expect-real-secondary" id="realExpectationAgain" type="button">別の期待でもう1件</button>
+      </section>
+    </div>
+  </div>
+
   <script src="./game.js"></script>
+  <script src="./real-life.js"></script>
 </body>
 </html>

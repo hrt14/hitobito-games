@@ -2,11 +2,12 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
 <meta name="description" content="仕事を抱え込まず、自分・人・AI・上司・外注へ振り分ける反射を鍛えるLEVEL UPゲーム『助けて』。">
 <title>助けて | LEVEL UP / hitobito games</title>
 <link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./real-delegation.css">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -113,6 +114,7 @@
     </div>
     <div class="result-grid" id="resultGrid"></div>
     <div class="lesson" id="lessonBox"></div>
+    <button class="real-delegate-launch" id="realDelegateButton" type="button">実際の仕事を1つ振る →</button>
     <div class="result-actions">
       <button id="retryButton" type="button">もう一度やる</button>
       <button class="ghost" id="shareButton" type="button">結果をコピー</button>
@@ -120,7 +122,50 @@
   </div>
 </div>
 
+<div class="real-delegate-modal" id="realDelegateModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="realDelegateTitle">
+  <div class="real-delegate-card">
+    <div class="real-delegate-top">
+      <div><span class="real-delegate-kicker">REAL WORK / DELEGATE ONE</span><h3 id="realDelegateTitle">いま抱えている仕事を<br>1件だけ外へ出す。</h3></div>
+      <button class="real-delegate-close" id="realDelegateClose" type="button" aria-label="閉じる">×</button>
+    </div>
+
+    <section id="realDelegateTypeStep">
+      <label class="real-delegate-field"><span>いま自分が抱えている仕事</span><textarea id="realTaskText" maxlength="160" placeholder="例：明日の会議資料を全部自分で仕上げようとしている。"></textarea></label>
+      <label class="real-delegate-field"><span>期限・タイミング（任意）</span><input id="realDeadline" type="text" maxlength="60" placeholder="例：明日10時"></label>
+      <div class="real-delegate-meter"><div><span>いまの抱え込み感</span><strong><b id="realBeforeValue">7</b>/10</strong></div><input id="realBeforeRange" type="range" min="0" max="10" value="7"></div>
+      <button class="real-delegate-primary" id="realClassifyButton" type="button" disabled>この仕事の「任せどころ」を見る</button>
+      <div class="real-delegate-types" id="realDelegateTypeGrid" aria-label="仕事の性質">
+        <button type="button" data-real-type="judgment"><small>JUDGMENT</small>最終判断は自分。でも下ごしらえは任せられる</button>
+        <button type="button" data-real-type="draft"><small>DRAFT</small>まず、たたき台があれば進む</button>
+        <button type="button" data-real-type="repeat"><small>REPEAT</small>反復・定型。自分でなくても回せる</button>
+        <button type="button" data-real-type="expertise"><small>EXPERTISE</small>自分より得意な人がいる</button>
+        <button type="button" data-real-type="priority"><small>PRIORITY</small>自分では優先順位を決められない</button>
+      </div>
+    </section>
+
+    <section id="realDelegatePlanStep" hidden>
+      <div class="real-delegate-plan">
+        <div><small>渡す先</small><strong id="realDelegateTarget"></strong></div>
+        <div><small>自分に残すもの</small><strong id="realDelegateKeep"></strong></div>
+      </div>
+      <label class="real-delegate-field"><span>そのまま送れる依頼文</span><textarea id="realDelegateAsk" maxlength="220"></textarea></label>
+      <div class="real-delegate-meter"><div><span>渡し方を決めた後の抱え込み感</span><strong><b id="realDelegateAfterValue">7</b>/10</strong></div><input id="realDelegateAfterRange" type="range" min="0" max="10" value="7"></div>
+      <small>下がっていなくてもOK。実際の感覚をそのまま。</small>
+      <button class="real-delegate-primary" id="realDelegateFinish" type="button">Before / Afterを見る</button>
+    </section>
+
+    <section class="real-delegate-done" id="realDelegateDone" hidden>
+      <h4 id="realDelegateDoneTitle">抱え込みを、外へ動かせた。</h4>
+      <div class="real-delegate-summary" id="realDelegateSummary"></div>
+      <div class="real-delegate-history" id="realDelegateHistory" hidden></div>
+      <button class="real-delegate-primary" id="realDelegateCopy" type="button">依頼文をコピー</button>
+      <button class="real-delegate-secondary" id="realDelegateAgain" type="button">別の仕事でもう1件</button>
+    </section>
+  </div>
+</div>
+
 <div class="toast" id="toast" aria-live="polite"></div>
 <script src="./game.js"></script>
+<script src="./real-delegation.js"></script>
 </body>
 </html>
