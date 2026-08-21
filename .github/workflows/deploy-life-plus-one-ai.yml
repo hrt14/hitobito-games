@@ -1,4 +1,4 @@
-name: Deploy LIFE +1 AI Function
+name: Deploy LEVEL UP Functions
 
 on:
   workflow_dispatch:
@@ -36,5 +36,5 @@ jobs:
       - name: Install function dependencies
         run: npm install --prefix functions
 
-      - name: Deploy LIFE +1 AI
-        run: npx --yes firebase-tools@latest deploy --only functions:analyzeLifePlusOne --project hitobito-levelup --non-interactive
+      - name: Deploy LEVEL UP functions
+        run: npx --yes firebase-tools@latest deploy --only functions:analyzeLifePlusOne,functions:submitLevelupFeedback --project hitobito-levelup --non-interactive
