@@ -17,9 +17,40 @@ const ga4Bootstrap = `
   if (window.__LEVELUP_GA4_BOOTSTRAPPED__) return;
   window.__LEVELUP_GA4_BOOTSTRAPPED__ = true;
 
+  const fallbackMeasurementId = 'G-7754RC4QGC';
   const pathname = window.location.pathname || '/';
   const cleanLocation = window.location.origin + pathname;
   const appMatch = pathname.match(/^\\/apps\\/([a-z0-9-]{1,64})(?:\\/|$)/);
+
+  function start(measurementId) {
+    if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
+      console.info('[LEVEL UP GA4] measurementId is unavailable.');
+      return;
+    }
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
+
+    const tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+    document.head.appendChild(tag);
+
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId, {
+      page_location: cleanLocation,
+      page_path: pathname,
+      page_title: document.title,
+    });
+
+    if (appMatch) {
+      window.gtag('event', 'levelup_app_open', {
+        app_slug: appMatch[1],
+      });
+    } else if (pathname === '/' || pathname === '/index.html') {
+      window.gtag('event', 'levelup_home_view');
+    }
+  }
 
   fetch('/__/firebase/init.json', {
     cache: 'no-store',
@@ -30,36 +61,13 @@ const ga4Bootstrap = `
       return response.json();
     })
     .then((config) => {
-      const measurementId = String(config && config.measurementId || '').trim();
-      if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
-        console.info('[LEVEL UP GA4] measurementId is unavailable. Enable Google Analytics for the Firebase web app.');
-        return;
-      }
-
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
-
-      const tag = document.createElement('script');
-      tag.async = true;
-      tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
-      document.head.appendChild(tag);
-
-      window.gtag('js', new Date());
-      window.gtag('config', measurementId, {
-        page_location: cleanLocation,
-        page_path: pathname,
-        page_title: document.title,
-      });
-
-      if (appMatch) {
-        window.gtag('event', 'levelup_app_open', {
-          app_slug: appMatch[1],
-        });
-      } else if (pathname === '/' || pathname === '/index.html') {
-        window.gtag('event', 'levelup_home_view');
-      }
+      const runtimeMeasurementId = String(config && config.measurementId || '').trim();
+      start(/^G-[A-Z0-9]+$/i.test(runtimeMeasurementId) ? runtimeMeasurementId : fallbackMeasurementId);
     })
-    .catch((error) => console.warn('[LEVEL UP GA4] bootstrap failed', error));
+    .catch((error) => {
+      console.warn('[LEVEL UP GA4] runtime config unavailable; using configured measurement ID.', error);
+      start(fallbackMeasurementId);
+    });
 })();
 </script>`;
 
