@@ -6,16 +6,24 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const apps = {
   'help-me': {
-    scripts: ['real-delegation.js'],
+    scripts: ['real-delegation.js'], files: ['real-delegation.css'],
     refs: ['./real-delegation.css', './real-delegation.js', 'id="realDelegateModal"', 'id="realDelegateButton"'],
   },
   'expect-nothing': {
-    scripts: ['real-life.js'],
+    scripts: ['real-life.js'], files: ['real-life.css'],
     refs: ['./real-life.css', './real-life.js', 'id="realExpectationModal"', 'id="realExpectationButton"'],
   },
   'suteru-yuki': {
-    scripts: ['real-life.js'],
-    refs: ['./real-life.css', './real-life.js'],
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: ['./real-life.css', './real-life.js'],
+  },
+  'jinsei-title': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [],
+  },
+  'arigatou-sagashi': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [],
+  },
+  'main-character': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
   },
 };
 
@@ -25,8 +33,11 @@ for (const [slug, cfg] of Object.entries(apps)) {
   const indexPath = path.join(dir, 'index.html');
   if (!fs.existsSync(indexPath)) { errors.push(`${slug}: index.html missing`); continue; }
   const html = fs.readFileSync(indexPath, 'utf8');
-  for (const ref of cfg.refs) if (!html.includes(ref)) errors.push(`${slug}: missing ${ref}`);
-  if (/user-scalable\s*=\s*no/i.test(html) || /maximum-scale\s*=\s*1/i.test(html)) errors.push(`${slug}: zoom-blocking viewport`);
+  for (const ref of cfg.refs || []) if (!html.includes(ref)) errors.push(`${slug}: missing ${ref}`);
+  if (cfg.checkViewport !== false && (/user-scalable\s*=\s*no/i.test(html) || /maximum-scale\s*=\s*1/i.test(html))) errors.push(`${slug}: zoom-blocking viewport`);
+  for (const fileName of cfg.files || []) {
+    if (!fs.existsSync(path.join(dir, fileName))) errors.push(`${slug}: ${fileName} missing`);
+  }
   for (const script of cfg.scripts) {
     const file = path.join(dir, script);
     if (!fs.existsSync(file)) { errors.push(`${slug}: ${script} missing`); continue; }
