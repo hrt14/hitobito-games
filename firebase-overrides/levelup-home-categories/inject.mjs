@@ -52,6 +52,7 @@ if (!html.includes('id="levelup-home-categories-style"')) {
   #levelup-search-input{font-weight:800!important}
 
   .lu-categories{margin:30px 0 12px;color:#111}
+  .lu-categories[hidden]{display:none!important}
   .lu-categories-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:14px}
   .lu-categories-head span{display:block;margin-bottom:7px;color:#77766f;font-size:9px;font-weight:950;letter-spacing:.19em}
   .lu-categories-head h2{margin:0;color:#111;font-size:28px;line-height:1;font-weight:950;letter-spacing:-.045em}
@@ -65,6 +66,8 @@ if (!html.includes('id="levelup-home-categories-style"')) {
   .lu-category-copy{display:block;padding-right:26px}.lu-category-copy strong{display:block;color:#fff;font-size:22px;line-height:1.08;font-weight:950;letter-spacing:-.04em}.lu-category-copy small{display:block;margin-top:7px;color:rgba(255,255,255,.70);font-size:11px;line-height:1.5;font-weight:750}
   .lu-category-arrow{position:absolute;right:17px;top:16px;color:#fff;font-size:24px;font-weight:700}
   .lu-category-card.is-selected{outline:4px solid #ff4e42;outline-offset:3px}
+  section.is-search-results{margin-top:18px!important}
+  section.is-search-results .catalog-divider[hidden]{display:none!important}
 
   @media(max-width:800px){.lu-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:650px){
@@ -72,6 +75,7 @@ if (!html.includes('id="levelup-home-categories-style"')) {
     .levelup-search-copy h2{font-size:17px!important}.levelup-search-box{min-height:58px!important}#levelup-search-input{height:58px!important;font-size:17px!important}
     .lu-categories{margin:30px 0 4px}.lu-categories-head{align-items:center}.lu-categories-head h2{font-size:25px}.lu-category-grid{grid-template-columns:1fr 1fr;gap:9px}
     .lu-category-card{min-height:156px;padding:16px;border-radius:22px}.lu-category-mark{width:36px;height:36px;margin-bottom:20px;border-radius:12px;font-size:18px}.lu-category-copy{padding-right:10px}.lu-category-copy strong{font-size:18px}.lu-category-copy small{font-size:10px}.lu-category-arrow{right:14px;top:13px;font-size:21px}
+    section.is-search-results{margin-top:8px!important}
   }
   @media(max-width:360px){.lu-category-grid{grid-template-columns:1fr}.lu-category-card{min-height:136px}}
 </style>`;
@@ -85,7 +89,31 @@ if (!html.includes('id="levelup-home-categories-script"')) {
   const input=document.getElementById('levelup-search-input');
   const cards=[...document.querySelectorAll('[data-levelup-category-query]')];
   const all=document.getElementById('levelup-category-all');
+  const categories=document.getElementById('levelup-categories');
+  const grid=document.querySelector('.grid');
+  const trainingSection=grid?.closest('section')||null;
+  const trainingHead=trainingSection?.querySelector('.section-head')||null;
+  const trainingTitle=trainingHead?.querySelector('h2')||null;
+  const trainingCount=trainingHead?.querySelector('span')||null;
+  const originalTitle=trainingTitle?.textContent||'';
+  const originalCount=trainingCount?.textContent||'';
   if(!input||!cards.length)return;
+
+  const syncSearchView=()=>{
+    const searching=Boolean(input.value.trim());
+    if(categories){
+      categories.hidden=searching;
+      categories.setAttribute('aria-hidden',searching?'true':'false');
+    }
+    trainingSection?.classList.toggle('is-search-results',searching);
+    if(trainingTitle)trainingTitle.textContent=searching?'検索結果':originalTitle;
+    if(trainingCount){
+      const visible=grid?[...grid.querySelectorAll('.card')].filter(card=>!card.hidden).length:0;
+      trainingCount.textContent=searching?(visible+'件'):originalCount;
+    }
+    grid?.querySelectorAll('.catalog-divider').forEach(divider=>{divider.hidden=searching;});
+  };
+
   const run=(query,card)=>{
     input.value=query;
     input.dispatchEvent(new Event('input',{bubbles:true}));
@@ -99,7 +127,11 @@ if (!html.includes('id="levelup-home-categories-script"')) {
     cards.forEach(x=>x.classList.remove('is-selected'));
     document.getElementById('training-games')?.scrollIntoView({behavior:'smooth',block:'start'});
   });
-  input.addEventListener('input',()=>{if(!input.value.trim())cards.forEach(x=>x.classList.remove('is-selected'));});
+  input.addEventListener('input',()=>{
+    if(!input.value.trim())cards.forEach(x=>x.classList.remove('is-selected'));
+    syncSearchView();
+  });
+  syncSearchView();
 })();
 </script>`;
   html = html.replace('</body>', `${script}\n</body>`);
@@ -107,9 +139,9 @@ if (!html.includes('id="levelup-home-categories-script"')) {
 
 fs.writeFileSync(homePath, html);
 const out = fs.readFileSync(homePath, 'utf8');
-for (const required of ['id="levelup-search"','id="levelup-categories"','カテゴリから選ぶ','data-levelup-category-query="先延ばし"','id="levelup-home-categories-script"']) {
+for (const required of ['id="levelup-search"','id="levelup-categories"','カテゴリから選ぶ','data-levelup-category-query="先延ばし"','id="levelup-home-categories-script"','検索結果','categories.hidden=searching']) {
   if (!out.includes(required)) throw new Error(`LEVEL UP search/category injection missing: ${required}`);
 }
 if (out.includes('<section class="lu-v3" id="levelup-state-diagnosis-v3">')) throw new Error('Old LEVEL UP diagnosis section is still visible on top page.');
 if (!(out.indexOf('id="levelup-search"') < out.indexOf('id="levelup-categories"'))) throw new Error('LEVEL UP home must be search-first, then categories.');
-console.log('[Firebase] LEVEL UP home switched to search-first + category navigation.');
+console.log('[Firebase] LEVEL UP search replaces categories with live results while typing.');
