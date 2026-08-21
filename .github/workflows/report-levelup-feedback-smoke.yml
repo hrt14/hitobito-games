@@ -1,0 +1,47 @@
+name: Report LEVEL UP feedback smoke result
+
+on:
+  workflow_run:
+    workflows:
+      - Verify LEVEL UP feedback write
+    types:
+      - completed
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update feedback verification issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          title='LEVEL UP feedback production write verification'
+          issue=$(gh issue list --repo "$REPO" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          {
+            if [ "$RESULT" = "success" ]; then
+              echo 'Status: **success**'
+              echo
+              echo 'Verified: the production fallback code is live and an anonymous two-chunk feedback write was accepted by the current Firestore security rules.'
+            else
+              echo "Status: **${RESULT:-unknown}**"
+              echo
+              echo 'The real production feedback write smoke test did not pass. Do not report feedback as fixed.'
+            fi
+            echo
+            echo "Commit: \`$HEAD_SHA\`"
+            echo "Run: $RUN_URL"
+          } > /tmp/body.md
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --repo "$REPO" --body-file /tmp/body.md
+          else
+            gh issue create --repo "$REPO" --title "$title" --body-file /tmp/body.md
+          fi
