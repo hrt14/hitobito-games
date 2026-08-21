@@ -1,0 +1,92 @@
+name: Verify LEVEL UP embeddable diagnosis production
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy LEVEL UP production closed loop
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve target commit
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            target_sha="$GITHUB_SHA"
+            source_run="$GITHUB_RUN_ID"
+          else
+            target_sha="${{ github.event.workflow_run.head_sha }}"
+            source_run="${{ github.event.workflow_run.id }}"
+          fi
+          echo "TARGET_SHA=$target_sha" >> "$GITHUB_ENV"
+          echo "SOURCE_RUN=$source_run" >> "$GITHUB_ENV"
+
+      - name: Verify embeddable diagnosis is live on both production domains
+        id: live
+        run: |
+          set -euo pipefail
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            echo "Checking exact deployed SHA on $base"
+            curl -fLsS --max-time 30 "$base/deploy-meta.json?sha=$TARGET_SHA" -o /tmp/deploy-meta.json
+            node - "$base" "$TARGET_SHA" <<'NODE'
+          const fs = require('fs');
+          const base = process.argv[2];
+          const expected = process.argv[3];
+          const meta = JSON.parse(fs.readFileSync('/tmp/deploy-meta.json', 'utf8'));
+          if (meta.sha !== expected) {
+            throw new Error(`Production SHA mismatch on ${base}: expected ${expected}, got ${meta.sha}`);
+          }
+          console.log(`Exact production SHA verified on ${base}: ${meta.sha}`);
+          NODE
+
+            echo "Checking embeddable diagnosis on $base"
+            curl -fLsS --max-time 30 "$base/embed/diagnosis/?sha=$TARGET_SHA" -o /tmp/levelup-embed-diagnosis.html
+            grep -F 'data-levelup-embed-diagnosis-v1' /tmp/levelup-embed-diagnosis.html >/dev/null
+            grep -F '30秒LEVEL UP診断' /tmp/levelup-embed-diagnosis.html >/dev/null
+            grep -F 'diagnosis_widget' /tmp/levelup-embed-diagnosis.html >/dev/null
+            grep -F 'このLEVEL UPを始める' /tmp/levelup-embed-diagnosis.html >/dev/null
+            grep -F 'noindex,nofollow' /tmp/levelup-embed-diagnosis.html >/dev/null
+            echo "Embeddable diagnosis verified on $base"
+          done
+
+      - name: Update embeddable diagnosis production status issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          title='LEVEL UP embeddable diagnosis production status'
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          {
+            echo "Status: **$JOB_STATUS**"
+            echo
+            echo "Commit: \`$TARGET_SHA\`"
+            echo "Verification run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "Source deploy run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN"
+            echo
+            if [ "$JOB_STATUS" = "success" ]; then
+              echo "Verified production conditions:"
+              echo "- exact commit SHA is live on hitobito-levelup.web.app"
+              echo "- exact commit SHA is live on levelup.hitobito.jp"
+              echo "- /embed/diagnosis/ returns the embeddable diagnosis on both domains"
+              echo "- widget marker, diagnosis title, referral campaign marker, CTA, and noindex directive are present"
+            else
+              echo "The embeddable diagnosis is not yet production-verified. Do not report it as implementation-complete."
+            fi
+          } > /tmp/embed-production-status.md
+
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file /tmp/embed-production-status.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/embed-production-status.md
+          fi
