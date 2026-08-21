@@ -1,2 +1,2 @@
-Production deploy trigger: PLAY-HAMBURGER-LIVE-VERIFY-20260822-R1
-Reason: deploy and verify play.hitobito.jp hamburger navigation on the live custom domain
+Production deploy trigger: PLAY-HAMBURGER-LIVE-VERIFY-20260822-R2
+Reason: redeploy play.hitobito.jp after fixing the live hamburger verification command

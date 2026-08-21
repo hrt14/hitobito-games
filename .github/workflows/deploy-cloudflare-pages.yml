@@ -75,12 +75,13 @@ jobs:
           set -euo pipefail
           for ATTEMPT in $(seq 1 12); do
             BODY="$(curl -fsSL --max-time 15 "https://play.hitobito.jp/?_verify=${GITHUB_SHA}-${ATTEMPT}" || true)"
-            if printf '%s' "$BODY" | grep -q 'id="hitobito-play-nav"' \
-              && printf '%s' "$BODY" | grep -q 'https://levelup.hitobito.jp/' \
-              && printf '%s' "$BODY" | grep -q 'https://hitobito.jp/'; then
+            if [[ "$BODY" == *'id="hitobito-play-nav"'* ]] \
+              && [[ "$BODY" == *'https://levelup.hitobito.jp/'* ]] \
+              && [[ "$BODY" == *'https://hitobito.jp/'* ]]; then
               echo "Verified live Play hamburger navigation on attempt ${ATTEMPT}."
               exit 0
             fi
+            echo "Attempt ${ATTEMPT}: fetched ${#BODY} bytes; navigation not confirmed yet."
             sleep 5
           done
           echo "Play hamburger navigation was not visible on the live custom domain." >&2
