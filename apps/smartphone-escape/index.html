@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#08070c" />
+  <meta name="description" content="スマホの使い方を30秒でセルフチェック。自分の依存パターンを知り、今日の1手と7日間の脱出ミッションで、スマホに奪われる時間を減らすLEVEL UPアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>スマホ中毒脱出 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="top-status" id="topStatus">ESCAPE 0%</div>
+      <button class="mini-btn" id="recordBtn" type="button">記録</button>
+    </header>
+
+    <section class="screen active home-screen" id="homeScreen">
+      <div class="phone-stage" aria-hidden="true">
+        <div class="orbit orbit-a"></div>
+        <div class="orbit orbit-b"></div>
+        <div class="phone-shell">
+          <div class="phone-speaker"></div>
+          <div class="phone-feed">
+            <i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="phone-lock" id="phoneLock"><span>×</span></div>
+        </div>
+        <div class="chain chain-left"></div>
+        <div class="chain chain-right"></div>
+      </div>
+      <p class="eyebrow">7-DAY PHONE ESCAPE</p>
+      <h1>スマホ中毒<br><span>脱出</span></h1>
+      <p class="lead">意志で我慢する前に、<br><strong>ハマっている場所を1つずつ切る。</strong></p>
+      <button class="primary-btn" id="startDiagnosisBtn" type="button"><span>30秒診断をはじめる</span><b>→</b></button>
+      <button class="secondary-btn hidden" id="resumeBtn" type="button">7日ミッションを続ける</button>
+      <p class="microcopy">このチェックは医療上の診断ではありません。スマホとの距離を見直すためのセルフチェックです。</p>
+    </section>
+
+    <section class="screen diagnosis-screen" id="diagnosisScreen">
+      <div class="progress-head">
+        <span id="questionCount">1 / 6</span>
+        <div class="progress-track"><i id="questionBar"></i></div>
+      </div>
+      <div class="question-wrap">
+        <p class="eyebrow" id="questionKicker">MORNING</p>
+        <h2 id="questionText">朝、目が覚めたら？</h2>
+        <p class="question-note" id="questionNote">いちばん近いものをタップ。</p>
+      </div>
+      <div class="answer-list" id="answerList"></div>
+      <button class="text-btn" id="diagnosisBackBtn" type="button">← 1つ戻る</button>
+    </section>
+
+    <section class="screen numbers-screen" id="numbersScreen">
+      <p class="eyebrow">STEP 1 / SEE THE NUMBER</p>
+      <h2>昨日、スマホを<br>何時間見た？</h2>
+      <p class="section-copy">スクリーンタイムを開いて、実際の数字を入れる。まず現実を見える化する。</p>
+      <div class="time-inputs">
+        <label><span>時間</span><input id="screenHours" inputmode="numeric" type="number" min="0" max="23" value="4" /><b>h</b></label>
+        <label><span>分</span><input id="screenMinutes" inputmode="numeric" type="number" min="0" max="59" value="0" /><b>m</b></label>
+      </div>
+      <div class="estimate-row">
+        <span>減らしたい時間</span>
+        <div class="goal-pills" id="goalPills">
+          <button type="button" data-goal="30">30分</button>
+          <button type="button" data-goal="60" class="selected">1時間</button>
+          <button type="button" data-goal="120">2時間</button>
+        </div>
+      </div>
+      <button class="primary-btn" id="showResultBtn" type="button"><span>依存パターンを見る</span><b>→</b></button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <p class="eyebrow">YOUR ESCAPE MAP</p>
+      <div class="score-hero">
+        <div class="score-ring" id="scoreRing"><span><b id="overallScore">0</b><small>/100</small></span></div>
+        <div class="score-copy"><span>いま一番強いのは</span><h2 id="typeName">刺激依存</h2><p id="typeSummary">暇ができると反射で刺激を探しやすい。</p></div>
+      </div>
+      <div class="meters" id="meters"></div>
+      <div class="prescription-card">
+        <span>最初の処方</span>
+        <strong id="firstAction">暇になっても10秒だけ何もしない。</strong>
+        <small>全部変えない。今日はこれだけ。</small>
+      </div>
+      <button class="primary-btn" id="cutLoopBtn" type="button"><span>いま1本切る</span><b>⚡</b></button>
+      <button class="text-btn" id="resultRedoBtn" type="button">診断をやり直す</button>
+    </section>
+
+    <section class="screen cut-screen" id="cutScreen">
+      <p class="eyebrow">CUT ONE LOOP NOW</p>
+      <div class="cut-visual" aria-hidden="true"><div class="cut-phone">▦</div><div class="cut-line"></div><div class="cut-bolt">⚡</div></div>
+      <h2 id="cutTitle">10秒、退屈する。</h2>
+      <p class="section-copy" id="cutBody">スマホを触りたくなっても、10秒だけ何もしない。刺激を入れない時間を先に作る。</p>
+      <div class="cut-check" id="cutCheck"></div>
+      <button class="primary-btn" id="cutDoneBtn" type="button"><span id="cutDoneLabel">10秒できた</span><b>✓</b></button>
+      <div class="cut-success hidden" id="cutSuccess">
+        <span>LOOP BROKEN</span>
+        <strong>依存ループを1本切断。</strong>
+        <p>意志ではなく、仕組みを1つ変えた。</p>
+      </div>
+      <button class="secondary-btn hidden" id="startProgramBtn" type="button">7日間の脱出を始める →</button>
+    </section>
+
+    <section class="screen program-screen" id="programScreen">
+      <div class="program-head">
+        <div><p class="eyebrow">7-DAY ESCAPE</p><h2>今日の<br>脱出ミッション</h2></div>
+        <div class="day-badge"><span>DAY</span><b id="currentDayNumber">1</b></div>
+      </div>
+      <div class="week-strip" id="weekStrip" aria-label="7日間の進捗"></div>
+      <div class="mission-card" id="missionCard">
+        <div class="mission-icon" id="missionIcon">#</div>
+        <span class="mission-kicker" id="missionKicker">数字を見る</span>
+        <h3 id="missionTitle">現実を数字にする</h3>
+        <p id="missionBody">昨日のスクリーンタイムをもう一度見る。減らす前に、まず知る。</p>
+        <div class="mission-action" id="missionAction"></div>
+      </div>
+      <div class="program-actions">
+        <button class="primary-btn" id="completeMissionBtn" type="button"><span>今日のミッション完了</span><b>+1</b></button>
+        <button class="secondary-btn hidden" id="nextMissionBtn" type="button">次のDAYを見る →</button>
+      </div>
+      <p class="program-note">1日1つがおすすめ。先に進めてもOK。完了記録はこの端末に保存されます。</p>
+    </section>
+
+    <section class="screen final-screen" id="finalScreen">
+      <div class="final-burst" aria-hidden="true"><span>7</span></div>
+      <p class="eyebrow">ESCAPE COMPLETE</p>
+      <h2>スマホを減らすより、<br><strong>戻る場所を作った。</strong></h2>
+      <p class="section-copy">7日間で、距離・ベッド・一点集中・退屈・代わりの行動を1つずつ試した。最後にもう一度、同じ診断で変化を見る。</p>
+      <button class="primary-btn" id="recheckBtn" type="button"><span>再診断する</span><b>↻</b></button>
+      <button class="secondary-btn" id="keepModeBtn" type="button">維持モードを見る</button>
+    </section>
+
+    <section class="screen compare-screen" id="compareScreen">
+      <p class="eyebrow">BEFORE → NOW</p>
+      <h2>取り戻したものを<br>数字で見る。</h2>
+      <div class="compare-time">
+        <div><span>START</span><b id="beforeTime">—</b></div>
+        <i>→</i>
+        <div><span>NOW</span><b id="afterTime">—</b></div>
+      </div>
+      <div class="reclaimed-card"><span>1日あたり</span><strong id="reclaimedTime">0分</strong><small>スマホ以外へ戻せた時間</small></div>
+      <div class="compare-meters" id="compareMeters"></div>
+      <button class="primary-btn" id="shareResultBtn" type="button"><span>結果をシェア</span><b>↗</b></button>
+      <button class="secondary-btn" id="compareHomeBtn" type="button">タイトルへ戻る</button>
+    </section>
+
+    <section class="screen record-screen" id="recordScreen">
+      <p class="eyebrow">LOCAL RECORD</p>
+      <h2>脱出記録。</h2>
+      <div class="record-grid">
+        <div><span>完了DAY</span><b id="recordDays">0/7</b></div>
+        <div><span>初回時間</span><b id="recordBaseline">—</b></div>
+        <div><span>最新時間</span><b id="recordLatest">—</b></div>
+      </div>
+      <div class="record-focus"><span>スマホの代わりに戻る場所</span><strong id="recordFocus">まだ未設定</strong></div>
+      <button class="primary-btn" id="recordResumeBtn" type="button"><span>続きへ</span><b>→</b></button>
+      <button class="text-btn" id="recordBackBtn" type="button">戻る</button>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
