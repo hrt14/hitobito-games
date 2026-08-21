@@ -97,67 +97,12 @@ jobs:
             echo "Navigation + lowercase-ID feedback fallback verified in live HTML on $base"
           done
 
-      - name: Prove feedback fallback can actually write through production Firestore rules
+      - name: Prove feedback fallback can actually write from a production browser
         run: |
           set -euo pipefail
-          curl -fLsS --max-time 30 https://hitobito-levelup.web.app/__/firebase/init.json -o /tmp/firebase-init.json
-          api_key=$(node -e "const x=require('/tmp/firebase-init.json');process.stdout.write(x.apiKey||'')")
-          test -n "$api_key"
-          base="fbsmoke$(date +%s)"
-          id1="${base}01"
-          id2="${base}02"
-          build="${GITHUB_SHA:0:12}"
-          cat > /tmp/firestore-commit.json <<JSON
-          {
-            "writes": [
-              {
-                "update": {
-                  "name": "projects/hitobito-levelup/databases/(default)/documents/levelupSessions/${id1}",
-                  "fields": {
-                    "slug": {"stringValue": "home"},
-                    "buildSha": {"stringValue": "${build}"},
-                    "status": {"stringValue": "active"},
-                    "lastStep": {"stringValue": "feedback-smoke:01/02"},
-                    "lastAction": {"stringValue": "smoke-a"},
-                    "pageKind": {"stringValue": "home"},
-                    "durationSec": {"integerValue": "0"}
-                  }
-                },
-                "updateTransforms": [
-                  {"fieldPath": "startedAt", "setToServerValue": "REQUEST_TIME"},
-                  {"fieldPath": "lastSeenAt", "setToServerValue": "REQUEST_TIME"}
-                ]
-              },
-              {
-                "update": {
-                  "name": "projects/hitobito-levelup/databases/(default)/documents/levelupSessions/${id2}",
-                  "fields": {
-                    "slug": {"stringValue": "home"},
-                    "buildSha": {"stringValue": "${build}"},
-                    "status": {"stringValue": "active"},
-                    "lastStep": {"stringValue": "feedback-smoke:02/02"},
-                    "lastAction": {"stringValue": "smoke-b"},
-                    "pageKind": {"stringValue": "home"},
-                    "durationSec": {"integerValue": "0"}
-                  }
-                },
-                "updateTransforms": [
-                  {"fieldPath": "startedAt", "setToServerValue": "REQUEST_TIME"},
-                  {"fieldPath": "lastSeenAt", "setToServerValue": "REQUEST_TIME"}
-                ]
-              }
-            ]
-          }
-          JSON
-          code=$(curl -sS --max-time 30 -o /tmp/firestore-feedback-smoke.json -w '%{http_code}' \
-            -X POST \
-            -H 'Content-Type: application/json' \
-            --data-binary @/tmp/firestore-commit.json \
-            "https://firestore.googleapis.com/v1/projects/hitobito-levelup/databases/(default)/documents:commit?key=${api_key}")
-          cat /tmp/firestore-feedback-smoke.json
-          test "$code" = "200"
-          grep -F 'commitTime' /tmp/firestore-feedback-smoke.json >/dev/null
-          echo "REAL FEEDBACK WRITE VERIFIED: anonymous two-chunk write accepted by production Firestore rules."
+          npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+          node scripts/verify-levelup-feedback-browser.mjs 2>&1 | tee /tmp/feedback-browser-smoke.log
+          grep -F 'REAL FEEDBACK WRITE VERIFIED IN BROWSER' /tmp/feedback-browser-smoke.log >/dev/null
 
       - name: Deploy Cloud Functions when IAM allows it
         id: functions_deploy
@@ -204,7 +149,7 @@ jobs:
               echo "- exact commit SHA is live on levelup.hitobito.jp"
               echo "- top page and kokkara-best both contain the shared hamburger navigation"
               echo "- feedback session fallback is live with explicit lowercase Firestore document IDs"
-              echo "- real anonymous two-chunk feedback write was accepted by the production Firestore security rules"
+              echo "- a fresh production browser successfully wrote a two-chunk feedback-shaped batch through the Firebase Web SDK and current Firestore rules"
               if [ "$FUNCTIONS_OUTCOME" = "success" ]; then
                 echo "- submitLevelupFeedback Function deployed and passed its health check"
               else
@@ -213,9 +158,9 @@ jobs:
             else
               echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
               echo
-              echo "### Feedback write smoke response"
+              echo "### Browser feedback write smoke log"
               echo '```text'
-              if [ -f /tmp/firestore-feedback-smoke.json ]; then cat /tmp/firestore-feedback-smoke.json; else echo '(not available)'; fi
+              if [ -f /tmp/feedback-browser-smoke.log ]; then tail -n 160 /tmp/feedback-browser-smoke.log; else echo '(not available)'; fi
               echo '```'
               echo
               echo "### Hosting deploy log tail"
