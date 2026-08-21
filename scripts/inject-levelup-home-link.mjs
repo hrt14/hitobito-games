@@ -34,6 +34,7 @@ const snippet = `
   </button>
   <nav id="levelup-nav-menu" aria-label="LEVEL UPメニュー">
     <a class="levelup-nav-item" href="https://levelup.hitobito.jp/"><span class="levelup-nav-icon">⌂</span><span>LEVEL UP ホーム</span></a>
+    <a class="levelup-nav-item" href="https://play.hitobito.jp/"><span class="levelup-nav-icon">▶</span><span>ゲームで遊ぶ</span></a>
     <button class="levelup-nav-item" id="levelup-nav-account" type="button"><span class="levelup-nav-icon">♥</span><span>お気に入り・履歴</span></button>
     <div class="levelup-nav-sep"></div>
     <button class="levelup-nav-item" id="levelup-nav-feedback" type="button"><span class="levelup-nav-icon">✎</span><span>改善を送る</span></button>

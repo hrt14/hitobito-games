@@ -1,3 +1,2 @@
-Force deploy LEVEL UP after PC Google login fix
-Source merge: 27b84fa900a7219dd752177bb5984740e6b17643
-Reason: deploy redirect-only Firebase Auth build and verify all LEVEL UP catalog routes on both production domains
+Force deploy LEVEL UP after play entrypoint addition
+Reason: add a persistent menu route from LEVEL UP to https://play.hitobito.jp/ and verify production
