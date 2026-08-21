@@ -1,2 +1,0 @@
-LEVEL UP treatment attributes + diagnosis v3 are production-verified by the closed-loop workflow.
-Firestore Rules and Functions IAM failures are reported as warnings and must not block unrelated Firebase Hosting releases.
