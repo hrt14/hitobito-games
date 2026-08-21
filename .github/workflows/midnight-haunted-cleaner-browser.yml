@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
 
+# Re-run against the widened 125px furniture-search radius.
 jobs:
   browser-playtest:
     runs-on: ubuntu-latest
