@@ -1,2 +1,2 @@
-Production deploy trigger: DEEP-SEA-WALK-20260822-0244
-Reason: publish 深海をただ散歩する to play.hitobito.jp and run the normal-games production verification flow
+Production deploy trigger: PLAY-NAV-20260822-0850
+Reason: remove PLAY Pick Up and add a persistent top-left hamburger return menu to every normal PLAY app
