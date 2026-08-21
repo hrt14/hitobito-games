@@ -7,6 +7,11 @@ on:
       - main
     paths:
       - .deploy-trigger
+      - 'apps/**'
+      - 'index.html'
+      - 'scripts/playtest-catalog.mjs'
+      - 'scripts/sync-games-portal.mjs'
+      - 'deploy-targets.json'
 
 concurrency:
   group: cloudflare-pages-production
@@ -25,6 +30,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Sync Play portal newest-first
+        run: node scripts/sync-games-portal.mjs
 
       - name: Build hosting bundles
         run: npm run build:hosting
@@ -79,6 +89,7 @@ jobs:
           done
 
       - name: Point games.hitobito.jp to Cloudflare Pages
+        continue-on-error: true
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
@@ -86,7 +97,7 @@ jobs:
           ZONES="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones?name=hitobito.jp")"
           ZONE_ID="$(printf '%s' "$ZONES" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);process.stdout.write(j.success&&j.result&&j.result[0]?j.result[0].id:'')})")"
           if [ -z "$ZONE_ID" ]; then
-            echo "Could not resolve Cloudflare zone for hitobito.jp"
+            echo "Could not resolve Cloudflare zone for hitobito.jp; leaving games.hitobito.jp DNS unchanged."
             exit 1
           fi
 
@@ -111,10 +122,10 @@ jobs:
           set -euo pipefail
           if [ "$JOB_STATUS" = "success" ]; then
             STATE="success"
-            DESCRIPTION="Cloudflare Pages deployed and games.hitobito.jp routed"
+            DESCRIPTION="Cloudflare Pages deployed; play.hitobito.jp active"
           else
             STATE="failure"
-            DESCRIPTION="Cloudflare games entrypoint deployment failed"
+            DESCRIPTION="Cloudflare Pages deployment failed"
           fi
           PAYLOAD="$(STATE="$STATE" DESCRIPTION="$DESCRIPTION" node -e "process.stdout.write(JSON.stringify({state:process.env.STATE,target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:process.env.DESCRIPTION,context:'Cloudflare Pages - games entrypoint'}))")"
           curl -fsS -X POST \
