@@ -1,17 +1,20 @@
 {
-  "verifiedAt": "2026-08-21T10:44:26.992Z",
-  "active": false,
+  "verifiedAt": "2026-08-21T10:48:33.672Z",
+  "active": true,
+  "expectedMeasurementId": "G-7754RC4QGC",
   "bases": {
     "https://hitobito-levelup.web.app": {
       "tagInjected": true,
-      "measurementIdAvailable": false,
-      "measurementId": null
+      "configuredMeasurementId": "G-7754RC4QGC",
+      "runtimeMeasurementIdAvailable": true,
+      "runtimeMeasurementId": "G-7754RC4QGC"
     },
     "https://levelup.hitobito.jp": {
       "tagInjected": true,
-      "measurementIdAvailable": false,
-      "measurementId": null
+      "configuredMeasurementId": "G-7754RC4QGC",
+      "runtimeMeasurementIdAvailable": true,
+      "runtimeMeasurementId": "G-7754RC4QGC"
     }
   },
-  "workflowRun": "32471599801"
+  "workflowRun": "32474306301"
 }
