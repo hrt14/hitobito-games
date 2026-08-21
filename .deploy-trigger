@@ -1,2 +1,2 @@
-Production deploy trigger: PLAY-NEWEST-FIRST-20260822-R1
-Reason: deploy automatic newest-first ordering for play.hitobito.jp
+Production deploy trigger: PLAY-NEWEST-FIRST-20260822-R2
+Reason: verify automatic newest-first ordering and production deployment for play.hitobito.jp
