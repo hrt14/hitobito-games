@@ -1,0 +1,107 @@
+name: Verify LEVEL UP GA4
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/verify-levelup-ga4.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: levelup-ga4-live-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify deployed tag and Firebase Analytics config
+        id: verify
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          fs.writeFileSync('/tmp/ga4-status.json', JSON.stringify({
+            verifiedAt: new Date().toISOString(),
+            active: false,
+            bases: {},
+          }, null, 2) + '\n');
+          NODE
+
+          all_ok=true
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            tag_ok=false
+            measurement_ok=false
+            measurement_id=''
+
+            for attempt in 1 2 3 4 5 6 7 8 9; do
+              if curl -fLsS --max-time 30 "$base/" -o /tmp/levelup-home.html \
+                && grep -F 'data-levelup-ga4' /tmp/levelup-home.html >/dev/null; then
+                tag_ok=true
+              fi
+
+              if curl -fLsS --max-time 30 "$base/__/firebase/init.json" -o /tmp/firebase-init.json; then
+                measurement_id=$(node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('/tmp/firebase-init.json','utf8'));process.stdout.write(String(c.measurementId||''))" 2>/dev/null || true)
+                if printf '%s' "$measurement_id" | grep -Eq '^G-[A-Za-z0-9]+$'; then
+                  measurement_ok=true
+                fi
+              fi
+
+              if [ "$tag_ok" = true ] && [ "$measurement_ok" = true ]; then
+                break
+              fi
+              sleep 10
+            done
+
+            if [ "$tag_ok" != true ] || [ "$measurement_ok" != true ]; then
+              all_ok=false
+            fi
+
+            BASE="$base" TAG_OK="$tag_ok" MEASUREMENT_OK="$measurement_ok" MEASUREMENT_ID="$measurement_id" node - <<'NODE'
+            const fs = require('fs');
+            const status = JSON.parse(fs.readFileSync('/tmp/ga4-status.json', 'utf8'));
+            status.bases[process.env.BASE] = {
+              tagInjected: process.env.TAG_OK === 'true',
+              measurementIdAvailable: process.env.MEASUREMENT_OK === 'true',
+              measurementId: process.env.MEASUREMENT_OK === 'true' ? process.env.MEASUREMENT_ID : null,
+            };
+            fs.writeFileSync('/tmp/ga4-status.json', JSON.stringify(status, null, 2) + '\n');
+            NODE
+          done
+
+          ALL_OK="$all_ok" node - <<'NODE'
+          const fs = require('fs');
+          const status = JSON.parse(fs.readFileSync('/tmp/ga4-status.json', 'utf8'));
+          status.verifiedAt = new Date().toISOString();
+          status.active = process.env.ALL_OK === 'true';
+          status.workflowRun = process.env.GITHUB_RUN_ID || null;
+          fs.writeFileSync('/tmp/ga4-status.json', JSON.stringify(status, null, 2) + '\n');
+          NODE
+
+          cat /tmp/ga4-status.json
+          echo "all_ok=$all_ok" >> "$GITHUB_OUTPUT"
+
+      - name: Record GA4 verification status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          content=$(base64 -w0 /tmp/ga4-status.json)
+          sha=$(gh api "repos/${GITHUB_REPOSITORY}/contents/.levelup-ga4-status.json" --jq '.sha' 2>/dev/null || true)
+          args=(--method PUT "repos/${GITHUB_REPOSITORY}/contents/.levelup-ga4-status.json" -f message='Record LEVEL UP GA4 verification' -f content="$content" -f branch=main)
+          if [ -n "$sha" ]; then args+=(-f sha="$sha"); fi
+          gh api "${args[@]}" >/dev/null
+
+      - name: Fail when GA4 is not active
+        if: steps.verify.outputs.all_ok != 'true'
+        run: |
+          echo 'LEVEL UP GA4 is not active on every production base URL.' >&2
+          exit 1
