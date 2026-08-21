@@ -1,0 +1,95 @@
+name: Verify reaction-pattern production browser flow
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy LEVEL UP production closed loop
+    types:
+      - completed
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deployed commit
+        if: github.event.workflow_run.conclusion == 'success'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node
+        if: github.event.workflow_run.conclusion == 'success'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install browser smoke dependency
+        if: github.event.workflow_run.conclusion == 'success'
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+
+      - name: Play reaction-pattern end to end on production mobile viewport
+        id: reaction_e2e
+        if: github.event.workflow_run.conclusion == 'success'
+        continue-on-error: true
+        run: node scripts/verify-reaction-pattern-browser.mjs 2>&1 | tee /tmp/reaction-pattern-e2e.log
+
+      - name: Update reaction-pattern production E2E status issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: ${{ github.event.workflow_run.conclusion }}
+          E2E_OUTCOME: ${{ steps.reaction_e2e.outcome }}
+          DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+          DEPLOY_RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          set -euo pipefail
+          title='reaction-pattern production E2E status'
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          {
+            if [ "$UPSTREAM" != "success" ]; then
+              echo "Status: **blocked**"
+            elif [ "$E2E_OUTCOME" = "success" ]; then
+              echo "Status: **success**"
+            else
+              echo "Status: **failure**"
+            fi
+            echo
+            echo "Deployed commit: \`$DEPLOYED_SHA\`"
+            echo "Production deploy run: $DEPLOY_RUN_URL"
+            echo
+            if [ "$UPSTREAM" != "success" ]; then
+              echo "The production closed-loop deployment did not succeed, so the reaction-pattern browser flow was not accepted as complete."
+            elif [ "$E2E_OUTCOME" = "success" ]; then
+              echo "Verified on https://levelup.hitobito.jp/apps/reaction-pattern/ with a 390x844 mobile viewport:"
+              echo "- production route and expected title/marker load"
+              echo "- start and mood input"
+              echo "- all 10 personality self-observation questions"
+              echo "- all five result bars"
+              echo "- motive lens selection"
+              echo "- all six fact / interpretation / next-action sorter scenes"
+              echo "- 6/6 result and generated reaction manual"
+              echo "- mood change saved to localStorage"
+              echo "- reload and history persistence"
+              echo "- in-app research source links"
+              echo "- no uncaught page errors"
+            else
+              echo "The production deployment succeeded, but the reaction-pattern browser flow failed and must not be reported as implementation-complete."
+              echo
+              echo '```text'
+              if [ -f /tmp/reaction-pattern-e2e.log ]; then tail -n 180 /tmp/reaction-pattern-e2e.log; else echo '(browser log unavailable)'; fi
+              echo '```'
+            fi
+          } > /tmp/reaction-pattern-status.md
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file /tmp/reaction-pattern-status.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/reaction-pattern-status.md
+          fi
+
+      - name: Fail when production browser verification failed
+        if: github.event.workflow_run.conclusion == 'success' && steps.reaction_e2e.outcome != 'success'
+        run: exit 1
