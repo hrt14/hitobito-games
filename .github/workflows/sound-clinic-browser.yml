@@ -8,6 +8,11 @@ on:
       - 'apps/sound-clinic/**'
       - 'scripts/sound-clinic-browser-playtest.mjs'
       - '.github/workflows/sound-clinic-browser.yml'
+  pull_request:
+    paths:
+      - 'apps/sound-clinic/**'
+      - 'scripts/sound-clinic-browser-playtest.mjs'
+      - '.github/workflows/sound-clinic-browser.yml'
   workflow_dispatch:
 
 jobs:
