@@ -3,23 +3,33 @@ name: PLAY FUN Gate
 on:
   pull_request:
     paths:
+      - '.play-fun-gate-baseline'
       - 'apps/**'
       - 'docs/PLAY_FUN_FIRST.md'
       - 'docs/FUN_REPORT_TEMPLATE.json'
       - 'scripts/validate-play-fun-gate.mjs'
       - 'AGENTS.md'
       - 'apps/AGENTS.md'
+      - 'CLAUDE.md'
+      - 'GEMINI.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
       - 'GAME_QUALITY.md'
       - '.github/workflows/play-fun-gate.yml'
   push:
     branches: [main]
     paths:
+      - '.play-fun-gate-baseline'
       - 'apps/**'
       - 'docs/PLAY_FUN_FIRST.md'
       - 'docs/FUN_REPORT_TEMPLATE.json'
       - 'scripts/validate-play-fun-gate.mjs'
       - 'AGENTS.md'
       - 'apps/AGENTS.md'
+      - 'CLAUDE.md'
+      - 'GEMINI.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
       - 'GAME_QUALITY.md'
       - '.github/workflows/play-fun-gate.yml'
 
@@ -40,16 +50,23 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate PLAY gameplay changes on pull request
+      - name: Validate this pull request's PLAY gameplay changes
         if: github.event_name == 'pull_request'
         run: >-
           node scripts/validate-play-fun-gate.mjs
           --base "${{ github.event.pull_request.base.sha }}"
           --head "${{ github.event.pull_request.head.sha }}"
 
-      - name: Validate PLAY gameplay changes on main push
+      - name: Audit base branch for earlier bypassed PLAY changes
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          BASELINE="$(tr -d '\r\n ' < .play-fun-gate-baseline)"
+          node scripts/validate-play-fun-gate.mjs --audit-since "$BASELINE" --head "${{ github.event.pull_request.base.sha }}"
+
+      - name: Audit complete PLAY FUN state on main push
         if: github.event_name == 'push'
-        run: >-
-          node scripts/validate-play-fun-gate.mjs
-          --base "${{ github.event.before }}"
-          --head "${{ github.sha }}"
+        run: |
+          set -euo pipefail
+          BASELINE="$(tr -d '\r\n ' < .play-fun-gate-baseline)"
+          node scripts/validate-play-fun-gate.mjs --audit-since "$BASELINE" --head "${{ github.sha }}"
