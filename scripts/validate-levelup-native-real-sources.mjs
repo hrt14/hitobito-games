@@ -40,6 +40,15 @@ const apps = {
   'matomaru': {
     scripts: [], files: [], refs: ['id="realScreen"', 'id="realBtn"'], checkViewport: false,
   },
+  'approval-off': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
+  },
+  'levelup-mood': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
+  },
+  'kanji-warukatta': {
+    scripts: [], files: [], refs: ['FAST RELIEF', 'data-after='], checkViewport: false,
+  },
 };
 
 const errors = [];
@@ -62,7 +71,13 @@ for (const [slug, cfg] of Object.entries(apps)) {
 }
 
 const promoter = path.join(root, 'scripts', 'promote-levelup-native-real-flows.mjs');
-try { execFileSync(process.execPath, ['--check', promoter], { stdio: 'pipe' }); }
+try {
+  execFileSync(process.execPath, ['--check', promoter], { stdio: 'pipe' });
+  const source = fs.readFileSync(promoter, 'utf8');
+  if (!source.includes('function sanitizeKanji')) errors.push('promoter: kanji neutral effect sanitizer missing');
+  if (!source.includes("[30,50,70,90].map(v=>`<button data-after=")) errors.push('promoter: kanji neutral after scale missing');
+  if (!source.includes('before:70,after:70')) errors.push('promoter: kanji neutral after default missing');
+}
 catch (error) { errors.push(`promoter syntax error\n${String(error.stderr || error.message)}`); }
 
 if (errors.length) {
