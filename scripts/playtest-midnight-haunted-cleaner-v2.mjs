@@ -80,7 +80,8 @@ async function revealNext(evidence) {
   await sleep(100);
   s=await snap();
   assert(s.ghosts.some(g=>g.type!=='decoy'), `search failed at ${f.label}; player=${JSON.stringify(s.player)} furniture=${JSON.stringify(f)}`);
-  evidence.push(`${s.room}: ${f.label}を吸引探索→幽霊出現`);
+  const ghost=s.ghosts.find(g=>g.type!=='decoy');
+  evidence.push(`${s.room}: ${f.label}を吸引探索→${ghost?.type||'ghost'}出現`);
 }
 async function flashAt(g) {
   await face(g.x,g.y);
@@ -169,6 +170,32 @@ async function clearRoom(evidence) {
   }
   evidence.push(`${id}: 捕獲${s.roomState.captured}/${s.roomState.required}、封印${s.seals}/5`);
 }
+function sideKey(side){
+  if(side==='top') return 'w';
+  if(side==='bottom') return 's';
+  if(side==='left') return 'a';
+  return 'd';
+}
+async function crossDoor(d,target,max=180){
+  let stuck=0,last=null;
+  for(let i=0;i<max;i++){
+    const s=await snap();
+    if(s.room===target) return s;
+    const dx=d.x-s.player.x, dy=d.y-s.player.y;
+    if(last&&Math.hypot(s.player.x-last.x,s.player.y-last.y)<.7) stuck++; else stuck=0;
+    last={x:s.player.x,y:s.player.y};
+    let keys=keysFor(dx,dy);
+    if(Math.hypot(dx,dy)<18||!keys.length) keys=[sideKey(d.side)];
+    if(stuck>5){
+      keys=Math.abs(dx)>Math.abs(dy)?[dy>0?'s':'w']:[dx>0?'d':'a'];
+      stuck=0;
+    }
+    await pulse(keys,55);
+    await sleep(16);
+  }
+  const s=await snap();
+  throw new Error(`transition to ${target} failed at ${s.player.x.toFixed(0)},${s.player.y.toFixed(0)} in ${s.room}`);
+}
 async function door(target) {
   let s=await snap(); const d=s.doors.find(x=>x.target===target);
   assert(d&&d.unlocked, `door ${s.room}->${target} unavailable: ${JSON.stringify(s.doors)}`);
@@ -190,12 +217,7 @@ async function door(target) {
       await moveTo(340,225,40,100);
     }
   }
-  await moveTo(d.x,d.y,38,180);
-  for(let i=0;i<35;i++){
-    await sleep(60); s=await snap(); if(s.room===target)return;
-    await pulse(keysFor(d.x-s.player.x,d.y-s.player.y),55);
-  }
-  throw new Error(`transition to ${target} failed`);
+  await crossDoor(d,target);
 }
 
 try{
