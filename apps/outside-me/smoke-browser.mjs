@@ -25,6 +25,16 @@ async function advanceToChoices(max = 24) {
   throw new Error('Choices did not appear in time. Current text: ' + await page.locator('#storyText').innerText());
 }
 
+async function advanceUntilText(keyword, max = 24) {
+  for (let i = 0; i < max; i += 1) {
+    const text = await page.locator('#storyText').innerText();
+    if (text.includes(keyword)) return;
+    await page.locator('#novelPanel').click({ position: { x: 120, y: 34 } });
+    await page.waitForTimeout(45);
+  }
+  throw new Error(`Story never reached "${keyword}". Current text: ` + await page.locator('#storyText').innerText());
+}
+
 async function choose(text) {
   await advanceToChoices();
   const button = page.getByRole('button', { name: new RegExp(text) }).first();
@@ -63,6 +73,7 @@ try {
   await choose('玄関へ戻る');
 
   await choose('ドアホンをもう一度見る');
+  await advanceUntilText('自分の背中だった');
   await page.screenshot({ path: path.join(artifacts, '03-camera-twist.png'), fullPage: true });
   await choose('録画を30秒巻き戻す');
   await choose('ブレーカーを落とし、勝手口から出る');
@@ -100,7 +111,7 @@ try {
     tested: [
       'first 10 seconds',
       'true route: mirror + phone + backdoor + rewind',
-      'camera-twist peak moment',
+      'camera-twist peak moment with back-facing self reveal',
       'true ending',
       'second-run persistent memory',
       'early-open swap ending',
