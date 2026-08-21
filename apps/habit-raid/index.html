@@ -1,107 +1,108 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-  <meta name="theme-color" content="#090d18" />
-  <meta name="description" content="習慣をやるたび敵を攻撃。タイマー・完了記録・7日履歴はそのままに、XP・宝箱・仲間収集で続けやすくしたLEVEL UP習慣ゲーム。" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>習慣レイド — LEVEL UP</title>
-  <link rel="stylesheet" href="./style.css" />
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
+<meta content="#11164b" name="theme-color"/>
+<meta content="TODO＆ドラゴンズ。Habitegg型の習慣管理に、魔竜討伐・レベルアップ・召喚・モンスター収集を追加したLEVEL UP習慣RPG。週次・月次の記録分析にも対応。" name="description"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<title>TODO＆ドラゴンズ — LEVEL UP</title>
+<link href="./style.css" rel="stylesheet"/><link href="./theme.css" rel="stylesheet"/>
 </head>
 <body>
-  <main class="app-shell">
-    <header class="topbar">
-      <a href="/" class="home-link" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
-      <button id="soundBtn" class="icon-btn" type="button" aria-label="効果音のオンオフ" aria-pressed="true">♪</button>
-    </header>
-
-    <section class="player-card" aria-label="プレイヤーステータス">
-      <div class="avatar" id="avatar">⚡</div>
-      <div class="player-main">
-        <div class="player-line"><strong>Lv.<span id="levelValue">1</span></strong><span id="streakValue">🔥 0日</span><span id="coinValue">🪙 0</span></div>
-        <div class="xp-track"><i id="xpBar"></i></div>
-        <small id="xpText">0 / 100 XP</small>
-      </div>
-    </section>
-
-    <section class="boss-card" id="bossCard">
-      <div class="boss-head">
-        <div><p class="eyebrow">TODAY'S RAID</p><h1>習慣をやるたび、<br><span>ボスが削れる。</span></h1></div>
-        <div class="boss-art" id="bossArt" aria-hidden="true">👾</div>
-      </div>
-      <div class="boss-name-row"><strong id="bossName">先延ばしスライム</strong><span id="bossHpText">60 / 60</span></div>
-      <div class="hp-track"><i id="bossHpBar"></i></div>
-      <p class="boss-hint" id="bossHint">習慣を1回完了すると攻撃。3連続でFEVER。</p>
-      <div class="combo-row" id="comboRow" aria-label="今日のコンボ">
-        <span>COMBO</span><i></i><i></i><i></i><b id="feverLabel">あと3回</b>
-      </div>
-    </section>
-
-    <section class="daily-card" id="dailyCard">
-      <div class="section-title"><div><p class="eyebrow">DAILY QUEST</p><h2>今日のミッション</h2></div><span id="todayLabel"></span></div>
-      <div class="missions" id="missions"></div>
-    </section>
-
-    <section class="habit-section">
-      <div class="section-title">
-        <div><p class="eyebrow">YOUR QUESTS</p><h2>習慣</h2></div>
-        <button id="addHabitBtn" class="add-btn" type="button">＋ 追加</button>
-      </div>
-      <div class="habit-list" id="habitList"></div>
-      <div class="empty-state" id="emptyState" hidden>
-        <div>🧩</div><strong>最初の習慣を作ろう</strong><p>小さくてOK。「水を飲む」くらいから。</p><button type="button" id="emptyAddBtn">＋ 習慣を追加</button>
-      </div>
-    </section>
-
-    <nav class="bottom-nav" aria-label="画面切り替え">
-      <button class="active" data-view="home" type="button"><span>⚔️</span>クエスト</button>
-      <button data-view="stats" type="button"><span>📊</span>記録</button>
-      <button data-view="collection" type="button"><span>🎁</span>仲間</button>
-    </nav>
-
-    <section class="overlay-view" id="statsView" hidden>
-      <div class="overlay-head"><button class="back-btn" data-close-view type="button">←</button><div><p class="eyebrow">LOG</p><h2>7日間の記録</h2></div></div>
-      <div class="stats-summary" id="statsSummary"></div>
-      <div class="week-bars" id="weekBars"></div>
-      <div class="stats-list" id="statsList"></div>
-    </section>
-
-    <section class="overlay-view" id="collectionView" hidden>
-      <div class="overlay-head"><button class="back-btn" data-close-view type="button">←</button><div><p class="eyebrow">PARTY</p><h2>仲間コレクション</h2></div></div>
-      <div class="collection-hero"><div class="big-chest">🎁</div><div><strong>ボス撃破・レベルアップで宝箱</strong><p>課金なし。習慣を続けるほど仲間が増える。</p></div></div>
-      <div class="collection-grid" id="collectionGrid"></div>
-    </section>
-  </main>
-
-  <dialog id="habitDialog" class="sheet-dialog">
-    <form method="dialog" id="habitForm" class="sheet-form">
-      <div class="grabber"></div>
-      <div class="sheet-head"><div><p class="eyebrow">QUEST EDIT</p><h2 id="habitDialogTitle">習慣を追加</h2></div><button type="button" id="closeHabitDialog" class="close-btn">×</button></div>
-      <label>習慣名<input id="habitName" maxlength="30" required placeholder="例：読書、筋トレ、水を飲む" /></label>
-      <label>グループ <small>任意</small><input id="habitGroup" maxlength="12" placeholder="例：健康、学習" /></label>
-      <label>目標時間 <small>0分なら時間を測らない習慣</small><div class="minute-row"><input id="habitMinutes" type="number" min="0" max="600" value="0" inputmode="numeric" /><span>分</span></div></label>
-      <div class="emoji-picker" id="emojiPicker" aria-label="アイコン選択"></div>
-      <button class="primary-btn" type="submit">保存する</button>
-      <button id="deleteHabitBtn" class="danger-btn" type="button" hidden>この習慣を削除</button>
-    </form>
-  </dialog>
-
-  <dialog id="rewardDialog" class="reward-dialog">
-    <div class="reward-inner">
-      <p class="eyebrow" id="rewardEyebrow">REWARD</p>
-      <div class="reward-burst"><i></i><i></i><i></i><i></i></div>
-      <div class="reward-icon" id="rewardIcon">🎁</div>
-      <h2 id="rewardTitle">宝箱をゲット！</h2>
-      <p id="rewardText">習慣が今日の勝ちに変わった。</p>
-      <button class="primary-btn" id="rewardBtn" type="button">受け取る</button>
-    </div>
-  </dialog>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <div class="damage-pop" id="damagePop" aria-hidden="true"></div>
-
-  <script src="./app.js"></script>
+<main class="app-shell">
+<header class="topbar">
+<a aria-label="LEVEL UPトップへ戻る" class="home-link" href="/">⌂ <span>LEVEL UP</span></a>
+<button aria-label="効果音のオンオフ" aria-pressed="true" class="icon-btn" id="soundBtn" type="button">♪</button>
+</header>
+<section aria-label="プレイヤーステータス" class="player-card">
+<div class="avatar" id="avatar">⚔️</div>
+<div class="player-main">
+<div class="player-line"><strong>勇者Lv.<span id="levelValue">1</span></strong><span id="streakValue">🔥 0日</span><span id="coinValue">💰 0G</span></div>
+<div class="xp-track"><i id="xpBar"></i></div>
+<small id="xpText">0 / 100 XP</small>
+</div>
+</section>
+<section class="boss-card" id="bossCard">
+<div class="boss-head">
+<div><p class="eyebrow">TODAY'S DRAGON</p><h1>習慣を達成して、<br/><span>魔竜を討伐せよ。</span></h1></div>
+<div aria-hidden="true" class="boss-art" id="bossArt"><span class="boss-aura">💤</span><span class="boss-creature">🐉</span></div>
+</div>
+<div class="boss-name-row"><strong id="bossName">怠惰竜グータリオン</strong><span id="bossHpText">HP 60 / 60</span></div>
+<div class="hp-track"><i id="bossHpBar"></i></div>
+<p class="boss-hint" id="bossHint">習慣を1回達成すると、仲間モンスターが攻撃する。</p>
+<div aria-label="今日の連撃" class="combo-row" id="comboRow">
+<span>CHAIN</span><i></i><i></i><i></i><b id="feverLabel">あと3回</b>
+</div>
+</section>
+<section class="daily-card" id="dailyCard">
+<div class="section-title"><div><p class="eyebrow">DAILY QUEST</p><h2>今日の冒険</h2></div><span id="todayLabel"></span></div>
+<div class="missions" id="missions"></div>
+</section>
+<section class="habit-section">
+<div class="section-title">
+<div><p class="eyebrow">YOUR TODO QUESTS</p><h2>習慣クエスト</h2></div>
+<button class="add-btn" id="addHabitBtn" type="button">＋ 追加</button>
+</div>
+<div class="habit-list" id="habitList"></div>
+<div class="empty-state" hidden id="emptyState">
+<div>🥚</div><strong>最初のクエストを作ろう</strong><p>小さくてOK。「水を飲む」くらいから。</p><button id="emptyAddBtn" type="button">＋ 習慣を追加</button>
+</div>
+</section>
+<nav aria-label="画面切り替え" class="bottom-nav">
+<button class="active" data-view="home" type="button"><span>⚔️</span>冒険</button>
+<button data-view="stats" type="button"><span>📜</span>記録</button>
+<button data-view="collection" type="button"><span>🐉</span>モンスター</button>
+</nav>
+<section class="overlay-view" hidden id="statsView">
+<div class="overlay-head"><button class="back-btn" data-close-view type="button">←</button><div><p class="eyebrow">ADVENTURE LOG</p><h2>冒険の記録</h2></div></div>
+<div class="stats-controls">
+<div aria-label="集計期間" class="range-tabs">
+<button class="active" data-stats-range="week" type="button">週間</button>
+<button data-stats-range="month" type="button">月間</button>
+</div>
+<div class="period-nav">
+<button aria-label="前の期間" id="statsPrev" type="button">‹</button>
+<strong id="statsPeriodLabel">今週</strong>
+<button aria-label="次の期間" id="statsNext" type="button">›</button>
+</div>
+</div>
+<div class="stats-summary" id="statsSummary"></div>
+<div class="week-bars" id="weekBars"></div>
+<div class="stats-list" id="statsList"></div>
+</section>
+<section class="overlay-view" hidden id="collectionView">
+<div class="overlay-head"><button class="back-btn" data-close-view type="button">←</button><div><p class="eyebrow">MONSTER BOX</p><h2>モンスター図鑑</h2></div></div>
+<div class="collection-hero"><div class="big-chest">🥚</div><div><strong>魔竜討伐・レベルアップで召喚</strong><p>課金なし。習慣を続けるほどモンスターが増える。</p></div></div>
+<div class="collection-grid" id="collectionGrid"></div>
+</section>
+</main>
+<dialog class="sheet-dialog" id="habitDialog">
+<form class="sheet-form" id="habitForm" method="dialog">
+<div class="grabber"></div>
+<div class="sheet-head"><div><p class="eyebrow">QUEST EDIT</p><h2 id="habitDialogTitle">習慣を追加</h2></div><button class="close-btn" id="closeHabitDialog" type="button">×</button></div>
+<label>習慣名<input id="habitName" maxlength="30" placeholder="例：読書、筋トレ、水を飲む" required/></label>
+<label>グループ <small>任意</small><input id="habitGroup" maxlength="12" placeholder="例：健康、学習"/></label>
+<label>目標時間 <small>0分なら時間を測らない習慣</small><div class="minute-row"><input id="habitMinutes" inputmode="numeric" max="600" min="0" type="number" value="0"/><span>分</span></div></label>
+<div aria-label="アイコン選択" class="emoji-picker" id="emojiPicker"></div>
+<button class="primary-btn" type="submit">クエストを保存</button>
+<button class="danger-btn" hidden id="deleteHabitBtn" type="button">この習慣を削除</button>
+</form>
+</dialog>
+<dialog class="reward-dialog" id="rewardDialog">
+<div class="reward-inner">
+<p class="eyebrow" id="rewardEyebrow">SUMMON</p>
+<div class="reward-burst"><i></i><i></i><i></i><i></i></div>
+<div class="reward-icon" id="rewardIcon">🥚</div>
+<h2 id="rewardTitle">モンスター召喚！</h2>
+<p id="rewardText">習慣が冒険の力に変わった。</p>
+<button class="primary-btn" id="rewardBtn" type="button">受け取る</button>
+</div>
+</dialog>
+<div aria-live="polite" class="toast" id="toast" role="status"></div>
+<div aria-hidden="true" class="damage-pop" id="damagePop"></div>
+<script src="./app.js"></script>
+<script src="./theme.js"></script>
 </body>
 </html>
