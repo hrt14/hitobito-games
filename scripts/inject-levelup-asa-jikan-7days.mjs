@@ -25,6 +25,15 @@ for (const required of [homePath, catalogPath, manifestPath, appPath]) {
   if (!fs.existsSync(required)) throw new Error(`Morning 7-day injection prerequisite missing: ${required}`);
 }
 
+let appHtml = fs.readFileSync(appPath, 'utf8');
+const utcDateKey = 'function todayKey(){ return new Date().toISOString().slice(0,10); }';
+const localDateKey = "function todayKey(){ const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }";
+if (appHtml.includes(utcDateKey)) {
+  appHtml = appHtml.replace(utcDateKey, localDateKey);
+  fs.writeFileSync(appPath, appHtml);
+}
+if (!appHtml.includes('const y=d.getFullYear()')) throw new Error('Morning 7-day local calendar date patch failed.');
+
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 if (!Array.isArray(manifest.games)) throw new Error('Firebase manifest is invalid.');
 if (!manifest.games.some((item) => item.slug === game.slug && item.category === 'levelup')) {
