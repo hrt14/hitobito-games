@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/midnight-haunted-cleaner/**'
-      - 'scripts/playtest-midnight-haunted-cleaner.mjs'
+      - 'scripts/playtest-midnight-haunted-cleaner-v2.mjs'
       - '.github/workflows/midnight-haunted-cleaner-browser.yml'
   workflow_dispatch:
 
@@ -29,5 +29,5 @@ jobs:
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Play the game in Chromium
-        run: node scripts/playtest-midnight-haunted-cleaner.mjs
+      - name: Play the game in Chromium with mobile controls
+        run: node scripts/playtest-midnight-haunted-cleaner-v2.mjs
