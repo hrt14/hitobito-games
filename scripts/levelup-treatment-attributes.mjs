@@ -1,3 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// This module is loaded by the Firebase treatment pass after the base bundle exists.
+// Register 無意識の庭 here so the main build command can stay aligned with main.
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const firebaseCatalog = path.join(scriptDir, '..', '.dist', 'firebase', 'levelup-catalog.json');
+if (fs.existsSync(firebaseCatalog)) {
+  await import('../firebase-overrides/subconscious-garden/inject.mjs');
+}
+
 export const TREATMENT_TYPES = {
   relief: {
     id: 'relief',
@@ -61,6 +73,7 @@ const REBUILD_FIRST = new Set([
   'reflex-7',
   'self-management',
   'sore-honto',
+  'subconscious-garden',
   'task-separation',
   'timecraft',
   'uchite',
