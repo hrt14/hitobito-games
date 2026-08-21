@@ -50,8 +50,9 @@ async function desktopRun(browser) {
   assert((await text(page, '#toast')).includes('非常口は開かない'), 'exit interaction feedback missing');
   evidence.observations.push('first30: 開始地点の非常口を調べると「あと3本必要」と即反応し、探索目的が操作で再確認できた。');
 
-  // Walk quietly to the south-east fuse: up to y≈18, then right through the lower corridor.
-  await hold(page, 'ArrowUp', 520);
+  // Walk quietly to the south-east fuse. Keep y within tile 18 so the player
+  // crosses the lower vertical wall through its y=18 opening.
+  await hold(page, 'ArrowUp', 300);
   await hold(page, 'ArrowRight', 3600);
   await page.keyboard.press('KeyE');
   await page.waitForTimeout(220);
