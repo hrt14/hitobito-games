@@ -19,12 +19,12 @@ const START = '<!-- AUTO-LATEST-GAMES:START -->';
 const END = '<!-- AUTO-LATEST-GAMES:END -->';
 
 const THEMES = {
-  horror: { tag: 'HORROR', icon: '◉', g1: '#321722', g2: '#09080b', glow: 'rgba(255,92,104,.18)' },
-  nature: { tag: 'NATURE', icon: '✦', g1: '#17372d', g2: '#07100d', glow: 'rgba(114,230,168,.17)' },
-  sim: { tag: 'SIMULATION', icon: '⌁', g1: '#352719', g2: '#0c0906', glow: 'rgba(255,191,105,.17)' },
-  story: { tag: 'STORY', icon: '✎', g1: '#2a1c3a', g2: '#0b0810', glow: 'rgba(196,155,255,.17)' },
-  adventure: { tag: 'ADVENTURE', icon: '↗', g1: '#172d43', g2: '#070d13', glow: 'rgba(114,184,255,.17)' },
-  other: { tag: 'GAME', icon: '◆', g1: '#202630', g2: '#090b0f', glow: 'rgba(169,180,199,.15)' },
+  horror: { tag: 'HORROR', icon: '◉', g1: '#28191e', g2: '#0d0b0e', glow: 'rgba(197,100,119,.14)' },
+  nature: { tag: 'NATURE', icon: '✦', g1: '#162923', g2: '#0a100e', glow: 'rgba(100,170,145,.14)' },
+  sim: { tag: 'SIMULATION', icon: '⌁', g1: '#2a2217', g2: '#0e0c09', glow: 'rgba(198,158,101,.14)' },
+  story: { tag: 'STORY', icon: '✎', g1: '#211d2d', g2: '#0d0b11', glow: 'rgba(154,133,196,.14)' },
+  adventure: { tag: 'ADVENTURE', icon: '↗', g1: '#172533', g2: '#090e13', glow: 'rgba(94,141,184,.14)' },
+  other: { tag: 'GAME', icon: '◆', g1: '#19212b', g2: '#0a0e13', glow: 'rgba(119,139,162,.12)' },
 };
 
 function escapeHtml(value) {
