@@ -85,32 +85,38 @@ async function revealNext(evidence) {
 async function flashAt(g) {
   await face(g.x,g.y);
   await holdButton('#flashBtn');
-  await sleep(900);
+  await sleep(520);
   await releaseButton();
-  await sleep(100);
+  await sleep(80);
 }
-async function retreatFrom(id, targetDistance = 205, max = 55) {
+async function stabilizeForFight(id, max = 12) {
   for (let i = 0; i < max; i++) {
     const s = await snap();
     const g = s.ghosts.find(x => x.id === id);
-    if (!g) return;
-    const dx = s.player.x - g.x, dy = s.player.y - g.y;
-    if (Math.hypot(dx, dy) >= targetDistance) return;
-    const keys = keysFor(dx, dy);
-    await pulse(keys.length ? keys : ['s'], 76);
-    await sleep(16);
-  }
-}
-async function approachForSuction(id, targetDistance = 165, max = 45) {
-  for (let i = 0; i < max; i++) {
-    const s = await snap();
-    const g = s.ghosts.find(x => x.id === id);
-    if (!g) return;
-    const dx = g.x - s.player.x, dy = g.y - s.player.y;
-    if (Math.hypot(dx, dy) <= targetDistance) return;
-    const keys = keysFor(dx, dy);
-    await pulse(keys.length ? keys : ['w'], 66);
-    await sleep(12);
+    if (!g || s.mode !== 'running') return;
+    const d = Math.hypot(s.player.x-g.x, s.player.y-g.y);
+    const nearEdge = s.player.x < 88 || s.player.x > 452 || s.player.y < 215 || s.player.y > 690;
+    if (d >= 102 && d <= 152 && !nearEdge) return;
+
+    let dx;
+    let dy;
+    if (nearEdge) {
+      dx = 270 - s.player.x;
+      dy = 430 - s.player.y;
+      if (d < 100) {
+        dx += (s.player.x - g.x) * 1.6;
+        dy += (s.player.y - g.y) * 1.6;
+      }
+    } else if (d > 152) {
+      dx = g.x - s.player.x;
+      dy = g.y - s.player.y;
+    } else {
+      dx = (s.player.x - g.x) * 1.6 + (270 - s.player.x) * .3;
+      dy = (s.player.y - g.y) * 1.6 + (430 - s.player.y) * .3;
+    }
+    const keys = keysFor(dx,dy);
+    await pulse(keys.length ? keys : ['w'], 58);
+    await sleep(10);
   }
 }
 async function counterPull(id) {
@@ -123,30 +129,34 @@ async function counterPull(id) {
     await pulse(keys.length?keys:['s'],82); await sleep(18);
   }
   await releaseButton();
-  await sleep(340);
+  await sleep(250);
 }
 async function fight(evidence) {
-  for(let round=0;round<18;round++){
+  for(let round=0;round<24;round++){
     let s=await snap();
+    assert(s.mode==='running', `player defeated during fight in ${s.room}`);
     const real=s.ghosts.filter(g=>g.type!=='decoy');
     if(!real.length) return;
     const g=real.find(x=>x.type==='mirror')||real[0];
     const d=Math.hypot(s.player.x-g.x,s.player.y-g.y);
-    if(d<185) await retreatFrom(g.id,205);
-    else if(d>245) await moveTo(g.x,g.y,205,90);
+    if(d>155) await moveTo(g.x,g.y,128,80);
+    await stabilizeForFight(g.id);
     s=await snap(); const live=s.ghosts.find(x=>x.id===g.id); if(!live) return;
     await flashAt(live);
     s=await snap(); const stunned=s.ghosts.find(x=>x.id===g.id); if(!stunned) return;
-    if(stunned.stunned<=0){await retreatFrom(g.id,210);continue;}
-    await approachForSuction(g.id,165);
+    if(stunned.stunned<=0){await stabilizeForFight(g.id);continue;}
+    const distance=Math.hypot(s.player.x-stunned.x,s.player.y-stunned.y);
+    if(distance>=176){await moveTo(stunned.x,stunned.y,148,35);}
     s=await snap(); const ready=s.ghosts.find(x=>x.id===g.id); if(!ready) return;
-    if(ready.stunned<=0){await retreatFrom(g.id,210);continue;}
+    if(ready.stunned<=0){await stabilizeForFight(g.id);continue;}
     const before=ready.hp;
     await counterPull(g.id);
-    s=await snap(); const after=s.ghosts.find(x=>x.id===g.id);
+    s=await snap();
+    if(s.mode!=='running') throw new Error(`player defeated after suction in ${s.room}`);
+    const after=s.ghosts.find(x=>x.id===g.id);
     if(after){
       assert(after.hp<before, `suction caused no HP loss in ${s.room}`);
-      await retreatFrom(g.id,205);
+      await stabilizeForFight(g.id);
     }
   }
   throw new Error(`fight loop exhausted: ${JSON.stringify((await snap()).ghosts)}`);
