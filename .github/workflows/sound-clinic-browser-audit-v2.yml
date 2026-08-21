@@ -1,0 +1,43 @@
+name: Sound Clinic browser audit v2
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/sound-clinic-browser-audit-v2.mjs'
+      - '.github/workflows/sound-clinic-browser-audit-v2.yml'
+  workflow_dispatch:
+
+jobs:
+  browser-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chromium harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/sound-clinic-v2-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/sound-clinic/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/sound-clinic-v2-server.log
+          exit 1
+      - name: Run real Chromium audit
+        env:
+          SOUND_CLINIC_URL: http://127.0.0.1:4173/apps/sound-clinic/
+        run: node scripts/sound-clinic-browser-audit-v2.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sound-clinic-browser-audit-v2
+          path: sound-clinic-browser-audit-v2/*
+          if-no-files-found: error
+          retention-days: 7
