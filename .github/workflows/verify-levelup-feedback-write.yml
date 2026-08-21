@@ -1,0 +1,107 @@
+name: Verify LEVEL UP feedback write
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy LEVEL UP production closed loop
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for the exact deployed commit
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 18); do
+            if curl -fLsS --max-time 20 "https://levelup.hitobito.jp/deploy-meta.json?feedback-smoke=$attempt" -o /tmp/deploy-meta.json; then
+              live=$(node -e "const x=require('/tmp/deploy-meta.json');process.stdout.write(x.sha||'')")
+              if [ "$live" = "$EXPECTED_SHA" ]; then
+                echo "Exact production commit is live: $live"
+                exit 0
+              fi
+              echo "Waiting for $EXPECTED_SHA; live is $live"
+            fi
+            sleep 10
+          done
+          echo "Exact deployment did not become live in time"
+          exit 1
+
+      - name: Verify live fallback uses lowercase session IDs
+        run: |
+          set -euo pipefail
+          curl -fLsS --max-time 30 "https://levelup.hitobito.jp/apps/smartphone-escape/?feedback-id-check=${{ github.run_id }}" -o /tmp/app.html
+          grep -F 'const docId=(batchId+String(i+1).padStart(2,"0")).slice(0,40)' /tmp/app.html >/dev/null
+          grep -F 'levelup-feedback-session-fallback' /tmp/app.html >/dev/null
+          echo "Live feedback fallback uses explicit lowercase-compatible session IDs."
+
+      - name: Prove anonymous Firestore feedback writes pass production rules
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          curl -fLsS --max-time 30 https://hitobito-levelup.web.app/__/firebase/init.json -o /tmp/firebase-init.json
+          api_key=$(node -e "const x=require('/tmp/firebase-init.json');process.stdout.write(x.apiKey||'')")
+          test -n "$api_key"
+          base="fbsmoke$(date +%s)"
+          id1="${base}01"
+          id2="${base}02"
+          build="${EXPECTED_SHA:0:12}"
+          cat > /tmp/firestore-commit.json <<JSON
+          {
+            "writes": [
+              {
+                "update": {
+                  "name": "projects/hitobito-levelup/databases/(default)/documents/levelupSessions/${id1}",
+                  "fields": {
+                    "slug": {"stringValue": "home"},
+                    "buildSha": {"stringValue": "${build}"},
+                    "status": {"stringValue": "active"},
+                    "lastStep": {"stringValue": "feedback-smoke:01/02"},
+                    "lastAction": {"stringValue": "smoke-a"},
+                    "pageKind": {"stringValue": "home"},
+                    "durationSec": {"integerValue": "0"}
+                  }
+                },
+                "updateTransforms": [
+                  {"fieldPath": "startedAt", "setToServerValue": "REQUEST_TIME"},
+                  {"fieldPath": "lastSeenAt", "setToServerValue": "REQUEST_TIME"}
+                ]
+              },
+              {
+                "update": {
+                  "name": "projects/hitobito-levelup/databases/(default)/documents/levelupSessions/${id2}",
+                  "fields": {
+                    "slug": {"stringValue": "home"},
+                    "buildSha": {"stringValue": "${build}"},
+                    "status": {"stringValue": "active"},
+                    "lastStep": {"stringValue": "feedback-smoke:02/02"},
+                    "lastAction": {"stringValue": "smoke-b"},
+                    "pageKind": {"stringValue": "home"},
+                    "durationSec": {"integerValue": "0"}
+                  }
+                },
+                "updateTransforms": [
+                  {"fieldPath": "startedAt", "setToServerValue": "REQUEST_TIME"},
+                  {"fieldPath": "lastSeenAt", "setToServerValue": "REQUEST_TIME"}
+                ]
+              }
+            ]
+          }
+          JSON
+          code=$(curl -sS --max-time 30 -o /tmp/firestore-response.json -w '%{http_code}' \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            --data-binary @/tmp/firestore-commit.json \
+            "https://firestore.googleapis.com/v1/projects/hitobito-levelup/databases/(default)/documents:commit?key=${api_key}")
+          cat /tmp/firestore-response.json
+          test "$code" = "200"
+          grep -F 'commitTime' /tmp/firestore-response.json >/dev/null
+          echo "Production Firestore rules accepted a two-chunk anonymous feedback write."
