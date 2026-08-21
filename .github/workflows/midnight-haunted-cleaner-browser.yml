@@ -1,0 +1,33 @@
+name: Midnight Haunted Cleaner Browser Playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/midnight-haunted-cleaner/**'
+      - 'scripts/playtest-midnight-haunted-cleaner.mjs'
+      - '.github/workflows/midnight-haunted-cleaner-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Play the game in Chromium
+        run: node scripts/playtest-midnight-haunted-cleaner.mjs
