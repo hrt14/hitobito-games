@@ -47,7 +47,7 @@ const apps = {
     scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
   },
   'kanji-warukatta': {
-    scripts: [], files: [], refs: ['FAST RELIEF', '[10,20,40,60].map'], checkViewport: false,
+    scripts: [], files: [], refs: ['FAST RELIEF', 'data-after='], checkViewport: false,
   },
 };
 
