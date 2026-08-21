@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - .deploy-trigger
+      - '.play-fun-gate-baseline'
       - 'apps/**'
       - 'index.html'
       - 'scripts/playtest-catalog.mjs'
@@ -36,12 +37,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enforce PLAY FUN gate before production deploy
-        if: github.event_name == 'push'
-        run: >-
-          node scripts/validate-play-fun-gate.mjs
-          --base "${{ github.event.before }}"
-          --head "${{ github.sha }}"
+      - name: Enforce persistent PLAY FUN audit before production deploy
+        run: |
+          set -euo pipefail
+          BASELINE="$(tr -d '\r\n ' < .play-fun-gate-baseline)"
+          test -n "$BASELINE"
+          node scripts/validate-play-fun-gate.mjs --audit-since "$BASELINE" --head "${GITHUB_SHA}"
 
       - name: Sync Play portal newest-first
         run: node scripts/sync-games-portal.mjs
