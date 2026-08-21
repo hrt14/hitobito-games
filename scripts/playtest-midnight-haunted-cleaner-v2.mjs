@@ -89,6 +89,30 @@ async function flashAt(g) {
   await releaseButton();
   await sleep(100);
 }
+async function retreatFrom(id, targetDistance = 205, max = 55) {
+  for (let i = 0; i < max; i++) {
+    const s = await snap();
+    const g = s.ghosts.find(x => x.id === id);
+    if (!g) return;
+    const dx = s.player.x - g.x, dy = s.player.y - g.y;
+    if (Math.hypot(dx, dy) >= targetDistance) return;
+    const keys = keysFor(dx, dy);
+    await pulse(keys.length ? keys : ['s'], 76);
+    await sleep(16);
+  }
+}
+async function approachForSuction(id, targetDistance = 165, max = 45) {
+  for (let i = 0; i < max; i++) {
+    const s = await snap();
+    const g = s.ghosts.find(x => x.id === id);
+    if (!g) return;
+    const dx = g.x - s.player.x, dy = g.y - s.player.y;
+    if (Math.hypot(dx, dy) <= targetDistance) return;
+    const keys = keysFor(dx, dy);
+    await pulse(keys.length ? keys : ['w'], 66);
+    await sleep(12);
+  }
+}
 async function counterPull(id) {
   await holdButton('#suctionBtn');
   const until=Date.now()+820;
@@ -107,15 +131,23 @@ async function fight(evidence) {
     const real=s.ghosts.filter(g=>g.type!=='decoy');
     if(!real.length) return;
     const g=real.find(x=>x.type==='mirror')||real[0];
-    if(Math.hypot(s.player.x-g.x,s.player.y-g.y)>144) await moveTo(g.x,g.y,127,90);
+    const d=Math.hypot(s.player.x-g.x,s.player.y-g.y);
+    if(d<185) await retreatFrom(g.id,205);
+    else if(d>245) await moveTo(g.x,g.y,205,90);
     s=await snap(); const live=s.ghosts.find(x=>x.id===g.id); if(!live) return;
     await flashAt(live);
     s=await snap(); const stunned=s.ghosts.find(x=>x.id===g.id); if(!stunned) return;
-    if(stunned.stunned<=0){await pulse(['a'],70);continue;}
-    const before=stunned.hp;
+    if(stunned.stunned<=0){await retreatFrom(g.id,210);continue;}
+    await approachForSuction(g.id,165);
+    s=await snap(); const ready=s.ghosts.find(x=>x.id===g.id); if(!ready) return;
+    if(ready.stunned<=0){await retreatFrom(g.id,210);continue;}
+    const before=ready.hp;
     await counterPull(g.id);
     s=await snap(); const after=s.ghosts.find(x=>x.id===g.id);
-    if(after) assert(after.hp<before, `suction caused no HP loss in ${s.room}`);
+    if(after){
+      assert(after.hp<before, `suction caused no HP loss in ${s.room}`);
+      await retreatFrom(g.id,205);
+    }
   }
   throw new Error(`fight loop exhausted: ${JSON.stringify((await snap()).ghosts)}`);
 }
