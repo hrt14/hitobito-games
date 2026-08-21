@@ -119,7 +119,7 @@ const style = `
   body .lu-category-copy small{
     margin-top:8px!important;
     color:var(--lu-cat-muted)!important;
-    font-size:11px!important;
+    font-size:12px!important;
     line-height:1.55!important;
     font-weight:750!important;
   }
@@ -155,7 +155,7 @@ const style = `
     body .lu-category-mark{width:38px!important;height:38px!important;margin-bottom:21px!important;border-radius:12px!important;font-size:18px!important}
     body .lu-category-copy{padding-right:14px!important;padding-bottom:20px!important}
     body .lu-category-copy strong{font-size:18px!important}
-    body .lu-category-copy small{font-size:10px!important}
+    body .lu-category-copy small{font-size:12px!important}
     body .lu-category-arrow{right:12px!important;top:12px!important;width:31px!important;height:31px!important;font-size:17px!important}
   }
 </style>`;
@@ -167,7 +167,7 @@ if (!html.includes(MARKER)) {
 }
 
 const out = fs.readFileSync(homePath, 'utf8');
-for (const token of [MARKER, '.lu-category-card.tone-red', '--lu-cat-lime:#dfff4f', '#levelup-category-all::after']) {
+for (const token of [MARKER, '.lu-category-card.tone-red', '--lu-cat-lime:#dfff4f', '#levelup-category-all::after', 'font-size:12px!important']) {
   if (!out.includes(token)) throw new Error(`LEVEL UP category card theme missing ${token}`);
 }
 
