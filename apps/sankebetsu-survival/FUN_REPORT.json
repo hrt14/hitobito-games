@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "sankebetsu-survival",
+  "funStatement": "雪上の痕跡と遠い物音から羆の次の接近先を読み、限られた一手を『避難・補強・暖房・偵察』のどこへ使うか決め、予測が当たった瞬間に集落全体を守り切る緊張が楽しい。",
+  "coreLoop": [
+    "雪上の足跡・物音・各家の危険度を観察する",
+    "移動して避難誘導・戸締まり補強・薪補給・偵察の一つを選ぶ",
+    "時間を1刻進める",
+    "羆と吹雪が集落の状況を変える",
+    "残った痕跡から次の一手を読み直す"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "自分と一軒を安全にする時間を使うほど、別の家への避難誘導や情報収集が遅れる。偵察すれば羆の進路を読めるが、その一刻は補強や暖房に使えない。",
+    "consequence": "避難・補強・薪・偵察の配分が、次の刻の家ごとの安全度、住民の位置、得られる手掛かり、羆が接近した際の被害判定を変える。"
+  },
+  "highestMoment": "吹雪の暗転直後、足跡の読みが当たり羆が予測した家へ突進する5秒間に、補強した戸が耐えて住民が一斉に安全家屋へ逃げ切る瞬間。",
+  "oneMoreRunReason": "終了時に『あと1軒救えた分岐』と見落とした手掛かりを示し、同じ初期条件でも偵察順・避難順・補強先を変えて全員生還を狙える。",
+  "playtest": {
+    "method": "real browser playtest required; not yet run",
+    "first10Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
+    "first30Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
+    "threeMinutes": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
+    "tenMinutes": {"pass": false, "evidence": "未検証。短時間ゲームのため複数ラン相当で確認する。"},
+    "retryDesire": {"pass": false, "evidence": "未検証。終了画面と再挑戦動機を実プレイで確認する。"},
+    "noReward": {"pass": false, "evidence": "未検証。メタ報酬なしでも推理と優先順位判断が成立するか確認する。"}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未検証。",
+    "coreLoop": "未検証。",
+    "inputFeel": "未検証。",
+    "decisionQuality": "未検証。",
+    "masteryDepth": "未検証。",
+    "surpriseVariation": "未検証。",
+    "riskReward": "未検証。",
+    "pacing": "未検証。",
+    "retryDesire": "未検証。",
+    "uniqueness": "未検証。"
+  },
+  "verifiedAt": null
+}
