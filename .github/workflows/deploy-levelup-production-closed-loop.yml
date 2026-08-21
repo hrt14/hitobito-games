@@ -62,16 +62,6 @@ jobs:
           console.log(meta);
           NODE
 
-      - name: Prepare create-only feedback fallback rules
-        run: node scripts/prepare-levelup-feedback-rules.mjs
-
-      - name: Deploy Firestore security rules when IAM allows it
-        id: firestore_rules
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          npx --yes firebase-tools@latest deploy --only firestore:rules --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-firestore-rules-deploy.log
-
       - name: Deploy Firebase Hosting
         run: |
           set -o pipefail
@@ -97,12 +87,12 @@ jobs:
             curl -fLsS --max-time 30 "$base/apps/kokkara-best/?sha=$GITHUB_SHA" -o /tmp/kokkara-best.html
             grep -F 'id="levelup-nav-fixed"' /tmp/kokkara-best.html >/dev/null
             grep -F 'id="levelup-nav-toggle"' /tmp/kokkara-best.html >/dev/null
-            grep -F 'levelup-feedback-widget-fallback' /tmp/kokkara-best.html >/dev/null
+            grep -F 'levelup-feedback-session-fallback' /tmp/kokkara-best.html >/dev/null
             curl -fLsS --max-time 30 "$base/?sha=$GITHUB_SHA" -o /tmp/levelup-home.html
             grep -F 'id="levelup-nav-fixed"' /tmp/levelup-home.html >/dev/null
             grep -F 'id="levelup-nav-toggle"' /tmp/levelup-home.html >/dev/null
-            grep -F 'levelup-feedback-widget-fallback' /tmp/levelup-home.html >/dev/null
-            echo "Navigation + feedback fallback verified in live HTML on $base"
+            grep -F 'levelup-feedback-session-fallback' /tmp/levelup-home.html >/dev/null
+            echo "Navigation + session feedback fallback verified in live HTML on $base"
           done
 
       - name: Deploy Cloud Functions when IAM allows it
@@ -133,7 +123,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
-          FIRESTORE_OUTCOME: ${{ steps.firestore_rules.outcome }}
           FUNCTIONS_OUTCOME: ${{ steps.functions_deploy.outcome }}
         run: |
           set -euo pipefail
@@ -150,24 +139,14 @@ jobs:
               echo "- exact commit SHA is live on hitobito-levelup.web.app"
               echo "- exact commit SHA is live on levelup.hitobito.jp"
               echo "- top page and kokkara-best both contain the shared hamburger navigation"
-              echo "- feedback Firestore fallback is present in live HTML"
-              if [ "$FIRESTORE_OUTCOME" = "success" ]; then
-                echo "- create-only feedback Firestore security rules deployed"
-              else
-                echo "- Firestore rules deploy is still blocked by IAM; this no longer blocks unrelated Hosting releases"
-              fi
+              echo "- feedback session fallback is present in live HTML and uses the already-permitted levelupSessions write path"
               if [ "$FUNCTIONS_OUTCOME" = "success" ]; then
                 echo "- submitLevelupFeedback Function deployed and passed its health check"
               else
-                echo "- Cloud Functions deploy is still blocked by IAM; browser feedback uses the Firestore fallback when rules permit it"
+                echo "- Cloud Functions deploy is still blocked by IAM; browser feedback falls back to levelupSessions and the GitHub sync reconstructs it"
               fi
             else
               echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
-              echo
-              echo "### Firestore rules deploy log tail"
-              echo '```text'
-              if [ -f /tmp/firebase-firestore-rules-deploy.log ]; then tail -n 120 /tmp/firebase-firestore-rules-deploy.log; else echo '(not available)'; fi
-              echo '```'
               echo
               echo "### Hosting deploy log tail"
               echo '```text'
