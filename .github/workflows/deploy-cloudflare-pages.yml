@@ -11,6 +11,7 @@ on:
       - 'index.html'
       - 'scripts/playtest-catalog.mjs'
       - 'scripts/sync-games-portal.mjs'
+      - 'scripts/inject-play-top-nav.mjs'
       - 'deploy-targets.json'
 
 concurrency:
@@ -39,6 +40,9 @@ jobs:
       - name: Build hosting bundles
         run: npm run build:hosting
 
+      - name: Inject Play hamburger navigation
+        run: node scripts/inject-play-top-nav.mjs
+
       - name: Install explicit 404 page
         run: cp 404.html .dist/cloudflare/404.html
 
@@ -47,6 +51,7 @@ jobs:
           node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('.dist/cloudflare/manifest.json','utf8'));const slugs=new Set(m.games.map(g=>g.slug));for(const blocked of ['404-kaiki','astral-dawn','oceans-of-earth']){if(slugs.has(blocked)){throw new Error(blocked+' must not be deployed to Cloudflare');}}console.log('Cloudflare bundle verified:',m.games.length,'games');"
           test ! -e .dist/cloudflare/apps/yunagiso/index.html
           test -e .dist/cloudflare/404.html
+          grep -q 'id="hitobito-play-nav"' .dist/cloudflare/index.html
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
