@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "drag-combo",
+  "funStatement": "5秒だけ自由に宝珠を引き回し、狙った色・回復・大連鎖を同時に成立させるルートを即興で組み立てること自体が気持ちいい。",
+  "coreLoop": [
+    "敵の弱点・攻撃までの残りターン・自分のHPと盤面を見る",
+    "弱点火力、回復、4コンボ以上のBREAKのどれを優先するか決める",
+    "1個の宝珠を5秒以内に盤面中へドラッグし、通過した宝珠と次々に入れ替える",
+    "指を離すと3個以上が消え、落下連鎖・攻撃・回復・BREAKが即座に発生する",
+    "敵の反撃と新盤面を見て次のルートを組み直す"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "敵の弱点色で一気に削る、ハートを揃えて生存する、4コンボ以上を狙って敵の攻撃を遅らせる、の全部を毎ターン同時には最大化できない。",
+    "consequence": "攻撃優先なら敵を早く倒せるが被弾しやすく、回復優先なら火力が落ち、BREAK狙いの長いルートは成功時に安全を作れる一方で5秒制限で崩しやすい。"
+  },
+  "highestMoment": "ボスの攻撃直前、残りHPぎりぎりから5秒でハートを含む大連鎖を作り、回復しながら4コンボBREAKで反撃を遅らせ、弱点色の落ちコンまでつながって一気に撃破する5秒。",
+  "oneMoreRunReason": "盤面の見方とドラッグ経路を改善すれば、同じ5秒でももっと大きい連鎖・ノーダメージ突破・高スコアを狙えると自分で分かるから。",
+  "playtest": {
+    "method": "real browser playtest pending implementation",
+    "first10Seconds": {"pass": false, "evidence": "未実装のため未検証。"},
+    "first30Seconds": {"pass": false, "evidence": "未実装のため未検証。"},
+    "threeMinutes": {"pass": false, "evidence": "未実装のため未検証。"},
+    "tenMinutes": {"pass": false, "evidence": "未実装のため未検証。"},
+    "retryDesire": {"pass": false, "evidence": "未実装のため未検証。"},
+    "noReward": {"pass": false, "evidence": "未実装のため未検証。"}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未実装のため未採点。",
+    "coreLoop": "未実装のため未採点。",
+    "inputFeel": "未実装のため未採点。",
+    "decisionQuality": "未実装のため未採点。",
+    "masteryDepth": "未実装のため未採点。",
+    "surpriseVariation": "未実装のため未採点。",
+    "riskReward": "未実装のため未採点。",
+    "pacing": "未実装のため未採点。",
+    "retryDesire": "未実装のため未採点。",
+    "uniqueness": "未実装のため未採点。"
+  },
+  "verifiedAt": "2026-08-22T02:23:00+09:00"
+}
