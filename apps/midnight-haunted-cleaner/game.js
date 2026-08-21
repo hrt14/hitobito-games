@@ -554,7 +554,7 @@
     const nearby = currentRoom().furniture
       .filter((f) => !f.searched && !f.broken)
       .map((f) => ({ f, d: Math.hypot((f.x + f.w / 2) - player.x, (f.y + f.h / 2) - player.y) }))
-      .filter((o) => o.d < 95)
+      .filter((o) => o.d < 125)
       .sort((a, b) => a.d - b.d);
     if (!nearby.length) return;
     const f = nearby[0].f;
