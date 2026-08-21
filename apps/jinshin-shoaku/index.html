@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0b0d0c" />
+  <meta name="description" content="相手を支配せず、自己像・自律性・面子を守りながら協力が生まれる関わり方を、6問の会話判断で反射化するLEVEL UPトレーニング。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>人心掌握トレーニング — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="mini-progress" aria-label="進行状況"><span id="headerProgress">READY</span></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="音をオフにする">♪</button>
+    </header>
+
+    <section class="screen active" id="startScreen">
+      <div class="hero-mark" aria-hidden="true">
+        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+        <div class="face face-left"><i></i></div>
+        <div class="bridge"></div>
+        <div class="face face-right"><i></i></div>
+      </div>
+      <div class="hero-copy">
+        <p class="eyebrow">TRUST WITHOUT CONTROL</p>
+        <h1>人心掌握<span>。</span></h1>
+        <p class="lead">うまい人は、操らない。<br><strong>相手が自分を守らなくていい関係をつくる。</strong></p>
+      </div>
+
+      <div class="principle-strip" aria-label="このトレーニングで扱う6原則">
+        <span>自己像</span><span>本人</span><span>理想</span><span>選択</span><span>面子</span><span>倫理</span>
+      </div>
+
+      <button class="primary-btn" id="startBtn" type="button"><span>6問だけやる</span><b>→</b></button>
+      <p class="microcopy">会話の瞬間に、3つから選ぶ。約2分。</p>
+
+      <div class="local-stats" id="localStats" hidden>
+        <div><b id="sessionCount">0</b><span>SESSIONS</span></div>
+        <div><b id="bestScore">0</b><span>BEST</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="trainingScreen">
+      <div class="training-head">
+        <div>
+          <p class="eyebrow" id="principleLabel">PRINCIPLE 1</p>
+          <h2 id="principleTitle">自己物語を理解する</h2>
+        </div>
+        <div class="counter"><strong id="questionIndex">1</strong><span>/6</span></div>
+      </div>
+
+      <div class="timer" aria-hidden="true"><i id="timerBar"></i></div>
+
+      <article class="scenario-card">
+        <div class="scenario-meta"><span id="scenePlace">会議</span><span id="sceneRelation">部下</span></div>
+        <p class="scene-line" id="sceneLine"></p>
+        <p class="scene-task">あなたなら、どう返す？</p>
+      </article>
+
+      <div class="choices" id="choices" role="group" aria-label="返答を選ぶ"></div>
+      <p class="choice-note">「言い負かす」ではなく、相手が自分で動ける返しを選ぶ。</p>
+    </section>
+
+    <section class="screen" id="feedbackScreen">
+      <div class="feedback-symbol" id="feedbackSymbol" aria-hidden="true">◎</div>
+      <p class="eyebrow" id="feedbackEyebrow">GOOD JUDGMENT</p>
+      <h2 id="feedbackTitle">相手の自己像を守れた。</h2>
+      <p class="feedback-body" id="feedbackBody"></p>
+
+      <div class="protected-card">
+        <span>今回守れたもの</span>
+        <strong id="protectedValue">自己像</strong>
+        <p id="protectedWhy"></p>
+      </div>
+
+      <div class="better-line" id="betterLine" hidden>
+        <span>もっと良い一言</span>
+        <strong id="betterText"></strong>
+      </div>
+
+      <button class="primary-btn" id="nextBtn" type="button"><span id="nextLabel">次の場面</span><b>→</b></button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <div class="score-ring" id="scoreRing" aria-label="今回の判断スコア">
+        <div><strong id="totalScore">0</strong><span>/100</span></div>
+      </div>
+      <h2 id="resultTitle">支配せずに、協力をつくれた。</h2>
+      <p class="result-lead" id="resultLead"></p>
+
+      <div class="skill-bars" id="skillBars" aria-label="6原則ごとの今回の結果"></div>
+
+      <section class="real-action">
+        <p class="eyebrow">REAL WORLD / 1 ACTION</p>
+        <h3>次の会話で、これだけ。</h3>
+        <p id="realActionText"></p>
+        <button class="action-copy" id="actionCopyBtn" type="button">この一言をコピー</button>
+      </section>
+
+      <div class="result-actions">
+        <button class="primary-btn" id="againBtn" type="button"><span>別の6問</span><b>↻</b></button>
+        <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      </div>
+      <p class="privacy-note">スコアと苦手傾向はこの端末内に保存します。これは心理診断ではなく、提示された会話場面への判断トレーニングです。</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
