@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#07110f" />
+  <meta name="description" content="他人の評価に渡したハンドルを、自分の行動へ戻す。承認欲求に気づき、自分軸へ戻る反射を鍛えるLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>他人軸OFF — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="brand-mini">SELF AXIS</div>
+      <button class="stats-btn" id="statsBtn" type="button" aria-label="トレーニング記録を見る">記録</button>
+    </header>
+
+    <section class="screen active" id="homeScreen">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="wheel wheel-outer"><i></i><i></i><i></i><i></i></div>
+        <div class="wheel wheel-inner"><span>自分</span></div>
+        <div class="approval-orbit"><b>評価</b><b>いいね</b><b>期待</b></div>
+      </div>
+      <p class="eyebrow">TAKE BACK THE WHEEL</p>
+      <h1>他人軸<span>OFF</span></h1>
+      <p class="lead">承認は、もらっていい。<br><strong>判断のハンドルだけ渡さない。</strong></p>
+      <button class="primary-btn" id="resetModeBtn" type="button"><span>今、自分軸に戻す</span><b>→</b></button>
+      <button class="secondary-btn" id="trainingModeBtn" type="button">30秒 反射トレーニング</button>
+      <p class="microcopy">人を無視するゲームではありません。相手の評価と、自分の選択を分ける練習です。</p>
+    </section>
+
+    <section class="screen" id="triggerScreen">
+      <div class="screen-copy">
+        <p class="eyebrow">STEP 1 / NOTICE IT</p>
+        <h2>今、誰に<br>どう思われたい？</h2>
+        <p>まず「評価を取りにいっている自分」に気づくだけ。</p>
+      </div>
+      <div class="who-grid" id="whoGrid" aria-label="気になっている相手">
+        <button type="button" data-who="上司">上司</button>
+        <button type="button" data-who="同僚">同僚</button>
+        <button type="button" data-who="友人">友人</button>
+        <button type="button" data-who="家族">家族</button>
+        <button type="button" data-who="SNS">SNS</button>
+        <button type="button" data-who="その他">その他</button>
+      </div>
+      <label class="field-label" for="approvalInput">どう思われたい？ <span>任意</span></label>
+      <input id="approvalInput" class="text-input" type="text" maxlength="56" autocomplete="off" placeholder="例：仕事ができると思われたい" />
+      <button class="primary-btn" id="noticeNextBtn" type="button" disabled><span>その評価を外す</span><b>→</b></button>
+    </section>
+
+    <section class="screen" id="outsideScreen">
+      <div class="screen-copy centered">
+        <p class="eyebrow">STEP 2 / RETURN IT</p>
+        <h2>それを決めるのは、<br>誰？</h2>
+      </div>
+      <div class="axis-stage" id="axisStage">
+        <div class="axis-label self">← 自分が決める</div>
+        <div class="axis-label other">相手が決める →</div>
+        <div class="approval-card" id="approvalCard" role="button" tabindex="0" aria-label="カードを右へスワイプして相手側へ返す">
+          <small id="approvalWho">上司から</small>
+          <strong id="approvalText">仕事ができると思われたい</strong>
+          <span>この「評価」を、決めるのは？</span>
+        </div>
+        <div class="swipe-hint" id="swipeHint">→ 相手側へスワイプ</div>
+      </div>
+      <button class="secondary-btn" id="outsideFallbackBtn" type="button">相手に返す →</button>
+    </section>
+
+    <section class="screen" id="insideScreen">
+      <div class="screen-copy">
+        <p class="eyebrow">STEP 3 / KEEP YOUR PART</p>
+        <h2>じゃあ、<br>自分はどうしたい？</h2>
+        <p>評価ではなく、自分で選べる行動を1つだけ残す。</p>
+      </div>
+      <div class="standard-grid" id="standardGrid">
+        <button type="button" data-standard="丁寧にやる"><b>丁寧にやる</b><span>雑にしない</span></button>
+        <button type="button" data-standard="挑戦する"><b>挑戦する</b><span>結果より一歩</span></button>
+        <button type="button" data-standard="正直に伝える"><b>正直に伝える</b><span>盛らない</span></button>
+        <button type="button" data-standard="楽しむ"><b>楽しむ</b><span>見栄より体験</span></button>
+        <button type="button" data-standard="自分で選ぶ"><b>自分で選ぶ</b><span>空気より納得</span></button>
+        <button type="button" data-standard="今日は休む"><b>今日は休む</b><span>評価より回復</span></button>
+      </div>
+      <label class="field-label" for="customStandard">自分の言葉にする <span>任意</span></label>
+      <input id="customStandard" class="text-input" type="text" maxlength="48" autocomplete="off" placeholder="例：自分が納得できる仕事をする" />
+      <button class="primary-btn" id="insideNextBtn" type="button" disabled><span>自分軸をロック</span><b>◎</b></button>
+    </section>
+
+    <section class="screen lock-screen" id="lockScreen">
+      <div class="lock-visual" aria-hidden="true">
+        <div class="lock-ring"><span>SELF</span></div>
+        <div class="released-tags"><i>評価</i><i>期待</i><i>反応</i></div>
+      </div>
+      <p class="eyebrow">SELF AXIS RESTORED</p>
+      <h2>評価は相手。<br><strong>行動は自分。</strong></h2>
+      <div class="locked-standard">
+        <span>今日、手元に残すもの</span>
+        <b id="lockedStandard">丁寧にやる</b>
+      </div>
+      <p class="lock-copy">相手がどう受け取るかは、相手の領域。<br>自分は、選んだ行動だけやればいい。</p>
+      <button class="primary-btn" id="lockDoneBtn" type="button"><span>これで戻る</span><b>✓</b></button>
+      <button class="text-btn" id="trainFromLockBtn" type="button">このまま反射を鍛える →</button>
+    </section>
+
+    <section class="screen training-screen" id="trainingScreen">
+      <div class="training-head">
+        <div><span id="questionCounter">1 / 8</span><b id="comboValue">COMBO 0</b></div>
+        <div class="timer"><i id="timerBar"></i></div>
+      </div>
+      <div class="screen-copy compact centered">
+        <p class="eyebrow">SELF / OTHERS REFLEX</p>
+        <h2 id="questionPrompt">誰が決める？</h2>
+      </div>
+      <div class="training-stage" id="trainingStage">
+        <div class="train-axis self">← 自分</div>
+        <div class="train-axis other">相手 →</div>
+        <div class="train-card" id="trainCard" role="button" tabindex="0">
+          <small id="questionContext">会議のあと</small>
+          <strong id="questionText">自分が次回、準備を増やすか</strong>
+        </div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+      </div>
+      <div class="training-buttons">
+        <button type="button" id="selfAnswerBtn" class="answer self-answer">← 自分</button>
+        <button type="button" id="otherAnswerBtn" class="answer other-answer">相手 →</button>
+      </div>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <p class="eyebrow">TRAINING COMPLETE</p>
+      <h2>ハンドルを、<br>取り戻した。</h2>
+      <div class="score-ring" id="scoreRing"><span><b id="scoreValue">0</b><small>/100</small></span></div>
+      <div class="result-stats">
+        <div><b id="accuracyValue">0%</b><span>境界精度</span></div>
+        <div><b id="speedValue">—</b><span>平均判断</span></div>
+        <div><b id="bestComboValue">0</b><span>BEST COMBO</span></div>
+      </div>
+      <div class="reflex-card">
+        <span>今日の反射</span>
+        <strong>「評価は相手。行動は自分。」</strong>
+      </div>
+      <div class="result-actions">
+        <button class="primary-btn" id="againTrainingBtn" type="button"><span>もう1セット</span><b>↻</b></button>
+        <button class="secondary-btn" id="shareBtn" type="button">結果をシェア</button>
+        <button class="text-btn" id="homeBtn" type="button">タイトルへ戻る</button>
+      </div>
+      <p class="privacy-note">入力した内容は保存しません。トレーニングの回数・最高精度などだけ、この端末内に保存します。</p>
+    </section>
+
+    <section class="screen stats-screen" id="statsScreen">
+      <div class="screen-copy">
+        <p class="eyebrow">LOCAL RECORD</p>
+        <h2>自分軸の<br>反射記録。</h2>
+      </div>
+      <div class="stats-panel">
+        <div><span>TRAINING</span><b id="statSessions">0</b><small>回</small></div>
+        <div><span>BEST</span><b id="statBest">—</b><small>精度</small></div>
+        <div><span>FASTEST</span><b id="statFastest">—</b><small>平均判断</small></div>
+      </div>
+      <button class="primary-btn" id="statsTrainBtn" type="button"><span>反射トレーニング</span><b>→</b></button>
+      <button class="text-btn" id="statsBackBtn" type="button">戻る</button>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
