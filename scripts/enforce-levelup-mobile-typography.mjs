@@ -44,6 +44,7 @@ function injectMobileBaseline(html) {
 <style id="${MARKER}">
   /* LEVEL UP mobile readability floor: product floor 12px; standard actions/inputs 16px. */
   @media (max-width: 768px) {
+    small { font-size:12px !important; line-height:1.4; }
     button,input,textarea,select { font-size:16px; }
   }
 </style>`;
