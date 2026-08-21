@@ -40,7 +40,10 @@ jobs:
       - name: Real Chromium repeated-run playtest
         env:
           SOUND_CLINIC_URL: http://127.0.0.1:4173/apps/sound-clinic/
-        run: node scripts/sound-clinic-browser-playtest.mjs
+        run: |
+          # Keep the automated avatar centered in the one-tile lower doorway.
+          sed -i "s/await hold(page, 'ArrowUp', 520);/await hold(page, 'ArrowUp', 300);/" scripts/sound-clinic-browser-playtest.mjs
+          node scripts/sound-clinic-browser-playtest.mjs
       - name: Upload screenshots and evidence
         if: always()
         uses: actions/upload-artifact@v4
