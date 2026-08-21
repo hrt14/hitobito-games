@@ -24,6 +24,24 @@ jobs:
           RESP="$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "$URL")"
           printf '%s' "$RESP" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};const r=j.result||{};console.log(JSON.stringify({name:r.name,status:r.status,zone_tag:r.zone_tag||null,validation_data:r.validation_data||null,verification_data:r.verification_data||null},null,2))})"
 
+      - name: Verify sound-clinic live route
+        run: |
+          set -euo pipefail
+          URL="https://play.hitobito.jp/apps/sound-clinic/"
+          for ATTEMPT in $(seq 1 12); do
+            BODY="$(curl -fsSL --max-time 15 "${URL}?_verify=${GITHUB_SHA}-${ATTEMPT}" || true)"
+            if [[ "$BODY" == *'<title>走ると、来る。｜廃診療所5分脱出ホラー</title>'* ]] \
+              && [[ "$BODY" == *'id="startBtn"'* ]] \
+              && [[ "$BODY" == *'ヒューズ 0 / 3'* ]]; then
+              echo "Verified sound-clinic production route on attempt ${ATTEMPT}."
+              exit 0
+            fi
+            echo "Attempt ${ATTEMPT}: fetched ${#BODY} bytes; sound-clinic markers not confirmed yet."
+            sleep 5
+          done
+          echo "sound-clinic production route did not return the expected game markers." >&2
+          exit 1
+
       - name: Diagnose authoritative DNS
         run: |
           set -euo pipefail
