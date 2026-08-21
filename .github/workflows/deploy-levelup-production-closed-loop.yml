@@ -65,7 +65,9 @@ jobs:
       - name: Prepare create-only feedback fallback rules
         run: node scripts/prepare-levelup-feedback-rules.mjs
 
-      - name: Deploy Firestore security rules
+      - name: Deploy Firestore security rules when IAM allows it
+        id: firestore_rules_deploy
+        continue-on-error: true
         run: |
           set -o pipefail
           npx --yes firebase-tools@latest deploy --only firestore:rules --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-firestore-rules-deploy.log
@@ -75,7 +77,7 @@ jobs:
           set -o pipefail
           npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-hosting-deploy.log
 
-      - name: Verify exact commit and shared navigation are live
+      - name: Verify exact commit, treatment diagnosis, and shared navigation are live
         run: |
           set -euo pipefail
           sleep 5
@@ -100,7 +102,12 @@ jobs:
             grep -F 'id="levelup-nav-fixed"' /tmp/levelup-home.html >/dev/null
             grep -F 'id="levelup-nav-toggle"' /tmp/levelup-home.html >/dev/null
             grep -F 'levelup-feedback-widget-fallback' /tmp/levelup-home.html >/dev/null
-            echo "Navigation + feedback fallback verified in live HTML on $base"
+            grep -F 'id="levelup-state-diagnosis-v3"' /tmp/levelup-home.html >/dev/null
+            grep -F '今すぐラクになりたい' /tmp/levelup-home.html >/dev/null
+            grep -F '根っこから変えたい' /tmp/levelup-home.html >/dev/null
+            grep -F 'data-treatment="' /tmp/levelup-home.html >/dev/null
+            grep -F 'data-treatment-badge="' /tmp/levelup-home.html >/dev/null
+            echo "Navigation + treatment diagnosis verified in live HTML on $base"
           done
 
       - name: Deploy Cloud Functions when IAM allows it
@@ -131,6 +138,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
+          FIRESTORE_OUTCOME: ${{ steps.firestore_rules_deploy.outcome }}
           FUNCTIONS_OUTCOME: ${{ steps.functions_deploy.outcome }}
         run: |
           set -euo pipefail
@@ -146,13 +154,18 @@ jobs:
               echo "Verified production conditions:"
               echo "- exact commit SHA is live on hitobito-levelup.web.app"
               echo "- exact commit SHA is live on levelup.hitobito.jp"
+              echo "- LEVEL UP diagnosis v3 is live with 今すぐ / 根っこから / 両方 choices"
+              echo "- app cards expose treatment attributes and treatment badges"
               echo "- top page and kokkara-best both contain the shared hamburger navigation"
-              echo "- feedback Firestore fallback is present in live HTML"
-              echo "- create-only feedback Firestore security rules deployed"
+              if [ "$FIRESTORE_OUTCOME" = "success" ]; then
+                echo "- create-only feedback Firestore security rules deployed"
+              else
+                echo "- Firestore Rules deploy is still blocked by IAM; this no longer blocks Hosting deployment"
+              fi
               if [ "$FUNCTIONS_OUTCOME" = "success" ]; then
                 echo "- submitLevelupFeedback Function deployed and passed its health check"
               else
-                echo "- Cloud Functions deploy is still blocked by IAM; browser feedback uses the Firestore fallback instead"
+                echo "- Cloud Functions deploy is still blocked by IAM"
               fi
             else
               echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
