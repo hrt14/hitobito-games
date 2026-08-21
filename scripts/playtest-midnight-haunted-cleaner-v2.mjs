@@ -64,12 +64,20 @@ function searchPoint(player, f) {
   const dx=player.x-cx, dy=player.y-cy, m=Math.hypot(dx,dy)||1;
   return { x:cx+dx/m*58, y:cy+dy/m*58 };
 }
+async function routeToSearchPoint(s, f, p) {
+  if (s.room === 'dining' && f.type === 'chandelier' && s.player.y > 430) {
+    await moveTo(270,620,42,100);
+    await moveTo(492,620,36,120);
+    await moveTo(492,278,38,160);
+  }
+  return moveTo(p.x,p.y,55);
+}
 async function revealNext(evidence) {
   let s = await snap();
   const f=s.furniture.find(x=>x.possessed&&!x.searched);
   assert(f, `no possessed furniture left in ${s.room}`);
   const p=searchPoint(s.player,f);
-  await moveTo(p.x,p.y,55);
+  await routeToSearchPoint(s,f,p);
   await face(f.x+f.w/2,f.y+f.h/2);
   await holdButton('#suctionBtn');
   for(let i=0;i<25;i++){
