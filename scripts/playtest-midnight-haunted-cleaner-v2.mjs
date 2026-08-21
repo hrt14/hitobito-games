@@ -130,7 +130,9 @@ async function clearRoom(evidence) {
 async function door(target) {
   let s=await snap(); const d=s.doors.find(x=>x.target===target);
   assert(d&&d.unlocked, `door ${s.room}->${target} unavailable: ${JSON.stringify(s.doors)}`);
-  await moveTo(d.x,d.y,38,140);
+  if(d.side==='bottom'){ await moveTo(478,650,62,120); await moveTo(478,700,42,80); }
+  if(d.side==='top'){ await moveTo(478,240,62,120); await moveTo(478,190,42,80); }
+  await moveTo(d.x,d.y,38,180);
   for(let i=0;i<35;i++){
     await sleep(60); s=await snap(); if(s.room===target)return;
     await pulse(keysFor(d.x-s.player.x,d.y-s.player.y),55);
