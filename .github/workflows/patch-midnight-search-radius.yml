@@ -1,0 +1,44 @@
+name: Patch Midnight Search Radius
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/patch-midnight-search-radius.yml'
+      - 'apps/midnight-haunted-cleaner/game.js'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'feat/midnight-haunted-cleaner'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Widen furniture suction search radius
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('apps/midnight-haunted-cleaner/game.js')
+          text = p.read_text()
+          old = ".filter((o) => o.d < 95)"
+          new = ".filter((o) => o.d < 125)"
+          if old in text:
+              p.write_text(text.replace(old, new, 1))
+              print('patched search radius 95 -> 125')
+          elif new in text:
+              print('already patched')
+          else:
+              raise SystemExit('target search-radius expression not found')
+          PY
+      - name: Commit patch when needed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/midnight-haunted-cleaner/game.js
+          git commit -m "Make haunted furniture easier to suction-search"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
