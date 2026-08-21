@@ -12,6 +12,7 @@ const apps = {
   'jinsei-title': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'arigatou-sagashi': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'main-character': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'kokkara-best': { required: ['id="realFlow"'] },
   'idea-lenses-40': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'viewpoint-exam': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'uchite': { required: ['data-action="practice"', 'USE IT NOW'], sanitizeUchite: true },
