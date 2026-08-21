@@ -78,14 +78,17 @@ function isPortalGame(slug, category) {
   return true;
 }
 
-function keepOnlyExternalLegacyGames(portal) {
-  const legacyGamesPattern = /<section class="section"><div class="section-head"><h2>Games<\/h2>[\s\S]*?<\/div><\/section>/m;
-  const legacy = portal.match(legacyGamesPattern)?.[0];
-  if (!legacy) return portal;
+function keepOnlyExternalCards(portal, heading) {
+  const sectionPattern = new RegExp(
+    `<section class="section"><div class="section-head"><h2>${heading}<\\/h2>[\\s\\S]*?<\\/div><\\/section>`,
+    'm',
+  );
+  const section = portal.match(sectionPattern)?.[0];
+  if (!section) return portal;
 
   const internalCardPattern = /<a class="card(?: compact)?" href="https:\/\/play\.hitobito\.jp\/apps\/[^\"]+\/"[^>]*>[\s\S]*?<\/a>\n?/g;
-  const cleaned = legacy.replace(internalCardPattern, '');
-  return portal.replace(legacy, cleaned);
+  const cleaned = section.replace(internalCardPattern, '');
+  return portal.replace(section, cleaned);
 }
 
 let portal = fs.readFileSync(portalPath, 'utf8');
@@ -124,7 +127,8 @@ if (markerPattern.test(portal)) {
   portal = portal.replace(anchor, `${block}\n${anchor}`);
 }
 
-portal = keepOnlyExternalLegacyGames(portal);
+portal = keepOnlyExternalCards(portal, 'Games');
+portal = keepOnlyExternalCards(portal, 'More Games');
 
 fs.writeFileSync(portalPath, portal);
 console.log(`[Portal] Synced ${games.length} games in newest-added order`);
