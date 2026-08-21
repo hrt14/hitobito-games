@@ -3,7 +3,7 @@ export const CATEGORIES = [
   { id: 'levelup', label: 'LEVEL UP', note: '思考・習慣・生き方を鍛える' },
   { id: 'story', label: '物語・人生', note: '選択や人生を体験する' },
   { id: 'horror', label: 'ホラー・怪異', note: '違和感、探索、恐怖を楽しむ' },
-  { id: 'nature', label: 'NATURE', note: '生態系・水・地球を遊んで知る' },
+  { id: 'nature', label: '自然・科学', note: '生態系・水・地球を遊んで知る' },
   { id: 'sim', label: '箱庭・経営', note: '育てる、配置する、発展させる' },
   { id: 'adventure', label: '探索・冒険', note: '歩く、旅する、発見する' },
   { id: 'other', label: 'その他・実験', note: '新しい遊び方を試す' },
