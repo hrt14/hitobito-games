@@ -7,6 +7,7 @@
 <meta name="description" content="出来事に自分で足している余計な思考負荷を見抜き、必要な分だけ考える反射を鍛えるLEVEL UPゲーム。">
 <title>疲れを増やすな。 | LEVEL UP</title>
 <link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./real-life.css">
 </head>
 <body>
 <main class="app" id="app">
@@ -65,10 +66,84 @@
     </div>
     <div class="weak-card" id="weakCard"><small>一番引っかかった型</small><b id="weakName">一個だけ</b><p id="weakAdvice">「全部」を見つけたら、次の一個だけ決める。</p></div>
     <div class="mantra" id="mantra">必要な分だけ考える。</div>
-    <button class="primary" id="retryBtn">もう10問 <b>↻</b></button>
+    <button class="primary" id="realBtn">今の荷物を1つ下ろす <b>→</b></button>
+    <button class="secondary-action" id="retryBtn" type="button">もう10問やる <b>↻</b></button>
     <a class="back-link" href="https://levelup.hitobito.jp/">LEVEL UPへ戻る</a>
+  </section>
+
+  <section class="screen real-screen" id="realScreen">
+    <div class="real-head">
+      <div class="eyebrow">REAL LIFE / DROP ONE LOAD</div>
+      <h2>いま頭に載っている<br><em>実物を1つ。</em></h2>
+      <p>練習問題ではなく、いまの自分の荷物でやる。</p>
+    </div>
+
+    <div id="realInputStep" class="real-step active">
+      <label class="real-field">
+        <span>いま頭を占有していること</span>
+        <textarea id="realLoadText" maxlength="140" placeholder="例：明日の会議資料を、どこまで直すか気になっている。"></textarea>
+        <small>事実でも心配でもOK。まず、そのまま置く。</small>
+      </label>
+      <div class="real-meter">
+        <div><span>いまの頭の重さ</span><strong><b id="realBeforeValue">6</b><small>/10</small></strong></div>
+        <input id="realBeforeRange" type="range" min="0" max="10" step="1" value="6" aria-label="今の頭の重さ">
+        <div class="meter-labels"><span>軽い</span><span>占有される</span></div>
+      </div>
+      <button class="primary" id="realAnalyzeBtn" type="button" disabled>余計に足した荷物を見る <b>→</b></button>
+    </div>
+
+    <div id="realPatternStep" class="real-step" hidden>
+      <p class="real-question">この件に、いちばん足しているのは？</p>
+      <div class="pattern-grid" id="realPatternGrid">
+        <button type="button" data-pattern="control"><small>CONTROL</small><b>相手・結果まで<br>背負っている</b></button>
+        <button type="button" data-pattern="one"><small>ONE THING</small><b>全部を同時に<br>載せている</b></button>
+        <button type="button" data-pattern="enough"><small>ENOUGH</small><b>必要以上の完成度を<br>足している</b></button>
+        <button type="button" data-pattern="end"><small>END LOOP</small><b>終わったことを<br>働かせ続けている</b></button>
+        <button type="button" data-pattern="hold"><small>HOLD</small><b>今決めなくていいことを<br>決め続けている</b></button>
+      </div>
+    </div>
+
+    <div id="realKeepStep" class="real-step" hidden>
+      <div class="load-separation">
+        <div class="drop-box"><small>DROP / 下ろす</small><p id="realDropCopy">結果まで背負う</p></div>
+        <div class="drop-arrow-real" aria-hidden="true">↓</div>
+        <div class="keep-box"><small>KEEP / 残す</small><p id="realKeepPrompt">いま自分が動かせる一手は？</p></div>
+      </div>
+      <label class="real-field compact">
+        <span>必要な分だけ残す</span>
+        <textarea id="realKeepText" maxlength="100" placeholder="例：冒頭3枚だけ直して、明日9時に一度出す。"></textarea>
+      </label>
+      <button class="primary" id="realKeepBtn" type="button" disabled>これだけ残す <b>✓</b></button>
+    </div>
+
+    <div id="realAfterStep" class="real-step" hidden>
+      <div class="kept-action"><small>頭に残すのはこれだけ</small><strong id="realKeptAction"></strong></div>
+      <div class="real-meter">
+        <div><span>いまの頭の重さ</span><strong><b id="realAfterValue">6</b><small>/10</small></strong></div>
+        <input id="realAfterRange" type="range" min="0" max="10" step="1" value="6" aria-label="整理した後の頭の重さ">
+        <div class="meter-labels"><span>軽い</span><span>占有される</span></div>
+      </div>
+      <p class="no-bias">下がっていなくてもOK。今の数字をそのまま。</p>
+      <button class="primary" id="realFinishBtn" type="button">Before / Afterを見る <b>→</b></button>
+    </div>
+  </section>
+
+  <section class="screen real-done-screen" id="realDoneScreen">
+    <div class="eyebrow">ONE REAL LOAD DROPPED</div>
+    <div class="effect-delta"><span><small>BEFORE</small><b id="realBeforeResult">6</b></span><i>→</i><span><small>AFTER</small><b id="realAfterResult">6</b></span></div>
+    <h2 id="realDoneTitle">必要な分だけ、<br>頭に残した。</h2>
+    <div class="real-summary">
+      <div class="summary-old"><small>頭に載っていたもの</small><p id="realOriginalResult"></p></div>
+      <div class="summary-cut"><span id="realPatternResult">一個だけ。</span></div>
+      <div class="summary-keep"><small>残す一手</small><strong id="realKeepResult"></strong></div>
+    </div>
+    <div class="effect-history" id="realEffectHistory" hidden></div>
+    <button class="primary" id="realAgainBtn" type="button">もう1件、下ろす <b>↻</b></button>
+    <button class="secondary-action" id="realTrainAgainBtn" type="button">10問トレーニングへ</button>
+    <a class="back-link" href="https://levelup.hitobito.jp/">ここで終える</a>
   </section>
 </main>
 <script src="./game.js"></script>
+<script src="./real-life.js"></script>
 </body>
 </html>
