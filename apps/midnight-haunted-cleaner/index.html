@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#07080b" />
+  <meta name="description" content="暗い館を探索し、怪しい家具を吸霊機で調べ、光で幽霊を止めて捕まえるスマホ向け探索ホラー。" />
+  <title>午前0時の幽霊屋敷清掃員 | HITOBITO PLAY</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <div id="gameShell" class="game-shell" data-state="title">
+      <canvas id="gameCanvas" width="540" height="960" aria-label="午前0時の幽霊屋敷清掃員 ゲーム画面"></canvas>
+
+      <header class="hud" aria-live="polite">
+        <a class="home-link" href="https://play.hitobito.jp/" aria-label="PLAYトップへ戻る">← PLAY</a>
+        <div class="room-hud">
+          <span id="roomEyebrow">MIDNIGHT SHIFT</span>
+          <strong id="roomName">玄関ホール</strong>
+        </div>
+        <div class="seal-hud"><span>SEAL</span><strong id="sealCount">0 / 5</strong></div>
+      </header>
+
+      <div class="status-row">
+        <div id="heartBar" class="heart-bar" aria-label="体力"></div>
+        <div class="meter-wrap">
+          <span>吸霊機</span>
+          <i><b id="heatBar"></b></i>
+        </div>
+      </div>
+
+      <div id="objective" class="objective" aria-live="assertive">夜勤を始める</div>
+      <div id="toast" class="toast" hidden></div>
+
+      <div id="controls" class="controls" aria-label="ゲーム操作">
+        <div id="joystick" class="joystick" role="group" aria-label="移動スティック">
+          <i id="stick"></i>
+          <span>MOVE</span>
+        </div>
+        <div class="actions">
+          <button id="flashBtn" class="action-btn flash-btn" type="button" aria-label="光を溜めて放つ">
+            <i id="flashCharge"></i>
+            <span>LIGHT</span>
+            <small>長押し→離す</small>
+          </button>
+          <button id="suctionBtn" class="action-btn suction-btn" type="button" aria-label="吸霊機で吸う">
+            <i></i>
+            <span>SUCTION</span>
+            <small>押し続ける</small>
+          </button>
+        </div>
+      </div>
+
+      <section id="titleScreen" class="overlay title-screen">
+        <div class="mansion-mark" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="kicker">HITOBITO PLAY / EXPLORATION HORROR</p>
+        <h1>午前0時の<br><em>幽霊屋敷清掃員</em></h1>
+        <p class="lead">開館前の古い屋敷を、朝までに“掃除”する。</p>
+        <div class="howto" aria-label="基本操作">
+          <div><b>01</b><span>歩いて<br>違和感を探す</span></div>
+          <div><b>02</b><span>光を溜めて<br>幽霊を止める</span></div>
+          <div><b>03</b><span>吸いながら<br>逆へ踏ん張る</span></div>
+        </div>
+        <button id="startBtn" class="primary-btn" type="button">夜勤を始める</button>
+        <p class="desktop-help">PC: WASD / SPACE長押し / SHIFT長押し</p>
+      </section>
+
+      <section id="gameOverScreen" class="overlay result-screen" hidden>
+        <p class="kicker">SHIFT FAILED</p>
+        <h2>館に追い出された。</h2>
+        <p id="gameOverCopy">この部屋の最初から再開できます。</p>
+        <button id="retryBtn" class="primary-btn" type="button">この部屋をやり直す</button>
+        <button id="restartFromOverBtn" class="ghost-btn" type="button">最初から</button>
+      </section>
+
+      <section id="endingScreen" class="overlay result-screen ending-screen" hidden>
+        <p class="kicker">SHIFT COMPLETE / 01:13 AM</p>
+        <h2>清掃完了。</h2>
+        <p id="endingCopy">封印された5つの部屋を取り戻した。</p>
+        <div class="result-grid">
+          <div><span>TIME</span><strong id="clearTime">--:--</strong></div>
+          <div><span>CAPTURE</span><strong id="captureCount">0</strong></div>
+          <div><span>DAMAGE</span><strong id="damageCount">0</strong></div>
+        </div>
+        <p id="bestCopy" class="best-copy"></p>
+        <button id="restartBtn" class="primary-btn" type="button">もう一度、配置の違う館へ</button>
+        <a class="ghost-btn link-btn" href="https://play.hitobito.jp/">PLAYへ戻る</a>
+      </section>
+
+      <div id="damageVignette" class="damage-vignette" aria-hidden="true"></div>
+      <div id="screenFlash" class="screen-flash" aria-hidden="true"></div>
+    </div>
+    <p class="outside-note">縦画面推奨。音を出すと館の気配が少し分かりやすくなります。</p>
+  </main>
+  <script src="./game.js" defer></script>
+</body>
+</html>
