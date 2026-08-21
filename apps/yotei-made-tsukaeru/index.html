@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f2e8" />
+  <meta name="description" content="休日が小さな予定で消えたように感じる人へ。予定以外の時間を『待ち時間』にしてしまう感覚から、自分の時間を取り戻すLEVEL UPアプリ。" />
+  <title>予定まで、使える。 | LEVEL UP</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPホームへ">←</a>
+      <div>
+        <p class="eyebrow">RECLAIM THE GAP</p>
+        <h1>予定まで、使える。</h1>
+      </div>
+      <button class="ghost-btn" id="resetBtn" type="button">リセット</button>
+    </header>
+
+    <section class="screen is-active" id="setupScreen" aria-labelledby="setupTitle">
+      <div class="intro-card">
+        <p class="mini-label">休日が小さな予定で消えたような気がしてしまう人へ。</p>
+        <h2 id="setupTitle">それは、気のせいではありません。</h2>
+        <p class="support lead-copy">予定以外の時間まで「待ち時間」にしてしまっているからです。<br />このアプリは、その待ち時間を<strong>自分の時間に取り戻す</strong>ためのアプリです。</p>
+      </div>
+
+      <div class="time-input-wrap">
+        <label for="eventTime">次の予定は何時？</label>
+        <input id="eventTime" type="time" inputmode="numeric" />
+      </div>
+
+      <div class="buffer-block">
+        <div class="section-title-row">
+          <div>
+            <span class="step-no">1</span>
+            <h3>準備・移動は先に引く</h3>
+          </div>
+          <output id="bufferOutput" for="bufferRange">30分</output>
+        </div>
+        <input id="bufferRange" type="range" min="0" max="120" step="5" value="30" />
+        <div class="range-legend"><span>0分</span><span>60分</span><span>120分</span></div>
+      </div>
+
+      <button class="primary-btn" id="calculateBtn" type="button">使える時間を見る <span>→</span></button>
+      <p class="inline-error" id="setupError" role="alert"></p>
+    </section>
+
+    <section class="screen" id="reclaimScreen" aria-labelledby="reclaimTitle">
+      <div class="reclaim-hero">
+        <p class="eyebrow">NOT WAITING TIME</p>
+        <div class="usable-number" id="usableNumber">0時間00分</div>
+        <h2 id="reclaimTitle">これは、使える時間。</h2>
+        <p id="safeStopText" class="support strong-support"></p>
+      </div>
+
+      <div class="timeline-card" aria-label="予定までの時間の内訳">
+        <div class="timeline-track">
+          <div class="timeline-free" id="timelineFree"><span>自分の時間</span></div>
+          <div class="timeline-buffer" id="timelineBuffer"><span>準備・移動</span></div>
+        </div>
+        <div class="timeline-times">
+          <span id="timelineNow">今</span>
+          <span id="timelineStop">終了線</span>
+          <span id="timelineEvent">予定</span>
+        </div>
+      </div>
+
+      <div class="choice-card">
+        <div class="section-title-row compact">
+          <div>
+            <span class="step-no">2</span>
+            <h3>途中で切らなくていいサイズを選ぶ</h3>
+          </div>
+        </div>
+        <p class="support">「全部やる」ではなく、終了線までに終わる1個だけ。</p>
+        <div class="duration-grid" id="durationGrid"></div>
+
+        <label class="task-field" for="taskInput">
+          <span>やること</span>
+          <input id="taskInput" type="text" maxlength="60" placeholder="例：机の引き出しを1段だけ片付ける" autocomplete="off" />
+        </label>
+      </div>
+
+      <button class="primary-btn" id="startBtn" type="button" disabled>この1個を始める <span>→</span></button>
+      <button class="text-btn" id="backBtn" type="button">予定時刻を変える</button>
+    </section>
+
+    <section class="screen" id="focusScreen" aria-labelledby="focusTitle">
+      <div class="focus-card">
+        <p class="eyebrow">ONE COMPLETE UNIT</p>
+        <p class="focus-task" id="focusTask"></p>
+        <div class="focus-clock" id="focusClock">25:00</div>
+        <h2 id="focusTitle">予定の前でも、今は自分の時間。</h2>
+        <p class="support" id="focusSafety"></p>
+        <div class="progress-track" aria-hidden="true"><div id="progressBar"></div></div>
+      </div>
+
+      <div class="focus-actions">
+        <button class="primary-btn" id="completeBtn" type="button">できた <span>✓</span></button>
+        <button class="secondary-btn" id="stopBtn" type="button">ここで区切る</button>
+      </div>
+    </section>
+
+    <section class="screen" id="doneScreen" aria-labelledby="doneTitle">
+      <div class="done-mark">✓</div>
+      <p class="eyebrow">YOU USED THE GAP</p>
+      <h2 id="doneTitle">待ち時間じゃなかった。</h2>
+      <p class="done-copy" id="doneCopy"></p>
+      <div class="done-stats">
+        <div><strong id="todayCount">1</strong><span>今日の完了</span></div>
+        <div><strong id="totalCount">1</strong><span>累計</span></div>
+      </div>
+      <button class="primary-btn" id="againBtn" type="button">もう1個だけ選ぶ <span>→</span></button>
+      <button class="text-btn" id="finishBtn" type="button">今日はここまで</button>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
