@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#040608">
+<meta name="description" content="嵐で孤立した島。午前0時、灯台が消え、7人の客を迎えた管理人が死んだ。証拠を選び、結び、真相へ辿り着く本格サウンドノベル。">
+<title>午前0時、灯台が消えた — 孤島の本格推理サウンドノベル</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app" class="app">
+  <div class="storm" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <header class="topbar">
+    <a href="/" class="home" aria-label="PLAYへ戻る">‹ PLAY</a>
+    <div class="chapter" id="chapterLabel">PROLOGUE</div>
+    <button class="iconBtn" id="soundBtn" aria-label="音のオンオフ">音 ON</button>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="titleScreen screen active" id="titleScreen">
+      <div class="lighthouse" aria-hidden="true"><span class="beam"></span><span class="tower"></span><span class="light"></span></div>
+      <p class="overline">INTERACTIVE SOUND NOVEL</p>
+      <h1>午前0時、<br><em>灯台が消えた</em></h1>
+      <p class="tagline">嵐で孤立した島。7人の客。死体ひとつ。<br>夜が明けるまで、あと6時間。</p>
+      <button class="primary" id="startBtn">事件を始める</button>
+      <button class="sub" id="continueBtn" hidden>続きから</button>
+      <div class="titleMeta"><span>10–20 MIN</span><span>7 ENDINGS</span><span>HEADPHONES</span></div>
+    </section>
+
+    <section class="novelScreen screen" id="novelScreen">
+      <div class="scene" id="scene" data-scene="pier">
+        <div class="sceneShade"></div>
+        <div class="sceneObject" id="sceneObject" aria-hidden="true"></div>
+        <div class="timeBadge" id="timeBadge">23:41</div>
+      </div>
+      <div class="hud">
+        <div class="hudItem"><span>証拠</span><b id="clueCount">0</b></div>
+        <div class="hudItem"><span>緊張</span><b id="tensionText">12</b></div>
+        <div class="tensionTrack"><i id="tensionBar"></i></div>
+      </div>
+      <div class="textPanel" id="textPanel">
+        <div class="speaker" id="speaker">—</div>
+        <div class="novelText" id="novelText"></div>
+        <div class="tapHint" id="tapHint">タップして進む ↓</div>
+      </div>
+      <div class="choices" id="choices"></div>
+    </section>
+
+    <section class="investigateScreen screen" id="investigateScreen">
+      <div class="investigateHead">
+        <p class="overline">INVESTIGATION</p>
+        <h2 id="investigateTitle">2つだけ調べられる</h2>
+        <p id="investigateCopy">全部を見る時間はない。何を捨てる？</p>
+        <div class="focusPips" id="focusPips"><i></i><i></i></div>
+      </div>
+      <div class="investigateGrid" id="investigateGrid"></div>
+      <button class="primary locked" id="finishInvestigation">調査を切り上げる</button>
+    </section>
+
+    <section class="boardScreen screen" id="boardScreen">
+      <div class="boardHead">
+        <p class="overline">DEDUCTION BOARD</p>
+        <h2>証拠を2つ結べ</h2>
+        <p id="boardQuestion">犯人はどうやって密室を作った？</p>
+      </div>
+      <div class="selectedPair" id="selectedPair"><span>1つ目</span><b>＋</b><span>2つ目</span></div>
+      <div class="clueBoard" id="clueBoard"></div>
+      <button class="primary locked" id="deduceBtn">推理する</button>
+      <button class="sub" id="backFromBoard">戻る</button>
+    </section>
+
+    <section class="resultScreen screen" id="resultScreen">
+      <p class="overline" id="endingKind">ENDING 01</p>
+      <h2 id="endingTitle">夜明け</h2>
+      <p class="endingText" id="endingText"></p>
+      <div class="truthMeter"><span>真相到達度</span><b id="truthPercent">0%</b><i><em id="truthBar"></em></i></div>
+      <div class="endingStats" id="endingStats"></div>
+      <button class="primary" id="retryBtn">最初から推理し直す</button>
+      <button class="sub" id="titleBtn">タイトルへ</button>
+    </section>
+  </main>
+
+  <aside class="clueToast" id="clueToast" aria-live="polite"><span>証拠を入手</span><b></b><p></p></aside>
+  <div class="flash" id="flash"></div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>
