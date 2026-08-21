@@ -8,6 +8,7 @@ const appsDir = path.join(root, '.dist', 'firebase', 'apps');
 const apps = {
   'help-me': ['id="realDelegateModal"', 'src="./real-delegation.js"'],
   'expect-nothing': ['id="realExpectationModal"', 'src="./real-life.js"'],
+  'suteru-yuki': ['src="./real-life.js"', 'href="./real-life.css"'],
 };
 
 for (const [slug, required] of Object.entries(apps)) {
