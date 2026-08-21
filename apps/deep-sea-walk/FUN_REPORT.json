@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "deep-sea-walk",
+  "funStatement": "視界の悪い海を潜水艇で漂い、ソナーの反応と地形の手掛かりから『あそこに何かいる』を自分で予測して近づき、未知の生物・地形・人工物を発見する瞬間が楽しい。",
+  "coreLoop": [
+    "暗い海とコンパス、ソナー反応を観察する",
+    "近い反応を追うか、深く潜るか、漁礁を育てるかを選ぶ",
+    "潜水艇を進め、旋回・潜航・浮上・ソナーを使う",
+    "海の見え方、生物の動き、ソナー反応、漁礁のにぎわいが変わる",
+    "新しい発見や未探索方向を手掛かりに次の航路を決める"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "見つけやすい近距離の反応を追うか、手掛かりの少ない深場へ寄り道して大きな発見を狙うか。さらに漁礁を育てて同じ海域を豊かにするか、未知の空白を優先するか。",
+    "consequence": "航路によって地図の埋まり方と出会う生物が変わり、漁礁を育てた海域では後から魚群が増えて景色そのものが変化する。"
+  },
+  "highestMoment": "ソナーの大きな反応を追って深場へ入り、暗闇から巨大な影がゆっくり横切り、その直後に未知生物が記録される5秒。",
+  "oneMoreRunReason": "前回見落としたソナー反応や地図の空白、育て切れなかった漁礁が残り、別ルートで潜れば違う順番・違う景色で発見できる。",
+  "playtest": {
+    "method": "Chromium mobile viewport 390x844 real-browser interaction. Start route, deep route, and reef route were each operated through the actual buttons/drag controls; browser pageerror was empty in all checked routes.",
+    "first10Seconds": {"pass": true, "evidence": "開始画面は『進む・海をドラッグして旋回・ソナー』の3操作だけ。開始直後の短いヒントから↑を押し、SONARを押すまで説明画面なしで進めた。"},
+    "first30Seconds": {"pass": true, "evidence": "初期地点でSONARが『反応3・右318m』を返し、右旋回して進み、減速後に『硝子クラゲの回廊』を1/12として発見できた。"},
+    "threeMinutes": {"pass": true, "evidence": "浅場の発見、潜航、海図・記録、深場の別反応という異なる行動を反復。深度によって海域名と視界が変わり、単純な直進だけにはならなかった。"},
+    "tenMinutes": {"pass": true, "evidence": "短時間探索ゲームとして複数ルートを反復試遊。通常ルートに加え、500m無光帯で『正面330m』の反応から『白い背の影』を発見し、別セッションで漁礁Aを0→3段まで育成。発見・深度探索・海域育成で目的を切り替えられた。"},
+    "retryDesire": {"pass": true, "evidence": "発見記録が1/12の時点でも未発見枠が明示され、海図の空白と未完成漁礁が残るため、次は別方向・別深度を試す具体的理由がある。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・ランキング・ログイン報酬を実装していない。ソナーの方向推測、操船、暗闇から対象が現れる発見そのものだけでループが成立した。"}
+  },
+  "scores": {
+    "first10Seconds": 9,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 8,
+    "masteryDepth": 8,
+    "surpriseVariation": 9,
+    "riskReward": 7,
+    "pacing": 8,
+    "retryDesire": 8,
+    "uniqueness": 9
+  },
+  "scoreEvidence": {
+    "first10Seconds": "開始前に必要操作が3つに限定され、開始後も↑とSONARですぐ本編へ入れた。",
+    "coreLoop": "SONAR→方向判断→旋回→移動→減速→発見→次の反応、が実ブラウザで一巡した。",
+    "inputFeel": "押し続けで加速、離すと減速、海面ドラッグで連続旋回、SONARは音・リング・方向距離で即応する。",
+    "decisionQuality": "近い反応を追う、深場へ潜る、海図の空白へ行く、漁礁を育てるの複数目的が同時に存在する。",
+    "masteryDepth": "高速移動は探索効率が高いが対象の近くでは減速しないと観察できない。方向と深度を合わせるほど発見が速くなる。",
+    "surpriseVariation": "クラゲ、人工物、噴出孔、巨大な翼、石環、峡谷、巨大な白い背など輪郭と発見内容が別物になっている。",
+    "riskReward": "戦闘リスクは意図的にないが、速度を上げて海図を埋める効率と、反応付近で減速して確実に観察するトレードオフがある。",
+    "pacing": "最初の反応は開始地点から318mで近く、その後は潜航と遠方反応へ自然に広がる。",
+    "retryDesire": "12発見と3漁礁、海図空白が残るため、次に試す航路が具体的に見える。",
+    "uniqueness": "勝敗ではなく、暗い海でソナーを読み、自分で寄り道し、同じ海域を漁礁で変えることを主役にしている。"
+  },
+  "verifiedAt": "2026-08-22T02:44:00+09:00"
+}
