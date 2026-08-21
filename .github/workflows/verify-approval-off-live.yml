@@ -1,0 +1,42 @@
+name: Verify 他人軸OFF live
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-approval-off-live.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production routes and LEVEL UP listing
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_base() {
+            base="$1"
+            echo "Checking ${base}"
+            curl -fLsS --max-time 30 "${base}/apps/approval-off/" -o /tmp/approval-off.html
+            grep -F '<title>他人軸OFF — LEVEL UP</title>' /tmp/approval-off.html >/dev/null
+            grep -F '承認は、もらっていい。' /tmp/approval-off.html >/dev/null
+            curl -fLsS --max-time 30 "${base}/apps/approval-off/app.js" -o /tmp/approval-off.js
+            grep -F '評価は相手。行動は自分。' /tmp/approval-off.js >/dev/null
+            curl -fLsS --max-time 30 "${base}/" -o /tmp/levelup-home.html
+            grep -F 'data-game="approval-off"' /tmp/levelup-home.html >/dev/null
+            grep -F '他人軸OFF' /tmp/levelup-home.html >/dev/null
+          }
+
+          for attempt in $(seq 1 18); do
+            if check_base 'https://hitobito-levelup.web.app' && check_base 'https://levelup.hitobito.jp'; then
+              echo 'LIVE_OK: 他人軸OFF is published and listed on both production domains.'
+              exit 0
+            fi
+            echo "Production not ready yet (attempt ${attempt}/18)."
+            sleep 5
+          done
+
+          echo 'LIVE_CHECK_FAILED: production did not expose 他人軸OFF within the verification window.' >&2
+          exit 1
