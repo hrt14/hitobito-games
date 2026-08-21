@@ -6,68 +6,40 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..', '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const marker = 'data-levelup-ga4';
+const measurementId = 'G-7754RC4QGC';
 
 if (!fs.existsSync(outDir)) {
   throw new Error('Firebase LEVEL UP bundle not found. Run this after build:firebase assets are generated.');
 }
 
 const ga4Bootstrap = `
+<script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}" data-levelup-ga4-loader></script>
 <script ${marker}>
 (() => {
   if (window.__LEVELUP_GA4_BOOTSTRAPPED__) return;
   window.__LEVELUP_GA4_BOOTSTRAPPED__ = true;
 
-  const fallbackMeasurementId = 'G-7754RC4QGC';
+  const measurementId = '${measurementId}';
   const pathname = window.location.pathname || '/';
   const cleanLocation = window.location.origin + pathname;
   const appMatch = pathname.match(/^\\/apps\\/([a-z0-9-]{1,64})(?:\\/|$)/);
 
-  function start(measurementId) {
-    if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
-      console.info('[LEVEL UP GA4] measurementId is unavailable.');
-      return;
-    }
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', measurementId, {
+    page_location: cleanLocation,
+    page_path: pathname,
+    page_title: document.title,
+  });
 
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
-
-    const tag = document.createElement('script');
-    tag.async = true;
-    tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
-    document.head.appendChild(tag);
-
-    window.gtag('js', new Date());
-    window.gtag('config', measurementId, {
-      page_location: cleanLocation,
-      page_path: pathname,
-      page_title: document.title,
+  if (appMatch) {
+    window.gtag('event', 'levelup_app_open', {
+      app_slug: appMatch[1],
     });
-
-    if (appMatch) {
-      window.gtag('event', 'levelup_app_open', {
-        app_slug: appMatch[1],
-      });
-    } else if (pathname === '/' || pathname === '/index.html') {
-      window.gtag('event', 'levelup_home_view');
-    }
+  } else if (pathname === '/' || pathname === '/index.html') {
+    window.gtag('event', 'levelup_home_view');
   }
-
-  fetch('/__/firebase/init.json', {
-    cache: 'no-store',
-    credentials: 'same-origin',
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error('Firebase init config request failed: ' + response.status);
-      return response.json();
-    })
-    .then((config) => {
-      const runtimeMeasurementId = String(config && config.measurementId || '').trim();
-      start(/^G-[A-Z0-9]+$/i.test(runtimeMeasurementId) ? runtimeMeasurementId : fallbackMeasurementId);
-    })
-    .catch((error) => {
-      console.warn('[LEVEL UP GA4] runtime config unavailable; using configured measurement ID.', error);
-      start(fallbackMeasurementId);
-    });
 })();
 </script>`;
 
@@ -101,9 +73,12 @@ for (const htmlPath of htmlFiles) {
   injected += 1;
 }
 
-const missing = collectHtmlFiles(outDir).filter((htmlPath) => !fs.readFileSync(htmlPath, 'utf8').includes(marker));
+const missing = collectHtmlFiles(outDir).filter((htmlPath) => {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  return !html.includes(marker) || !html.includes(measurementId);
+});
 if (missing.length) {
   throw new Error(`LEVEL UP GA4 injection missing from ${missing.length} HTML files: ${missing.slice(0, 5).map((file) => path.relative(outDir, file)).join(', ')}`);
 }
 
-console.log(`[Firebase] LEVEL UP GA4 bootstrap injected into ${injected} HTML files (${htmlFiles.length} total).`);
+console.log(`[Firebase] LEVEL UP GA4 ${measurementId} injected into ${injected} HTML files (${htmlFiles.length} total).`);
