@@ -1,10 +1,11 @@
-name: Patch Midnight Search Radius
+name: Patch Midnight Playtest Edges
 
 on:
   pull_request:
     paths:
       - '.github/workflows/patch-midnight-search-radius.yml'
       - 'apps/midnight-haunted-cleaner/game.js'
+      - 'scripts/playtest-midnight-haunted-cleaner-v2.mjs'
 
 permissions:
   contents: write
@@ -18,27 +19,34 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-      - name: Widen furniture suction search radius
+      - name: Apply verified edge fixes
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('apps/midnight-haunted-cleaner/game.js')
-          text = p.read_text()
-          old = ".filter((o) => o.d < 95)"
-          new = ".filter((o) => o.d < 125)"
+
+          game = Path('apps/midnight-haunted-cleaner/game.js')
+          text = game.read_text()
+          text = text.replace('.filter((o) => o.d < 95)', '.filter((o) => o.d < 125)', 1)
+          game.write_text(text)
+
+          test = Path('scripts/playtest-midnight-haunted-cleaner-v2.mjs')
+          text = test.read_text()
+          old = 'await moveTo(d.x,d.y,18,140);'
+          new = 'await moveTo(d.x,d.y,38,140);'
           if old in text:
-              p.write_text(text.replace(old, new, 1))
-              print('patched search radius 95 -> 125')
+              text = text.replace(old, new, 1)
+              print('patched door approach tolerance 18 -> 38')
           elif new in text:
-              print('already patched')
+              print('door approach tolerance already patched')
           else:
-              raise SystemExit('target search-radius expression not found')
+              raise SystemExit('door approach expression not found')
+          test.write_text(text)
           PY
       - name: Commit patch when needed
         run: |
           if git diff --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/midnight-haunted-cleaner/game.js
-          git commit -m "Make haunted furniture easier to suction-search"
+          git add apps/midnight-haunted-cleaner/game.js scripts/playtest-midnight-haunted-cleaner-v2.mjs
+          git commit -m "Fix haunted cleaner browser door traversal"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
