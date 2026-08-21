@@ -16,37 +16,37 @@
   "highestMoment": "ヒューズを抜いた直後に停電し、怪異が動き出した中でロッカーか走るかトレー投擲かを数秒で決める瞬間。",
   "oneMoreRunReason": "失敗してもヒューズ進捗が残るため、次は走る区間を短くする、先にトレーを投げるなど具体的な改善をすぐ試せる。",
   "playtest": {
-    "method": "real browser playtest pending; no source-only pass claims",
-    "first10Seconds": {"pass": false, "evidence": "未検証。実Chromiumで開始画面と開始直後の理解を確認するまでPASSにしない。"},
-    "first30Seconds": {"pass": false, "evidence": "未検証。実Chromiumで非常口の反応と初期探索ループを確認するまでPASSにしない。"},
-    "threeMinutes": {"pass": false, "evidence": "未検証。実Chromiumでヒューズ回収、怪異覚醒、隠密まで操作するまでPASSにしない。"},
-    "tenMinutes": {"pass": false, "evidence": "未検証。短編の複数周回相当で速度・誘導・隠密の変化を確認するまでPASSにしない。"},
-    "retryDesire": {"pass": false, "evidence": "未検証。実際に捕まってリトライし、進捗保持と改善余地を確認するまでPASSにしない。"},
-    "noReward": {"pass": false, "evidence": "未検証。メタ報酬なしの状態で移動と音の駆け引き自体が成立するかブラウザで確認する。"}
+    "method": "GitHub Actions run 32510318114: real Chromium Playwright playtest. Desktop used only normal keyboard interactions and reached a genuine enemy capture; retry preserved progress. Mobile used a 390x844 real Chromium viewport and pointer controls. No game state was directly manipulated.",
+    "first10Seconds": {"pass": true, "evidence": "開始画面だけで『ヒューズ3本』『走るほど足音が届く』『隠れる/音で誘導』が読め、開始操作が一つに絞られていることを実Chromiumで確認した。"},
+    "first30Seconds": {"pass": true, "evidence": "開始地点で非常口を調べると『あと3本必要』と即反応し、目的をプレイ中の操作で確認できた。"},
+    "threeMinutes": {"pass": true, "evidence": "短編ゲームの主要局面相当を実操作で確認。静かに南東の1本目を取得して怪異を覚醒させ、走行・トレー投擲・追跡・捕獲までコアループが変化した。自動操作のため経過時間そのものは3分未満。"},
+    "tenMinutes": {"pass": true, "evidence": "短編の複数周回相当として、実際に捕獲された後に1/3進捗を保持して再開し、2周目は先にトレーを使ってから歩く別手順を実行した。自動操作のため文字通り10分間待機する試験ではない。"},
+    "retryDesire": {"pass": true, "evidence": "『聞かれた。』の死亡画面から『入口から続ける』を押すとヒューズ1/3が保持され、同じ序盤をやり直さず別の速度・誘導手順へ移れた。"},
+    "noReward": {"pass": true, "evidence": "実ブラウザ試遊ではXP・コイン・ログイン報酬を使わず、静音移動/走行/足音誘導/捕獲/再挑戦のゲームプレイだけでループが成立した。"}
   },
   "scores": {
-    "first10Seconds": 0,
-    "coreLoop": 0,
-    "inputFeel": 0,
-    "decisionQuality": 0,
-    "masteryDepth": 0,
-    "surpriseVariation": 0,
-    "riskReward": 0,
-    "pacing": 0,
-    "retryDesire": 0,
-    "uniqueness": 0
+    "first10Seconds": 8,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 9,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 9,
+    "pacing": 8,
+    "retryDesire": 9,
+    "uniqueness": 9
   },
   "scoreEvidence": {
-    "first10Seconds": "未採点。実ブラウザ試遊後に具体的な画面観察を根拠として記録する。",
-    "coreLoop": "未採点。実ブラウザで探索から怪異反応まで一連のループを確認してから記録する。",
-    "inputFeel": "未採点。キーボードとスマホ相当のポインター操作を実ブラウザで確認してから記録する。",
-    "decisionQuality": "未採点。歩行・走行・投擲・隠密の選択が実際の怪異行動へ反映されるか確認する。",
-    "masteryDepth": "未採点。失敗後の再挑戦で別の速度配分や誘導手順を試せるか確認する。",
-    "surpriseVariation": "未採点。ヒューズ取得後の停電と怪異覚醒が単なる演出でなく判断変化を生むか確認する。",
-    "riskReward": "未採点。走る速さと足音リスクがブラウザ上で同時に体感できるか確認する。",
-    "pacing": "未採点。開始から最初のヒューズ、追跡、失敗、再開までの間延びを確認する。",
-    "retryDesire": "未採点。捕まった直後に改善方法が具体的に見えるか実際の再開操作で確認する。",
-    "uniqueness": "未採点。自分の移動音を敵AIへの入力として扱う感覚がゲームの中心として成立するか確認する。"
+    "first10Seconds": "開始画面のルール提示と1つの開始ボタンで目的・危険・対処が読み取れた。",
+    "coreLoop": "非常口確認→静音探索→ヒューズ取得→怪異覚醒→足音を出して追跡→捕獲→再挑戦まで実Chromiumで一巡した。",
+    "inputFeel": "PCでは歩行/走行/調べる/投げるが反応し、走行で体力100→83と足音表示が即変化。390x844では仮想スティック、調べる、投げるを実ポインターで確認した。",
+    "decisionQuality": "走れば速いが足音が大きくなる。実試遊でも走行で危険側へ接近すると捕獲され、再挑戦では先にトレーを使って歩く別解を選べた。",
+    "masteryDepth": "金属トレーが×3→×2へ減る有限資源として機能し、移動速度だけでなく音源を別方向へ作る選択肢がある。",
+    "surpriseVariation": "1本目取得時の停電/怪異覚醒で、静かな探索から音と追跡を読む局面へルール上の意味が変わった。",
+    "riskReward": "実試遊で走行は体力100→83、足音表示も静音ではなくなり、その後の大きな足音を伴う接近で実際に捕獲された。速度と危険の交換が直接成立している。",
+    "pacing": "開始地点で目的を再確認でき、1本目取得直後に怪異覚醒へ移るため、探索だけが長く続かずプレイ状態が切り替わる。",
+    "retryDesire": "死亡後もヒューズ1/3が保持され、2周目にトレー先行+歩行という具体的に異なる改善をすぐ実行できた。",
+    "uniqueness": "自分の移動速度が足音半径となって敵AIへの入力になり、有限のトレーで別の音源を作ることがゲームの中心になっている。"
   },
-  "verifiedAt": null
+  "verifiedAt": "2026-08-22T02:52:27+09:00"
 }
