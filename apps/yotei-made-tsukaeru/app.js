@@ -11,6 +11,8 @@
     usableMinutes: 0,
     bufferMinutes: 30,
     selectedMinutes: 25,
+    selectedKind: 'fixed',
+    customMinutes: 30,
     task: '',
     timerId: null,
     timerStartedAt: null,
@@ -121,6 +123,7 @@
     state.safeStopAt = safeStopAt;
     state.usableMinutes = usableMinutes;
     state.bufferMinutes = bufferMinutes;
+    state.selectedKind = 'fixed';
     state.selectedMinutes = pickDefaultDuration(usableMinutes);
 
     renderReclaim();
@@ -153,27 +156,116 @@
     updateStartState();
   }
 
+  function makeDurationButton({ label, note, disabled = false, selected = false, onClick, id = '' }) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'duration-btn';
+    if (id) button.id = id;
+    button.disabled = disabled;
+    button.classList.toggle('is-selected', selected && !disabled);
+    button.innerHTML = `${label}<small>${note}</small>`;
+    button.addEventListener('click', onClick);
+    durationGrid.appendChild(button);
+    return button;
+  }
+
+  function removeCustomDurationField() {
+    document.getElementById('customDurationField')?.remove();
+  }
+
+  function renderCustomDurationField() {
+    removeCustomDurationField();
+    if (state.selectedKind !== 'custom') return;
+
+    const field = document.createElement('label');
+    field.id = 'customDurationField';
+    field.className = 'task-field';
+    field.innerHTML = '<span>使う時間を自由に決める</span>';
+
+    const input = document.createElement('input');
+    input.id = 'customDurationInput';
+    input.type = 'number';
+    input.inputMode = 'numeric';
+    input.min = '5';
+    input.max = String(state.usableMinutes);
+    input.step = '1';
+    input.value = String(state.selectedMinutes);
+    input.setAttribute('aria-label', '任意の時間（分）');
+    input.placeholder = `5〜${state.usableMinutes}分`;
+
+    field.appendChild(input);
+    durationGrid.insertAdjacentElement('afterend', field);
+
+    const sync = () => {
+      const value = Number(input.value);
+      const valid = Number.isFinite(value) && value >= 5 && value <= state.usableMinutes;
+      if (valid) {
+        state.selectedMinutes = Math.floor(value);
+        state.customMinutes = state.selectedMinutes;
+        saveLastCustomMinutes(state.customMinutes);
+      }
+      const customButton = document.getElementById('customDurationBtn');
+      const note = customButton?.querySelector('small');
+      if (note) note.textContent = valid ? `${state.selectedMinutes}分` : `5〜${state.usableMinutes}分`;
+      updateStartState();
+    };
+
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+    requestAnimationFrame(() => input.focus({ preventScroll: true }));
+  }
+
   function renderDurations() {
     durationGrid.innerHTML = '';
+    removeCustomDurationField();
+
     durationOptions.forEach((option) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'duration-btn';
-      button.disabled = option.minutes > state.usableMinutes;
-      button.classList.toggle('is-selected', option.minutes === state.selectedMinutes && !button.disabled);
-      button.innerHTML = `${option.label}<small>${option.note}</small>`;
-      button.addEventListener('click', () => {
-        state.selectedMinutes = option.minutes;
+      makeDurationButton({
+        label: option.label,
+        note: option.note,
+        disabled: option.minutes > state.usableMinutes,
+        selected: state.selectedKind === 'fixed' && option.minutes === state.selectedMinutes,
+        onClick: () => {
+          state.selectedKind = 'fixed';
+          state.selectedMinutes = option.minutes;
+          renderDurations();
+          updateStartState();
+        },
+      });
+    });
+
+    makeDurationButton({
+      label: '全部使う',
+      note: formatDuration(state.usableMinutes),
+      selected: state.selectedKind === 'all',
+      onClick: () => {
+        state.selectedKind = 'all';
+        state.selectedMinutes = state.usableMinutes;
         renderDurations();
         updateStartState();
-      });
-      durationGrid.appendChild(button);
+      },
     });
+
+    makeDurationButton({
+      id: 'customDurationBtn',
+      label: '任意',
+      note: state.selectedKind === 'custom' ? `${state.selectedMinutes}分` : '時間を決める',
+      selected: state.selectedKind === 'custom',
+      onClick: () => {
+        state.selectedKind = 'custom';
+        const remembered = Math.max(5, Math.min(state.usableMinutes, state.customMinutes || 30));
+        state.selectedMinutes = remembered;
+        renderDurations();
+        updateStartState();
+      },
+    });
+
+    renderCustomDurationField();
   }
 
   function updateStartState() {
     state.task = taskInput.value.trim();
-    const validDuration = state.selectedMinutes > 0 && state.selectedMinutes <= state.usableMinutes;
+    const validDuration = state.selectedMinutes >= 5 && state.selectedMinutes <= state.usableMinutes;
     startBtn.disabled = !state.task || !validDuration;
   }
 
@@ -182,14 +274,26 @@
     if (startBtn.disabled) return;
 
     const now = Date.now();
-    const requestedSeconds = state.selectedMinutes * 60;
     const safeSeconds = Math.max(1, Math.floor((state.safeStopAt.getTime() - now) / 1000));
+    if (safeSeconds < 5 * 60) {
+      showToast('もう準備・移動の時間が近いです。');
+      backToReclaim();
+      return;
+    }
+
+    const requestedSeconds = state.selectedKind === 'all'
+      ? safeSeconds
+      : state.selectedMinutes * 60;
+
     state.timerTotalSeconds = Math.min(requestedSeconds, safeSeconds);
     state.timerSeconds = state.timerTotalSeconds;
     state.timerStartedAt = now;
+    state.selectedMinutes = Math.max(1, Math.ceil(state.timerTotalSeconds / 60));
 
     focusTask.textContent = state.task;
-    focusSafety.textContent = `${formatClock(state.safeStopAt)}が終了線。タイマーが終わっても、準備・移動の時間は残ります。`;
+    focusSafety.textContent = state.selectedKind === 'all'
+      ? `${formatClock(state.safeStopAt)}まで全部、自分の時間として使います。終了線で止まります。`
+      : `${formatClock(state.safeStopAt)}が終了線。タイマーが終わっても、準備・移動の時間は残ります。`;
     renderTimer();
     showScreen('focusScreen');
     clearInterval(state.timerId);
@@ -227,6 +331,7 @@
       completed,
       task: state.task,
       plannedMinutes: state.selectedMinutes,
+      durationKind: state.selectedKind,
       usedMinutes: elapsedMinutes,
       at: new Date().toISOString(),
     });
@@ -250,11 +355,21 @@
     }
   }
 
+  function saveLog(log) {
+    try { localStorage.setItem(storageKey, JSON.stringify(log)); } catch {}
+  }
+
+  function saveLastCustomMinutes(minutes) {
+    const log = loadLog();
+    log.lastCustomMinutes = minutes;
+    saveLog(log);
+  }
+
   function saveSession(session) {
     const log = loadLog();
     log.sessions.push(session);
     log.sessions = log.sessions.slice(-100);
-    try { localStorage.setItem(storageKey, JSON.stringify(log)); } catch {}
+    saveLog(log);
 
     const today = dateKey();
     const completed = log.sessions.filter((item) => item.completed);
@@ -270,8 +385,10 @@
     state.eventAt = null;
     state.safeStopAt = null;
     state.usableMinutes = 0;
+    state.selectedKind = 'fixed';
     state.task = '';
     taskInput.value = '';
+    removeCustomDurationField();
     setupError.textContent = '';
     bufferRange.value = '30';
     bufferOutput.textContent = '30分';
@@ -288,6 +405,7 @@
     }
 
     state.usableMinutes = remainingMinutes;
+    state.selectedKind = 'fixed';
     state.selectedMinutes = pickDefaultDuration(remainingMinutes);
     state.task = '';
     taskInput.value = '';
@@ -319,6 +437,11 @@
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && state.timerId) tick();
   });
+
+  const saved = loadLog();
+  if (Number.isFinite(Number(saved.lastCustomMinutes))) {
+    state.customMinutes = Math.max(5, Math.floor(Number(saved.lastCustomMinutes)));
+  }
 
   setDefaultEventTime();
   bufferOutput.textContent = `${bufferRange.value}分`;
