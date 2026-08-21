@@ -117,7 +117,7 @@ jobs:
           if [ -n "$RECORD_ID" ]; then
             RESULT="$(curl -sS -X PUT -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${RECORD_ID}" --data "$PAYLOAD")"
           else
-            RESULT="$(curl -sS -X POST -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "${BASE}" --data "$PAYLOAD")"
+            RESULT="$(curl -sS -X POST -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records" --data "$PAYLOAD")"
           fi
 
           printf '%s' "$RESULT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('games.hitobito.jp DNS now points to',j.result.content,'proxied=',j.result.proxied)})"
