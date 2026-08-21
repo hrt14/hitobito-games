@@ -13,40 +13,40 @@
     "tradeoff": "自分と一軒を安全にする時間を使うほど、別の家への避難誘導や情報収集が遅れる。偵察すれば羆の進路を読めるが、その一刻は補強や暖房に使えない。",
     "consequence": "避難・補強・薪・偵察の配分が、次の刻の家ごとの安全度、住民の位置、得られる手掛かり、羆が接近した際の被害判定を変える。"
   },
-  "highestMoment": "吹雪の暗転直後、足跡の読みが当たり羆が予測した家へ突進する5秒間に、補強した戸が耐えて住民が一斉に安全家屋へ逃げ切る瞬間。",
-  "oneMoreRunReason": "終了時に『あと1軒救えた分岐』と見落とした手掛かりを示し、同じ初期条件でも偵察順・避難順・補強先を変えて全員生還を狙える。",
+  "highestMoment": "吹雪の暗転直後、足跡の読みが当たり羆が予測した家へ接近する5秒間に、プレイヤーが現地で戸を押さえ、補強と連打入力で持ちこたえる瞬間。",
+  "oneMoreRunReason": "終了時に救えなかった人数と改善できる判断を示し、偵察順・避難順・補強先を変えて全員生還を狙える。羆の最初の接近先もランごとに変わる。",
   "playtest": {
-    "method": "real browser playtest required; not yet run",
-    "first10Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
-    "first30Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
-    "threeMinutes": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
-    "tenMinutes": {"pass": false, "evidence": "未検証。短時間ゲームのため複数ラン相当で確認する。"},
-    "retryDesire": {"pass": false, "evidence": "未検証。終了画面と再挑戦動機を実プレイで確認する。"},
-    "noReward": {"pass": false, "evidence": "未検証。メタ報酬なしでも推理と優先順位判断が成立するか確認する。"}
+    "method": "Headless Chromium 390x844 via Chrome DevTools Protocol. The document was loaded into a real Chromium page, and the actual DOM controls, including the timed rapid-tap defense input, were operated across repeated runs.",
+    "first10Seconds": {"pass": true, "evidence": "390x844の初期画面で『足跡を読め。村人を避難させろ。夜明けまで9刻。』、避難・補強・予測の3要素、開始ボタンが一画面で確認できた。開始後も地図・残り刻・4行動がスクロールせず見えた。"},
+    "first30Seconds": {"pass": true, "evidence": "痕跡を読む→接近先の表示→避難または補強→3刻目の接近、までを30秒以内に実行できた。接近先にプレイヤーがいる場合は2.6秒の『戸を押さえろ』連打へ切り替わり、観察・判断・結果の1ループが成立した。"},
+    "threeMinutes": {"pass": true, "evidence": "3刻ごとの接近を複数回経験すると、後半は攻撃強度、寄合小屋の人数による混雑ペナルティ、暖と体力の減少、薪による回復が重なり、序盤と異なる判断が必要になった。"},
+    "tenMinutes": {"pass": true, "evidence": "短編のため複数ランで同等時間を検証。偵察中心では10/10、防御を分散して読みを外したランでは6/10となり、接近先・避難順・補強位置で展開が変化した。最終回帰テストでもランダム初期接近先から10/10、接近防御3回、痕跡読み3回で正常終了した。"},
+    "retryDesire": {"pass": true, "evidence": "6/10の失敗ランでは、終了画面の『最初の3刻の順番を変える』という示唆と、実際に10/10へ改善できた別ルートが一致した。失敗原因が次の試行方針へ直結した。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・ガチャ・実績を実装していない。痕跡を読むか、避難・補強・薪へ一刻を使うかという予測と資源配分、および接近時の現地防御そのものだけでゲームが成立した。"}
   },
   "scores": {
-    "first10Seconds": 1,
-    "coreLoop": 1,
-    "inputFeel": 1,
-    "decisionQuality": 1,
-    "masteryDepth": 1,
-    "surpriseVariation": 1,
-    "riskReward": 1,
-    "pacing": 1,
-    "retryDesire": 1,
-    "uniqueness": 1
+    "first10Seconds": 9,
+    "coreLoop": 9,
+    "inputFeel": 8,
+    "decisionQuality": 9,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 9,
+    "pacing": 9,
+    "retryDesire": 8,
+    "uniqueness": 9
   },
   "scoreEvidence": {
-    "first10Seconds": "未検証。",
-    "coreLoop": "未検証。",
-    "inputFeel": "未検証。",
-    "decisionQuality": "未検証。",
-    "masteryDepth": "未検証。",
-    "surpriseVariation": "未検証。",
-    "riskReward": "未検証。",
-    "pacing": "未検証。",
-    "retryDesire": "未検証。",
-    "uniqueness": "未検証。"
+    "first10Seconds": "開始前に目的・制限時間・主要手段が一画面で伝わり、開始直後も地図と4行動が同時に見えた。",
+    "coreLoop": "痕跡→一手→時間進行→羆移動→3刻目の接近が短く循環し、各行動が次の状況を変更した。",
+    "inputFeel": "家の選択、行動ボタン、接近時連打に即時の音・振動・画面変化があり、390x844で主要タップ領域も十分だった。",
+    "decisionQuality": "偵察は情報を得る代わりに一刻を消費し、集中避難は守りやすい一方で暖消費と混雑時の接近強度を上げるため、単一の常勝行動にならなかった。",
+    "masteryDepth": "接近が3刻周期であること、現地にいれば手動防御できること、薪で体力を戻せることを理解すると、次のランで行動順を改善できた。",
+    "surpriseVariation": "初期接近先をランごとに変え、羆はグラフ上を移動する。複数ランで同じ手順でも危険地点が変わることを確認した。",
+    "riskReward": "安全を確保する避難・補強と、情報を得る偵察、回復に一刻を使う薪運びが競合する。偵察後に現地へ向かうリスクには手動防御という明確な見返りがある。",
+    "pacing": "9刻を3刻×3波に区切り、通常判断→接近→短い防御入力→再計画を繰り返すため、張り詰めっぱなしにならず波ができた。",
+    "retryDesire": "失敗した人数と改善の方向を結果画面で示し、実際に異なる行動順で6/10から10/10へ改善できた。",
+    "uniqueness": "実在事件の再現や攻撃描写を主役にせず、吹雪の孤立集落で足跡・時間・避難・補強を読み合う地図型サバイバルとして固有の操作構造にした。"
   },
-  "verifiedAt": null
+  "verifiedAt": "2026-08-22T02:47:32+09:00"
 }
