@@ -1,2 +1,2 @@
-Production deploy trigger: GAMES-ENTRYPOINT-CLOUDFLARE-20260822-R4
-Reason: force observable Cloudflare deployment and games.hitobito.jp DNS routing
+Production deploy trigger: PLAY-NEWEST-FIRST-20260822-R1
+Reason: deploy automatic newest-first ordering for play.hitobito.jp
