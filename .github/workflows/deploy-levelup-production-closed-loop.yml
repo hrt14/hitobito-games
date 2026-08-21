@@ -43,6 +43,8 @@ jobs:
         run: npm install --prefix functions
 
       - name: Deploy Firestore rules directly via Firebase Admin SDK
+        id: firestore_rules
+        continue-on-error: true
         run: |
           set -o pipefail
           node functions/deploy-firestore-rules.mjs 2>&1 | tee /tmp/firestore-rules-direct.log
@@ -102,6 +104,12 @@ jobs:
             echo "Navigation + lowercase-ID feedback fallback verified in live HTML on $base"
           done
 
+      - name: Stop after Hosting when Firestore rules IAM is missing
+        if: steps.firestore_rules.outcome != 'success'
+        run: |
+          echo "Firestore rules were not released. Hosting is live, but feedback/data writes cannot be reported healthy until IAM is fixed."
+          exit 1
+
       - name: Prove feedback fallback can actually write from a production browser
         run: |
           set -euo pipefail
@@ -147,6 +155,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
+          FIRESTORE_RULES_OUTCOME: ${{ steps.firestore_rules.outcome }}
           FUNCTIONS_OUTCOME: ${{ steps.functions_deploy.outcome }}
         run: |
           set -euo pipefail
@@ -173,6 +182,9 @@ jobs:
               fi
             else
               echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
+              if [ "$FIRESTORE_RULES_OUTCOME" != "success" ]; then
+                echo "- Firebase Hosting was still allowed to deploy; Firestore-dependent feedback/telemetry remains blocked by IAM."
+              fi
               echo
               echo "### Direct Firestore rules release log"
               echo '```text'
