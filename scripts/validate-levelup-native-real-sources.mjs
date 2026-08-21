@@ -25,6 +25,9 @@ const apps = {
   'main-character': {
     scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
   },
+  'kokkara-best': {
+    scripts: ['app.js'], files: ['style.css'], refs: ['id="realFlow"', 'data-levelup-real-bridge="native"'],
+  },
 };
 
 const errors = [];
