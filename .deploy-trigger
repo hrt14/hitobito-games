@@ -1,2 +1,2 @@
-Production deploy trigger: PANDA-TOWER-20260821
-Reason: deploy Panda Tower playground game to play.hitobito.jp
+Production deploy trigger: GAMES-ENTRYPOINT-CLOUDFLARE-20260822
+Reason: route games.hitobito.jp to Cloudflare Pages and expose play.hitobito.jp catalog
