@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "core-defense-survivor",
+  "funStatement": "迫る敵の優先順位を一瞬で読み、指で砲塔を狙い続けながら撃ち過ぎによるオーバーヒート寸前で手を離す、その判断と照準の往復が気持ちいい。",
+  "coreLoop": [
+    "3レーンの敵配置と危険度を見る",
+    "倒す敵と射線を決める",
+    "ドラッグで照準し長押しで射撃する",
+    "熱量・撃破・漏れによって戦況が変わる",
+    "冷却するか攻め切るかを決め直す"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "目の前の敵へ撃ち続けて火力を出すか、いったん指を離して冷却し次の危険な塊へ備えるか。波間では火力・制圧力・生存力のどれを伸ばすか。",
+    "consequence": "撃ち過ぎると砲塔が過熱して危険な瞬間に止まり、冷却し過ぎると敵を通す。3択強化は次の波の得意・不得意を変え、同じ敵配置でも狙う順番が変わる。"
+  },
+  "highestMoment": "コア残量が少ない状態でボスの光る弱点を撃ち抜いて短時間スタンさせ、強化された貫通弾や連鎖弾でボスと周囲の群れを一気に崩す5秒。",
+  "oneMoreRunReason": "失敗時に『あのラッシュを先に落とす』『冷却を早める』『次は貫通ビルドを試す』という具体的な改善策が見え、3択強化の組み合わせも毎回変わる。",
+  "playtest": {
+    "method": "real browser playtest required after implementation",
+    "first10Seconds": {"pass": false, "evidence": "未実装・未検証"},
+    "first30Seconds": {"pass": false, "evidence": "未実装・未検証"},
+    "threeMinutes": {"pass": false, "evidence": "未実装・未検証"},
+    "tenMinutes": {"pass": false, "evidence": "未実装・未検証"},
+    "retryDesire": {"pass": false, "evidence": "未実装・未検証"},
+    "noReward": {"pass": false, "evidence": "未実装・未検証"}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未検証",
+    "coreLoop": "未検証",
+    "inputFeel": "未検証",
+    "decisionQuality": "未検証",
+    "masteryDepth": "未検証",
+    "surpriseVariation": "未検証",
+    "riskReward": "未検証",
+    "pacing": "未検証",
+    "retryDesire": "未検証",
+    "uniqueness": "未検証"
+  },
+  "verifiedAt": "unverified"
+}
