@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "midnight-lighthouse",
+  "funStatement": "限られた調査枠でどの証拠を捨てるか決め、自分で2つの証拠を結んだ推理が次の事件状況と結末を変えることが楽しい。",
+  "coreLoop": [
+    "事件の新しい状況と人物の証言を読む",
+    "限られた2枠を誰・どの証拠に使うか決める",
+    "証拠を2つ選び推理を組み立てる",
+    "推理の成否で通路・過去・人物関係が変化する",
+    "次の危険な場所と信じる人物を選ぶ"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "全証拠は調べられず、確実な物証・人物の嘘・危険な現場のどれを優先するかを毎章捨てながら選ぶ。",
+    "consequence": "取得証拠、推理成功数、同行人物、地下への入り方が後続の手掛かりと真相到達度、7種類の結末を変える。"
+  },
+  "highestMoment": "最終指名直前、20年前の写真と地下の指輪がつながり、現在の密室殺人の動機まで一気に反転して見える5秒。",
+  "oneMoreRunReason": "結果画面に未取得証拠と推理成功数が残り、最初に捨てた証拠を選び直せば別人物の嘘と別エンディングを確認できる。",
+  "playtest": {
+    "method": "Chromium 144 headless real-browser playtest via CDP, 390x844 mobile viewport. Two full routes were clicked from title to ending; source inspection was not used as a substitute for route completion. Audio output itself was not audibly assessable in the headless session.",
+    "first10Seconds": {"pass": true, "evidence": "390px screenshot showed the lighthouse, title, '事件を始める' CTA, 7 endings, headphone cue without overflow; clicking Start immediately opened the prologue text screen."},
+    "first30Seconds": {"pass": true, "evidence": "The first five lines led to a 3-way choice, and the selected silent-observation route immediately added the wet-rope clue before the murder scene."},
+    "threeMinutes": {"pass": true, "evidence": "The route moved from prose to a 2-of-3 investigation and then to a separate evidence-linking board; choosing oil trace + spare key unlocked the ventilation-route deduction and altered the next explanation."},
+    "tenMinutes": {"pass": true, "evidence": "Equivalent repeated exposure was tested through two complete runs: one perfect-deduction Rei route reached TRUE ENDING, while a second run deliberately failed the first deduction, followed Saya/Fujita branches, and reached ENDING 03. Both completed without progression lock or horizontal overflow."},
+    "retryDesire": {"pass": true, "evidence": "TRUE ENDING finished at evidence 10/13 and the alternate ending at 8/13, leaving concrete unseen clues; retry changes both investigation choices and character route rather than only replaying identical text."},
+    "noReward": {"pass": true, "evidence": "There are no XP, coins, gacha, streaks, or login rewards. The tested loop remained investigation choice -> evidence pairing -> narrative consequence -> accusation."}
+  },
+  "scores": {
+    "first10Seconds": 9,
+    "coreLoop": 8,
+    "inputFeel": 7,
+    "decisionQuality": 9,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 8,
+    "pacing": 8,
+    "retryDesire": 9,
+    "uniqueness": 9
+  },
+  "scoreEvidence": {
+    "first10Seconds": "The mobile title frame has one dominant CTA and immediately communicates setting, duration, ending count, and sound orientation.",
+    "coreLoop": "Both full browser runs repeatedly alternated story context, constrained investigation, evidence pairing, and changed consequences.",
+    "inputFeel": "Buttons, selected investigation cards, clue chips, tension changes, clue toast, and ending meter gave immediate visual response; audible sound and vibration could not be verified in headless Chromium, so this score is intentionally lower.",
+    "decisionQuality": "Each investigation allowed only 2 of 3 leads; the alternative run proved that dropping the oil clue changes the first deduction and later truth score.",
+    "masteryDepth": "A failed first-board pairing taught that the apparent door key is not sufficient; a replay with oil + key converted that learning into the hidden-route deduction.",
+    "surpriseVariation": "The second run exposed Saya and Fujita material absent from the TRUE route and ended with a different interpretation of the 20-year-old case.",
+    "riskReward": "Later investigation explicitly raises tension for stronger clues, while only two can be taken; route choices trade immediate safety for information.",
+    "pacing": "Browser flow escalated from arrival to locked-room death, investigation, secret passage, footsteps, lighthouse, cellar, and accusation with new interaction types between reading beats.",
+    "retryDesire": "The result screen visibly reported incomplete evidence and deduction performance, and the tested second run produced a different ending through different choices.",
+    "uniqueness": "The game uses an original island-lighthouse case, original cast and plot, and turns sound-novel branching into a limited-investigation/evidence-linking mechanic rather than copying a pre-existing scenario."
+  },
+  "verifiedAt": "2026-08-22T02:45:00+09:00"
+}
