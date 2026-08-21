@@ -25,6 +25,18 @@ const apps = {
   'main-character': {
     scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
   },
+  'idea-lenses-40': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [], checkViewport: false,
+  },
+  'viewpoint-exam': {
+    scripts: ['real-life.js'], files: ['real-life.css'], refs: [],
+  },
+  'uchite': {
+    scripts: [], files: [], refs: ['data-action="practice"', 'USE IT NOW'],
+  },
+  'matomaru': {
+    scripts: [], files: [], refs: ['id="realScreen"', 'id="realBtn"'], checkViewport: false,
+  },
 };
 
 const errors = [];
@@ -38,7 +50,7 @@ for (const [slug, cfg] of Object.entries(apps)) {
   for (const fileName of cfg.files || []) {
     if (!fs.existsSync(path.join(dir, fileName))) errors.push(`${slug}: ${fileName} missing`);
   }
-  for (const script of cfg.scripts) {
+  for (const script of cfg.scripts || []) {
     const file = path.join(dir, script);
     if (!fs.existsSync(file)) { errors.push(`${slug}: ${script} missing`); continue; }
     try { execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' }); }
