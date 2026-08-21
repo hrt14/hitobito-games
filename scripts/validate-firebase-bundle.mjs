@@ -28,14 +28,20 @@ for (const game of manifest.games) {
   }
 
   const html = fs.readFileSync(indexPath, 'utf8');
-  if (!html.includes('id="levelup-home-fixed"')) {
-    problems.push(`${game.slug}: LEVEL UP home button missing`);
+  if (!html.includes('id="levelup-nav-fixed"')) {
+    problems.push(`${game.slug}: LEVEL UP navigation menu missing`);
+  }
+  if (!html.includes('id="levelup-nav-toggle"')) {
+    problems.push(`${game.slug}: LEVEL UP hamburger toggle missing`);
+  }
+  if (!html.includes('id="levelup-nav-menu"')) {
+    problems.push(`${game.slug}: LEVEL UP navigation panel missing`);
   }
   if (!html.includes('href="https://levelup.hitobito.jp/"')) {
-    problems.push(`${game.slug}: LEVEL UP home button target is incorrect`);
+    problems.push(`${game.slug}: LEVEL UP home navigation target is incorrect`);
   }
-  if (!html.includes('<svg viewBox="0 0 24 24"')) {
-    problems.push(`${game.slug}: LEVEL UP home icon missing`);
+  if (!html.includes('aria-label="LEVEL UPメニューを開く"')) {
+    problems.push(`${game.slug}: LEVEL UP hamburger accessibility label missing`);
   }
   if (!html.includes('data-levelup-account') || !html.includes(`data-game-slug="${game.slug}"`)) {
     problems.push(`${game.slug}: shared LEVEL UP account missing`);
@@ -170,4 +176,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; shared account, refresh button, favorites-first sorting, and app home buttons present`);
+console.log(`[Firebase validation] OK: ${catalog.games.length} curated LEVEL UP games; ${manifest.games.length} bundled app directories verified; shared account, refresh button, favorites-first sorting, and persistent navigation menus present`);
