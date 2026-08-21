@@ -12,6 +12,8 @@ on:
       - 'scripts/playtest-catalog.mjs'
       - 'scripts/sync-games-portal.mjs'
       - 'scripts/inject-play-top-nav.mjs'
+      - 'scripts/validate-play-fun-gate.mjs'
+      - 'docs/PLAY_FUN_FIRST.md'
       - 'deploy-targets.json'
 
 concurrency:
@@ -33,6 +35,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Enforce PLAY FUN gate before production deploy
+        if: github.event_name == 'push'
+        run: >-
+          node scripts/validate-play-fun-gate.mjs
+          --base "${{ github.event.before }}"
+          --head "${{ github.sha }}"
 
       - name: Sync Play portal newest-first
         run: node scripts/sync-games-portal.mjs
