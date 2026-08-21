@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "deep-sea-walk",
+  "funStatement": "視界の悪い海を潜水艇で漂い、ソナーの反応と地形の手掛かりから『あそこに何かいる』を自分で予測して近づき、未知の生物・地形・人工物を発見する瞬間が楽しい。",
+  "coreLoop": [
+    "暗い海とコンパス、ソナー反応を観察する",
+    "近い反応を追うか、深く潜るか、漁礁を育てるかを選ぶ",
+    "潜水艇を進め、旋回・潜航・浮上・ソナーを使う",
+    "海の見え方、生物の動き、ソナー反応、漁礁のにぎわいが変わる",
+    "新しい発見や未探索方向を手掛かりに次の航路を決める"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "見つけやすい近距離の反応を追うか、手掛かりの少ない深場へ寄り道して大きな発見を狙うか。さらに漁礁を育てて同じ海域を豊かにするか、未知の空白を優先するか。",
+    "consequence": "航路によって地図の埋まり方と出会う生物が変わり、漁礁を育てた海域では後から魚群が増えて景色そのものが変化する。"
+  },
+  "highestMoment": "ソナーの大きな反応を追って深場へ入り、暗闇から巨大な影がゆっくり横切り、その直後に新しい海域名と未知生物が同時に記録される5秒。",
+  "oneMoreRunReason": "前回見落としたソナー反応や地図の空白、育て切れなかった漁礁が残り、別ルートで潜れば違う順番・違う景色で発見できる。",
+  "playtest": {
+    "method": "real browser playtest",
+    "first10Seconds": {"pass": false, "evidence": "未テスト"},
+    "first30Seconds": {"pass": false, "evidence": "未テスト"},
+    "threeMinutes": {"pass": false, "evidence": "未テスト"},
+    "tenMinutes": {"pass": false, "evidence": "未テスト"},
+    "retryDesire": {"pass": false, "evidence": "未テスト"},
+    "noReward": {"pass": false, "evidence": "未テスト"}
+  },
+  "scores": {
+    "first10Seconds": 0,
+    "coreLoop": 0,
+    "inputFeel": 0,
+    "decisionQuality": 0,
+    "masteryDepth": 0,
+    "surpriseVariation": 0,
+    "riskReward": 0,
+    "pacing": 0,
+    "retryDesire": 0,
+    "uniqueness": 0
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未テスト",
+    "coreLoop": "未テスト",
+    "inputFeel": "未テスト",
+    "decisionQuality": "未テスト",
+    "masteryDepth": "未テスト",
+    "surpriseVariation": "未テスト",
+    "riskReward": "未テスト",
+    "pacing": "未テスト",
+    "retryDesire": "未テスト",
+    "uniqueness": "未テスト"
+  },
+  "verifiedAt": null
+}
