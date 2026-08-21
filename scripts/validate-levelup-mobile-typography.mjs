@@ -23,9 +23,12 @@ for (const file of walk(firebaseRoot)) {
   const content = fs.readFileSync(file, 'utf8');
   if (/\.html$/i.test(file)) {
     htmlCount += 1;
-    if (!content.includes('id="levelup-mobile-type-floor"')) {
-      violations.push(`${path.relative(firebaseRoot, file)}: missing mobile typography baseline`);
-    }
+    const relative = path.relative(firebaseRoot, file);
+    if (!content.includes('id="levelup-mobile-type-floor"')) violations.push(`${relative}: missing mobile typography baseline`);
+    const viewport = content.match(/<meta\b[^>]*\bname=["']viewport["'][^>]*>/i)?.[0] || '';
+    if (!viewport) violations.push(`${relative}: missing viewport meta`);
+    if (/maximum-scale\s*=\s*1/i.test(viewport)) violations.push(`${relative}: maximum-scale=1 disables expected user zoom`);
+    if (/user-scalable\s*=\s*no/i.test(viewport)) violations.push(`${relative}: user-scalable=no disables expected user zoom`);
   }
   for (const match of content.matchAll(/font-size\s*:\s*(\d+(?:\.\d+)?)px/gi)) {
     const size = Number(match[1]);
@@ -53,4 +56,4 @@ if (violations.length) {
   process.exit(1);
 }
 
-console.log(`LEVEL UP mobile typography validation OK: ${htmlCount} HTML files, no positive px font-size below ${MIN_PX}px.`);
+console.log(`LEVEL UP mobile typography validation OK: ${htmlCount} HTML files, no positive px font-size below ${MIN_PX}px, mobile zoom preserved.`);
