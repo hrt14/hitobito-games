@@ -31,11 +31,18 @@ function raiseTinyPxFonts(content) {
   return { content: next, changed };
 }
 
+function normalizeViewport(html) {
+  const safeViewport = '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />';
+  const viewportPattern = /<meta\b[^>]*\bname=["']viewport["'][^>]*>/i;
+  if (viewportPattern.test(html)) return html.replace(viewportPattern, safeViewport);
+  return /<head[^>]*>/i.test(html) ? html.replace(/<head([^>]*)>/i, `<head$1>\n${safeViewport}`) : `${safeViewport}\n${html}`;
+}
+
 function injectMobileBaseline(html) {
   if (html.includes(`id="${MARKER}"`)) return html;
   const style = `
 <style id="${MARKER}">
-  /* LEVEL UP mobile readability floor: Apple HIG minimum 11pt; product floor is 12px. */
+  /* LEVEL UP mobile readability floor: product floor 12px; standard actions/inputs 16px. */
   @media (max-width: 768px) {
     button,input,textarea,select { font-size:16px; }
   }
@@ -69,11 +76,15 @@ function injectReactionPatternReadability(html) {
 
 let filesChanged = 0;
 let declarationsRaised = 0;
+let viewportNormalized = 0;
 for (const file of walk(firebaseRoot)) {
   const original = fs.readFileSync(file, 'utf8');
   const raised = raiseTinyPxFonts(original);
   let next = raised.content;
   if (/\.html$/i.test(file)) {
+    const beforeViewport = next;
+    next = normalizeViewport(next);
+    if (next !== beforeViewport) viewportNormalized += 1;
     next = injectMobileBaseline(next);
     next = injectReactionPatternReadability(next);
   }
@@ -84,4 +95,4 @@ for (const file of walk(firebaseRoot)) {
   }
 }
 
-console.log(`[LEVEL UP typography] minimum ${MIN_PX}px enforced; ${declarationsRaised} tiny declarations raised across ${filesChanged} files.`);
+console.log(`[LEVEL UP typography] minimum ${MIN_PX}px enforced; ${declarationsRaised} tiny declarations raised across ${filesChanged} files; ${viewportNormalized} viewport tags normalized for user zoom.`);
