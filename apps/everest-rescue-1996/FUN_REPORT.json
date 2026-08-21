@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "everest-rescue-1996",
+  "funStatement": "嵐の強弱を読み、酸素と時間を削りながら救助隊をどこまで上げるかをその場で決め、ぎりぎりで遭難者をサウス・コルへ連れ帰る判断そのものを楽しむ。",
+  "coreLoop": [
+    "遭難ビーコンと風速、酸素、残り時間を見る",
+    "次に救う遭難者と登るタイミングを決める",
+    "通常速度か急行で救助隊を移動させる",
+    "嵐・酸素消費・遭難者の容体が変化する",
+    "救助を続けるか撤退してサウス・コルへ戻るか判断する"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "高所の危険な遭難者を先に救うほど救命可能性は上がるが、酸素・時間・体温を消耗し、すでに確保した遭難者や救助隊自身を失う危険が増す。",
+    "consequence": "救助順、移動速度、嵐の中を進むか待つかで、残る酸素と遭難者の容体が変わり、次に現実的に狙える救助対象が変わる。"
+  },
+  "highestMoment": "酸素が残り数％、視界が白く潰れる強風の中、確保した遭難者を連れて最後の区間を下り、キャンプの灯りに飛び込んで救助成功表示へ切り替わる5秒。",
+  "oneMoreRunReason": "遭難位置と嵐の周期が毎回少し変わり、前回見捨てた1人を救うために救助順と酸素配分を変えて再挑戦できる。",
+  "playtest": {
+    "method": "not yet run — design contract created before implementation",
+    "first10Seconds": {"pass": false, "evidence": "Unverified before implementation."},
+    "first30Seconds": {"pass": false, "evidence": "Unverified before implementation."},
+    "threeMinutes": {"pass": false, "evidence": "Unverified before implementation."},
+    "tenMinutes": {"pass": false, "evidence": "Unverified before implementation."},
+    "retryDesire": {"pass": false, "evidence": "Unverified before implementation."},
+    "noReward": {"pass": false, "evidence": "Unverified before implementation."}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "Not yet tested.",
+    "coreLoop": "Not yet tested.",
+    "inputFeel": "Not yet tested.",
+    "decisionQuality": "Not yet tested.",
+    "masteryDepth": "Not yet tested.",
+    "surpriseVariation": "Not yet tested.",
+    "riskReward": "Not yet tested.",
+    "pacing": "Not yet tested.",
+    "retryDesire": "Not yet tested.",
+    "uniqueness": "Not yet tested."
+  },
+  "verifiedAt": null
+}
