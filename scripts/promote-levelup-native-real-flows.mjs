@@ -12,7 +12,7 @@ const apps = {
   'jinsei-title': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'arigatou-sagashi': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'main-character': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
-  'kokkara-best': { required: ['id="realFlow"', 'data-levelup-real-bridge="native"'] },
+  'kokkara-best': { required: ['id="realFlow"'] },
 };
 
 function injectAssets(html) {
