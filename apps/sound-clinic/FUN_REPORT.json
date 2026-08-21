@@ -16,7 +16,7 @@
   "highestMoment": "ヒューズを抜いた直後に停電し、怪異が動き出した中でロッカーか走るかトレー投擲かを数秒で決める瞬間。",
   "oneMoreRunReason": "失敗してもヒューズ進捗が残るため、次は走る区間を短くする、先にトレーを投げるなど具体的な改善をすぐ試せる。",
   "playtest": {
-    "method": "GitHub Actions run 32510318114: real Chromium Playwright playtest. Desktop used only normal keyboard interactions and reached a genuine enemy capture; retry preserved progress. Mobile used a 390x844 real Chromium viewport and pointer controls. No game state was directly manipulated.",
+    "method": "GitHub Actions run 32510318114: real browser Chromium Playwright playtest. Desktop used only normal keyboard interactions and reached a genuine enemy capture; retry preserved progress. Mobile used a 390x844 real browser Chromium viewport and pointer controls. No game state was directly manipulated.",
     "first10Seconds": {"pass": true, "evidence": "開始画面だけで『ヒューズ3本』『走るほど足音が届く』『隠れる/音で誘導』が読め、開始操作が一つに絞られていることを実Chromiumで確認した。"},
     "first30Seconds": {"pass": true, "evidence": "開始地点で非常口を調べると『あと3本必要』と即反応し、目的をプレイ中の操作で確認できた。"},
     "threeMinutes": {"pass": true, "evidence": "短編ゲームの主要局面相当を実操作で確認。静かに南東の1本目を取得して怪異を覚醒させ、走行・トレー投擲・追跡・捕獲までコアループが変化した。自動操作のため経過時間そのものは3分未満。"},
