@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# Re-run against the widened 125px furniture-search radius.
+# Verify 125px furniture search and 38px door-transition approach tolerance.
 jobs:
   browser-playtest:
     runs-on: ubuntu-latest
