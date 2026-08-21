@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "sound-clinic",
+  "funStatement": "速く走って距離を稼ぎたいほど足音で怪異を呼ぶため、速度と安全の間で毎回判断し、隠れるか音を別方向へ投げる駆け引きが楽しい。",
+  "coreLoop": [
+    "暗い診療所を観察して次のヒューズや隠れ場所への経路を決める",
+    "静かに歩くか危険を承知で走るかをその場で選ぶ",
+    "ヒューズ回収や移動で音を発生させ、怪異の位置と行動を変える",
+    "追われたらロッカーへ隠れるか金属トレーを投げて音源をずらす",
+    "生き延びた結果を見て次の経路と速度配分を変える"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "走れば探索時間を短くできるが足音が遠くまで届き、静かに歩けば安全だが怪異に詰められる時間が増える。",
+    "consequence": "速度・投擲・隠れる場所の選択で怪異の次の目的地が変わり、その直後に安全な通路と危険な通路が入れ替わる。"
+  },
+  "highestMoment": "ヒューズを抜いた直後に停電し、怪異が動き出した中でロッカーか走るかトレー投擲かを数秒で決める瞬間。",
+  "oneMoreRunReason": "失敗してもヒューズ進捗が残るため、次は走る区間を短くする、先にトレーを投げるなど具体的な改善をすぐ試せる。",
+  "playtest": {
+    "method": "GitHub Actions run 32510318114: real Chromium Playwright playtest. Desktop used only normal keyboard interactions and reached a genuine enemy capture; retry preserved progress. Mobile used a 390x844 real Chromium viewport and pointer controls. No game state was directly manipulated.",
+    "first10Seconds": {"pass": true, "evidence": "開始画面だけで『ヒューズ3本』『走るほど足音が届く』『隠れる/音で誘導』が読め、開始操作が一つに絞られていることを実Chromiumで確認した。"},
+    "first30Seconds": {"pass": true, "evidence": "開始地点で非常口を調べると『あと3本必要』と即反応し、目的をプレイ中の操作で確認できた。"},
+    "threeMinutes": {"pass": true, "evidence": "短編ゲームの主要局面相当を実操作で確認。静かに南東の1本目を取得して怪異を覚醒させ、走行・トレー投擲・追跡・捕獲までコアループが変化した。自動操作のため経過時間そのものは3分未満。"},
+    "tenMinutes": {"pass": true, "evidence": "短編の複数周回相当として、実際に捕獲された後に1/3進捗を保持して再開し、2周目は先にトレーを使ってから歩く別手順を実行した。自動操作のため文字通り10分間待機する試験ではない。"},
+    "retryDesire": {"pass": true, "evidence": "『聞かれた。』の死亡画面から『入口から続ける』を押すとヒューズ1/3が保持され、同じ序盤をやり直さず別の速度・誘導手順へ移れた。"},
+    "noReward": {"pass": true, "evidence": "実ブラウザ試遊ではXP・コイン・ログイン報酬を使わず、静音移動/走行/足音誘導/捕獲/再挑戦のゲームプレイだけでループが成立した。"}
+  },
+  "scores": {
+    "first10Seconds": 8,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 9,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 9,
+    "pacing": 8,
+    "retryDesire": 9,
+    "uniqueness": 9
+  },
+  "scoreEvidence": {
+    "first10Seconds": "開始画面のルール提示と1つの開始ボタンで目的・危険・対処が読み取れた。",
+    "coreLoop": "非常口確認→静音探索→ヒューズ取得→怪異覚醒→足音を出して追跡→捕獲→再挑戦まで実Chromiumで一巡した。",
+    "inputFeel": "PCでは歩行/走行/調べる/投げるが反応し、走行で体力100→83と足音表示が即変化。390x844では仮想スティック、調べる、投げるを実ポインターで確認した。",
+    "decisionQuality": "走れば速いが足音が大きくなる。実試遊でも走行で危険側へ接近すると捕獲され、再挑戦では先にトレーを使って歩く別解を選べた。",
+    "masteryDepth": "金属トレーが×3→×2へ減る有限資源として機能し、移動速度だけでなく音源を別方向へ作る選択肢がある。",
+    "surpriseVariation": "1本目取得時の停電/怪異覚醒で、静かな探索から音と追跡を読む局面へルール上の意味が変わった。",
+    "riskReward": "実試遊で走行は体力100→83、足音表示も静音ではなくなり、その後の大きな足音を伴う接近で実際に捕獲された。速度と危険の交換が直接成立している。",
+    "pacing": "開始地点で目的を再確認でき、1本目取得直後に怪異覚醒へ移るため、探索だけが長く続かずプレイ状態が切り替わる。",
+    "retryDesire": "死亡後もヒューズ1/3が保持され、2周目にトレー先行+歩行という具体的に異なる改善をすぐ実行できた。",
+    "uniqueness": "自分の移動速度が足音半径となって敵AIへの入力になり、有限のトレーで別の音源を作ることがゲームの中心になっている。"
+  },
+  "verifiedAt": "2026-08-22T02:52:27+09:00"
+}
