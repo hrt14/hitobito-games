@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "uma-chosatai",
+  "funStatement": "怪しい痕跡と誤認候補を見比べ、限られた時間とバッテリーをどこに使うか賭けながら、複数の独立証拠をつないで撮影チャンスを引き寄せることが楽しい。",
+  "coreLoop": [
+    "現場に出た複数の異変を観察する",
+    "どの地点を調べるか選ぶ",
+    "カメラ・録音機・UVライト・足跡キットのどれかを使う",
+    "証拠が強まるか誤認候補が判明し、時間・電池・警戒度が変わる",
+    "証拠の組み合わせから次に張る地点を変える"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "確実に誤認を潰して証拠精度を上げるか、時間と電池を温存して出現率の高い地点へ賭けるか。",
+    "consequence": "調査手段と地点によって次に出る痕跡、UMAの警戒度、撮影チャンスの条件が変わる。"
+  },
+  "highestMoment": "独立した3種類の証拠が一致して『接近中』になり、暗闇のシルエットが数秒だけ横切る中で照準を合わせてシャッターを切る瞬間。",
+  "oneMoreRunReason": "失敗時に『何を見落としたか』が分かり、次は別の装備順・別地点でより高い発見確度を狙えるうえ、調査対象もランダムに変わる。",
+  "playtest": {
+    "method": "pending real browser playtest",
+    "first10Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
+    "first30Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
+    "threeMinutes": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
+    "tenMinutes": {"pass": false, "evidence": "未検証。短時間ゲームのため複数ランを通算して確認する。"},
+    "retryDesire": {"pass": false, "evidence": "未検証。"},
+    "noReward": {"pass": false, "evidence": "未検証。"}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未検証。",
+    "coreLoop": "未検証。",
+    "inputFeel": "未検証。",
+    "decisionQuality": "未検証。",
+    "masteryDepth": "未検証。",
+    "surpriseVariation": "未検証。",
+    "riskReward": "未検証。",
+    "pacing": "未検証。",
+    "retryDesire": "未検証。",
+    "uniqueness": "未検証。"
+  },
+  "verifiedAt": "2026-08-22T02:30:00+09:00"
+}

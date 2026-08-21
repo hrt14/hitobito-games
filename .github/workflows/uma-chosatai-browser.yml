@@ -1,0 +1,56 @@
+name: UMA Chosatai browser playtest
+
+on:
+  push:
+    branches:
+      - feat/uma-chosatai
+    paths:
+      - 'apps/uma-chosatai/**'
+      - '.github/workflows/uma-chosatai-browser.yml'
+  pull_request:
+    paths:
+      - 'apps/uma-chosatai/**'
+      - '.github/workflows/uma-chosatai-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  chromium-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check game logic
+        run: node --check apps/uma-chosatai/game.js
+      - name: Install Chromium harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/uma-server.log 2>&1 &
+          echo $! > /tmp/uma-server.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/uma-chosatai/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/uma-server.log
+          exit 1
+      - name: Play mobile browser route
+        env:
+          UMA_URL: http://127.0.0.1:4173/apps/uma-chosatai/
+        run: node apps/uma-chosatai/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uma-chosatai-browser-evidence
+          path: apps/uma-chosatai/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/uma-server.log || true

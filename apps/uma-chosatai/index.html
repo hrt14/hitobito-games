@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#07110e" />
+  <meta name="description" content="世界の未確認生物を追い、痕跡と誤認を見分けながら決定的瞬間を撮影する調査ゲーム。" />
+  <title>UMA調査隊 — 世界未確認生物を追え</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="app" class="app">
+    <header class="topbar">
+      <a class="home-link" href="https://play.hitobito.jp/" aria-label="PLAYトップへ">← PLAY</a>
+      <div class="brand">UMA / FIELD UNIT</div>
+      <button id="soundToggle" class="icon-btn" type="button" aria-label="サウンド切替">SOUND ON</button>
+    </header>
+
+    <section id="screen-world" class="screen active" aria-labelledby="world-title">
+      <div class="hero-copy">
+        <div class="eyebrow">UNCONFIRMED ANIMAL FIELD INVESTIGATION</div>
+        <h1 id="world-title">世界の未確認生物を、<br><span>証拠から追え。</span></h1>
+        <p>怪しいものを全部「UMA」にするな。痕跡、音、熱、既知動物の可能性を切り分け、決定的な数秒までたどり着け。</p>
+      </div>
+
+      <div class="world-map" aria-label="世界の調査地点">
+        <svg viewBox="0 0 1000 430" role="img" aria-label="調査地点を示す世界地図">
+          <path class="continent" d="M74 91l73-46 113 16 82 58-26 59-61 11-42 70-74-24-35-70-45-23z"/>
+          <path class="continent" d="M261 238l62 17 41 54-25 86-39 35-27-45 4-56-39-35z"/>
+          <path class="continent" d="M470 73l83-30 83 22 74-10 119 45 88 5 21 61-70 36-73-17-47 30-83-11-43 49-83-21-42-55-62-23z"/>
+          <path class="continent" d="M565 220l62 10 57 61-25 99-62 11-49-75 5-67z"/>
+          <path class="continent" d="M799 291l58-19 58 30 19 54-46 42-75-9-27-48z"/>
+          <path class="continent small" d="M906 205l31-12 20 22-13 29-32-4z"/>
+        </svg>
+        <div id="mapPins" class="map-pins"></div>
+      </div>
+
+      <div class="world-bottom">
+        <div>
+          <div class="section-label">CASE FILES</div>
+          <div id="caseRail" class="case-rail"></div>
+        </div>
+        <div class="world-actions">
+          <button id="continueBtn" class="primary-btn" type="button">最初の案件へ</button>
+          <button id="resetBtn" class="text-btn" type="button">調査記録をリセット</button>
+        </div>
+      </div>
+
+      <p class="disclaimer">このゲームは各地の伝承・目撃報告を題材にしたフィクションです。UMAの実在を科学的事実として扱いません。</p>
+    </section>
+
+    <section id="screen-briefing" class="screen" aria-labelledby="brief-title">
+      <div class="briefing-grid">
+        <div class="brief-visual">
+          <button class="back-float" data-action="world" type="button">← 世界地図</button>
+          <div id="briefSky" class="brief-sky"></div>
+          <div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-sweep"></div>
+          <div id="briefGlyph" class="brief-glyph">?</div>
+          <div class="coordinates" id="briefCoords"></div>
+        </div>
+        <div class="brief-copy">
+          <div id="briefRegion" class="eyebrow"></div>
+          <h2 id="brief-title"></h2>
+          <p id="briefLead" class="brief-lead"></p>
+          <div class="brief-facts">
+            <div><span>報告傾向</span><strong id="briefPattern"></strong></div>
+            <div><span>主な誤認候補</span><strong id="briefDecoy"></strong></div>
+            <div><span>調査時間</span><strong>8 ACTIONS</strong></div>
+          </div>
+          <div class="mission-box">
+            <b>MISSION</b>
+            <p>3種類以上の独立証拠をそろえ、張り込みを成功させて決定的瞬間を撮影する。</p>
+          </div>
+          <button id="deployBtn" class="primary-btn" type="button">現地調査を開始</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-field" class="screen field-screen" aria-labelledby="field-title">
+      <div class="field-hud">
+        <button class="mini-btn" data-action="world" type="button">← 中断</button>
+        <div class="hud-center">
+          <span id="fieldRegion">FIELD</span>
+          <strong id="field-title"></strong>
+        </div>
+        <div class="hud-stats">
+          <span>TIME <b id="timeStat">8</b></span>
+          <span>BAT <b id="batteryStat">8</b></span>
+        </div>
+      </div>
+
+      <div id="fieldStage" class="field-stage">
+        <div class="weather-layer"></div>
+        <div class="grain"></div>
+        <div class="field-caption"><span id="fieldClock">21:10</span><b id="fieldHint">気になる場所をタップ</b></div>
+        <div id="zones" class="zones"></div>
+        <div id="sensorLine" class="sensor-line">周囲を観察中…</div>
+      </div>
+
+      <div class="field-console">
+        <div class="evidence-panel">
+          <div class="console-head"><span>EVIDENCE</span><b id="certaintyText">確度 0%</b></div>
+          <div class="evidence-grid">
+            <div class="evidence-cell" data-evidence="visual"><span>VISUAL</span><div class="evidence-dots"></div></div>
+            <div class="evidence-cell" data-evidence="audio"><span>AUDIO</span><div class="evidence-dots"></div></div>
+            <div class="evidence-cell" data-evidence="trace"><span>TRACE</span><div class="evidence-dots"></div></div>
+            <div class="evidence-cell" data-evidence="thermal"><span>THERMAL</span><div class="evidence-dots"></div></div>
+          </div>
+          <div id="evidenceLog" class="evidence-log"><span>まだ確かな証拠はない。</span></div>
+        </div>
+
+        <div class="tool-panel">
+          <div class="console-head"><span id="toolGuide">① 場所を選ぶ</span><b id="selectedZoneLabel">未選択</b></div>
+          <div id="tools" class="tools"></div>
+          <button id="stakeoutBtn" class="stakeout-btn" type="button" disabled>張り込む <span>証拠を集めると解放</span></button>
+        </div>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="screen-encounter" class="screen encounter-screen" aria-labelledby="encounter-title">
+      <div class="encounter-hud"><span>CONTACT / 04 SEC</span><b id="encounter-title">照準を合わせて撮影</b></div>
+      <div id="scope" class="scope">
+        <div class="crosshair"></div>
+        <button id="cryptidTarget" class="cryptid-target" type="button" aria-label="UMAを撮影"></button>
+        <div class="scope-noise"></div>
+      </div>
+      <div class="shutter-copy">影をタップしてシャッター</div>
+    </section>
+
+    <section id="screen-result" class="screen" aria-labelledby="result-title">
+      <div class="result-shell">
+        <div id="resultPhoto" class="result-photo">
+          <div id="resultSilhouette" class="result-silhouette"></div>
+          <div class="photo-stamp">FIELD RECORD</div>
+        </div>
+        <div class="result-copy">
+          <div id="resultEyebrow" class="eyebrow">CASE REPORT</div>
+          <h2 id="result-title"></h2>
+          <div id="resultConfidence" class="confidence-big">0%</div>
+          <p id="resultSummary" class="result-summary"></p>
+          <div id="resultBreakdown" class="result-breakdown"></div>
+          <div class="result-actions">
+            <button id="retryBtn" class="primary-btn" type="button">同じ案件を再調査</button>
+            <button id="nextCaseBtn" class="secondary-btn" type="button">次の地域へ</button>
+            <button class="text-btn" data-action="world" type="button">世界地図へ戻る</button>
+          </div>
+          <p class="result-note">表示される「発見確度」はゲーム内スコアです。科学的な存在証明を意味しません。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./game.js" defer></script>
+</body>
+</html>
