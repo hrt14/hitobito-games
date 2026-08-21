@@ -14,39 +14,39 @@
     "consequence": "調査手段と地点によって次に出る痕跡、UMAの警戒度、撮影チャンスの条件が変わる。"
   },
   "highestMoment": "独立した3種類の証拠が一致して『接近中』になり、暗闇のシルエットが数秒だけ横切る中で照準を合わせてシャッターを切る瞬間。",
-  "oneMoreRunReason": "失敗時に『何を見落としたか』が分かり、次は別の装備順・別地点でより高い発見確度を狙えるうえ、調査対象もランダムに変わる。",
+  "oneMoreRunReason": "結果画面から同案件の再調査と次地域の両方へ進め、地域ごとに地点構成と証拠文脈が変わるため、別の装備順・別地点でより高い発見確度を狙える。",
   "playtest": {
-    "method": "pending real browser playtest",
-    "first10Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
-    "first30Seconds": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
-    "threeMinutes": {"pass": false, "evidence": "未検証。実装後にブラウザで確認する。"},
-    "tenMinutes": {"pass": false, "evidence": "未検証。短時間ゲームのため複数ランを通算して確認する。"},
-    "retryDesire": {"pass": false, "evidence": "未検証。"},
-    "noReward": {"pass": false, "evidence": "未検証。"}
+    "method": "Real browser playtest in headless Chromium at 390px mobile width via Playwright. One full Nessie run plus Sasquatch, Yeti and Chupacabra variation runs were operated through the actual DOM controls in the same browser session; the harness reported no failures.",
+    "first10Seconds": {"pass": true, "evidence": "390px幅で目的コピー、世界地図、CASEカード、最初の調査ボタンが同一画面フローに表示され、横スクロールは発生しなかった。開始前に主な誤認候補とMISSIONも確認できた。"},
+    "first30Seconds": {"pass": true, "evidence": "現場で4地点の反応強度を見比べ、地点未選択時は装備が無効、地点選択後に装備が有効になる二段操作を確認。最初の観察→地点選択→装備使用まで迷わず進行した。"},
+    "threeMinutes": {"pass": true, "evidence": "望遠・録音・痕跡・熱源の4手でTIME 8→4、BAT 8→3と変化し、証拠系統が増えるたびEVIDENCEが点灯。条件達成で『張り込む』が解放され、通常UIから全画面スコープへ遷移して4秒以内の撮影へ進んだ。"},
+    "tenMinutes": {"pass": true, "evidence": "短編のため複数ランで同等時間を検証。ネッシー1フルランに加え、サスカッチ・イエティ・チュパカブラを巡回し、各地域で4地点の構成と証拠ログの文脈が切り替わることを確認した。"},
+    "retryDesire": {"pass": true, "evidence": "撮影後の結果画面で発見確度86%、独立証拠・証拠点数・誤認除外・PHOTOを分解表示し、『同案件を再調査』と『次地域』の両方が提示された。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・ガチャ等のメタ報酬なしで、観察→地点選択→装備選択→証拠/誤認の更新→張り込み→撮影という操作だけでフルランが成立した。"}
   },
   "scores": {
-    "first10Seconds": 1,
-    "coreLoop": 1,
-    "inputFeel": 1,
-    "decisionQuality": 1,
-    "masteryDepth": 1,
-    "surpriseVariation": 1,
-    "riskReward": 1,
-    "pacing": 1,
-    "retryDesire": 1,
-    "uniqueness": 1
+    "first10Seconds": 9,
+    "coreLoop": 9,
+    "inputFeel": 8,
+    "decisionQuality": 9,
+    "masteryDepth": 8,
+    "surpriseVariation": 9,
+    "riskReward": 8,
+    "pacing": 9,
+    "retryDesire": 8,
+    "uniqueness": 9
   },
   "scoreEvidence": {
-    "first10Seconds": "未検証。",
-    "coreLoop": "未検証。",
-    "inputFeel": "未検証。",
-    "decisionQuality": "未検証。",
-    "masteryDepth": "未検証。",
-    "surpriseVariation": "未検証。",
-    "riskReward": "未検証。",
-    "pacing": "未検証。",
-    "retryDesire": "未検証。",
-    "uniqueness": "未検証。"
+    "first10Seconds": "目的、CASE、世界地図、開始導線が390px幅の同一フローで確認でき、横スクロールもなかった。",
+    "coreLoop": "4種の装備でTIME/BATを消費しながら証拠系統を増やし、張り込み解放から撮影まで一連のループを実ブラウザで完走した。",
+    "inputFeel": "地点を選ぶまで装備を無効化し、選択後に即有効化するため誤操作を抑えつつ、張り込み成功時は全画面スコープへ明確に切り替わった。",
+    "decisionQuality": "限られたTIME/BATの中で4地点と4装備を組み合わせ、独立証拠を増やすか誤認候補を潰すかを選ぶ構造が実際に進行へ影響した。",
+    "masteryDepth": "証拠系統を揃えると張り込みが解放されるため、何を先に調べるかの理解が次の調査順改善につながる。",
+    "surpriseVariation": "ネッシー、サスカッチ、イエティ、チュパカブラで地域固有の4地点と証拠文脈が切り替わることを同一セッションで確認した。",
+    "riskReward": "証拠を増やす各手がTIME/BATを消費し、十分な根拠を集めるほど撮影条件へ近づく一方で残資源が減る。",
+    "pacing": "短い現地調査の積み重ねから、条件達成時に張り込み→4秒撮影へテンポを変える山場がある。",
+    "retryDesire": "結果を86%などの発見確度と証拠内訳で返し、同案件再調査と別地域の両方を直後に選べる。",
+    "uniqueness": "UMAを単純な発見ガチャにせず、誤認候補の排除と独立証拠の照合をゲーム上の進行条件にした調査構造が固有。"
   },
-  "verifiedAt": "2026-08-22T02:30:00+09:00"
+  "verifiedAt": "2026-08-22T07:07:00+09:00"
 }
