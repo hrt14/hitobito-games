@@ -38,3 +38,17 @@ jobs:
 
       - name: Deploy LEVEL UP functions
         run: npx --yes firebase-tools@latest deploy --only functions:analyzeLifePlusOne,functions:submitLevelupFeedback --project hitobito-levelup --non-interactive
+
+      - name: Verify feedback endpoint
+        run: |
+          set -euo pipefail
+          endpoint='https://asia-northeast1-hitobito-levelup.cloudfunctions.net/submitLevelupFeedback'
+          code=$(curl -sS -o /tmp/feedback-health.json -w '%{http_code}' \
+            -X POST \
+            -H 'Origin: https://levelup.hitobito.jp' \
+            -H 'Content-Type: application/json' \
+            --data '{}' \
+            "$endpoint")
+          test "$code" = "400"
+          grep -F '"error":"INVALID_INPUT"' /tmp/feedback-health.json >/dev/null
+          echo "Feedback endpoint reachable and validating input."
