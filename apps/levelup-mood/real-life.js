@@ -1,0 +1,38 @@
+(() => {
+  'use strict';
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const key='levelup-mood-real-v1';
+  const STATES=[['waiting','待ち・予定外'],['social','対人でざわつく'],['mistake','ミス・後悔'],['fatigue','疲れ・眠気'],['stuck','作業が詰まる'],['anger','怒り・苛立ち']];
+  const ACTIONS=[
+    ['breathe','🫁','息を長く吐く','10秒、吸うより長く吐く。'],
+    ['water','🥤','水をひと口','立てるなら、水か温かい飲み物を一口。'],
+    ['lookfar','👀','遠くを見る','画面から目を外し、20秒だけ遠くを見る。'],
+    ['walk','🚶','30歩だけ歩く','速くなくていい。30歩だけ場所を変える。'],
+    ['name','🏷️','気分に名前をつける','「焦り」「悔しい」など一語だけで呼ぶ。'],
+    ['nextone','⚡','次の1個だけ決める','いま動かせる一手を1個だけ決める。'],
+    ['distance','↔️','5分だけ距離を置く','返答・判断・画面から5分だけ離れる。'],
+    ['relax','🧍','肩とあごをゆるめる','肩を落として、あごの力を抜く。']
+  ];
+  let modal,state='waiting',action='breathe',timer=null,left=20,before=6;
+
+  function ensureLauncher(){const start=$('#startBtn');if(!start||$('[data-real-mood-launch]'))return;const b=document.createElement('button');b.type='button';b.className='real-mood-launch';b.dataset.realMoodLaunch='1';b.textContent='今の機嫌を30秒で整える';b.addEventListener('click',open);start.after(b)}
+  function ensureModal(){if(modal)return modal;modal=document.createElement('div');modal.className='real-mood-modal';modal.setAttribute('aria-hidden','true');modal.innerHTML=`<div class="real-mood-card" role="dialog" aria-modal="true" aria-labelledby="realMoodTitle"><div class="real-mood-head"><div><small>REAL LIFE / 30 SEC RESET</small><h2 id="realMoodTitle">外を変えず、<br>自分を1段だけ戻す。</h2></div><button type="button" data-rm-close aria-label="閉じる">×</button></div>
+    <section data-rm-step="state"><p>嫌な気分を消す必要はない。今より1段だけ扱いやすくする。</p><div class="real-mood-states">${STATES.map((x,i)=>`<button type="button" data-rm-state="${x[0]}" class="${i===0?'selected':''}">${x[1]}</button>`).join('')}</div><div class="real-mood-meter"><div><span>いまのしんどさ</span><strong><b data-rm-before-v>6</b>/10</strong></div><input data-rm-before type="range" min="0" max="10" value="6"></div><button class="real-mood-primary" data-rm-next type="button">自分にすることを選ぶ →</button></section>
+    <section data-rm-step="action" hidden><p>今できそうな1つだけ。正解ではなく、実行できるものを選ぶ。</p><div class="real-mood-actions">${ACTIONS.map((x,i)=>`<button type="button" data-rm-action="${x[0]}" class="${i===0?'selected':''}"><span>${x[1]}</span><b>${x[2]}</b></button>`).join('')}</div><button class="real-mood-primary" data-rm-do type="button">これを今やる →</button></section>
+    <section data-rm-step="do" hidden><div class="real-mood-do"><span data-rm-icon>🫁</span><h3 data-rm-title>息を長く吐く</h3><p data-rm-instruction></p><strong><b data-rm-seconds>20</b> sec</strong></div><button class="real-mood-primary" data-rm-done type="button">もうできた →</button><button class="real-mood-secondary" data-rm-skip type="button">今回は実行せず測る</button></section>
+    <section data-rm-step="after" hidden><div class="real-mood-meter"><div><span>いまのしんどさ</span><strong><b data-rm-after-v>6</b>/10</strong></div><input data-rm-after type="range" min="0" max="10" value="6"></div><small>下がらなくてもOK。変化を作るために数字を動かさない。</small><button class="real-mood-primary" data-rm-finish type="button">Before / Afterを見る</button></section>
+    <section data-rm-step="done" hidden><h3 data-rm-done-title>1段だけ、自分側を動かした。</h3><div class="real-mood-result"><small>今回やったこと</small><strong data-rm-result-action></strong></div><div class="real-mood-delta" data-rm-delta></div><div class="real-mood-history" data-rm-history hidden></div><button class="real-mood-secondary" data-rm-again type="button">別の状態でもう1回</button></section></div>`;document.body.appendChild(modal);
+    $('[data-rm-close]',modal).onclick=close;$$('[data-rm-state]',modal).forEach(b=>b.onclick=()=>selectState(b));$$('[data-rm-action]',modal).forEach(b=>b.onclick=()=>selectAction(b));$('[data-rm-before]',modal).oninput=e=>{before=Number(e.target.value);$('[data-rm-before-v]',modal).textContent=e.target.value};$('[data-rm-after]',modal).oninput=e=>$('[data-rm-after-v]',modal).textContent=e.target.value;$('[data-rm-next]',modal).onclick=()=>show('action');$('[data-rm-do]',modal).onclick=startDo;$('[data-rm-done]',modal).onclick=goAfter;$('[data-rm-skip]',modal).onclick=goAfter;$('[data-rm-finish]',modal).onclick=finish;$('[data-rm-again]',modal).onclick=reset;modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal?.classList.contains('show'))close()});return modal}
+  function show(n){$$('[data-rm-step]',modal).forEach(s=>s.hidden=s.dataset.rmStep!==n)}
+  function open(){ensureModal();reset();modal.classList.add('show');modal.setAttribute('aria-hidden','false');try{window.LevelUpTelemetry?.action?.('real-mood-start')}catch{}}
+  function close(){clearInterval(timer);timer=null;modal?.classList.remove('show');modal?.setAttribute('aria-hidden','true');$('[data-real-mood-launch]')?.focus({preventScroll:true})}
+  function reset(){ensureModal();clearInterval(timer);timer=null;state='waiting';action='breathe';before=6;left=20;$('[data-rm-before]',modal).value='6';$('[data-rm-after]',modal).value='6';$('[data-rm-before-v]',modal).textContent='6';$('[data-rm-after-v]',modal).textContent='6';$$('[data-rm-state]',modal).forEach(b=>b.classList.toggle('selected',b.dataset.rmState===state));$$('[data-rm-action]',modal).forEach(b=>b.classList.toggle('selected',b.dataset.rmAction===action));show('state')}
+  function selectState(b){state=b.dataset.rmState;$$('[data-rm-state]',modal).forEach(x=>x.classList.toggle('selected',x===b))}
+  function selectAction(b){action=b.dataset.rmAction;$$('[data-rm-action]',modal).forEach(x=>x.classList.toggle('selected',x===b))}
+  function startDo(){const a=ACTIONS.find(x=>x[0]===action)||ACTIONS[0];$('[data-rm-icon]',modal).textContent=a[1];$('[data-rm-title]',modal).textContent=a[2];$('[data-rm-instruction]',modal).textContent=a[3];left=20;$('[data-rm-seconds]',modal).textContent=String(left);show('do');clearInterval(timer);timer=setInterval(()=>{left--;const el=$('[data-rm-seconds]',modal);if(el)el.textContent=String(Math.max(0,left));if(left<=0)goAfter()},1000);try{window.LevelUpTelemetry?.action?.(`real-mood-action-${action}`)}catch{}}
+  function goAfter(){clearInterval(timer);timer=null;$('[data-rm-after]',modal).value=String(before);$('[data-rm-after-v]',modal).textContent=String(before);show('after')}
+  function finish(){const after=Number($('[data-rm-after]',modal).value),delta=before-after,a=ACTIONS.find(x=>x[0]===action)||ACTIONS[0];$('[data-rm-result-action]',modal).textContent=a[2];$('[data-rm-done-title]',modal).textContent=delta>0?'少し扱いやすくなった。':delta===0?'数字は同じ。でも自分側を1つ動かした。':'少し重くなった。無理に整えなくていい。';$('[data-rm-delta]',modal).textContent=`しんどさ ${before} → ${after}`;save({delta,state,action});history();show('done');try{window.dispatchEvent(new CustomEvent('levelup:real-bridge-complete',{detail:{slug:'levelup-mood',delta,action}}));window.LevelUpTelemetry?.complete?.('real-mood')}catch{}}
+  function save(run){try{const prev=JSON.parse(localStorage.getItem(key)||'[]'),runs=Array.isArray(prev)?prev.slice(-19):[];runs.push({...run,at:Date.now()});localStorage.setItem(key,JSON.stringify(runs))}catch{}}
+  function history(){try{const runs=JSON.parse(localStorage.getItem(key)||'[]'),el=$('[data-rm-history]',modal);if(!Array.isArray(runs)||!runs.length){el.hidden=true;return}const lighter=runs.filter(r=>Number(r.delta)>0).length;el.hidden=false;el.textContent=`現実リセット ${runs.length}回。${lighter}回でしんどさが下がりました。`}catch{}}
+  ensureLauncher();
+})();
