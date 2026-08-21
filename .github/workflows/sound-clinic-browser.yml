@@ -1,0 +1,49 @@
+name: Sound Clinic real browser playtest
+
+on:
+  push:
+    branches:
+      - test/sound-clinic-browser
+    paths:
+      - 'apps/sound-clinic/**'
+      - 'scripts/sound-clinic-browser-playtest.mjs'
+      - '.github/workflows/sound-clinic-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  chromium-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install real browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start repository static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/sound-clinic-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/sound-clinic/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/sound-clinic-server.log
+          exit 1
+      - name: Real Chromium repeated-run playtest
+        env:
+          SOUND_CLINIC_URL: http://127.0.0.1:4173/apps/sound-clinic/
+        run: node scripts/sound-clinic-browser-playtest.mjs
+      - name: Upload screenshots and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sound-clinic-browser-artifacts
+          path: sound-clinic-browser-artifacts/*
+          if-no-files-found: error
+          retention-days: 7
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/sound-clinic-server.log || true
