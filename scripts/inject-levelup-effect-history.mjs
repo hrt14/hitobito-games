@@ -37,14 +37,21 @@ function runtimeFor(slug) {
     const yes = Number(state.responses?.yes || 0);
     const no = Number(state.responses?.no || 0);
     const total = yes + no;
-    kicker.textContent = total ? 'この1回の効果 · これまで ' + yes + '/' + total + '回で変化' : 'この1回の効果';
-    kicker.title = total ? '端末内に保存した、このアプリの効果回答履歴' : 'このアプリを使った直後の変化を記録';
+    const text = total ? 'この1回の効果 · これまで ' + yes + '/' + total + '回で変化' : 'この1回の効果';
+    const title = total ? '端末内に保存した、このアプリの効果回答履歴' : 'このアプリを使った直後の変化を記録';
+    if (kicker.textContent !== text) kicker.textContent = text;
+    if (kicker.title !== title) kicker.title = title;
     return true;
   };
 
-  const observer = new MutationObserver(() => syncCard());
+  // The observer only exists to notice when the quality card is inserted.
+  // Disconnect as soon as it is found so syncing the card cannot recursively
+  // create another childList mutation and lock the result screen on mobile.
+  const observer = new MutationObserver(() => {
+    if (syncCard()) observer.disconnect();
+  });
   observer.observe(document.body, { childList: true, subtree: true });
-  syncCard();
+  if (syncCard()) observer.disconnect();
 
   window.addEventListener('levelup:quality-feedback', (event) => {
     if (event.detail?.slug && event.detail.slug !== slug) return;
