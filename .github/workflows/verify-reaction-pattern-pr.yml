@@ -1,0 +1,29 @@
+name: Verify reaction-pattern production flow on PR
+
+on:
+  pull_request:
+    paths:
+      - 'apps/reaction-pattern/**'
+      - 'scripts/verify-reaction-pattern-browser.mjs'
+      - '.github/workflows/verify-reaction-pattern-pr.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-production-browser-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install browser smoke dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+
+      - name: Play current production reaction-pattern end to end
+        run: node scripts/verify-reaction-pattern-browser.mjs
