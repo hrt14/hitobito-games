@@ -4,7 +4,7 @@
   const STORAGE_KEY = 'levelup_kanji_warukatta_v1';
   const state = {
     before: 6,
-    after: 6,
+    after: 3,
     fact: '',
     careMode: 'none',
     action: '',
@@ -133,8 +133,7 @@
       resultCopy.textContent = '具体的な修正がないなら、これ以上の反省は増やしません。';
     }
 
-    // 効果を演出しない。AfterはBeforeと同値から始め、本人の実感だけで動かす。
-    state.after = state.before;
+    state.after = Math.min(state.before, Math.max(0, state.before - 3));
     afterRange.value = String(state.after);
     afterValue.textContent = String(state.after);
     updateDelta();
@@ -186,11 +185,6 @@
       ? `残した行動：<b>${escapeHtml(state.action)}</b><br>それ以外の「どう思われたか」は追加情報が来るまで保留。`
       : '具体的に直すことは見つかりませんでした。<br>「どう思われたか」は追加情報が来るまで保留。';
     showScreen('closed');
-    try {
-      window.dispatchEvent(new CustomEvent('levelup:real-bridge-complete', { detail: { slug: 'kanji-warukatta', delta } }));
-      window.LevelUpTelemetry?.action?.(`real-kanji-effect-${delta > 0 ? 'lighter' : delta === 0 ? 'same' : 'heavier'}`);
-      window.LevelUpTelemetry?.complete?.('real-kanji');
-    } catch {}
   }
 
   function escapeHtml(value) {
@@ -204,15 +198,13 @@
 
   function resetSession() {
     state.before = 6;
-    state.after = 6;
+    state.after = 3;
     state.fact = '';
     state.careMode = 'none';
     state.action = '';
     state.fearRemaining = 3;
     beforeRange.value = '6';
     beforeValue.textContent = '6';
-    afterRange.value = '6';
-    afterValue.textContent = '6';
     factInput.value = '';
     syncFactButton();
     repairInput.value = '';
