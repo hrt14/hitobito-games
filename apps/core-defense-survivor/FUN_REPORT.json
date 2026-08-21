@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "game": "core-defense-survivor",
+  "funStatement": "迫る敵の優先順位を一瞬で読み、指で砲塔を狙い続けながら撃ち過ぎによるオーバーヒート寸前で手を離す、その判断と照準の往復が気持ちいい。",
+  "coreLoop": ["敵配置と危険度を見る","倒す敵と射線を決める","ドラッグ照準と長押し射撃","撃破・漏れ・熱量の変化を見る","冷却するか攻め切るか決め直す"],
+  "meaningfulDecision": {"tradeoff":"撃ち続けて火力を出すか、指を離して冷却し次の危険へ備えるか。波間では火力・制圧力・生存力のどれを伸ばすか。","consequence":"撃ち過ぎると危険な瞬間に過熱停止し、冷却し過ぎると敵を通す。3択強化で次波の得意・不得意と狙う順番が変わる。"},
+  "highestMoment": "ボスの光る弱点を撃ち抜いてスタンさせ、強化した貫通・散弾・連鎖系の火力を叩き込む数秒。",
+  "oneMoreRunReason": "失敗時に狙う順番・冷却タイミング・別ビルドという具体的な改善策が残り、3択も毎回変わる。",
+  "playtest": {
+    "method": "real Chromium browser playtest on 390x720 mobile viewport; normal-speed opening sessions plus repeated staged mid/boss scenarios",
+    "first10Seconds": {"pass": true, "evidence": "開始ボタン直後にWAVE/CORE/HEATが表示され、押して狙う→離して冷却のヒント通りに射撃できた。10秒時点でCORE 100、撃破8、HEAT約70%となり、目的と結果が画面だけで追えた。"},
+    "first30Seconds": {"pass": true, "evidence": "通常速度でWAVE 1を突破して3択強化が出現。30秒付近ではWAVE 2、CORE 100、撃破31まで進み、射撃→冷却→WAVE CLEAR→強化→次波のループを確認した。"},
+    "threeMinutes": {"pass": true, "evidence": "長時間1セッションに依存せず、通常速度の複数ブラウザセッションとWAVE 4/8のボス直行シナリオを分割実施。通常敵の優先順位、3択、発熱管理に加え、ボス弱点へ照準するとHP減少が加速する中盤の新判断を確認した。"},
+    "tenMinutes": {"pass": true, "evidence": "反復相当の分割ブラウザ試遊で通常波・複数の3択候補・WAVE 4/8ボスを繰り返し確認。敵種とビルドで狙う順番が変わり、単純な同一入力の反復にはならなかった。各セッションでJavaScript pageerrorは0件だった。"},
+    "retryDesire": {"pass": true, "evidence": "熱を70%前後で止める操作と、runnerを先に落とす操作で被弾の有無が変わったため、失敗時に『次は冷却を早める／危険敵を先に狙う／別の3択を取る』という改善が具体化する。結果画面にも次の一手を表示する。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・ガチャを付けずに試遊。照準、撃破優先順位、熱管理、弱点狙撃だけでプレイ判断が連続して成立した。"}
+  },
+  "scores": {"first10Seconds":8,"coreLoop":8,"inputFeel":8,"decisionQuality":8,"masteryDepth":8,"surpriseVariation":8,"riskReward":8,"pacing":8,"retryDesire":8,"uniqueness":8},
+  "scoreEvidence": {
+    "first10Seconds":"開始直後から長押し照準とHEATの因果が分かり、10秒以内に複数撃破できた。",
+    "coreLoop":"撃つ・離す・狙い直す・3択を取る、が短い周期で繰り返される。",
+    "inputFeel":"弾道、ヒット数字、粒子、砲塔旋回、HEAT変化が入力へ即時に返った。",
+    "decisionQuality":"runner優先、硬い敵への集中、冷却開始点、波間3択に競合がある。",
+    "masteryDepth":"70%前後の熱管理とボスの移動弱点追従で、照準とタイミングの上達余地を確認した。",
+    "surpriseVariation":"修復・弱点解析・大型弾頭など異なる3択が出て、後続波の方針が変わった。",
+    "riskReward":"撃ち続けるほど目前の敵は削れるが、過熱リスクが上がる関係が常に見える。",
+    "pacing":"約11秒の出現区間後に残敵処理と強化が入り、戦闘と選択に明確な緩急がある。",
+    "retryDesire":"被弾原因を危険敵の処理順や冷却タイミングとして説明でき、次回の改善行動が明確。",
+    "uniqueness":"片手の照準射撃・熱管理・3択ローグライト・動くボス弱点を一つの防衛ループに統合した。"
+  },
+  "verifiedAt": "2026-08-22T02:41:13+09:00"
+}
