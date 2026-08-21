@@ -128,6 +128,21 @@ async function stabilizeForFight(id, max = 12) {
     await sleep(10);
   }
 }
+async function flashNearestDecoy(bossId) {
+  let s=await snap();
+  const boss=s.ghosts.find(g=>g.id===bossId);
+  if(boss) await stabilizeForFight(bossId,8);
+  s=await snap();
+  const decoys=s.ghosts.filter(g=>g.type==='decoy').sort((a,b)=>Math.hypot(a.x-s.player.x,a.y-s.player.y)-Math.hypot(b.x-s.player.x,b.y-s.player.y));
+  if(!decoys.length) return false;
+  const d=decoys[0];
+  await face(d.x,d.y);
+  await holdButton('#flashBtn');
+  await sleep(260);
+  await releaseButton();
+  await sleep(620);
+  return true;
+}
 async function counterPull(id) {
   await holdButton('#suctionBtn');
   const until=Date.now()+820;
@@ -141,12 +156,16 @@ async function counterPull(id) {
   await sleep(250);
 }
 async function fight(evidence) {
-  for(let round=0;round<24;round++){
+  for(let round=0;round<34;round++){
     let s=await snap();
     assert(s.mode==='running', `player defeated during fight in ${s.room}`);
     const real=s.ghosts.filter(g=>g.type!=='decoy');
     if(!real.length) return;
     const g=real.find(x=>x.type==='mirror')||real[0];
+    if(g.type==='mirror'&&s.ghosts.some(x=>x.type==='decoy')){
+      await flashNearestDecoy(g.id);
+      continue;
+    }
     const d=Math.hypot(s.player.x-g.x,s.player.y-g.y);
     if(d>155) await moveTo(g.x,g.y,128,80);
     await stabilizeForFight(g.id);
