@@ -58,6 +58,7 @@ const card = `
       <div class="kicker">${escapeHtml(game.kicker)}</div>
       <div class="skill">${escapeHtml(game.skill)}</div>
       <h2>${escapeHtml(game.title)}</h2>
+      <div class="book-obi">睡眠を削らず、夜の習慣から朝の自分時間をつくる。</div>
       <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">
         <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">朝の自分時間は欲しい。でも寝不足と引き換えにはしたくない人</span></div>
         <div class="card-value"><span class="card-value-label">なんのため</span><span class="card-value-text">必要な睡眠を先に確保し、夜の邪魔を7日で1つずつ減らす</span></div>
@@ -81,6 +82,7 @@ fs.writeFileSync(homePath, html);
 const finalHome = fs.readFileSync(homePath, 'utf8');
 const finalCatalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 if (!finalHome.includes(`data-game="${game.slug}" data-new="true"`)) throw new Error('Morning 7-day NEW card injection failed.');
+if (!finalHome.includes('class="book-obi">睡眠を削らず、夜の習慣から朝の自分時間をつくる。')) throw new Error('Morning 7-day book obi copy missing.');
 if (!finalHome.includes('朝の自分時間は欲しい。でも寝不足と引き換えにはしたくない人')) throw new Error('Morning 7-day card audience copy missing.');
 if (!finalCatalog.games.some((item) => item.slug === game.slug)) throw new Error('Morning 7-day catalog injection failed.');
 if (!finalHome.includes(`<span>${newCount} games</span>`)) throw new Error('LEVEL UP game count was not updated.');
