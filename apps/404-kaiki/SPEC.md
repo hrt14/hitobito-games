@@ -888,6 +888,7 @@ played_games
 | 第14段階 | **CASE 03「テケテケ」**（§44、[`CASE03_SLICE.md`](./CASE03_SLICE.md)） | 済 |
 | 第15段階 | **CASE 04「人面犬」**（§44、[`CASE04_SLICE.md`](./CASE04_SLICE.md)） | 済 |
 | 第16段階 | **CASE 05「きさらぎ駅」**（§44、[`CASE05_SLICE.md`](./CASE05_SLICE.md)） | 済 |
+| 第17段階 | **CASE 06「八尺様」**（§44、[`CASE06_SLICE.md`](./CASE06_SLICE.md)） | 済 |
 
 第10段階を人の手で終えるまで、§70 の完成判定は満たしていない。
 
@@ -904,6 +905,7 @@ modes/sight-mode.js   CASE 02：見ないで帰る
 modes/pass-mode.js    CASE 03：上がってやり過ごす
 modes/voice-mode.js   CASE 04：緑のラインを信じない
 modes/loop-mode.js    CASE 05：気づく（一本道が輪になる）
+modes/vigil-mode.js   CASE 06：持ちこたえる（着いた後から始まる）
 data/caseXX.js        その CASE の世界そのもの
 ```
 
@@ -911,6 +913,11 @@ engine 側は CASE ごとに一つだけ増えた。
 CASE 03 で `z`（高さ）、CASE 04 で `dir.bandAt`（歩ける帯を CASE 側が広げられる）、
 CASE 05 で `dir.onMoved`（移動のたびに呼ぶ。世界を輪にできる）。
 どれも未実装の CASE では従来どおり動く。
+
+**CASE 06 は engine に何も足さずに入った。** 生還地点が無く（`SAFE_ZONE = null`）、
+ゴールが場所ではなく時間で、緑のラインが行き先ではなく「一番先に落ちる札」を指す
+CASE だが、`dir.objective()` の差し替えと renderer の描き分けだけで足りた。
+5本で必要な軸は揃った、ということ。
 
 CASE 04 は §15-17 の緑のガイドラインを**嘘に使う**。
 3本かけて「線に従えば正しい」を作ってから壊す構成なので、
@@ -925,7 +932,7 @@ CASE を足す時に触るのは `data/` と `modes/` だけ。
 | --- | --- |
 | 第11段階 | **共通ログイン統合**（§65） — Working Planet から持ち込む唯一のもの |
 | 第12段階 | **15〜20エリアへの拡張**（§18） — 縦切り版で面白さを確認できた場合 |
-| 第17段階 | **CASE 06 以降**（§44。残りは八尺様。§43 の七不思議へ） |
+| 第18段階 | **CASE 07 以降**（§43 の七不思議と `404 NOT FOUND` へ。「404」は CASE 06 で六か所目） |
 
 ## 73. 最終的に目指す感覚
 

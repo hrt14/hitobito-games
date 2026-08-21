@@ -6,6 +6,7 @@ import { CASE02 } from './data/case02.js';
 import { CASE03 } from './data/case03.js';
 import { CASE04 } from './data/case04.js';
 import { CASE05 } from './data/case05.js';
+import { CASE06 } from './data/case06.js';
 import { CaseState } from './core/case.js';
 import { findTrigger, visiblePoints, nextRequired } from './core/investigation.js';
 import { buildRecord } from './core/log.js';
@@ -14,20 +15,25 @@ import { FieldRenderer } from './world/render-field.js';
 import { SchoolRenderer } from './world/render-school.js';
 import { ArcadeRenderer } from './world/render-arcade.js';
 import { StationRenderer } from './world/render-station.js';
+import { VillageRenderer } from './world/render-village.js';
 import { ChaseMode } from './modes/chase-mode.js';
 import { SightMode } from './modes/sight-mode.js';
 import { PassMode } from './modes/pass-mode.js';
 import { VoiceMode } from './modes/voice-mode.js';
 import { LoopMode } from './modes/loop-mode.js';
+import { VigilMode } from './modes/vigil-mode.js';
 import { Input } from './world/input.js';
 import { Ambience } from './world/audio.js';
 import { buildPath, truncate } from './world/path.js';
 
 const $ = s => document.querySelector(s);
 
-const CASES = [CASE01, CASE02, CASE03, CASE04, CASE05];
-const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode, voice: VoiceMode, loop: LoopMode };
-const RENDERERS = { field: FieldRenderer, school: SchoolRenderer, arcade: ArcadeRenderer, station: StationRenderer };
+const CASES = [CASE01, CASE02, CASE03, CASE04, CASE05, CASE06];
+const MODES = { chase: ChaseMode, sight: SightMode, pass: PassMode, voice: VoiceMode, loop: LoopMode, vigil: VigilMode };
+const RENDERERS = {
+  field: FieldRenderer, school: SchoolRenderer, arcade: ArcadeRenderer,
+  station: StationRenderer, village: VillageRenderer,
+};
 
 class Game {
   constructor() {
