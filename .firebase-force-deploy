@@ -1,2 +1,2 @@
-Force deploy LEVEL UP after play entrypoint addition
-Reason: add a persistent menu route from LEVEL UP to https://play.hitobito.jp/ and verify production
+Force deploy LEVEL UP after play entrypoint addition R2
+Reason: force production deployment of persistent menu route to https://play.hitobito.jp/
