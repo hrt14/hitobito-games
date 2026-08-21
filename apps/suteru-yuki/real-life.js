@@ -35,15 +35,15 @@
             ${[1,2,3,4,5].map((n)=>`<label><span>候補 ${n}${n>2?'（任意）':''}</span><input type="text" maxlength="70" data-option="${n}" placeholder="${n===1?'例：新しいSNS施策':n===2?'例：商品ページ改善':''}"></label>`).join('')}
           </div>
           <div class="real-prune-meter"><div><span>全部やりたい圧</span><strong><b data-before-value>7</b>/10</strong></div><input data-before type="range" min="0" max="10" value="7"></div>
-          <button class="real-prune-primary" type="button" data-prune-next disabled>2つだけ選ぶ →</button>
+          <button class="real-prune-primary" type="button" data-prune-next disabled>2つまで選ぶ →</button>
         </section>
         <section data-prune-step="choose" hidden>
           <div class="real-prune-north"><small>今回の基準</small><strong data-criterion-result>余白</strong><span>残せるのは2つまで</span></div>
           <div class="real-prune-options" data-prune-options></div>
-          <div class="real-prune-count"><strong data-selected-count>0</strong> / 2 残す</div>
+          <div class="real-prune-count"><strong data-selected-count>0</strong> / 2 まで残す</div>
           <div class="real-prune-meter"><div><span>選んだ後の「全部やりたい圧」</span><strong><b data-after-value>7</b>/10</strong></div><input data-after type="range" min="0" max="10" value="7"></div>
           <small>下がっていなくてもOK。捨てる不安が増えたなら、その数字をそのまま。</small>
-          <button class="real-prune-primary" type="button" data-prune-finish disabled>残す2つを確定する</button>
+          <button class="real-prune-primary" type="button" data-prune-finish disabled>残すものを確定する</button>
         </section>
         <section data-prune-step="done" hidden>
           <h3 data-done-title>捨てたから、残したものが見えた。</h3>
