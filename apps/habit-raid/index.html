@@ -4,11 +4,11 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#11164b" name="theme-color"/>
-<meta content="TODO＆ドラゴンズ。Habitegg型の習慣管理に、魔竜討伐・レベルアップ・召喚・モンスター収集を追加したLEVEL UP習慣RPG。週次・月次の記録分析にも対応。" name="description"/>
+<meta content="TODO＆ドラゴンズ。Habitegg型の習慣管理に、毎週・毎月の定期クエスト、魔竜討伐、レベルアップ、召喚、モンスター収集を追加したLEVEL UP習慣RPG。" name="description"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <title>TODO＆ドラゴンズ — LEVEL UP</title>
-<link href="./style.css" rel="stylesheet"/><link href="./theme.css" rel="stylesheet"/>
+<link href="./style.css" rel="stylesheet"/><link href="./theme.css" rel="stylesheet"/><link href="./recurring.css" rel="stylesheet"/>
 </head>
 <body>
 <main class="app-shell">
@@ -50,6 +50,13 @@
 <div>🥚</div><strong>最初のクエストを作ろう</strong><p>小さくてOK。「水を飲む」くらいから。</p><button id="emptyAddBtn" type="button">＋ 習慣を追加</button>
 </div>
 </section>
+<section class="recurring-section">
+<div class="section-title">
+<div><p class="eyebrow">RECURRING QUESTS</p><h2>定期クエスト</h2><p class="section-note">指定日にワンタイムクエストを自動発行。未達成なら翌日以降も残ります。</p></div>
+<button class="add-btn" id="addRecurringBtn" type="button">＋ 定期設定</button>
+</div>
+<div class="recurring-list" id="recurringList"></div>
+</section>
 <nav aria-label="画面切り替え" class="bottom-nav">
 <button class="active" data-view="home" type="button"><span>⚔️</span>冒険</button>
 <button data-view="stats" type="button"><span>📜</span>記録</button>
@@ -85,9 +92,25 @@
 <label>習慣名<input id="habitName" maxlength="30" placeholder="例：読書、筋トレ、水を飲む" required/></label>
 <label>グループ <small>任意</small><input id="habitGroup" maxlength="12" placeholder="例：健康、学習"/></label>
 <label>目標時間 <small>0分なら時間を測らない習慣</small><div class="minute-row"><input id="habitMinutes" inputmode="numeric" max="600" min="0" type="number" value="0"/><span>分</span></div></label>
+<label class="check-row"><input id="habitOneTime" type="checkbox"/><span><strong>1回だけのクエスト</strong><small>達成すると一覧から消え、記録には残ります。</small></span></label>
 <div aria-label="アイコン選択" class="emoji-picker" id="emojiPicker"></div>
 <button class="primary-btn" type="submit">クエストを保存</button>
 <button class="danger-btn" hidden id="deleteHabitBtn" type="button">この習慣を削除</button>
+</form>
+</dialog>
+<dialog class="sheet-dialog" id="recurringDialog">
+<form class="sheet-form" id="recurringForm" method="dialog">
+<div class="grabber"></div>
+<div class="sheet-head"><div><p class="eyebrow">RECURRING QUEST</p><h2 id="recurringDialogTitle">定期クエストを追加</h2></div><button class="close-btn" id="closeRecurringDialog" type="button">×</button></div>
+<label>クエスト名<input id="recurringName" maxlength="30" placeholder="例：週次レビュー、月末精算" required/></label>
+<label>グループ <small>任意</small><input id="recurringGroup" maxlength="12" placeholder="例：仕事、生活"/></label>
+<label>目標時間 <small>0分なら時間を測らず達成可能</small><div class="minute-row"><input id="recurringMinutes" inputmode="numeric" max="600" min="0" type="number" value="0"/><span>分</span></div></label>
+<label>繰り返し<select id="recurringFrequency"><option value="weekly">毎週</option><option value="monthly">毎月</option></select></label>
+<label id="recurringWeekdayWrap">曜日<select id="recurringWeekday"><option value="0">日曜日</option><option value="1">月曜日</option><option value="2">火曜日</option><option value="3">水曜日</option><option value="4">木曜日</option><option value="5">金曜日</option><option value="6">土曜日</option></select></label>
+<label id="recurringMonthdayWrap" hidden>日にち <small>29〜31日は月末に丸めます</small><div class="minute-row"><input id="recurringMonthday" inputmode="numeric" max="31" min="1" type="number" value="1"/><span>日</span></div></label>
+<div aria-label="定期クエストのアイコン選択" class="emoji-picker" id="recurringEmojiPicker"></div>
+<button class="primary-btn" type="submit">定期クエストを保存</button>
+<button class="danger-btn" hidden id="deleteRecurringBtn" type="button">この定期設定を削除</button>
 </form>
 </dialog>
 <dialog class="reward-dialog" id="rewardDialog">
@@ -103,6 +126,5 @@
 <div aria-live="polite" class="toast" id="toast" role="status"></div>
 <div aria-hidden="true" class="damage-pop" id="damagePop"></div>
 <script src="./app.js"></script>
-<script src="./theme.js"></script>
 </body>
 </html>
