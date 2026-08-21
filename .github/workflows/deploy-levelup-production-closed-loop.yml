@@ -62,12 +62,20 @@ jobs:
           console.log(meta);
           NODE
 
+      - name: Prepare create-only feedback fallback rules
+        run: node scripts/prepare-levelup-feedback-rules.mjs
+
+      - name: Deploy Firestore security rules
+        run: |
+          set -o pipefail
+          npx --yes firebase-tools@latest deploy --only firestore:rules --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-firestore-rules-deploy.log
+
       - name: Deploy Firebase Hosting
         run: |
           set -o pipefail
           npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-hosting-deploy.log
 
-      - name: Verify exact commit is live on both production domains
+      - name: Verify exact commit and shared navigation are live
         run: |
           set -euo pipefail
           sleep 5
@@ -84,32 +92,46 @@ jobs:
           }
           console.log(`Production SHA verified on ${base}: ${meta.sha}`);
           NODE
+            curl -fLsS --max-time 30 "$base/apps/kokkara-best/?sha=$GITHUB_SHA" -o /tmp/kokkara-best.html
+            grep -F 'id="levelup-nav-fixed"' /tmp/kokkara-best.html >/dev/null
+            grep -F 'id="levelup-nav-toggle"' /tmp/kokkara-best.html >/dev/null
+            grep -F 'levelup-feedback-widget-fallback' /tmp/kokkara-best.html >/dev/null
+            curl -fLsS --max-time 30 "$base/?sha=$GITHUB_SHA" -o /tmp/levelup-home.html
+            grep -F 'id="levelup-nav-fixed"' /tmp/levelup-home.html >/dev/null
+            grep -F 'id="levelup-nav-toggle"' /tmp/levelup-home.html >/dev/null
+            grep -F 'levelup-feedback-widget-fallback' /tmp/levelup-home.html >/dev/null
+            echo "Navigation + feedback fallback verified in live HTML on $base"
           done
 
-      - name: Deploy Cloud Functions
+      - name: Deploy Cloud Functions when IAM allows it
+        id: functions_deploy
+        continue-on-error: true
         run: |
           set -o pipefail
           npx --yes firebase-tools@latest deploy --only functions --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-functions-deploy.log
 
-      - name: Verify submitLevelupFeedback in production
+      - name: Verify submitLevelupFeedback Function when deployed
+        if: steps.functions_deploy.outcome == 'success'
         run: |
           set -euo pipefail
           url="https://asia-northeast1-hitobito-levelup.cloudfunctions.net/submitLevelupFeedback"
           code=$(curl -sS --max-time 30 -o /tmp/feedback-health.json -w '%{http_code}' \
             -X POST \
+            -H 'Origin: https://levelup.hitobito.jp' \
             -H 'Content-Type: application/json' \
             --data '{}' \
             "$url")
           cat /tmp/feedback-health.json
           test "$code" = "400"
           grep -F 'INVALID_INPUT' /tmp/feedback-health.json >/dev/null
-          echo "Production Functions health check OK: $url returned expected 400 INVALID_INPUT"
+          echo "Production Function health check OK: $url returned expected 400 INVALID_INPUT"
 
       - name: Update production deployment status issue
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
+          FUNCTIONS_OUTCOME: ${{ steps.functions_deploy.outcome }}
         run: |
           set -euo pipefail
           title='LEVEL UP production deployment status'
@@ -124,9 +146,21 @@ jobs:
               echo "Verified production conditions:"
               echo "- exact commit SHA is live on hitobito-levelup.web.app"
               echo "- exact commit SHA is live on levelup.hitobito.jp"
-              echo "- submitLevelupFeedback returned the expected production health response (400 INVALID_INPUT)"
+              echo "- top page and kokkara-best both contain the shared hamburger navigation"
+              echo "- feedback Firestore fallback is present in live HTML"
+              echo "- create-only feedback Firestore security rules deployed"
+              if [ "$FUNCTIONS_OUTCOME" = "success" ]; then
+                echo "- submitLevelupFeedback Function deployed and passed its health check"
+              else
+                echo "- Cloud Functions deploy is still blocked by IAM; browser feedback uses the Firestore fallback instead"
+              fi
             else
               echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
+              echo
+              echo "### Firestore rules deploy log tail"
+              echo '```text'
+              if [ -f /tmp/firebase-firestore-rules-deploy.log ]; then tail -n 120 /tmp/firebase-firestore-rules-deploy.log; else echo '(not available)'; fi
+              echo '```'
               echo
               echo "### Hosting deploy log tail"
               echo '```text'
