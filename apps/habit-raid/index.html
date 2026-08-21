@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#090d18" />
+  <meta name="description" content="習慣をやるたび敵を攻撃。タイマー・完了記録・7日履歴はそのままに、XP・宝箱・仲間収集で続けやすくしたLEVEL UP習慣ゲーム。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>習慣レイド — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a href="/" class="home-link" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <button id="soundBtn" class="icon-btn" type="button" aria-label="効果音のオンオフ" aria-pressed="true">♪</button>
+    </header>
+
+    <section class="player-card" aria-label="プレイヤーステータス">
+      <div class="avatar" id="avatar">⚡</div>
+      <div class="player-main">
+        <div class="player-line"><strong>Lv.<span id="levelValue">1</span></strong><span id="streakValue">🔥 0日</span><span id="coinValue">🪙 0</span></div>
+        <div class="xp-track"><i id="xpBar"></i></div>
+        <small id="xpText">0 / 100 XP</small>
+      </div>
+    </section>
+
+    <section class="boss-card" id="bossCard">
+      <div class="boss-head">
+        <div><p class="eyebrow">TODAY'S RAID</p><h1>習慣をやるたび、<br><span>ボスが削れる。</span></h1></div>
+        <div class="boss-art" id="bossArt" aria-hidden="true">👾</div>
+      </div>
+      <div class="boss-name-row"><strong id="bossName">先延ばしスライム</strong><span id="bossHpText">60 / 60</span></div>
+      <div class="hp-track"><i id="bossHpBar"></i></div>
+      <p class="boss-hint" id="bossHint">習慣を1回完了すると攻撃。3連続でFEVER。</p>
+      <div class="combo-row" id="comboRow" aria-label="今日のコンボ">
+        <span>COMBO</span><i></i><i></i><i></i><b id="feverLabel">あと3回</b>
+      </div>
+    </section>
+
+    <section class="daily-card" id="dailyCard">
+      <div class="section-title"><div><p class="eyebrow">DAILY QUEST</p><h2>今日のミッション</h2></div><span id="todayLabel"></span></div>
+      <div class="missions" id="missions"></div>
+    </section>
+
+    <section class="habit-section">
+      <div class="section-title">
+        <div><p class="eyebrow">YOUR QUESTS</p><h2>習慣</h2></div>
+        <button id="addHabitBtn" class="add-btn" type="button">＋ 追加</button>
+      </div>
+      <div class="habit-list" id="habitList"></div>
+      <div class="empty-state" id="emptyState" hidden>
+        <div>🧩</div><strong>最初の習慣を作ろう</strong><p>小さくてOK。「水を飲む」くらいから。</p><button type="button" id="emptyAddBtn">＋ 習慣を追加</button>
+      </div>
+    </section>
+
+    <nav class="bottom-nav" aria-label="画面切り替え">
+      <button class="active" data-view="home" type="button"><span>⚔️</span>クエスト</button>
+      <button data-view="stats" type="button"><span>📊</span>記録</button>
+      <button data-view="collection" type="button"><span>🎁</span>仲間</button>
+    </nav>
+
+    <section class="overlay-view" id="statsView" hidden>
+      <div class="overlay-head"><button class="back-btn" data-close-view type="button">←</button><div><p class="eyebrow">LOG</p><h2>7日間の記録</h2></div></div>
+      <div class="stats-summary" id="statsSummary"></div>
+      <div class="week-bars" id="weekBars"></div>
+      <div class="stats-list" id="statsList"></div>
+    </section>
+
+    <section class="overlay-view" id="collectionView" hidden>
+      <div class="overlay-head"><button class="back-btn" data-close-view type="button">←</button><div><p class="eyebrow">PARTY</p><h2>仲間コレクション</h2></div></div>
+      <div class="collection-hero"><div class="big-chest">🎁</div><div><strong>ボス撃破・レベルアップで宝箱</strong><p>課金なし。習慣を続けるほど仲間が増える。</p></div></div>
+      <div class="collection-grid" id="collectionGrid"></div>
+    </section>
+  </main>
+
+  <dialog id="habitDialog" class="sheet-dialog">
+    <form method="dialog" id="habitForm" class="sheet-form">
+      <div class="grabber"></div>
+      <div class="sheet-head"><div><p class="eyebrow">QUEST EDIT</p><h2 id="habitDialogTitle">習慣を追加</h2></div><button type="button" id="closeHabitDialog" class="close-btn">×</button></div>
+      <label>習慣名<input id="habitName" maxlength="30" required placeholder="例：読書、筋トレ、水を飲む" /></label>
+      <label>グループ <small>任意</small><input id="habitGroup" maxlength="12" placeholder="例：健康、学習" /></label>
+      <label>目標時間 <small>0分なら時間を測らない習慣</small><div class="minute-row"><input id="habitMinutes" type="number" min="0" max="600" value="0" inputmode="numeric" /><span>分</span></div></label>
+      <div class="emoji-picker" id="emojiPicker" aria-label="アイコン選択"></div>
+      <button class="primary-btn" type="submit">保存する</button>
+      <button id="deleteHabitBtn" class="danger-btn" type="button" hidden>この習慣を削除</button>
+    </form>
+  </dialog>
+
+  <dialog id="rewardDialog" class="reward-dialog">
+    <div class="reward-inner">
+      <p class="eyebrow" id="rewardEyebrow">REWARD</p>
+      <div class="reward-burst"><i></i><i></i><i></i><i></i></div>
+      <div class="reward-icon" id="rewardIcon">🎁</div>
+      <h2 id="rewardTitle">宝箱をゲット！</h2>
+      <p id="rewardText">習慣が今日の勝ちに変わった。</p>
+      <button class="primary-btn" id="rewardBtn" type="button">受け取る</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="damage-pop" id="damagePop" aria-hidden="true"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
