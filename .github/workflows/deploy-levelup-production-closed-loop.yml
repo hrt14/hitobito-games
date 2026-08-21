@@ -67,7 +67,12 @@ jobs:
           set -o pipefail
           npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-hosting-deploy.log
 
-      - name: Verify exact commit and shared navigation are live
+      - name: Deploy Firestore security rules
+        run: |
+          set -o pipefail
+          npx --yes firebase-tools@latest deploy --only firestore:rules --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firestore-rules-deploy.log
+
+      - name: Verify exact commit, navigation, and SEO discovery are live
         run: |
           set -euo pipefail
           sleep 5
@@ -94,7 +99,31 @@ jobs:
             grep -F 'id="levelup-nav-toggle"' /tmp/levelup-home.html >/dev/null
             grep -F 'levelup-feedback-session-fallback' /tmp/levelup-home.html >/dev/null
             grep -F 'const docId=(batchId+String(i+1).padStart(2,"0")).slice(0,40)' /tmp/levelup-home.html >/dev/null
-            echo "Navigation + lowercase-ID feedback fallback verified in live HTML on $base"
+
+            curl -fLsS --max-time 30 "$base/sitemap.xml?sha=$GITHUB_SHA" -o /tmp/levelup-sitemap.xml
+            grep -F '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' /tmp/levelup-sitemap.xml >/dev/null
+            grep -F 'https://levelup.hitobito.jp/problems/ugokenai/' /tmp/levelup-sitemap.xml >/dev/null
+            grep -F 'https://levelup.hitobito.jp/problems/hikizuru/' /tmp/levelup-sitemap.xml >/dev/null
+            grep -F 'https://levelup.hitobito.jp/apps/smartphone-escape/' /tmp/levelup-sitemap.xml >/dev/null
+
+            curl -fLsS --max-time 30 "$base/robots.txt?sha=$GITHUB_SHA" -o /tmp/levelup-robots.txt
+            grep -F 'User-agent: *' /tmp/levelup-robots.txt >/dev/null
+            grep -F 'Allow: /' /tmp/levelup-robots.txt >/dev/null
+            grep -F 'Sitemap: https://levelup.hitobito.jp/sitemap.xml' /tmp/levelup-robots.txt >/dev/null
+
+            curl -fLsS --max-time 30 "$base/problems/ugokenai/?sha=$GITHUB_SHA" -o /tmp/levelup-problem.html
+            grep -F '<title>先延ばしで動けない・やる気が出ないときの30秒ゲーム | LEVEL UP</title>' /tmp/levelup-problem.html >/dev/null
+            grep -F '<meta name="description"' /tmp/levelup-problem.html >/dev/null
+            grep -F '<meta name="robots" content="index,follow,max-image-preview:large"' /tmp/levelup-problem.html >/dev/null
+            grep -F '<link rel="canonical" href="https://levelup.hitobito.jp/problems/ugokenai/"' /tmp/levelup-problem.html >/dev/null
+            grep -F 'application/ld+json' /tmp/levelup-problem.html >/dev/null
+
+            curl -fLsS --max-time 30 "$base/apps/3sec-action/?sha=$GITHUB_SHA" -o /tmp/levelup-seo-sample.html
+            grep -F '<meta name="description"' /tmp/levelup-seo-sample.html >/dev/null
+            grep -F '<meta name="robots" content="index,follow,max-image-preview:large"' /tmp/levelup-seo-sample.html >/dev/null
+            grep -F '<link rel="canonical" href="https://levelup.hitobito.jp/apps/3sec-action/"' /tmp/levelup-seo-sample.html >/dev/null
+
+            echo "Navigation + lowercase-ID feedback fallback + sitemap/robots + problem landing + app SEO verified in live HTML on $base"
           done
 
       - name: Prove feedback fallback can actually write from a production browser
@@ -147,7 +176,11 @@ jobs:
               echo "Verified production conditions:"
               echo "- exact commit SHA is live on hitobito-levelup.web.app"
               echo "- exact commit SHA is live on levelup.hitobito.jp"
+              echo "- current Firestore security rules were deployed before browser verification"
               echo "- top page and kokkara-best both contain the shared hamburger navigation"
+              echo "- sitemap.xml and robots.txt are live and point to levelup.hitobito.jp"
+              echo "- problem-search landing pages are live with description, robots, canonical, and structured data"
+              echo "- existing LEVEL UP app pages expose indexable description/robots/canonical metadata"
               echo "- feedback session fallback is live with explicit lowercase Firestore document IDs"
               echo "- a fresh production browser successfully wrote a two-chunk feedback-shaped batch through the Firebase Web SDK and current Firestore rules"
               if [ "$FUNCTIONS_OUTCOME" = "success" ]; then
@@ -166,6 +199,11 @@ jobs:
               echo "### Hosting deploy log tail"
               echo '```text'
               if [ -f /tmp/firebase-hosting-deploy.log ]; then tail -n 120 /tmp/firebase-hosting-deploy.log; else echo '(not available)'; fi
+              echo '```'
+              echo
+              echo "### Firestore rules deploy log tail"
+              echo '```text'
+              if [ -f /tmp/firestore-rules-deploy.log ]; then tail -n 120 /tmp/firestore-rules-deploy.log; else echo '(not available)'; fi
               echo '```'
               echo
               echo "### Functions deploy log tail"
