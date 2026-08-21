@@ -22,5 +22,5 @@
   function renderOptions(){if(!category){$('murphyOptions').innerHTML='';return}$('murphyOptions').innerHTML=category.options.map((o,i)=>`<button class="preset-option${wish.value===o[0]?' on':''}" type="button" data-index="${i}"><strong>${o[0]}</strong><small>${o[1]}</small></button>`).join('');$('murphyOptions').querySelectorAll('.preset-option').forEach((b,i)=>b.onclick=()=>commit(category.options[i]));}
   renderCats();$('murphyQuickBtn').onclick=()=>{category=quickCat;renderCats();renderOptions();commit(quickOpt);$('toResistance').click();};$('murphyCustomToggle').onclick=()=>{const open=!wishField.classList.contains('open');wishField.classList.toggle('open',open);sceneField.classList.toggle('open',open);$('murphyCustomToggle').textContent=open?'入力欄を閉じる':'自分の願いを入力する（任意）';if(open)wish.focus();};
   practiceBtn.addEventListener('click',()=>setTimeout(()=>{if(wish.value&&scene.value){$('murphySelected').hidden=false;$('murphySelectedText').textContent=scene.value;}},0));
-  const next=$('toResistance');next.textContent='次へ：反発の強さを選ぶ';
+  const next=$('toResistance');next.textContent='次へ：反発の強さを選ぶ';next.addEventListener('click',()=>{if(!wish.value||!scene.value){category=quickCat;renderCats();renderOptions();commit(quickOpt);}},true);
 })();
