@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "game": "example-game-slug",
+  "funStatement": "What is fun about the actual interaction, in one concrete sentence.",
+  "coreLoop": [
+    "observe the current situation",
+    "choose between competing priorities",
+    "act",
+    "see the world respond",
+    "adapt to the new situation"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "What two desirable things cannot both be maximized?",
+    "consequence": "How does this choice change the next situation?"
+  },
+  "highestMoment": "Describe the best five seconds of play.",
+  "oneMoreRunReason": "Why would the player voluntarily restart immediately?",
+  "playtest": {
+    "method": "real browser playtest",
+    "first10Seconds": {
+      "pass": true,
+      "evidence": "Concrete observation from the browser session."
+    },
+    "first30Seconds": {
+      "pass": true,
+      "evidence": "Concrete observation from the browser session."
+    },
+    "threeMinutes": {
+      "pass": true,
+      "evidence": "Concrete observation from the browser session."
+    },
+    "tenMinutes": {
+      "pass": true,
+      "evidence": "Concrete observation from ten minutes or equivalent repeated runs."
+    },
+    "retryDesire": {
+      "pass": true,
+      "evidence": "Specific reason the finished/failed run made another run attractive."
+    },
+    "noReward": {
+      "pass": true,
+      "evidence": "Why the core interaction remained worthwhile without meta rewards."
+    }
+  },
+  "scores": {
+    "first10Seconds": 8,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 8,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 8,
+    "pacing": 8,
+    "retryDesire": 8,
+    "uniqueness": 8
+  },
+  "scoreEvidence": {
+    "first10Seconds": "Concrete observation supporting the score.",
+    "coreLoop": "Concrete observation supporting the score.",
+    "inputFeel": "Concrete observation supporting the score.",
+    "decisionQuality": "Concrete observation supporting the score.",
+    "masteryDepth": "Concrete observation supporting the score.",
+    "surpriseVariation": "Concrete observation supporting the score.",
+    "riskReward": "Concrete observation supporting the score.",
+    "pacing": "Concrete observation supporting the score.",
+    "retryDesire": "Concrete observation supporting the score.",
+    "uniqueness": "Concrete observation supporting the score."
+  },
+  "verifiedAt": "2026-08-22T00:00:00+09:00"
+}
