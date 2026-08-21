@@ -1,0 +1,147 @@
+name: Deploy LEVEL UP production closed loop
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+concurrency:
+  group: firebase-levelup-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install Functions dependencies
+        run: npm install --prefix functions
+
+      - name: Prepare current LEVEL UP game sources for mobile
+        run: node scripts/prepare-firebase-mobile.mjs
+
+      - name: Build LEVEL UP bundle
+        run: npm run build:firebase
+
+      - name: Stamp exact production commit
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const meta = {
+            sha: process.env.GITHUB_SHA,
+            runId: process.env.GITHUB_RUN_ID,
+            repository: process.env.GITHUB_REPOSITORY,
+            deployedAt: new Date().toISOString()
+          };
+          fs.writeFileSync('.dist/firebase/deploy-meta.json', JSON.stringify(meta, null, 2) + '\n');
+          console.log(meta);
+          NODE
+
+      - name: Deploy Firebase Hosting
+        run: |
+          set -o pipefail
+          npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-hosting-deploy.log
+
+      - name: Verify exact commit is live on both production domains
+        run: |
+          set -euo pipefail
+          sleep 5
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            echo "Checking exact deployment SHA on $base"
+            curl -fLsS --max-time 30 "$base/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/deploy-meta.json
+            node - "$base" "$GITHUB_SHA" <<'NODE'
+          const fs = require('fs');
+          const base = process.argv[2];
+          const expected = process.argv[3];
+          const meta = JSON.parse(fs.readFileSync('/tmp/deploy-meta.json', 'utf8'));
+          if (meta.sha !== expected) {
+            throw new Error(`Production SHA mismatch on ${base}: expected ${expected}, got ${meta.sha}`);
+          }
+          console.log(`Production SHA verified on ${base}: ${meta.sha}`);
+          NODE
+          done
+
+      - name: Deploy Cloud Functions
+        run: |
+          set -o pipefail
+          npx --yes firebase-tools@latest deploy --only functions --project hitobito-levelup --non-interactive 2>&1 | tee /tmp/firebase-functions-deploy.log
+
+      - name: Verify submitLevelupFeedback in production
+        run: |
+          set -euo pipefail
+          url="https://asia-northeast1-hitobito-levelup.cloudfunctions.net/submitLevelupFeedback"
+          code=$(curl -sS --max-time 30 -o /tmp/feedback-health.json -w '%{http_code}' \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            --data '{}' \
+            "$url")
+          cat /tmp/feedback-health.json
+          test "$code" = "400"
+          grep -F 'INVALID_INPUT' /tmp/feedback-health.json >/dev/null
+          echo "Production Functions health check OK: $url returned expected 400 INVALID_INPUT"
+
+      - name: Update production deployment status issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          title='LEVEL UP production deployment status'
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          {
+            echo "Status: **$JOB_STATUS**"
+            echo
+            echo "Commit: \`$GITHUB_SHA\`"
+            echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            if [ "$JOB_STATUS" = "success" ]; then
+              echo "Verified production conditions:"
+              echo "- exact commit SHA is live on hitobito-levelup.web.app"
+              echo "- exact commit SHA is live on levelup.hitobito.jp"
+              echo "- submitLevelupFeedback returned the expected production health response (400 INVALID_INPUT)"
+            else
+              echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
+              echo
+              echo "### Hosting deploy log tail"
+              echo '```text'
+              if [ -f /tmp/firebase-hosting-deploy.log ]; then tail -n 120 /tmp/firebase-hosting-deploy.log; else echo '(not available)'; fi
+              echo '```'
+              echo
+              echo "### Functions deploy log tail"
+              echo '```text'
+              if [ -f /tmp/firebase-functions-deploy.log ]; then tail -n 120 /tmp/firebase-functions-deploy.log; else echo '(not available)'; fi
+              echo '```'
+            fi
+          } > /tmp/production-status.md
+
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file /tmp/production-status.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/production-status.md
+          fi
