@@ -17,6 +17,9 @@ const apps = {
   'viewpoint-exam': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'uchite': { required: ['data-action="practice"', 'USE IT NOW'], sanitizeUchite: true },
   'matomaru': { required: ['id="realScreen"', 'id="realBtn"'] },
+  'approval-off': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'levelup-mood': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'kanji-warukatta': { required: ['FAST RELIEF', '流せ'], sanitizeKanji: true },
 };
 
 function injectAssets(html) {
@@ -53,6 +56,21 @@ function sanitizeUchite(html) {
   return html;
 }
 
+function sanitizeKanji(html) {
+  const oldDefault = 'flow={start:Date.now(),before:70,after:20,repair:null}';
+  const newDefault = 'flow={start:Date.now(),before:70,after:70,repair:null}';
+  const oldScale = '[10,20,40,60].map(v=>`<button data-after=';
+  const newScale = '[30,50,70,90].map(v=>`<button data-after=';
+  if (!html.includes(oldDefault) && !html.includes(newDefault)) throw new Error('[native-real-flow] kanji-warukatta effect default pattern missing');
+  if (!html.includes(oldScale) && !html.includes(newScale)) throw new Error('[native-real-flow] kanji-warukatta effect scale pattern missing');
+  html = html.replace(oldDefault, newDefault).replace(oldScale, newScale);
+  if (html.includes(oldDefault) || html.includes(oldScale)) throw new Error('[native-real-flow] kanji-warukatta still biases effect downward');
+  if (!html.includes('id="kanji-effect-neutral-scale"')) {
+    html = html.replace(/<\/body>/i, '  <script id="kanji-effect-neutral-scale">document.documentElement.dataset.kanjiEffectScale="neutral";<\/script>\n</body>');
+  }
+  return html;
+}
+
 for (const [slug, config] of Object.entries(apps)) {
   const indexPath = path.join(appsDir, slug, 'index.html');
   if (!fs.existsSync(indexPath)) throw new Error(`[native-real-flow] missing ${slug}/index.html`);
@@ -60,6 +78,7 @@ for (const [slug, config] of Object.entries(apps)) {
 
   if (config.injectAssets) html = injectAssets(html);
   if (config.sanitizeUchite) html = sanitizeUchite(html);
+  if (config.sanitizeKanji) html = sanitizeKanji(html);
 
   for (const marker of config.required) {
     if (!html.includes(marker)) throw new Error(`[native-real-flow] ${slug} dedicated flow missing: ${marker}`);
