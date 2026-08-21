@@ -20,6 +20,8 @@ const apps = {
   'approval-off': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'levelup-mood': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'kanji-warukatta': { required: ['FAST RELIEF', '流せ'], sanitizeKanji: true },
+  'fail-forward': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'dont-change-people': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
 };
 
 function injectAssets(html) {
