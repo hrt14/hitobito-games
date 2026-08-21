@@ -13,6 +13,10 @@ const apps = {
   'arigatou-sagashi': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'main-character': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'kokkara-best': { required: ['id="realFlow"'] },
+  'idea-lenses-40': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'viewpoint-exam': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'uchite': { required: ['data-action="practice"', 'USE IT NOW'], sanitizeUchite: true },
+  'matomaru': { required: ['id="realScreen"', 'id="realBtn"'] },
 };
 
 function injectAssets(html) {
@@ -25,12 +29,37 @@ function injectAssets(html) {
   return html;
 }
 
+function sanitizeUchite(html) {
+  html = html.replace(/state\.practiceProblem\s*\|\|\s*localStorage\.getItem\(['"]uchite-problem['"]\)\s*\|\|\s*['"]/g, "state.practiceProblem||'");
+  html = html.replace(/localStorage\.setItem\(['"]uchite-problem['"],\s*state\.practiceProblem\);?/g, 'void 0;');
+  html = html.replace(
+    /localStorage\.setItem\(['"]uchite-last-move['"],\s*JSON\.stringify\(\{problem:state\.practiceProblem,tactic:state\.practiceSelected,action:state\.practiceAction,at:Date\.now\(\)\}\)\);?/g,
+    "localStorage.setItem('uchite-last-move',JSON.stringify({tactic:state.practiceSelected,at:Date.now()}));",
+  );
+  if (!html.includes('id="uchite-private-draft-migration"')) {
+    html = html.replace(/<\/body>/i, `  <script id="uchite-private-draft-migration">
+  try {
+    localStorage.removeItem('uchite-problem');
+    const raw = localStorage.getItem('uchite-last-move');
+    if (raw) {
+      const old = JSON.parse(raw);
+      localStorage.setItem('uchite-last-move', JSON.stringify({ tactic: old?.tactic || '', at: Number(old?.at || Date.now()) }));
+    }
+  } catch {}
+  <\/script>\n</body>`);
+  }
+  if (/localStorage\.getItem\(['"]uchite-problem['"]\)/.test(html)) throw new Error('[native-real-flow] uchite still reads private problem text');
+  if (/problem\s*:\s*state\.practiceProblem/.test(html) || /action\s*:\s*state\.practiceAction/.test(html)) throw new Error('[native-real-flow] uchite still persists private practice text');
+  return html;
+}
+
 for (const [slug, config] of Object.entries(apps)) {
   const indexPath = path.join(appsDir, slug, 'index.html');
   if (!fs.existsSync(indexPath)) throw new Error(`[native-real-flow] missing ${slug}/index.html`);
   let html = fs.readFileSync(indexPath, 'utf8');
 
   if (config.injectAssets) html = injectAssets(html);
+  if (config.sanitizeUchite) html = sanitizeUchite(html);
 
   for (const marker of config.required) {
     if (!html.includes(marker)) throw new Error(`[native-real-flow] ${slug} dedicated flow missing: ${marker}`);
