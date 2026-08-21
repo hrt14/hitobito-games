@@ -39,6 +39,8 @@
     els.beforeValue.textContent = '7';
     els.afterValue.textContent = '7';
     els.classify.disabled = true;
+    els.classify.textContent = 'この仕事の「任せどころ」を見る';
+    els.typeGrid.classList.remove('is-ready');
     [...els.typeGrid.querySelectorAll('[data-real-type]')].forEach((b) => b.classList.remove('selected'));
     setStep(els.typeStep);
     modal.classList.add('show');
@@ -64,6 +66,9 @@
 
   els.classify.addEventListener('click', () => {
     if (trim(els.task.value).length < 2) return;
+    els.classify.textContent = '↓ 一番近い型を選ぶ';
+    els.typeGrid.classList.add('is-ready');
+    els.typeGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     try { window.LevelUpTelemetry?.step?.('real-delegation-type'); } catch {}
   });
 
