@@ -3,11 +3,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // This module is loaded by the Firebase treatment pass after the base bundle exists.
-// Register 無意識の庭 here so the main build command can stay aligned with main.
+// Register special LEVEL UP apps here so the main build command can stay aligned with main.
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const firebaseCatalog = path.join(scriptDir, '..', '.dist', 'firebase', 'levelup-catalog.json');
 if (fs.existsSync(firebaseCatalog)) {
   await import('../firebase-overrides/subconscious-garden/inject.mjs');
+  await import('../firebase-overrides/dream-simple/inject.mjs');
 }
 
 export const TREATMENT_TYPES = {
@@ -54,6 +55,7 @@ const REBUILD_FIRST = new Set([
   'arigatou-sagashi',
   'boundary',
   'dont-change-people',
+  'dream-simple',
   'expect-nothing',
   'habit-raid',
   'help-me',
