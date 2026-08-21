@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0a0d13" />
+  <meta name="description" content="他人の情報を、自分の評価に変換しない。『観察する。採点しない。』を短い判断ゲームで反射化するLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>採点しない。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="progress" aria-label="進行状況"><span id="progressBar"></span></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="音をオフにする">♪</button>
+    </header>
+    <section class="screen active" id="startScreen">
+      <div class="hero-mark" aria-hidden="true"><span>OBSERVE</span><i></i><b>≠</b><i></i><span>SCORE</span></div>
+      <p class="eyebrow">OBSERVE, DON'T SCORE</p><h1>採点しない<span>。</span></h1>
+      <p class="lead">誰かを見た瞬間、<br><strong>自分の人生の反省会を始めない。</strong></p>
+      <div class="intensity-card"><div class="intensity-head"><span>今の「自分を採点したくなる強さ」</span><strong><b id="beforeValue">7</b><small>/10</small></strong></div><input id="beforeRange" type="range" min="0" max="10" step="1" value="7" aria-label="自分を採点したくなる強さ" /><div class="range-labels"><span>ほぼない</span><span>止まらない</span></div></div>
+      <button class="primary-btn" id="startBtn" type="button"><span>採点回路を切る</span><b>→</b></button><p class="microcopy">約60秒。説明より、判断を繰り返します。</p>
+      <div class="local-stats" id="localStats" hidden><span>TRAINING <b id="playCount">0</b></span><span>BEST <b id="bestAccuracy">0%</b></span></div>
+    </section>
+    <section class="screen" id="trainingScreen">
+      <div class="screen-head"><div><p class="eyebrow">ROUND 1 / SEPARATE</p><h2>これは、<br><span>観察？ 採点？</span></h2></div><div class="score-pill"><span id="roundIndex">1</span>/<b id="roundTotal">10</b></div></div>
+      <div class="card-stage" id="cardStage"><div class="swipe-label left">← 観察</div><div class="swipe-label right">採点 →</div><article class="thought-card" id="thoughtCard" tabindex="0" role="group" aria-live="polite"><p id="scenarioLabel">スポーツを見て</p><h3 id="thoughtText">この選手は今日、結果を出した。</h3><div class="card-signal"><span id="cardSignal">?</span></div></article></div>
+      <div class="choice-row"><button class="choice observe" id="observeBtn" type="button"><small>事実の記述</small><strong>観察</strong><span>←</span></button><button class="choice score" id="scoreBtn" type="button"><small>自分への評価</small><strong>採点</strong><span>→</span></button></div><p class="hint">カードを左右にスワイプしてもOK</p><div class="feedback" id="feedback" aria-live="polite"></div>
+    </section>
+    <section class="screen" id="cutScreen">
+      <p class="eyebrow">ROUND 2 / CUT THE ARROW</p><h2>矢印を、<br>つながない。</h2><p class="sublead">左は他人についての情報。右は自分への判定。<br>その間に論理はありません。</p>
+      <div class="cut-stage" id="cutStage"><div class="fact-box"><small>OTHER</small><strong id="cutFact">この人は大きな仕事をやった</strong></div><div class="wire" id="wire"><i></i><b>→</b><i></i><span class="cut-mark">CUT</span></div><div class="score-box"><small>ME?</small><strong id="cutScore">だから自分は遅れている</strong></div></div>
+      <button class="cut-btn" id="cutBtn" type="button"><span>ここで切る</span><b>✂</b></button><p class="cut-count">あと <b id="cutRemaining">3</b> 本</p>
+    </section>
+    <section class="screen" id="realScreen">
+      <p class="eyebrow">ROUND 3 / REAL WORLD</p><h2>いまの現実で、<br>1回だけ。</h2><p class="sublead">さっき自分を顧みたきっかけに近いものを選ぶ。</p>
+      <div class="source-grid" id="sourceGrid"><button type="button" data-source="ゲーム"><span>🎮</span><b>ゲーム</b></button><button type="button" data-source="スポーツ"><span>⚾</span><b>スポーツ</b></button><button type="button" data-source="仕事"><span>◫</span><b>仕事</b></button><button type="button" data-source="SNS"><span>◎</span><b>SNS</b></button><button type="button" data-source="本・動画"><span>▤</span><b>本・動画</b></button><button type="button" data-source="その他"><span>…</span><b>その他</b></button></div>
+      <div class="real-separation" id="realSeparation" hidden><div><small>観察できること</small><strong id="realFact">誰かの成果・表現を見た。</strong></div><div class="stopline"><b>ここで終了</b><span></span></div><div class="muted"><small>追加しなくていいこと</small><strong>「それに比べて自分は？」</strong></div><button class="primary-btn" id="realDoneBtn" type="button"><span>自分の採点にしない</span><b>✓</b></button></div>
+    </section>
+    <section class="screen" id="afterScreen">
+      <p class="eyebrow">LAST / CHECK AGAIN</p><h2>いま、<br>どのくらい？</h2><p class="sublead">下がっていなくてもOK。今の強さをそのまま。</p>
+      <div class="intensity-card"><div class="intensity-head"><span>自分を採点したくなる強さ</span><strong><b id="afterValue">7</b><small>/10</small></strong></div><input id="afterRange" type="range" min="0" max="10" step="1" value="7" aria-label="終了時の自分を採点したくなる強さ" /><div class="range-labels"><span>ほぼない</span><span>止まらない</span></div></div><button class="primary-btn" id="finishBtn" type="button"><span>結果を見る</span><b>→</b></button>
+    </section>
+    <section class="screen result-screen" id="resultScreen">
+      <div class="result-symbol" aria-hidden="true"><span>他人</span><i></i><b>≠</b><i></i><span>自分の価値</span></div><p class="eyebrow">TRAINING COMPLETE</p><h2>観察する。<br><em>採点しない。</em></h2><p class="result-copy">他人について分かったことから、<br>あなたの価値は計算できません。</p>
+      <div class="result-stats"><div><small>切り分け</small><strong id="accuracyValue">0%</strong></div><div><small>平均判断</small><strong id="speedValue">0.0s</strong></div><div><small>強さ</small><strong><span id="beforeResult">7</span> → <span id="afterResult">7</span></strong></div></div>
+      <div class="rule-card"><small>TODAY'S RULE</small><strong>「そういう人もいる。以上。」</strong><p>比較が始まっても、そこから自分についての結論を出さない。</p></div><button class="primary-btn" id="againBtn" type="button"><span>もう一度トレーニング</span><b>↻</b></button><a class="secondary-link" href="/">LEVEL UPへ戻る</a><p class="privacy-note">記録はこの端末内に保存します。このアプリは診断・治療を目的としたものではなく、思考を切り分ける練習ツールです。</p>
+    </section>
+  </main><div class="flash" id="flash" aria-hidden="true"></div><script src="./app.js"></script>
+</body></html>
