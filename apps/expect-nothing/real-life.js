@@ -36,6 +36,7 @@
     els.beforeValue.textContent = '7';
     els.afterValue.textContent = '7';
     els.next.disabled = true;
+    els.next.textContent = 'どの期待か仕分ける';
     els.patternButtons.forEach((b) => b.classList.remove('selected'));
     showOnly(els.classify);
   }
@@ -61,6 +62,8 @@
   els.after.addEventListener('input', () => { els.afterValue.textContent = els.after.value; });
   els.next.addEventListener('click', () => {
     if (trim(els.situation.value).length < 2) return;
+    els.next.textContent = '↓ 一番近い期待を選ぶ';
+    els.patternButtons[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     try { window.LevelUpTelemetry?.step?.('real-expectation-pattern'); } catch {}
   });
 
