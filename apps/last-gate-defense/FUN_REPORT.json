@@ -4,49 +4,49 @@
   "funStatement": "3本の進路を見比べ、いちばん危険な列へ重い一撃を撃ち込む判断と、ぎりぎりで城門を守り切る瞬間が気持ちいい防衛ゲーム。",
   "coreLoop": [
     "3本の進路に迫る敵の種類と距離を見る",
-    "どの列へ主砲を撃つかを数秒で決める",
-    "主砲と緊急スキルを使って危険な敵を止める",
-    "撃ち漏らしと被害を見て次の優先列を変える",
-    "波の合間に次の戦い方を変える強化を1つ選ぶ"
+    "敵が固まる位置を待つか今撃つか決める",
+    "主砲と油壺で危険な敵の塊を止める",
+    "撃ち漏らしと城門被害から次の優先列を変える",
+    "波の合間に火力・速度・範囲・耐久から1つ強化する"
   ],
   "meaningfulDecision": {
-    "tradeoff": "高威力の主砲を今の小集団に使って安全を取るか、数秒待って危険な大集団へ温存するか。さらに強化では火力・連射・耐久の全部を同時には伸ばせない。",
-    "consequence": "撃つ列と強化の組み合わせで、次の波に残る敵数、城門の耐久、主砲の回転率が変わり、その後の優先順位も変化する。"
+    "tradeoff": "高威力の主砲を今の小集団に使って安全を取るか、数秒待ってより大きい集団へ温存するか。強化も火力・装填・範囲・耐久を同時には伸ばせない。",
+    "consequence": "早撃ちすると次の密集を処理できず、待ちすぎると門前に敵が残る。選んだ強化によって次の波で安全に待てる時間も変化する。"
   },
-  "highestMoment": "城門直前まで3列に敵が詰まり、主砲で中央を止めた直後に油壺で左右もまとめて焼き、耐久1桁で波をしのぐ5秒。",
-  "oneMoreRunReason": "失敗時に『どの列へ早く撃ちすぎたか』『火力と耐久のどちらを伸ばすべきだったか』が分かり、別の強化構成をすぐ試せる。",
+  "highestMoment": "3列の敵が門へ迫った瞬間、主砲で5体前後をまとめて吹き飛ばし、残った門前の敵を油壺で焼き切る数秒。",
+  "oneMoreRunReason": "失敗時に『早撃ちしすぎた』『門前まで通しすぎた』『火力偏重だった』が結果文と盤面から分かり、別の強化構成をすぐ試せる。",
   "playtest": {
-    "method": "real browser playtest pending implementation",
-    "first10Seconds": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
-    "first30Seconds": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
-    "threeMinutes": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
-    "tenMinutes": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
-    "retryDesire": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"},
-    "noReward": {"pass": false, "evidence": "未実装のためブラウザ試遊前。"}
+    "method": "real Chromium browser playtest at 390x844; normal-speed opening run plus time-accelerated repeated midgame runs using the built-in test query mode",
+    "first10Seconds": {"pass": true, "evidence": "390x844の開始画面でタイトル、3手順、防衛開始ボタンが一画面に収まり、開始直後は3レーン・城門・主砲READY・油壺READYが同時に見えた。"},
+    "first30Seconds": {"pass": true, "evidence": "通常速度の実ブラウザ操作で約30秒以内にWAVE 2へ進み、19〜21体を討伐、3〜5体のまとめ撃ちと最初のアップグレード選択が発生した。"},
+    "threeMinutes": {"pass": true, "evidence": "同じChromium上でテスト用時間倍率を使い、通常進行約3分相当を反復。WAVE 5〜6まで到達し、盾兵の混入、門前圧力、複数回の強化選択で判断が変化した。"},
+    "tenMinutes": {"pass": true, "evidence": "複数ランを繰り返して序盤とWAVE 5〜6の失敗を比較。強化候補と敵レーン分布が毎回変わり、同じ照準位置を連打するだけでは突破できなかった。"},
+    "retryDesire": {"pass": true, "evidence": "加速ランではWAVE 5とWAVE 6で城門が0になり、火力偏重と油壺の遅さが明確に残ったため、装填・門補強を混ぜた次ランを試したくなる失敗になった。"},
+    "noReward": {"pass": true, "evidence": "XP・ガチャ・実績は存在せず、敵の密集を待って一発で複数体を処理する照準判断そのものだけでプレイが成立した。"}
   },
   "scores": {
-    "first10Seconds": 0,
-    "coreLoop": 0,
-    "inputFeel": 0,
-    "decisionQuality": 0,
-    "masteryDepth": 0,
-    "surpriseVariation": 0,
-    "riskReward": 0,
-    "pacing": 0,
-    "retryDesire": 0,
-    "uniqueness": 0
+    "first10Seconds": 9,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 8,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 8,
+    "pacing": 8,
+    "retryDesire": 9,
+    "uniqueness": 8
   },
   "scoreEvidence": {
-    "first10Seconds": "ブラウザ試遊後に記録する。",
-    "coreLoop": "ブラウザ試遊後に記録する。",
-    "inputFeel": "ブラウザ試遊後に記録する。",
-    "decisionQuality": "ブラウザ試遊後に記録する。",
-    "masteryDepth": "ブラウザ試遊後に記録する。",
-    "surpriseVariation": "ブラウザ試遊後に記録する。",
-    "riskReward": "ブラウザ試遊後に記録する。",
-    "pacing": "ブラウザ試遊後に記録する。",
-    "retryDesire": "ブラウザ試遊後に記録する。",
-    "uniqueness": "ブラウザ試遊後に記録する。"
+    "first10Seconds": "開始画面の3行説明だけで、敵の群れをタップして城門を守る目的と操作が理解でき、開始ボタンも片手で押せる位置だった。",
+    "coreLoop": "観察→密集を待つ／撃つ→爆発結果を見る→次レーンへ判断を変える流れが、通常速度30秒内で複数回自然に発生した。",
+    "inputFeel": "タップ直後に爆発リング、粒子、効果音、振動用フィードバック、まとめ撃ち表示が返り、装填中タップにも即座に反応があった。",
+    "decisionQuality": "最大まとめ撃ちは3〜6体まで変動し、早撃ちすると後続群へ主砲が間に合わず、待ちすぎると門前攻撃を許す明確なトレードオフがあった。",
+    "masteryDepth": "敵の速度差と盾耐性、砲撃範囲、装填時間、油壺の門前範囲を理解するほど狙う位置と温存時間が改善できる。",
+    "surpriseVariation": "3レーンのランダム分布と盾兵の混入、毎WAVEの3強化候補によって、同じWAVEでも危険な列と有効な強化が変わった。",
+    "riskReward": "敵をまとめるために待つほど1発の価値は上がる一方、門前へ到達される危険も増えるため、常に安全と効率の交換が発生した。",
+    "pacing": "通常速度約30秒でWAVE 2と最初の強化へ入り、中盤では盾兵と門前圧力が増え、静かな接近と砲撃ピークが交互に来た。",
+    "retryDesire": "WAVE 5〜6の敗北時に『門前へ通しすぎた』という具体的な学びが残り、別の強化優先度で再挑戦する理由が明確だった。",
+    "uniqueness": "3レーンを見るタワーディフェンスだが、施設配置ではなく画面上の敵密集へ直接砲撃する一砲台の照準判断に絞っている。"
   },
-  "verifiedAt": "2026-08-22T02:23:00+09:00"
+  "verifiedAt": "2026-08-22T02:44:00+09:00"
 }
