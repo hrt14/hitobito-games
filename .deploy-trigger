@@ -1,2 +1,2 @@
-Production deploy trigger: GAMES-ENTRYPOINT-CLOUDFLARE-20260822-R3
-Reason: deploy games.hitobito.jp routing with observable GitHub status reporting
+Production deploy trigger: GAMES-ENTRYPOINT-CLOUDFLARE-20260822-R4
+Reason: force observable Cloudflare deployment and games.hitobito.jp DNS routing
