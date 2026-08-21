@@ -27,6 +27,10 @@ async function text(page, selector) {
   return (await page.locator(selector).innerText()).trim();
 }
 
+async function isCaught(page) {
+  return !(await page.locator('#deathScreen').evaluate(el => el.classList.contains('hidden')));
+}
+
 async function desktopRun(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
@@ -88,36 +92,33 @@ async function desktopRun(browser) {
   assert(trayBefore !== trayAfter, `tray count did not change (${trayBefore})`);
   evidence.observations.push(`mastery: 金属トレーを投げると所持数が ${trayBefore}→${trayAfter} になり、逃走以外に「音を別方向へ作る」手段がある。`);
 
-  // Deliberately enter the enemy's patrol territory. The lower and middle
-  // horizontal walls both have a doorway at x=15, so move to that column and
-  // sprint north while generating repeated loud footstep events.
-  let caught = !(await page.locator('#deathScreen').evaluate(el => el.classList.contains('hidden')));
+  // Deliberately make enough noise to call the enemy, then stop instead of
+  // continuously outrunning it. This verifies the causal chain that matters:
+  // loud movement -> pursuit -> contact/capture.
+  let caught = await isCaught(page);
   if (!caught) {
     await page.keyboard.down('ShiftLeft');
     await hold(page, 'ArrowLeft', 1000);
     await page.keyboard.up('ShiftLeft');
     await page.waitForTimeout(120);
-    caught = !(await page.locator('#deathScreen').evaluate(el => el.classList.contains('hidden')));
+    caught = await isCaught(page);
   }
   if (!caught) {
     await page.keyboard.down('ShiftLeft');
     await hold(page, 'ArrowUp', 3700);
     await page.keyboard.up('ShiftLeft');
+  }
+  // The player sprint speed is intentionally faster than the enemy's chase
+  // speed. Holding sprint forever is therefore the wrong way to test capture.
+  // Stay still after advertising the player's position and let the pursuer
+  // close the distance; check the actual failure screen each quarter-second.
+  for (let i = 0; i < 56 && !caught; i++) {
     await page.waitForTimeout(250);
-    caught = !(await page.locator('#deathScreen').evaluate(el => el.classList.contains('hidden')));
+    caught = await isCaught(page);
   }
-  // If the entity is chasing but has not touched the player yet, stay loud in
-  // the upper corridor rather than waiting passively for patrol logic.
-  for (let i = 0; i < 16 && !caught; i++) {
-    await page.keyboard.down('ShiftLeft');
-    await hold(page, i % 2 ? 'ArrowLeft' : 'ArrowRight', 520);
-    await page.keyboard.up('ShiftLeft');
-    await page.waitForTimeout(300);
-    caught = !(await page.locator('#deathScreen').evaluate(el => el.classList.contains('hidden')));
-  }
-  assert(caught, 'enemy never caught the player after entering patrol territory with loud running');
+  assert(caught, 'enemy never caught the player after loud running followed by stopping');
   assert((await text(page, '#deathScreen')).includes('聞かれた'), 'failure screen missing');
-  evidence.observations.push('retry: 怪異の巡回領域へ大きな足音で走り込むと実際に追跡・捕獲され、「聞かれた。」で失敗理由がルールと直結した。');
+  evidence.observations.push('retry: 大きな足音で怪異を呼び寄せたあと走るのをやめると、追跡者が距離を詰めて実際に捕獲し、「聞かれた。」の失敗画面へ移った。');
   await page.screenshot({ path: path.join(outDir, '03-caught.png') });
 
   await page.click('#retryBtn');
