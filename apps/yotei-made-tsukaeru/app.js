@@ -280,6 +280,15 @@
   }
 
   function backToReclaim() {
+    const remainingMinutes = Math.floor((state.safeStopAt.getTime() - Date.now()) / 60000);
+    if (remainingMinutes < 5) {
+      showToast('もう準備・移動の時間です。ここからは予定のために使いましょう。');
+      showScreen('setupScreen');
+      return;
+    }
+
+    state.usableMinutes = remainingMinutes;
+    state.selectedMinutes = pickDefaultDuration(remainingMinutes);
     state.task = '';
     taskInput.value = '';
     updateStartState();
