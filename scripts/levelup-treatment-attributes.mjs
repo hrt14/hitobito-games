@@ -61,6 +61,7 @@ const REBUILD_FIRST = new Set([
   'reflex-7',
   'self-management',
   'sore-honto',
+  'subconscious-garden',
   'task-separation',
   'timecraft',
   'uchite',
