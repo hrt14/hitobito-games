@@ -14,7 +14,7 @@
     "consequence": "避難・補強・薪・偵察の配分が、次の刻の家ごとの安全度、住民の位置、得られる手掛かり、羆が接近した際の被害判定を変える。"
   },
   "highestMoment": "吹雪の暗転直後、足跡の読みが当たり羆が予測した家へ接近する5秒間に、プレイヤーが現地で戸を押さえ、補強と連打入力で持ちこたえる瞬間。",
-  "oneMoreRunReason": "終了時に救えなかった人数と改善できる判断を示し、偵察順・避難順・補強先を変えて全員生還を狙える。羆の最初の接近先もランごとに変わる。",
+  "oneMoreRunReason": "終了時に救えなかった人数と改善できる判断を示し、最初の3刻の使い方・避難順・補強先を変えて全員生還を狙える。実プレイでも6/10から10/10へ改善でき、羆の最初の接近先もランごとに変わる。",
   "playtest": {
     "method": "Real browser playtest in headless Chromium at 390x844 via Chrome DevTools Protocol. The actual DOM controls, including the timed rapid-tap defense input, were operated across repeated runs.",
     "first10Seconds": {"pass": true, "evidence": "390x844の初期画面で『足跡を読め。村人を避難させろ。夜明けまで9刻。』、避難・補強・予測の3要素、開始ボタンが一画面で確認できた。開始後も地図・残り刻・4行動がスクロールせず見えた。"},
