@@ -124,17 +124,22 @@ function validateReport(reportPath, expectedSlug = null) {
   return ok;
 }
 
-function gitDiffFiles(base, head) {
+function git(args, label) {
   try {
-    const out = execFileSync('git', ['diff', '--name-only', '--diff-filter=ACMR', base, head], {
-      cwd: ROOT,
-      encoding: 'utf8',
-    });
-    return out.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).trim();
   } catch (error) {
-    fail(`Could not read git diff ${base}..${head}: ${error.message}`);
-    return [];
+    fail(`${label}: ${error.message}`);
+    return '';
   }
+}
+
+function gitDiffFiles(base, head) {
+  const out = git(['diff', '--name-only', '--diff-filter=ACMR', base, head], `Could not read git diff ${base}..${head}`);
+  return out.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+}
+
+function gitLastCommitForPath(ref, file) {
+  return git(['log', '-1', '--format=%H', ref, '--', file], `Could not find latest commit for ${file} at ${ref}`);
 }
 
 function humanTestOnlySlugs() {
@@ -167,10 +172,7 @@ function isGameplayFile(file) {
   return GAMEPLAY_EXTENSIONS.has(path.extname(file).toLowerCase());
 }
 
-function validateDiff(base, head) {
-  const changed = gitDiffFiles(base, head);
-  if (process.exitCode) return;
-
+function collectOrdinaryPlayChanges(changed) {
   const appChanges = new Map();
   for (const file of changed) {
     const match = file.match(/^apps\/([^/]+)\/(.+)$/);
@@ -181,22 +183,70 @@ function validateDiff(base, head) {
   }
 
   const humanOnly = humanTestOnlySlugs();
-  const playSlugs = [...appChanges.keys()].filter((slug) => !humanOnly.has(slug) && !isLevelUpApp(slug));
+  for (const slug of [...appChanges.keys()]) {
+    if (humanOnly.has(slug) || isLevelUpApp(slug)) appChanges.delete(slug);
+  }
+  return appChanges;
+}
 
-  if (playSlugs.length === 0) {
+function validateDiff(base, head) {
+  const changed = gitDiffFiles(base, head);
+  if (process.exitCode) return;
+  const appChanges = collectOrdinaryPlayChanges(changed);
+
+  if (appChanges.size === 0) {
     console.log('FUN GATE: no ordinary PLAY gameplay changes detected.');
     return;
   }
 
-  for (const slug of playSlugs) {
+  for (const [slug, files] of appChanges) {
     const reportRelative = `apps/${slug}/${REPORT_NAME}`;
     if (!changed.includes(reportRelative)) {
       fail(`${slug}: gameplay changed but ${reportRelative} was not updated in the same diff.`);
-      console.error(`Changed gameplay files: ${appChanges.get(slug).join(', ')}`);
+      console.error(`Changed gameplay files: ${files.join(', ')}`);
       continue;
     }
     validateReport(reportRelative, slug);
   }
+}
+
+function validateAudit(baseline, head) {
+  const changed = gitDiffFiles(baseline, head);
+  if (process.exitCode) return;
+  const appChanges = collectOrdinaryPlayChanges(changed);
+
+  if (appChanges.size === 0) {
+    console.log(`FUN AUDIT PASS: no ordinary PLAY gameplay changes since ${baseline}.`);
+    return;
+  }
+
+  for (const [slug, files] of appChanges) {
+    const reportRelative = `apps/${slug}/${REPORT_NAME}`;
+    const reportAbsolute = path.join(ROOT, reportRelative);
+    if (!fs.existsSync(reportAbsolute)) {
+      fail(`${slug}: gameplay changed after FUN-gate baseline but ${reportRelative} does not exist.`);
+      console.error(`Changed gameplay files since baseline: ${files.join(', ')}`);
+      continue;
+    }
+
+    const reportCommit = gitLastCommitForPath(head, reportRelative);
+    if (!reportCommit) {
+      fail(`${slug}: could not establish committed FUN report history for ${reportRelative}.`);
+      continue;
+    }
+
+    const changedAfterReport = gitDiffFiles(reportCommit, head)
+      .filter((file) => file.startsWith(`apps/${slug}/`) && isGameplayFile(file));
+    if (changedAfterReport.length > 0) {
+      fail(`${slug}: gameplay changed after its latest FUN report. Update and re-playtest ${reportRelative}.`);
+      console.error(`Gameplay newer than FUN report: ${changedAfterReport.join(', ')}`);
+      continue;
+    }
+
+    validateReport(reportRelative, slug);
+  }
+
+  if (!process.exitCode) console.log(`FUN AUDIT PASS: all ordinary PLAY changes since ${baseline} have current passing reports.`);
 }
 
 function parseArgs(argv) {
@@ -205,6 +255,7 @@ function parseArgs(argv) {
     const token = argv[i];
     if (token === '--report') args.report = argv[++i];
     else if (token === '--base') args.base = argv[++i];
+    else if (token === '--audit-since') args.auditSince = argv[++i];
     else if (token === '--head') args.head = argv[++i];
     else if (token === '--help' || token === '-h') args.help = true;
     else fail(`Unknown argument: ${token}`);
@@ -218,13 +269,16 @@ if (args.help) {
   console.log('Usage:');
   console.log('  node scripts/validate-play-fun-gate.mjs --report apps/<slug>/FUN_REPORT.json');
   console.log('  node scripts/validate-play-fun-gate.mjs --base <base-ref> --head <head-ref>');
+  console.log('  node scripts/validate-play-fun-gate.mjs --audit-since <baseline-ref> --head <head-ref>');
 } else if (args.report) {
   const match = args.report.replaceAll('\\', '/').match(/^apps\/([^/]+)\/FUN_REPORT\.json$/);
   validateReport(args.report, match ? match[1] : null);
+} else if (args.auditSince && args.head) {
+  validateAudit(args.auditSince, args.head);
 } else if (args.base && args.head) {
   validateDiff(args.base, args.head);
 } else {
-  fail('Provide either --report <path> or both --base <ref> --head <ref>. Use --help for usage.');
+  fail('Provide --report, --base/--head, or --audit-since/--head. Use --help for usage.');
 }
 
 if (process.exitCode) process.exit(process.exitCode);
