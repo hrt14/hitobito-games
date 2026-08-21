@@ -1,0 +1,49 @@
+name: Sync LEVEL UP feedback to GitHub Issues
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/sync-feedback-to-github.mjs'
+      - '.github/workflows/sync-levelup-feedback.yml'
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+concurrency:
+  group: levelup-feedback-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install function dependencies
+        run: npm install --prefix functions
+
+      - name: Sync feedback into issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: node functions/sync-feedback-to-github.mjs

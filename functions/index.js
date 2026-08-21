@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { initializeApp } from 'firebase-admin/app';
@@ -10,12 +11,14 @@ const db = getFirestore();
 const MODEL = 'gpt-5.6-luna';
 const REGION = 'asia-northeast1';
 const DAILY_LIMIT = 20;
+const FEEDBACK_DAILY_LIMIT = 12;
 const ALLOWED_ORIGINS = new Set([
   'https://levelup.hitobito.jp',
   'https://hitobito-levelup.web.app',
   'https://hitobito-levelup.firebaseapp.com',
 ]);
 const CATEGORIES = ['experience','knowledge','skill','courage','recovery','self_knowledge','relationship','memory','boundary','rest','failure_data','progress','other'];
+const FEEDBACK_TYPES = new Set(['improvement','confusing','bug','idea']);
 
 const schema = {
   type: 'object', additionalProperties: false,
@@ -102,6 +105,42 @@ async function enforceQuota(uid) {
   });
 }
 
+async function enforceFeedbackQuota(req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || req.ip || 'unknown').split(',')[0].trim();
+  const fingerprint = createHash('sha256').update(`${forwarded}|${String(req.headers['user-agent'] || '').slice(0,120)}`).digest('hex').slice(0, 32);
+  const date = japanDateKey();
+  const ref = db.collection('levelupFeedbackRate').doc(`${date}_${fingerprint}`);
+  await db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    const count = snap.exists ? Number(snap.data()?.count || 0) : 0;
+    if (count >= FEEDBACK_DAILY_LIMIT) throw Object.assign(new Error('RATE_LIMIT'), { status:429 });
+    tx.set(ref, { date, fingerprint, count: count + 1, lastSubmittedAt: FieldValue.serverTimestamp() }, { merge:true });
+  });
+}
+
+function cleanText(value, max) {
+  return typeof value === 'string' ? value.replace(/\u0000/g, '').trim().slice(0, max) : '';
+}
+
+function validFeedbackPayload(body) {
+  const type = cleanText(body?.type, 24);
+  const message = cleanText(body?.message, 800);
+  const appSlug = cleanText(body?.appSlug, 64);
+  const appTitle = cleanText(body?.appTitle, 100);
+  const pageTitle = cleanText(body?.pageTitle, 120);
+  const pagePath = cleanText(body?.pagePath, 300);
+  const screenLabel = cleanText(body?.screenLabel, 120);
+  const buildSha = cleanText(body?.buildSha, 12);
+  const viewport = cleanText(body?.viewport, 24);
+  if (!FEEDBACK_TYPES.has(type)) return null;
+  if (message.length < 2 || message.length > 800) return null;
+  if (!/^(home|[a-z0-9-]{1,64})$/.test(appSlug)) return null;
+  if (!appTitle || !pageTitle || !pagePath.startsWith('/')) return null;
+  if (buildSha && !/^(local|[a-f0-9]{4,12})$/.test(buildSha)) return null;
+  if (viewport && !/^\d{2,5}x\d{2,5}$/.test(viewport)) return null;
+  return { type, message, appSlug, appTitle, pageTitle, pagePath, screenLabel, buildSha: buildSha || 'local', viewport };
+}
+
 function extractText(response) {
   for (const item of response?.output || []) {
     if (item?.type !== 'message') continue;
@@ -140,6 +179,37 @@ async function callOpenAI(text) {
   if (typeof parsed?.found !== 'boolean') throw Object.assign(new Error('INVALID_OPENAI_OUTPUT'), { status:502 });
   return parsed;
 }
+
+export const submitLevelupFeedback = onRequest(
+  { region:REGION, timeoutSeconds:15, memory:'256MiB', maxInstances:10 },
+  async (req, res) => {
+    setCors(req, res);
+    if (req.method === 'OPTIONS') return res.status(204).send('');
+    if (req.method !== 'POST') return res.status(405).json({ ok:false, error:'METHOD_NOT_ALLOWED' });
+    const origin = String(req.headers.origin || '');
+    if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok:false, error:'ORIGIN_NOT_ALLOWED' });
+    const payload = validFeedbackPayload(req.body);
+    if (!payload) return res.status(400).json({ ok:false, error:'INVALID_INPUT' });
+    try {
+      await enforceFeedbackQuota(req);
+      const ref = db.collection('levelupFeedback').doc();
+      await ref.set({
+        schemaVersion: 1,
+        source: 'levelup-feedback-widget',
+        ...payload,
+        status: 'new',
+        syncStatus: 'pending',
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      res.set('Cache-Control','no-store');
+      return res.status(201).json({ ok:true, id:ref.id });
+    } catch (error) {
+      const status = Number(error?.status) || 500;
+      if (status >= 500) console.error('[LEVEL UP feedback] submit failed', error);
+      return res.status(status).json({ ok:false, error: status === 429 ? 'RATE_LIMIT' : 'SERVER_ERROR' });
+    }
+  }
+);
 
 export const analyzeLifePlusOne = onRequest(
   { region:REGION, secrets:[OPENAI_API_KEY], timeoutSeconds:30, memory:'256MiB', maxInstances:10 },
