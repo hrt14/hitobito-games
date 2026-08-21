@@ -1,2 +1,2 @@
-2026-08-21T20:10:00+09:00
-Redeploy submitLevelupFeedback after live send failure report.
+2026-08-21T20:14:00+09:00
+Force redeploy submitLevelupFeedback after live send failure; verify production endpoint after deploy.
