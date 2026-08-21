@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0a0c0c" />
+  <meta name="description" content="時間に追われる原因をセルフチェックし、今日の圧力を下げながら、捨てる・70点で終える・見積もる・大切な時間を先に取る力を鍛えるLEVEL UPアプリ。" />
+  <meta name="levelup-attributes" content="relief,rebuild" />
+  <title>時間に追われない自分になる | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body data-game-slug="time-anxiety-reset" data-levelup-attributes="relief,rebuild">
+  <main class="app" data-game-slug="time-anxiety-reset">
+    <header class="topbar">
+      <a href="/" class="home-link" aria-label="LEVEL UPトップへ戻る">← LEVEL UP</a>
+      <div class="brand">TIME / RELATIONSHIP</div>
+      <button id="recordBtn" class="mini-btn" type="button">記録</button>
+    </header>
+
+    <section id="homeScreen" class="screen home-screen active">
+      <div class="clock-art" aria-hidden="true"><div class="clock"><i></i><b></b><span>余白</span></div><div class="orbit one"></div><div class="orbit two"></div></div>
+      <p class="eyebrow">TIME ANXIETY RESET</p>
+      <h1>時間に<br><span>追われない</span><br>自分になる。</h1>
+      <p class="lead">時間をもっと詰め込むのではなく、<strong>時間との付き合い方</strong>を変える。まず7問で「何があなたを追い立てているか」を見つけます。</p>
+      <button id="startDiagnosisBtn" class="primary-btn" type="button"><span>7問で診断する</span><b>→</b></button>
+      <button id="trainingHomeBtn" class="secondary-btn" type="button">根本トレーニングへ</button>
+      <p class="microcopy">自己理解のためのセルフチェックです。医療上の診断ではありません。</p>
+    </section>
+
+    <section id="diagnosisScreen" class="screen">
+      <div class="progress-head"><span id="qCount">01 / 07</span><div class="progress-track"><i id="qProgress"></i></div></div>
+      <p id="qKicker" class="eyebrow"></p>
+      <h2 id="qText" class="screen-title"></h2>
+      <p id="qNote" class="section-copy"></p>
+      <div id="answerList" class="answer-list"></div>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen">
+      <p class="eyebrow">YOUR TIME PATTERN</p>
+      <div class="type-badge" id="typeBadge">診断結果</div>
+      <h2 id="resultTitle" class="screen-title"></h2>
+      <p id="resultSummary" class="section-copy"></p>
+      <div id="scoreBars" class="score-bars"></div>
+      <div class="prescription-card">
+        <span>TODAY'S PRESCRIPTION</span>
+        <strong id="todayPrescription"></strong>
+        <p id="prescriptionWhy"></p>
+      </div>
+      <button id="reliefBtn" class="primary-btn" type="button"><span>今すぐ圧力を下げる</span><b>→</b></button>
+      <button id="trainingResultBtn" class="secondary-btn" type="button">根っこから変える</button>
+    </section>
+
+    <section id="reliefScreen" class="screen">
+      <p class="eyebrow">FIRST AID / 3 MIN</p>
+      <h2 class="screen-title">今日、<br>何を捨てる？</h2>
+      <p class="section-copy">全部やる前提を外します。今日抱えていることを入れて、1つずつ処理してください。</p>
+      <form id="taskForm" class="task-form">
+        <input id="taskName" maxlength="42" placeholder="例：資料を完璧に仕上げる" aria-label="今日抱えていること" />
+        <input id="taskMinutes" type="number" min="1" max="480" value="30" aria-label="見込み時間（分）" />
+        <button type="submit">追加</button>
+      </form>
+      <div id="taskDeck" class="task-deck"></div>
+      <div class="returned-card"><span>今日、返した時間</span><strong id="returnedMinutes">0分</strong><small>延期・削除した見込み時間の合計</small></div>
+      <button id="thoughtBtn" class="primary-btn" type="button"><span>次：「それ、本当？」</span><b>→</b></button>
+      <button id="reliefDoneBtn" class="text-btn" type="button">ここで終える</button>
+    </section>
+
+    <section id="thoughtScreen" class="screen">
+      <p class="eyebrow">FACT / FEELING / JUDGMENT</p>
+      <h2 class="screen-title">それ、<br>事実？</h2>
+      <p class="section-copy">頭の中の言葉を、事実・感情・自己評価に分けます。まず練習問題を3つ。</p>
+      <div id="thoughtCard" class="thought-card"></div>
+      <div id="thoughtChoices" class="thought-choices"></div>
+      <div id="thoughtFeedback" class="feedback" role="status"></div>
+      <button id="thoughtNextBtn" class="primary-btn hidden" type="button"><span>次へ</span><b>→</b></button>
+    </section>
+
+    <section id="trainingScreen" class="screen">
+      <p class="eyebrow">ROOT TRAINING</p>
+      <h2 class="screen-title">時間との関係を、<br>5つの力で変える。</h2>
+      <p class="section-copy">生産性ではなく「追われにくさ」を鍛えます。今日は1つだけで十分です。</p>
+      <div id="statsGrid" class="stats-grid"></div>
+      <div class="training-list">
+        <button data-train="letgo"><b>01</b><span><strong>捨てる力</strong><small>全部やる前提を外す</small></span><i>→</i></button>
+        <button data-train="goodenough"><b>02</b><span><strong>70点力</strong><small>十分なところで終える</small></span><i>→</i></button>
+        <button data-train="estimate"><b>03</b><span><strong>時間感覚</strong><small>見積もりと実測を比べる</small></span><i>→</i></button>
+        <button data-train="choose"><b>04</b><span><strong>選ぶ力</strong><small>全部できないを受け入れる</small></span><i>→</i></button>
+        <button data-train="bank"><b>05</b><span><strong>自分優先力</strong><small>大切な時間を先取りする</small></span><i>→</i></button>
+      </div>
+      <button id="trainingBackBtn" class="text-btn" type="button">ホームへ</button>
+    </section>
+
+    <section id="exerciseScreen" class="screen">
+      <p id="exerciseKicker" class="eyebrow">TRAINING</p>
+      <h2 id="exerciseTitle" class="screen-title"></h2>
+      <p id="exerciseCopy" class="section-copy"></p>
+      <div id="exerciseBody" class="exercise-body"></div>
+      <button id="exerciseDoneBtn" class="primary-btn hidden" type="button"><span>この練習を記録</span><b>✓</b></button>
+      <button id="exerciseBackBtn" class="text-btn" type="button">トレーニング一覧へ</button>
+    </section>
+
+    <section id="recordScreen" class="screen record-screen">
+      <p class="eyebrow">YOUR RELATIONSHIP WITH TIME</p>
+      <h2 class="screen-title">追われなかった<br>記録。</h2>
+      <div id="recordStats" class="record-stats"></div>
+      <div class="time-bank-card"><span>TIME BANK</span><strong id="bankTotal">0分</strong><small>先に自分へ確保した時間</small></div>
+      <div id="estimateHistory" class="history"></div>
+      <button id="shareBtn" class="secondary-btn" type="button">結果をシェア</button>
+      <button id="resetBtn" class="text-btn danger" type="button">記録をリセット</button>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
