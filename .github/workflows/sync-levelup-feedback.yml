@@ -45,7 +45,36 @@ jobs:
         run: npm install --prefix functions
 
       - name: Sync feedback into issues
+        id: sync_feedback
         env:
           GH_TOKEN: ${{ github.token }}
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
-        run: node functions/sync-feedback-to-github.mjs
+        run: |
+          set -o pipefail
+          node functions/sync-feedback-to-github.mjs 2>&1 | tee /tmp/levelup-feedback-sync.log
+
+      - name: Record feedback sync status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_OUTCOME: ${{ steps.sync_feedback.outcome }}
+        run: |
+          set -euo pipefail
+          title='LEVEL UP feedback sync status'
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          {
+            echo "Status: **$SYNC_OUTCOME**"
+            echo
+            echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "Ref: \`$GITHUB_REF_NAME\`"
+            echo "Commit: \`$GITHUB_SHA\`"
+            echo
+            echo '```text'
+            if [ -f /tmp/levelup-feedback-sync.log ]; then tail -n 120 /tmp/levelup-feedback-sync.log; else echo '(sync log unavailable)'; fi
+            echo '```'
+          } > /tmp/feedback-sync-status.md
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file /tmp/feedback-sync-status.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/feedback-sync-status.md
+          fi
