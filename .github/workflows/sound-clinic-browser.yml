@@ -6,12 +6,12 @@ on:
       - test/sound-clinic-browser
     paths:
       - 'apps/sound-clinic/**'
-      - 'scripts/sound-clinic-browser-playtest.mjs'
+      - 'scripts/sound-clinic-browser-playtest*.mjs'
       - '.github/workflows/sound-clinic-browser.yml'
   pull_request:
     paths:
       - 'apps/sound-clinic/**'
-      - 'scripts/sound-clinic-browser-playtest.mjs'
+      - 'scripts/sound-clinic-browser-playtest*.mjs'
       - '.github/workflows/sound-clinic-browser.yml'
   workflow_dispatch:
 
@@ -37,13 +37,10 @@ jobs:
           done
           cat /tmp/sound-clinic-server.log
           exit 1
-      - name: Real Chromium repeated-run playtest
+      - name: Real Chromium capture retry and mobile playtest
         env:
           SOUND_CLINIC_URL: http://127.0.0.1:4173/apps/sound-clinic/
-        run: |
-          # Keep the automated avatar centered in the one-tile lower doorway.
-          sed -i "s/await hold(page, 'ArrowUp', 520);/await hold(page, 'ArrowUp', 300);/" scripts/sound-clinic-browser-playtest.mjs
-          node scripts/sound-clinic-browser-playtest.mjs
+        run: node scripts/sound-clinic-browser-playtest-final.mjs
       - name: Upload screenshots and evidence
         if: always()
         uses: actions/upload-artifact@v4
