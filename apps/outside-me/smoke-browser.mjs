@@ -76,11 +76,12 @@ try {
   await page.screenshot({ path: path.join(artifacts, '05-second-run-memory.png'), fullPage: true });
 
   await page.getByRole('button', { name: '静かに始める' }).click();
-  await advanceToChoices();
+  await page.waitForTimeout(90);
   const repeatedOpening = await page.locator('#storyText').innerText();
   if (!repeatedOpening.includes('また') && !repeatedOpening.includes('同じ')) {
     throw new Error('Second-run opening did not change.');
   }
+  await advanceToChoices();
 
   await page.reload({ waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.clear());
