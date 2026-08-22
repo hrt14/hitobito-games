@@ -172,3 +172,5 @@ for (const token of [MARKER, '.lu-category-card.tone-red', '--lu-cat-lime:#dfff4
 }
 
 console.log('[Firebase] LEVEL UP category cards restyled to cream / black / fluorescent lime.');
+
+await import('../levelup-dark-mode/inject.mjs');
