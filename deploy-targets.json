@@ -1,31 +1,74 @@
 {
-  "version": 1,
-  "updatedAt": "2026-08-22",
+  "version": 2,
+  "updatedAt": "2026-08-23",
+  "targetState": "firebase-only",
   "targets": {
-    "vercel": {
-      "role": "portal-and-main-games",
-      "projects": [
-        { "name": "hitobito-games", "domain": "games.hitobito.jp", "scope": "portal" },
-        { "name": "404-kaiki", "domain": "404.hitobito.jp", "scope": "apps/404-kaiki" },
-        { "name": "lastfire-idle", "domain": "working-planet.hitobito.jp", "scope": "Working Planet repository" }
-      ]
-    },
-    "cloudflarePages": {
-      "role": "normal-games-batch",
-      "source": "apps/*",
-      "excludeCategories": ["levelup", "aaa-lab"],
-      "excludeSlugs": ["404-kaiki", "reflex-7", "reaction-pattern"]
-    },
     "firebaseHosting": {
-      "role": "level-up",
-      "categories": ["levelup"],
-      "migrationMode": "keep-existing-production-until-verified"
+      "role": "static-web-and-games",
+      "sources": [
+        "portal",
+        "apps/*",
+        "levelup",
+        "audio-site"
+      ],
+      "migrationMode": "keep-existing-production-until-firebase-verified",
+      "auth": "github-actions-workload-identity-federation"
+    },
+    "firebaseAppHosting": {
+      "role": "nextjs-apps",
+      "repositories": [
+        {
+          "repo": "hrt14/ecplayers",
+          "domain": "ecplayers.com"
+        },
+        {
+          "repo": "hrt14/hitobito-tools",
+          "domain": null
+        },
+        {
+          "repo": "hrt14/hitobito-analytics",
+          "domain": null
+        },
+        {
+          "repo": "hrt14/lastfire-idle",
+          "domain": "working-planet.hitobito.jp"
+        }
+      ],
+      "migrationMode": "create-backend-verify-then-cutover"
+    },
+    "firebaseServerless": {
+      "role": "api-background-scheduled",
+      "services": [
+        "cloud-functions-for-firebase",
+        "cloud-run",
+        "cloud-scheduler"
+      ]
     },
     "humanTestOnly": {
       "role": "aaa-lab",
-      "categories": ["aaa-lab"],
-      "slugs": ["oceans-of-earth", "astral-dawn"],
+      "categories": [
+        "aaa-lab"
+      ],
+      "slugs": [
+        "oceans-of-earth",
+        "astral-dawn"
+      ],
       "productionDeploy": false
+    }
+  },
+  "legacyHosting": {
+    "vercel": {
+      "newProductionDeploys": false,
+      "removeAfterFirebaseCutover": true,
+      "knownDomains": [
+        "games.hitobito.jp",
+        "404.hitobito.jp",
+        "working-planet.hitobito.jp"
+      ]
+    },
+    "cloudflarePages": {
+      "newProductionDeploys": false,
+      "removeAfterFirebaseCutover": true
     }
   }
 }
