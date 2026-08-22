@@ -88,6 +88,13 @@ jobs:
           path: audio-site/generated-audio
           key: hitobito-audio-chirp3-${{ steps.audio_cache_key.outputs.key }}
 
+      - name: Ensure Cloud Text-to-Speech API
+        if: steps.audio_cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          gcloud services enable texttospeech.googleapis.com --project hitobito-levelup --quiet
+          sleep 10
+
       - name: Generate Chirp 3 HD audiobook
         if: steps.audio_cache.outputs.cache-hit != 'true'
         env:
