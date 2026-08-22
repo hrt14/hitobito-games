@@ -4,6 +4,7 @@ const customDomain = 'audio.hitobito.jp';
 const apexDomain = 'hitobito.jp';
 const firebaseToken = process.env.FIREBASE_ACCESS_TOKEN;
 const cloudflareToken = process.env.CLOUDFLARE_API_TOKEN;
+const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 
 if (!firebaseToken) throw new Error('FIREBASE_ACCESS_TOKEN is missing');
 if (!cloudflareToken) throw new Error('CLOUDFLARE_API_TOKEN is missing');
@@ -26,7 +27,7 @@ async function jsonFetch(url, options = {}, allow = []) {
 }
 
 async function ensureCustomDomain() {
-  let result = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
+  const result = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
   if (result.response.status === 404) {
     console.log(`Creating Firebase custom domain ${customDomain}`);
     await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, {
@@ -39,16 +40,37 @@ async function ensureCustomDomain() {
 }
 
 async function getZoneId() {
-  const { body } = await jsonFetch(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(apexDomain)}`, { headers: cfHeaders });
-  const zone = body?.result?.[0];
-  if (!body?.success || !zone?.id) throw new Error(`Cloudflare zone not found for ${apexDomain}`);
-  return zone.id;
+  const zoneLookup = await jsonFetch(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(apexDomain)}`, { headers: cfHeaders }, [403]);
+  const zone = zoneLookup.body?.result?.[0];
+  if (zoneLookup.body?.success && zone?.id) {
+    console.log('Resolved Cloudflare zone through zone listing.');
+    return zone.id;
+  }
+
+  if (cloudflareAccountId) {
+    const knownPagesDomains = [
+      ['hitobito-games-normal', 'play.hitobito.jp'],
+      ['hitobito-games-normal', 'games.hitobito.jp']
+    ];
+    for (const [project, domain] of knownPagesDomains) {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/pages/projects/${project}/domains/${domain}`;
+      const result = await jsonFetch(url, { headers: cfHeaders }, [404, 403]);
+      const zoneTag = result.body?.result?.zone_tag || result.body?.result?.zone_id;
+      if (result.body?.success && zoneTag) {
+        console.log(`Resolved Cloudflare zone through Pages domain ${domain}.`);
+        return zoneTag;
+      }
+    }
+  }
+
+  throw new Error(`Cloudflare zone ID could not be resolved for ${apexDomain}; token cannot list zones and no Pages domain exposed zone_tag`);
 }
 
 async function listRecords(zoneId, name) {
   const clean = name.replace(/\.$/, '');
   const { body } = await jsonFetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name=${encodeURIComponent(clean)}&per_page=100`, { headers: cfHeaders });
-  return body?.result || [];
+  if (!body?.success) throw new Error(`Could not list DNS records for ${clean}: ${JSON.stringify(body?.errors || body)}`);
+  return body.result || [];
 }
 
 function normalizeTxt(value) {
@@ -123,7 +145,7 @@ async function applyFirebaseDns(zoneId) {
     }
     for (const record of desired.filter(r => r.requiredAction === 'ADD')) await ensureRecord(zoneId, record);
     console.log(`Firebase domain status: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'} reconciling=${Boolean(domain?.reconciling)}`);
-    if ((domain?.hostState === 'HOST_ACTIVE') && (domain?.ownershipState === 'OWNERSHIP_ACTIVE')) break;
+    if (domain?.hostState === 'HOST_ACTIVE' && domain?.ownershipState === 'OWNERSHIP_ACTIVE') break;
     if (desired.length) break;
     await sleep(3000);
   }
