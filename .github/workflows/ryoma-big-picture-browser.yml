@@ -1,0 +1,72 @@
+name: Ryoma big-picture browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/ryoma-big-picture/**'
+      - '.github/workflows/ryoma-big-picture-browser.yml'
+      - 'scripts/register-ryoma-big-picture-meta.mjs'
+      - 'scripts/inject-ryoma-big-picture-card.mjs'
+      - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/ryoma-big-picture/**'
+      - '.github/workflows/ryoma-big-picture-browser.yml'
+      - 'scripts/register-ryoma-big-picture-meta.mjs'
+      - 'scripts/inject-ryoma-big-picture-card.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: node --check apps/ryoma-big-picture/app.js
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/ryoma-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/ryoma-big-picture/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ryoma-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          RYOMA_URL: http://127.0.0.1:4173/apps/ryoma-big-picture/
+        run: node apps/ryoma-big-picture/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/ryoma-big-picture
+      - name: Build Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify Ryoma in Firebase bundle and home catalog
+        run: |
+          test -f .dist/firebase/apps/ryoma-big-picture/index.html
+          grep -q '目先に振り回されない' .dist/firebase/apps/ryoma-big-picture/index.html
+          grep -q 'ryoma-big-picture' .dist/firebase/levelup-catalog.json
+          grep -q '目先に振り回されない' .dist/firebase/index.html
+          grep -q '対立・失敗・数字悪化' .dist/firebase/index.html
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ryoma-big-picture-browser-playtest
+          path: apps/ryoma-big-picture/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/ryoma-server.log || true
