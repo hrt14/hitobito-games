@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#11140f" />
+  <meta name="description" content="断る・頼む・反対する・やめてほしいを、攻撃せず我慢せず言えるようにする1分アサーティブ練習。" />
+  <title>言いたいことを、ちゃんと言える。 | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPへ戻る">←</a>
+      <div class="brand">LEVEL UP / ASSERTIVE</div>
+      <button id="restartBtn" class="text-button hidden" type="button">最初から</button>
+    </header>
+
+    <main>
+      <section id="homeView" class="view active">
+        <div class="hero">
+          <p class="eyebrow">自分も、相手も、雑に扱わない。</p>
+          <h1>言いたいことを、<br><em>ちゃんと言える。</em></h1>
+          <p class="lead">断る。頼む。反対する。やめてほしいと言う。<br>攻撃せず、我慢せず、短く伝える練習。</p>
+
+          <button id="startBtn" class="primary hero-button" type="button">
+            <span>1分練習を始める</span><b>→</b>
+          </button>
+
+          <div id="homeStats" class="home-stats hidden" aria-label="前回までの記録"></div>
+        </div>
+
+        <div class="three-lines" aria-label="このアプリでやること">
+          <div><span>01</span><strong>反射を止める</strong><p>飲み込む／攻撃するを、そのまま口に出さない。</p></div>
+          <div><span>02</span><strong>自分の線を組む</strong><p>事実 → 自分の立場 → 要望・境界。</p></div>
+          <div><span>03</span><strong>押されても戻る</strong><p>相手の不機嫌と、自分の判断を分ける。</p></div>
+        </div>
+      </section>
+
+      <section id="gameView" class="view" aria-live="polite">
+        <div class="game-head">
+          <div>
+            <p id="roundLabel" class="round-label">1 / 4</p>
+            <div class="progress-track"><span id="progressBar"></span></div>
+          </div>
+          <div id="skillBadge" class="skill-badge">断る</div>
+        </div>
+
+        <article class="scene-card">
+          <p id="sceneContext" class="scene-context"></p>
+          <div class="speaker-row"><span id="speakerName"></span><i></i></div>
+          <blockquote id="sceneLine"></blockquote>
+        </article>
+
+        <section id="reflexStage" class="stage">
+          <div class="stage-copy">
+            <p class="step-label">STEP 1</p>
+            <h2>最初の反射を、外へ。</h2>
+            <p>飲み込むのも、ぶつけるのも、まだ言わない。</p>
+          </div>
+          <div id="reflexTray" class="reflex-tray"></div>
+          <p id="reflexHint" class="gesture-hint">カードを左右へ払う / タップでもOK</p>
+        </section>
+
+        <section id="buildStage" class="stage hidden">
+          <div class="stage-copy">
+            <p class="step-label">STEP 2</p>
+            <h2>自分の言葉を、3本だけ。</h2>
+            <p>下の言葉を、順番に返答レーンへ。</p>
+          </div>
+
+          <div id="responseLane" class="response-lane">
+            <button class="response-slot" data-slot="fact" type="button"><span>1</span><b>事実</b><small>まだ空いています</small></button>
+            <button class="response-slot" data-slot="stance" type="button"><span>2</span><b>自分の立場</b><small>まだ空いています</small></button>
+            <button class="response-slot" data-slot="ask" type="button"><span>3</span><b>要望・境界</b><small>まだ空いています</small></button>
+          </div>
+
+          <div id="phrasePool" class="phrase-pool"></div>
+          <div id="buildFeedback" class="feedback" aria-live="polite"></div>
+          <button id="sayBtn" class="primary hidden" type="button">この言い方で返す →</button>
+        </section>
+
+        <section id="voiceStage" class="stage hidden">
+          <div class="stage-copy">
+            <p class="step-label">STEP 3</p>
+            <h2>一度、声に出す。</h2>
+            <p>読むだけより、本番の口に近づける。</p>
+          </div>
+          <div class="speech-card">
+            <div class="speech-mark">“</div>
+            <p id="builtSpeech"></p>
+          </div>
+          <button id="spokeBtn" class="primary" type="button">声に出した →</button>
+          <button id="silentBtn" class="text-button centered" type="button">今は声を出せない</button>
+        </section>
+
+        <section id="pushbackStage" class="stage hidden">
+          <div class="stage-copy">
+            <p class="step-label danger">PUSH BACK</p>
+            <h2>相手は、すぐ納得しない。</h2>
+            <p>ここで迎合にも攻撃にも戻らない。</p>
+          </div>
+          <article class="pushback-card">
+            <div class="speaker-row"><span id="pushbackSpeaker"></span><i></i></div>
+            <blockquote id="pushbackLine"></blockquote>
+          </article>
+          <div class="pressure-row" aria-label="会話の圧">
+            <span>会話の圧</span><div class="pressure-track"><i></i></div><b>高</b>
+          </div>
+          <p class="micro-instruction">返す順に2枚タップ</p>
+          <div id="pushbackPool" class="pushback-pool"></div>
+          <div id="pushbackLane" class="pushback-lane"></div>
+          <div id="pushbackFeedback" class="feedback" aria-live="polite"></div>
+          <button id="lockBtn" class="primary hidden" type="button">この線を保つ →</button>
+        </section>
+
+        <section id="roundResultStage" class="stage hidden">
+          <div id="roundPulse" class="round-pulse">KEEP</div>
+          <p class="step-label">ROUND CLEAR</p>
+          <h2 id="roundResultTitle"></h2>
+          <p id="roundRule" class="round-rule"></p>
+          <div id="roundSkillChange" class="skill-change"></div>
+          <button id="nextRoundBtn" class="primary" type="button">次の場面 →</button>
+        </section>
+      </section>
+
+      <section id="resultView" class="view">
+        <div class="result-wrap">
+          <p class="eyebrow">SESSION COMPLETE</p>
+          <h1>今日は、<br><em id="resultKept">4回</em> 自分の線を守れた。</h1>
+          <p id="resultSummary" class="lead compact"></p>
+
+          <div id="skillResults" class="skill-results"></div>
+
+          <article class="weak-card">
+            <span>NEXT</span>
+            <strong id="weakTitle"></strong>
+            <p id="weakAdvice"></p>
+          </article>
+
+          <div class="result-actions">
+            <button id="retryBtn" class="primary" type="button">弱い場面でもう1分 →</button>
+            <button id="shareBtn" class="secondary" type="button">結果を共有</button>
+            <a class="secondary link-button" href="/">LEVEL UPへ戻る</a>
+          </div>
+          <p id="shareFeedback" class="share-feedback" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
