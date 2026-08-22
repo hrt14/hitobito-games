@@ -31,36 +31,46 @@ function gitTimestamps(args) {
   }
 }
 
+function sourceCandidates(slug) {
+  return [
+    `apps/${slug}`,
+    `firebase-special-apps/${slug}`,
+    `firebase-overrides/${slug}`,
+  ];
+}
+
 function levelupReleasedAt(slug) {
   if (!/^[a-z0-9-]+$/.test(slug)) return 0;
-  const appHistory = gitTimestamps([
-    'log', '--reverse', '--diff-filter=A', '--format=%ct', '--', `apps/${slug}/index.html`,
-  ]);
-  if (appHistory.length) return appHistory[0];
-
-  const specialHistory = gitTimestamps([
-    'log', '--reverse', '--diff-filter=A', '--format=%ct', '--', `firebase-special-apps/${slug}/index.html`,
-  ]);
-  if (specialHistory.length) return specialHistory[0];
+  for (const candidate of sourceCandidates(slug)) {
+    const history = gitTimestamps([
+      'log', '--reverse', '--diff-filter=A', '--format=%ct', '--', `${candidate}/index.html`,
+    ]);
+    if (history.length) return history[0];
+  }
 
   const needle = `'${slug}': ['levelup'`;
   const catalogHistory = gitTimestamps([
     'log', '--reverse', '--format=%ct', `-S${needle}`, '--', catalogSource,
   ]);
-  return catalogHistory[0] || 0;
+  if (catalogHistory.length) return catalogHistory[0];
+
+  const generatedHistory = gitTimestamps([
+    'log', '--reverse', '--format=%ct', `-S${slug}`, '--', 'scripts', 'firebase-overrides',
+  ]);
+  return generatedHistory[0] || 0;
 }
 
 function levelupUpdatedAt(slug) {
   if (!/^[a-z0-9-]+$/.test(slug)) return 0;
-  const candidates = [
-    `apps/${slug}`,
-    `firebase-special-apps/${slug}`,
-  ];
-  for (const candidate of candidates) {
+  for (const candidate of sourceCandidates(slug)) {
     const history = gitTimestamps(['log', '-1', '--format=%ct', '--', candidate]);
     if (history.length) return history[0];
   }
-  return levelupReleasedAt(slug);
+
+  const generatedHistory = gitTimestamps([
+    'log', '-1', '--format=%ct', `-S${slug}`, '--', 'scripts', 'firebase-overrides',
+  ]);
+  return generatedHistory[0] || levelupReleasedAt(slug);
 }
 
 function formatJstDate(epochSeconds) {
@@ -103,7 +113,7 @@ html = html.replace(/<article\b([^>]*\bdata-game="([^"]+)"[^>]*)>/g, (match, att
   return `<article${nextAttrs}>`;
 });
 
-html = html.replace(/(<article\b[^>]*\bdata-game="([^"]+)"[^>]*>[\s\S]*?<a\b[^>]*class="[^"]*\bcard-link\b[^"]*"[^>]*>)([\s\S]*?)(<h2>)/g,
+html = html.replace(/(<article\b[^>]*\bdata-game="([^"]+)"[^>]*>[\s\S]*?<a\b[^>]*class="[^"]*\bcard-link\b[^"]*"[^>]*>)([\s\S]*?)(<h2\b[^>]*>)/g,
   (whole, prefix, slug, between, h2) => {
     if (between.includes('class="card-updated-date"')) return whole;
     const updatedAt = metadata.get(slug)?.updatedAt || levelupUpdatedAt(slug) || levelupReleasedAt(slug);
@@ -158,9 +168,9 @@ if (!finalHome.includes(marker)) throw new Error('LEVEL UP updated-order patch m
 if (!finalHome.includes('data-updated-at=')) throw new Error('LEVEL UP update timestamps missing from cards.');
 if (!finalHome.includes('class="card-updated-date"')) throw new Error('LEVEL UP visible update dates missing from cards.');
 if (!finalHome.includes("makeDivider('new', '新着順', updated.length)")) throw new Error('LEVEL UP newest-first runtime layout missing.');
-if (datedCards < Math.max(3, Math.floor((catalog.games || []).length * 0.9))) {
-  throw new Error(`Could not resolve update timestamps for enough LEVEL UP cards: ${datedCards}/${(catalog.games || []).length}`);
+if (datedCards !== (catalog.games || []).length) {
+  throw new Error(`Update dates must cover every LEVEL UP card: ${datedCards}/${(catalog.games || []).length}`);
 }
 
 const newest = [...(catalog.games || [])].slice(0, 5).map((game) => `${game.slug}:${game.updatedDate}`).join(' > ');
-console.log(`[Firebase] LEVEL UP cards sorted by last update; visible dates added. Newest: ${newest}`);
+console.log(`[Firebase] LEVEL UP cards sorted by last update; visible dates added to all ${datedCards} cards. Newest: ${newest}`);
