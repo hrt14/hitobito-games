@@ -1,0 +1,126 @@
+name: Problem Solving 7 browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/problem-solving-7steps/**'
+      - '.github/workflows/problem-solving-7steps-browser.yml'
+      - 'scripts/register-problem-solving-7steps-meta.mjs'
+      - 'scripts/inject-problem-solving-7steps-card.mjs'
+      - 'scripts/validate-firebase-bundle.mjs'
+      - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/problem-solving-7steps/**'
+      - '.github/workflows/problem-solving-7steps-browser.yml'
+      - 'scripts/register-problem-solving-7steps-meta.mjs'
+      - 'scripts/inject-problem-solving-7steps-card.mjs'
+      - 'scripts/validate-firebase-bundle.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Node dependencies
+        run: npm install --no-save playwright@1.55.0
+      - name: Build and validate LEVEL UP Firebase bundle
+        run: |
+          npm run build:firebase
+          test -f .dist/firebase/apps/problem-solving-7steps/index.html
+          node - <<'NODE'
+          const fs=require('fs');
+          const catalog=JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json','utf8'));
+          const game=catalog.games.find((item)=>item.slug==='problem-solving-7steps');
+          if(!game) throw new Error('problem-solving-7steps missing from Firebase catalog');
+          if(game.title!=='仕事で詰まったときの 問題を7手で小さくする練習') {
+            throw new Error(`Unexpected catalog title: ${game.title}`);
+          }
+          console.log('Firebase catalog entry verified:', game.title);
+          NODE
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start local static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/problem-solving-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/problem-solving-7steps/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/problem-solving-server.log
+          exit 1
+      - name: Play full seven-step route in mobile Chromium
+        env:
+          PS7_URL: http://127.0.0.1:4173/apps/problem-solving-7steps/
+        run: node apps/problem-solving-7steps/smoke-browser.mjs
+      - name: Upload local playtest screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: problem-solving-7steps-local-playtest
+          path: apps/problem-solving-7steps/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/problem-solving-server.log || true
+
+  production-playtest:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: mobile-playtest
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait until this exact commit is live on LEVEL UP
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 72); do
+            if curl -fsS --max-time 20 "https://levelup.hitobito.jp/deploy-meta.json?sha=$EXPECTED_SHA" -o /tmp/deploy-meta.json; then
+              if node - "$EXPECTED_SHA" <<'NODE'
+          const fs=require('fs');
+          const expected=process.argv[2];
+          const meta=JSON.parse(fs.readFileSync('/tmp/deploy-meta.json','utf8'));
+          if(meta.sha!==expected) process.exit(1);
+          console.log(`Exact production SHA is live: ${meta.sha}`);
+          NODE
+              then
+                exit 0
+              fi
+            fi
+            echo "Waiting for Firebase production deploy ($i/72)..."
+            sleep 10
+          done
+          echo "Exact production SHA did not become live in time."
+          exit 1
+      - name: Play the exact production app in mobile Chromium
+        env:
+          PS7_URL: https://levelup.hitobito.jp/apps/problem-solving-7steps/
+        run: node apps/problem-solving-7steps/smoke-browser.mjs
+      - name: Upload production playtest screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: problem-solving-7steps-production-playtest
+          path: apps/problem-solving-7steps/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true

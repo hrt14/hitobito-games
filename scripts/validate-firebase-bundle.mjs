@@ -60,16 +60,18 @@ for (const game of manifest.games) {
   }
 }
 
-const ato5minIndexPath = path.join(outDir, 'apps', 'ato-5min', 'index.html');
+const ato5minDir = path.join(outDir, 'apps', 'ato-5min');
+const ato5minIndexPath = path.join(ato5minDir, 'index.html');
 const ato5minIndex = fs.existsSync(ato5minIndexPath) ? fs.readFileSync(ato5minIndexPath, 'utf8') : '';
-if (!ato5minIndex.includes('./game.js?v=')) {
-  problems.push('ato-5min: versioned game.js reference missing');
+const ato5minGamePath = path.join(ato5minDir, 'game.js');
+const ato5minPackedPaths = [path.join(ato5minDir, 'game-a.bin'), path.join(ato5minDir, 'game-b.bin')];
+const ato5minUsesGameJs = ato5minIndex.includes('./game.js?v=') && fs.existsSync(ato5minGamePath);
+const ato5minUsesPackedLoader = ['game-a.bin', 'game-b.bin', 'DecompressionStream'].every((token) => ato5minIndex.includes(token))
+  && ato5minPackedPaths.every((assetPath) => fs.existsSync(assetPath));
+if (!ato5minUsesGameJs && !ato5minUsesPackedLoader) {
+  problems.push('ato-5min: neither versioned game.js nor packed game loader is complete');
 }
-
-const ato5minGamePath = path.join(outDir, 'apps', 'ato-5min', 'game.js');
-if (!fs.existsSync(ato5minGamePath)) {
-  problems.push('ato-5min: game.js missing');
-} else {
+if (ato5minUsesGameJs) {
   const ato5minGame = fs.readFileSync(ato5minGamePath, 'utf8');
   if (!ato5minGame.includes("window.location.assign('https://levelup.hitobito.jp/')")) {
     problems.push('ato-5min: original home button does not return to LEVEL UP top');
