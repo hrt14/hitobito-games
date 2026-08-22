@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#09110d">
+<meta name="description" content="目の前の仕事を、量・質・波及の3方向から1X→10Xへ引き上げる。10倍働くのではなく、方法そのものを変える思考トレーニング。">
+<title>目の前を10倍にする。— 大きなチャンスを見逃さない「10倍思考」 | LEVEL UP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="app" id="app">
+<header class="topbar">
+<a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+<span class="brand-mini">10X THINKING</span>
+<button class="record-btn" id="recordBtn" type="button">記録</button>
+</header>
+
+<section class="screen active" id="introScreen">
+<div class="hero-scale" aria-hidden="true">
+<span class="hero-one">1X</span><span class="hero-line"></span><span class="hero-ten">10X</span>
+<i class="burst b1"></i><i class="burst b2"></i><i class="burst b3"></i>
+</div>
+<p class="eyebrow">TURN WHAT'S HERE INTO MORE</p>
+<h1>目の前を<br><span>10倍にする。</span></h1>
+<p class="lead">10倍働くのではない。<br><strong>量・質・波及</strong>のどこかで、桁を変える。</p>
+<div class="hero-rule"><span>大きなチャンスは、遠くではなく</span><b>「今やっていること」の中にある。</b></div>
+<div class="lens-preview" aria-label="10倍思考の3つのレンズ">
+<div><strong>量</strong><span>1人・1回・1件で終わらせない</span></div>
+<div><strong>質</strong><span>磨くより、体験そのものを変える</span></div>
+<div><strong>波及</strong><span>今回だけでなく、次にも効かせる</span></div>
+</div>
+<button class="primary-btn" id="startBtn" type="button"><span>今日の5つを10倍にする</span><b>→</b></button>
+<div class="intro-meta"><span>約2〜3分</span><span>5場面</span><span id="bestIntro">初回</span></div>
+<p class="micro-note">「10倍＝作業量10倍」ではありません。今のやり方では無理な倍率を置き、方法を変える練習です。</p>
+</section>
+
+<section class="screen" id="gameScreen">
+<div class="game-progress"><span id="roundLabel">1 / 5</span><div class="progress-dots" id="progressDots"></div></div>
+<div class="scene-head"><span class="scene-tag" id="sceneTag">仕事</span><h2 id="situationText">状況</h2></div>
+<div class="one-x-card"><span>1X / 普通なら</span><strong id="oneXText">目の前の仕事をそのまま終える。</strong></div>
+<p class="instruction">まず、<strong>2方向以上</strong>に広げる。</p>
+<div class="lens-grid" id="lensGrid">
+<button class="lens lens-volume" data-lens="volume" type="button" aria-pressed="false"><span>量</span><b>もっと多くへ届くなら？</b><small>TAP</small></button>
+<button class="lens lens-quality" data-lens="quality" type="button" aria-pressed="false"><span>質</span><b>価値そのものを変えるなら？</b><small>TAP</small></button>
+<button class="lens lens-ripple" data-lens="ripple" type="button" aria-pressed="false"><span>波及</span><b>次にも効く形にするなら？</b><small>TAP</small></button>
+</div>
+<div class="opened-idea" id="openedIdea" aria-live="polite"><span>まだ1Xの視野</span><p>レンズを開くと、この場面の見え方が変わります。</p></div>
+
+<div class="multiplier-panel" id="multiplierPanel">
+<div class="multiplier-head"><span>倍率を押し上げる</span><strong id="multiplierValue">1X</strong></div>
+<input id="multiplierRange" class="multiplier-range" type="range" min="1" max="10" step="1" value="1" aria-label="倍率を1倍から10倍へ動かす">
+<div class="range-labels"><span>1X</span><span>5X</span><span>10X</span></div>
+<div class="move-preview" id="movePreview"><span id="moveScaleLabel">1X / 同じ延長線</span><strong id="moveText">まずは目の前の1件を終える。</strong><p id="moveWhy">まだ方法は変わっていません。</p></div>
+<button class="launch-btn" id="launchBtn" type="button" disabled><span id="launchLabel">あと2レンズ開く</span><b>10X LAUNCH</b></button>
+</div>
+</section>
+
+<section class="screen" id="feedbackScreen">
+<p class="eyebrow">SCALE CHANGED</p>
+<div class="scale-stamp" id="scaleStamp">10X MOVE</div>
+<h2 id="feedbackHeadline">同じ仕事ではなく、仕組みを変えた。</h2>
+<p class="feedback-copy" id="feedbackCopy">倍率を上げると、今の方法のままでは届かなくなる。そこから発想が変わる。</p>
+<div class="feedback-breakdown">
+<div><span>開いた視野</span><b id="feedbackLenses">2 / 3</b></div>
+<div><span>到達倍率</span><b id="feedbackMultiplier">10X</b></div>
+</div>
+<div class="transfer-card"><span>現実へ持ち帰る問い</span><strong id="transferRule">これを10倍にするとしたら、今のやり方を何から捨てる？</strong></div>
+<button class="primary-btn" id="nextBtn" type="button"><span>次の目の前へ</span><b>→</b></button>
+</section>
+
+<section class="screen" id="resultScreen">
+<p class="eyebrow">TODAY'S 10X VIEW</p>
+<h2 id="resultHeadline">5つの「普通」を、大きく見直した。</h2>
+<div class="result-grid">
+<article><span>8X以上まで押し上げた</span><strong><b id="highScaleScore">0</b><small> / 5</small></strong><p>与えられたサイズのまま終わらせなかった回数。</p></article>
+<article><span>3レンズ全部を開いた</span><strong><b id="fullLensScore">0</b><small> / 5</small></strong><p>量・質・波及を全部見てから決めた回数。</p></article>
+</div>
+<div class="lens-record">
+<div data-result-lens="volume"><span>量</span><b>0/5</b></div>
+<div data-result-lens="quality"><span>質</span><b>0/5</b></div>
+<div data-result-lens="ripple"><span>波及</span><b>0/5</b></div>
+</div>
+<div class="next-lens"><span>NEXT 10X LENS</span><h3 id="weakLensTitle">波及を広げる</h3><p id="weakLensQuestion">今回だけで終わらず、次にも効く形にすると？</p></div>
+<div class="real-rule"><span>明日、目の前の仕事で一度だけ聞く</span><strong>「これを10倍にしたら？」</strong></div>
+<button class="primary-btn" id="againBtn" type="button"><span>もう5つ10倍にする</span><b>↻</b></button>
+<button class="secondary-btn" id="shareBtn" type="button">結果を共有</button>
+<button class="text-btn" id="resultHomeBtn" type="button">タイトルへ戻る</button>
+<p class="session-count" id="sessionCount">これまで 0 セッション</p>
+<p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+</section>
+
+<section class="screen" id="recordScreen">
+<p class="eyebrow">LOCAL RECORD</p>
+<h2>10倍で見る<br>反射記録。</h2>
+<div class="record-panel">
+<div><span>SESSIONS</span><b id="recordSessions">0</b><small>回</small></div>
+<div><span>BEST</span><b id="recordBest">—</b><small>/5</small></div>
+</div>
+<p class="record-note">記録はこの端末だけに保存されます。</p>
+<button class="primary-btn" id="recordStartBtn" type="button"><span>今日の5つをやる</span><b>→</b></button>
+<button class="text-btn" id="recordBackBtn" type="button">戻る</button>
+</section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./app.js"></script>
+</body>
+</html>
