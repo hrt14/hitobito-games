@@ -1,0 +1,119 @@
+name: Assertive browser quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/assertive/**'
+      - 'tests/assertive-browser.mjs'
+      - 'scripts/register-assertive-meta.mjs'
+      - 'package.json'
+      - '.github/workflows/assertive-browser.yml'
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: assertive-browser-quality
+  cancel-in-progress: true
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post pending commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"pending\",\"context\":\"assertive-browser\",\"description\":\"PC/mobile browser test and production check running\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local app server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/assertive-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/apps/assertive/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/assertive-http.log
+          exit 1
+
+      - name: Browser-test local app
+        run: node tests/assertive-browser.mjs
+
+      - name: Wait for Firebase route and verify source
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in {1..30}; do
+            if curl -fLsS --max-time 20 https://levelup.hitobito.jp/apps/assertive/ -o /tmp/assertive-live.html \
+              && grep -F '言いたいことを、ちゃんと言える。 | LEVEL UP' /tmp/assertive-live.html >/dev/null \
+              && curl -fLsS --max-time 20 https://levelup.hitobito.jp/apps/assertive/app.js -o /tmp/assertive-live.js \
+              && grep -F "const SCENARIOS" /tmp/assertive-live.js >/dev/null; then
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo 'Production assertive route did not become available with expected source.'
+            exit 1
+          fi
+
+      - name: Browser-test production app
+        env:
+          BASE_URL: https://levelup.hitobito.jp/apps/assertive/
+          OUTPUT_DIR: test-results/assertive-production
+        run: node tests/assertive-browser.mjs
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assertive-browser-evidence
+          path: |
+            test-results/assertive/**
+            test-results/assertive-production/**
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Post success commit status
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"success\",\"context\":\"assertive-browser\",\"description\":\"PC/mobile + production 4-round flow passed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+
+      - name: Post failure commit status
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"failure\",\"context\":\"assertive-browser\",\"description\":\"Assertive browser or production verification failed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
