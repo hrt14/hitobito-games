@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f0c" />
+  <meta name="description" content="揉めそうでも必要なお願いを、攻撃せず・逃げずに伝える。言い方と、NOや不機嫌でも自分の軸を保つ練習。" />
+  <title>揉めそうでも必要なお願いをする | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPへ戻る">←</a>
+      <div class="brand">LEVEL UP / ASK</div>
+      <button id="restartBtn" class="ghost small hidden" type="button">やり直す</button>
+    </header>
+
+    <main>
+      <section id="homeView" class="view active" data-view="home">
+        <div class="hero">
+          <p class="eyebrow">必要なら、気まずくても言う。</p>
+          <h1>揉めそうでも、<br><em>必要なお願いをする。</em></h1>
+          <p class="lead">攻撃しない。逃げない。相手のYESまで背負わない。お願いの言い方と、断られても揺れない軸を一緒に練習する。</p>
+          <div class="rule-card">
+            <span>成功条件</span>
+            <strong>相手をYESと言わせることではなく、必要なことを丁寧に伝え切ること。</strong>
+          </div>
+          <div class="hero-actions">
+            <button id="startBtn" class="primary" type="button">30秒練習を始める</button>
+            <button id="fieldBtn" class="secondary" type="button">今からするお願いを作る</button>
+          </div>
+          <div id="homeProgress" class="progress-strip hidden"></div>
+        </div>
+
+        <section class="principles" aria-label="このアプリで鍛えること">
+          <article><b>01</b><strong>分ける</strong><p>自分が決めることと、相手が決めることを混ぜない。</p></article>
+          <article><b>02</b><strong>組む</strong><p>事実 → 事情 → 具体的なお願い → 選べる余地。</p></article>
+          <article><b>03</b><strong>戻す</strong><p>不機嫌・NO・評価を、自分の価値にくっつけない。</p></article>
+        </section>
+      </section>
+
+      <section id="trainingView" class="view" data-view="training">
+        <div class="training-head">
+          <div id="stepRail" class="step-rail" aria-label="進行状況">
+            <span class="active"></span><span></span><span></span><span></span>
+          </div>
+          <article class="scenario-card">
+            <span>今回の場面</span>
+            <strong id="scenarioTitle"></strong>
+            <p id="scenarioSituation"></p>
+          </article>
+        </div>
+
+        <section id="sortStage" class="stage">
+          <p class="step-label">STEP 1 / まず、背負う範囲を分ける</p>
+          <h2 id="domainPrompt"></h2>
+          <p class="helper">これは誰が決めること？</p>
+          <div class="two-grid">
+            <button class="choice" data-domain="mine" type="button"><span>自分の領域</span><strong>自分で決める</strong></button>
+            <button class="choice" data-domain="theirs" type="button"><span>相手の領域</span><strong>相手が決める</strong></button>
+          </div>
+          <div id="domainFeedback" class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section id="buildStage" class="stage hidden">
+          <p class="step-label">STEP 2 / お願いを組み立てる</p>
+          <h2>言う順番にタップ。</h2>
+          <p class="helper">責める言葉と、謝り倒す言葉は捨てる。</p>
+          <div id="buildSlots" class="build-slots"></div>
+          <div id="partGrid" class="part-grid"></div>
+          <div id="buildFeedback" class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section id="reactionStage" class="stage hidden">
+          <p class="step-label">STEP 3 / 相手の反応まで背負わない</p>
+          <div id="reactionContent"></div>
+        </section>
+
+        <section id="resultStage" class="stage hidden">
+          <p class="step-label">SESSION COMPLETE</p>
+          <div class="score-ring"><span>自己軸</span><strong id="scoreText">9/9</strong></div>
+          <h2>相手の回答は、採点対象にしない。</h2>
+          <div class="result-checks">
+            <div><span>✓</span><p><strong>必要なことを伝えた</strong><small>黙って抱え込まなかった。</small></p></div>
+            <div><span>✓</span><p><strong>責めずに具体化した</strong><small>事実とお願いを分けて伝えた。</small></p></div>
+            <div><span>✓</span><p><strong>相手の反応を戻した</strong><small>NOや不機嫌を自分の価値にしなかった。</small></p></div>
+          </div>
+          <div class="result-quote">「交渉が成立したか」と「自分が適切にお願いできたか」は別。</div>
+          <div class="hero-actions">
+            <button id="nextScenarioBtn" class="primary" type="button">別の場面でもう一回</button>
+            <button id="resultFieldBtn" class="secondary" type="button">今のお願いを作る</button>
+          </div>
+          <p id="bestLine" class="best-line"></p>
+        </section>
+      </section>
+
+      <section id="fieldView" class="view" data-view="field">
+        <div class="field-wrap">
+          <p class="eyebrow">USE IT NOW / 本番用</p>
+          <h1>4行だけ作る。</h1>
+          <p class="lead compact">長い説明より、相手が判断できる材料だけ。</p>
+
+          <div id="presetRow" class="preset-row"></div>
+
+          <div class="form-grid">
+            <label><span>1 / 何の相談？</span><input id="topicInput" maxlength="100" placeholder="例：打ち合わせ時間について相談があります" /></label>
+            <label><span>2 / 事実・事情</span><textarea id="factInput" maxlength="180" rows="2" placeholder="評価や言い訳を足さず、短く"></textarea></label>
+            <label><span>3 / 具体的なお願い</span><textarea id="requestInput" maxlength="180" rows="2" placeholder="何をどうしてほしいか"></textarea></label>
+            <label><span>4 / 難しい場合</span><textarea id="alternativeInput" maxlength="180" rows="2" placeholder="代替案・相談の余地"></textarea></label>
+          </div>
+
+          <article class="script-card">
+            <div class="script-head"><span>そのまま使う</span><button id="copyBtn" type="button" disabled>コピー</button></div>
+            <pre id="scriptPreview">4行を埋めると、ここにお願い文ができます。</pre>
+            <p id="copyFeedback" class="copy-feedback" aria-live="polite"></p>
+          </article>
+
+          <div class="anchor-card">
+            <span>送る前の軸</span>
+            <strong>相手はNOと言える。あなたの仕事は、丁寧にお願いするところまで。</strong>
+          </div>
+          <div class="hero-actions">
+            <button id="fieldTrainBtn" class="primary" type="button">送る前に30秒練習する</button>
+            <button id="fieldHomeBtn" class="secondary" type="button">トップへ戻る</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
