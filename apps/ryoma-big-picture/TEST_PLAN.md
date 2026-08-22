@@ -1,1 +1,0 @@
-Browser test plan is implemented in `smoke-browser.mjs` and covers first visit, locked decisions before three lenses, narrow/big paths, all-four-lens path, completion, persistence, reload, revisit, 390px and 360px mobile layouts.
