@@ -8,6 +8,7 @@ on:
     paths:
       - 'audio-site/**'
       - 'firebase.audio.json'
+      - 'scripts/generate-audiobook-tts.mjs'
       - 'scripts/configure-audio-domain.mjs'
       - '.github/workflows/deploy-firebase-audio.yml'
 
@@ -58,9 +59,12 @@ jobs:
           set -euo pipefail
           test -s audio-site/index.html
           test -s audio-site/styles.css
+          test -s audio-site/audio-hd.css
           test -s audio-site/app.js
           test -s audio-site/books/shigoto-baisoku-kyokasho/book.json
+          test -s scripts/generate-audiobook-tts.mjs
           node --check audio-site/app.js
+          node --check scripts/generate-audiobook-tts.mjs
           node - <<'NODE'
           const fs = require('fs');
           const book = JSON.parse(fs.readFileSync('audio-site/books/shigoto-baisoku-kyokasho/book.json', 'utf8'));
@@ -68,6 +72,44 @@ jobs:
           if (!Array.isArray(book.chapters) || book.chapters.length !== 17) throw new Error('Expected 17 audiobook chapters');
           if (!book.chapters.every(ch => ch.title && ch.text)) throw new Error('Chapter data is incomplete');
           console.log(`Audiobook validated: ${book.title}, ${book.chapters.length} chapters`);
+          NODE
+
+      - name: Compute Chirp audio cache key
+        id: audio_cache_key
+        run: |
+          set -euo pipefail
+          KEY="$(cat audio-site/books/shigoto-baisoku-kyokasho/book.json scripts/generate-audiobook-tts.mjs | sha256sum | cut -d' ' -f1)"
+          echo "key=${KEY}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore generated Chirp audio
+        id: audio_cache
+        uses: actions/cache@v4
+        with:
+          path: audio-site/generated-audio
+          key: hitobito-audio-chirp3-${{ steps.audio_cache_key.outputs.key }}
+
+      - name: Generate Chirp 3 HD audiobook
+        if: steps.audio_cache.outputs.cache-hit != 'true'
+        env:
+          FIREBASE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: |
+          set -euo pipefail
+          ffmpeg -version | head -1
+          node scripts/generate-audiobook-tts.mjs
+
+      - name: Verify generated HD audio
+        run: |
+          set -euo pipefail
+          test -s audio-site/generated-audio/manifest.json
+          COUNT="$(find audio-site/generated-audio -type f -name '*.mp3' | wc -l | tr -d ' ')"
+          test "$COUNT" = "51"
+          node - <<'NODE'
+          const fs=require('fs');
+          const m=JSON.parse(fs.readFileSync('audio-site/generated-audio/manifest.json','utf8'));
+          if(m.model!=='Chirp 3: HD'||m.voices.length!==3) process.exit(1);
+          if(Object.keys(m.chapters).length!==17) process.exit(1);
+          console.log(`HD audio ready: ${m.voices.length} voices × ${Object.keys(m.chapters).length} chapters`);
           NODE
 
       - name: Ensure dedicated Firebase Hosting site and target
@@ -86,10 +128,10 @@ jobs:
           set -euo pipefail
           for attempt in $(seq 1 8); do
             if curl -fLsS --max-time 20 "https://hitobito-audio.web.app/?_verify=${GITHUB_SHA}-${attempt}" -o /tmp/audio-home.html \
-              && grep -F 'hitobito audio' /tmp/audio-home.html >/dev/null \
-              && curl -fLsS --max-time 20 'https://hitobito-audio.web.app/books/shigoto-baisoku-kyokasho/book.json' -o /tmp/audio-book.json \
-              && node -e "const b=require('/tmp/audio-book.json');if(b.title!=='仕事を倍速化する教科書'||b.chapters.length!==17)process.exit(1)"; then
-              echo "Firebase default domain is live."
+              && grep -F 'Google Chirp 3 HD' /tmp/audio-home.html >/dev/null \
+              && curl -fLsS --max-time 20 'https://hitobito-audio.web.app/generated-audio/manifest.json' -o /tmp/audio-manifest.json \
+              && node -e "const m=require('/tmp/audio-manifest.json');if(m.model!=='Chirp 3: HD'||m.voices.length!==3||Object.keys(m.chapters).length!==17)process.exit(1)"; then
+              echo "Firebase default domain with Chirp 3 HD audio is live."
               exit 0
             fi
             sleep 4
@@ -119,8 +161,8 @@ jobs:
           set -euo pipefail
           for attempt in $(seq 1 20); do
             if curl -fLsS --max-time 20 "https://audio.hitobito.jp/?_verify=${GITHUB_SHA}-${attempt}" -o /tmp/audio-custom.html \
-              && grep -F 'hitobito audio' /tmp/audio-custom.html >/dev/null; then
-              echo "audio.hitobito.jp is live on Firebase Hosting."
+              && grep -F 'Google Chirp 3 HD' /tmp/audio-custom.html >/dev/null; then
+              echo "audio.hitobito.jp is live on Firebase Hosting with Chirp 3 HD."
               exit 0
             fi
             echo "Custom domain not live yet (attempt ${attempt})."
@@ -138,10 +180,10 @@ jobs:
           set -euo pipefail
           if [ "$JOB_STATUS" = "success" ]; then
             STATE="success"
-            DESCRIPTION="hitobito audio deployed to Firebase Hosting"
+            DESCRIPTION="hitobito audio + Chirp 3 HD deployed"
           else
             STATE="failure"
-            DESCRIPTION="hitobito audio Firebase deployment failed"
+            DESCRIPTION="hitobito audio deployment failed"
           fi
           PAYLOAD="$(STATE="$STATE" DESCRIPTION="$DESCRIPTION" node -e "process.stdout.write(JSON.stringify({state:process.env.STATE,target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:process.env.DESCRIPTION,context:'Firebase Hosting - audio'}))")"
           curl -fsS -X POST \
