@@ -9,6 +9,7 @@ on:
       - 'apps/assertive/**'
       - 'tests/assertive-browser.mjs'
       - 'scripts/register-assertive-meta.mjs'
+      - 'scripts/inject-levelup-assertive-card.mjs'
       - 'package.json'
       - '.github/workflows/assertive-browser.yml'
 
@@ -32,7 +33,7 @@ jobs:
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-            -d "{\"state\":\"pending\",\"context\":\"assertive-browser\",\"description\":\"PC/mobile browser test and production check running\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+            -d "{\"state\":\"pending\",\"context\":\"assertive-browser\",\"description\":\"PC/mobile browser, quality gate, and production check running\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,6 +47,9 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.55.0
           npx playwright install --with-deps chromium
+
+      - name: LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/assertive
 
       - name: Start local app server
         run: |
@@ -79,6 +83,13 @@ jobs:
             exit 1
           fi
 
+      - name: Verify LEVEL UP home card
+        run: |
+          curl -fLsS --max-time 20 https://levelup.hitobito.jp/ -o /tmp/levelup-home.html
+          grep -F 'data-game="assertive"' /tmp/levelup-home.html >/dev/null
+          grep -F '言いたいことを、ちゃんと言える。' /tmp/levelup-home.html >/dev/null
+          grep -F 'ASSERTIVE COMMUNICATION' /tmp/levelup-home.html >/dev/null
+
       - name: Browser-test production app
         env:
           BASE_URL: https://levelup.hitobito.jp/apps/assertive/
@@ -105,7 +116,7 @@ jobs:
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-            -d "{\"state\":\"success\",\"context\":\"assertive-browser\",\"description\":\"PC/mobile + production 4-round flow passed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+            -d "{\"state\":\"success\",\"context\":\"assertive-browser\",\"description\":\"Quality gate + PC/mobile + production 4-round flow passed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
 
       - name: Post failure commit status
         if: failure()
@@ -116,4 +127,4 @@ jobs:
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-            -d "{\"state\":\"failure\",\"context\":\"assertive-browser\",\"description\":\"Assertive browser or production verification failed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+            -d "{\"state\":\"failure\",\"context\":\"assertive-browser\",\"description\":\"Assertive quality gate, browser, home card, or production verification failed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
