@@ -41,6 +41,15 @@ const AUTO_META = {
     purpose: 'スマホを触る行動をそのまま助走にして、朝の行動開始までの心理的な段差を小さくする',
     benefit: '全部の支度を背負わず、「今できそうな1個」から自然にベッドの外へ移りやすくする',
   },
+  'azukete-neru': {
+    title: '預けて、寝る。',
+    kicker: 'NIGHT THOUGHT PARKING',
+    skill: '反芻停止 / 先送りの許可',
+    icon: '☾',
+    forWho: '布団に入ってから、考え事が代わる代わる浮かんで眠れない人',
+    purpose: '今夜対応できない考えを明日の枠へ移し、今は何も決めなくていい状態を作る',
+    benefit: '頭の中の未処理を外へ出して手放し、そのまま眠りに向かいやすくする',
+  },
   'approval-off': {
     title: '他人軸OFF',
     kicker: 'TAKE BACK THE WHEEL',

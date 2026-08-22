@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0c0806" />
+  <meta name="description" content="布団に入ってから浮かぶ考え事を、明日の枠に預けて今夜の担当から外す。反芻ループを止めて眠りに向かうLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>預けて、寝る。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="progress" aria-label="進行状況"><span id="progressBar"></span></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-pressed="false" aria-label="音をオンにする">×</button>
+    </header>
+
+    <section class="screen active" id="startScreen">
+      <div class="recap" id="recapCard" hidden>
+        <p class="recap-eyebrow">前回、預けたもの</p>
+        <div class="recap-list" id="recapList"></div>
+        <p class="recap-hint">まだ残っているものだけ、今夜もう一度預け直せます。</p>
+      </div>
+      <p class="eyebrow">TONIGHT'S PARKING</p>
+      <h1>預けて<span>、</span><br>寝る<span>。</span></h1>
+      <p class="lead">今すぐ答えを出さなくていい。<br><strong>今夜の担当から、外すだけ。</strong></p>
+      <div class="intensity-card">
+        <div class="intensity-head"><span>今、頭の中の忙しさ</span><strong><b id="beforeValue">6</b><small>/10</small></strong></div>
+        <input id="beforeRange" type="range" min="0" max="10" step="1" value="6" aria-label="頭の中の忙しさ" />
+        <div class="range-labels"><span>静か</span><span>ぐるぐる</span></div>
+      </div>
+      <button class="primary-btn" id="startBtn" type="button"><span>預け先を選ぶ</span><b>→</b></button>
+      <p class="microcopy">約1〜2分。読むより、預けます。</p>
+      <div class="local-stats" id="localStats" hidden><span>NIGHTS <b id="sessionCount">0</b></span><span>AVG <b id="avgReduction">±0</b></span></div>
+    </section>
+
+    <section class="screen" id="slotScreen">
+      <p class="eyebrow">STEP 1 / CHOOSE THE SLOT</p>
+      <h2>いつ、<br>受け取る？</h2>
+      <p class="sublead">今夜預けた考えを、次にいつ扱うか先に決めておく。</p>
+      <div class="slot-grid" id="slotGrid">
+        <button type="button" data-slot="朝"><span>☀</span><b>明日の朝</b></button>
+        <button type="button" data-slot="昼"><span>◐</span><b>明日の昼</b></button>
+        <button type="button" data-slot="夜"><span>☾</span><b>明日の夜</b></button>
+        <button type="button" data-slot="週末"><span>◇</span><b>週末</b></button>
+      </div>
+      <button class="primary-btn" id="slotContinueBtn" type="button" disabled><span>この枠に決めて、始める</span><b>→</b></button>
+    </section>
+
+    <section class="screen" id="captureScreen">
+      <div class="screen-head">
+        <div><p class="eyebrow">STEP 2 / PARK THE THOUGHTS</p><h2>今、<br><span>何が浮かんでる？</span></h2></div>
+        <div class="score-pill" aria-label="預けた件数"><span id="parkedCount">0</span>件</div>
+      </div>
+      <div class="card-stage" id="cardStage">
+        <div class="swipe-label left">今すぐ一手 →</div>
+        <div class="swipe-label right">← 預ける</div>
+        <article class="thought-card" id="thoughtCard" tabindex="0" role="group" aria-live="polite">
+          <p class="card-eyebrow">近いものを選ぶ、または一言で</p>
+          <div class="chip-grid" id="chipGrid">
+            <button type="button" data-chip="仕事">仕事</button>
+            <button type="button" data-chip="人間関係">人間関係</button>
+            <button type="button" data-chip="お金・生活">お金・生活</button>
+            <button type="button" data-chip="体調・健康">体調・健康</button>
+            <button type="button" data-chip="明日の予定">明日の予定</button>
+            <button type="button" data-chip="漠然とした不安">漠然とした不安</button>
+          </div>
+          <input id="thoughtInput" class="thought-input" type="text" maxlength="40" placeholder="（言葉にできるなら、一言だけ）" aria-label="今浮かんでいる考え" />
+        </article>
+      </div>
+      <div class="choice-row">
+        <button class="choice now" id="nowBtn" type="button"><small>今すぐ動ける</small><strong>今すぐ一手</strong><span>←</span></button>
+        <button class="choice park" id="parkBtn" type="button"><small>今は無理</small><strong>預ける</strong><span>→</span></button>
+      </div>
+      <p class="hint">カードを左右にスワイプしてもOK</p>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <button class="secondary-btn" id="doneCaptureBtn" type="button">もう浮かばない</button>
+    </section>
+
+    <section class="screen" id="downshiftScreen">
+      <p class="eyebrow">STEP 3 / SLOW DOWN</p>
+      <h2 id="downshiftTitle">今夜の担当は、<br>0件になった。</h2>
+      <p class="sublead" id="downshiftSlot">明日の朝、また会いましょう。</p>
+      <div class="breathe-stage" aria-hidden="true"><div class="breathe-ring"></div></div>
+      <p class="breathe-text">画面を見なくてもいい。<br>そのまま、目を閉じても。</p>
+      <button class="primary-btn ghost" id="downshiftDoneBtn" type="button"><span>次へ</span><b>→</b></button>
+    </section>
+
+    <section class="screen" id="afterScreen">
+      <p class="eyebrow">LAST / CHECK AGAIN</p>
+      <h2>いま、<br>どのくらい？</h2>
+      <p class="sublead">下がっていなくてもいい。今の忙しさをそのまま。</p>
+      <div class="intensity-card">
+        <div class="intensity-head"><span>頭の中の忙しさ</span><strong><b id="afterValue">6</b><small>/10</small></strong></div>
+        <input id="afterRange" type="range" min="0" max="10" step="1" value="6" aria-label="終了時の頭の中の忙しさ" />
+        <div class="range-labels"><span>静か</span><span>ぐるぐる</span></div>
+      </div>
+      <button class="primary-btn" id="finishBtn" type="button"><span>結果を見る</span><b>→</b></button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <div class="result-symbol" aria-hidden="true"><span>今夜</span><i></i><b>≠</b><i></i><span>今すぐ全部</span></div>
+      <p class="eyebrow">PARKING COMPLETE</p>
+      <h2>今夜は、<br><em>ここまで。</em></h2>
+      <div class="result-stats">
+        <div><small>預けた</small><strong id="parkedResult">0件</strong></div>
+        <div><small>枠</small><strong id="slotResult">-</strong></div>
+        <div><small>忙しさ</small><strong><span id="beforeResult">6</span> → <span id="afterResult">6</span></strong></div>
+      </div>
+      <div class="rule-card"><small>TONIGHT'S RULE</small><strong>「今は、何も決めなくていい。」</strong><p>預けたものは、選んだ枠で扱う。今この瞬間の頭には残さない。</p></div>
+      <button class="primary-btn" id="lightsOutBtn" type="button"><span>電気を消す</span><b>●</b></button>
+      <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      <p class="privacy-note">記録はこの端末内に保存します。このアプリは診断・治療を目的としたものではなく、思考を外へ預ける練習ツールです。</p>
+    </section>
+
+    <section class="screen" id="darkScreen">
+      <p class="dark-text">おやすみなさい。</p>
+    </section>
+  </main>
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
