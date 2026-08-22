@@ -32,6 +32,20 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
+      - name: Build and validate LEVEL UP Firebase bundle
+        run: |
+          npm run build:firebase
+          test -f .dist/firebase/apps/problem-solving-7steps/index.html
+          node - <<'NODE'
+          const fs=require('fs');
+          const catalog=JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json','utf8'));
+          const game=catalog.games.find((item)=>item.slug==='problem-solving-7steps');
+          if(!game) throw new Error('problem-solving-7steps missing from Firebase catalog');
+          if(game.title!=='仕事で詰まったときの 問題を7手で小さくする練習') {
+            throw new Error(`Unexpected catalog title: ${game.title}`);
+          }
+          console.log('Firebase catalog entry verified:', game.title);
+          NODE
       - name: Start local static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/problem-solving-server.log 2>&1 &
