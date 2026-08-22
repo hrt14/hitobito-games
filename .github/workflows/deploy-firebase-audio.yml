@@ -18,6 +18,7 @@ concurrency:
 permissions:
   contents: read
   id-token: write
+  statuses: write
 
 jobs:
   deploy:
@@ -102,3 +103,25 @@ jobs:
       - name: Check custom domain when ready
         continue-on-error: true
         run: curl -fLsS --max-time 20 'https://audio.hitobito.jp/' | grep -F 'hitobito audio'
+
+      - name: Report Firebase audio deployment status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATE="success"
+            DESCRIPTION="hitobito audio deployed to Firebase Hosting"
+          else
+            STATE="failure"
+            DESCRIPTION="hitobito audio Firebase deployment failed"
+          fi
+          PAYLOAD="$(STATE="$STATE" DESCRIPTION="$DESCRIPTION" node -e "process.stdout.write(JSON.stringify({state:process.env.STATE,target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:process.env.DESCRIPTION,context:'Firebase Hosting - audio'}))")"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            --data "$PAYLOAD"
