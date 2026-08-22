@@ -15,6 +15,7 @@ const meta = {
   skill: '大局観 / 戦略的リフレーミング',
   icon: '外',
   description: '目的・時間・人・手段を広げてから一手を選ぶ。目先の勝敗ではなく、盤面そのものを変える反射を鍛える。',
+  obi: '目の前の勝ち負けから離れ、半年後まで効く「盤面を変える一手」を選ぶ。',
   forWho: '対立・失敗・数字悪化が起きると、今すぐ言い返す／取り返す／施策を増やすことに意識が狭まりやすい人',
   purpose: '目の前の問題に反応する前に、目的・時間軸・関係者・打ち手を広げて考える順序を身につける',
   benefit: '「今ここ」の勝敗から離れ、半年後まで効く仕組み・第三案・より大きな一手を選びやすくする',
@@ -32,7 +33,7 @@ function escapeHtml(value) {
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 const game = catalog.games.find((item) => item.slug === slug);
 if (!game) throw new Error(`LEVEL UP catalog missing ${slug}; auto-discovery must run first.`);
-Object.assign(game, meta);
+Object.assign(game, meta, { description: meta.obi });
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 
 const card = `
@@ -44,6 +45,7 @@ const card = `
       <div class="kicker">${escapeHtml(meta.kicker)}</div>
       <div class="skill">${escapeHtml(meta.skill)}</div>
       <h2>${escapeHtml(meta.title)}</h2>
+      <p class="book-obi">${escapeHtml(meta.obi)}</p>
       <p>${escapeHtml(meta.description)}</p>
       <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">
         <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">${escapeHtml(meta.forWho)}</span></div>
@@ -59,4 +61,4 @@ const cardPattern = new RegExp(`<article class="card is-new" data-game="${slug}"
 if (!cardPattern.test(html)) throw new Error(`LEVEL UP home card missing ${slug}.`);
 html = html.replace(cardPattern, card.trim());
 fs.writeFileSync(homePath, html);
-console.log(`[Firebase] patched app-specific card metadata for ${slug}.`);
+console.log(`[Firebase] patched app-specific title + obi + card metadata for ${slug}.`);
