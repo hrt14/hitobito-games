@@ -16,6 +16,7 @@ export default {
 
     const responseHeaders = new Headers(upstream.headers);
     responseHeaders.set('x-hitobito-audio-origin', 'firebase');
+    responseHeaders.set('x-hitobito-audio-edge', 'cloudflare-pages');
     return new Response(upstream.body, {
       status: upstream.status,
       statusText: upstream.statusText,
