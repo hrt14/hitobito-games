@@ -1,0 +1,50 @@
+name: Manager line-care browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/manager-line-care/**'
+      - 'scripts/register-manager-line-care-meta.mjs'
+      - 'scripts/inject-levelup-manager-line-care-card.mjs'
+      - 'package.json'
+      - '.github/workflows/manager-line-care-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/manager-line-care-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/manager-line-care/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/manager-line-care-server.log
+          exit 1
+      - name: Play six cases in mobile Chromium
+        env:
+          MANAGER_LINE_CARE_URL: http://127.0.0.1:4173/apps/manager-line-care/
+        run: node apps/manager-line-care/smoke-browser.mjs
+      - name: Upload playtest screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-line-care-browser-playtest
+          path: apps/manager-line-care/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/manager-line-care-server.log || true
