@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#090b10" />
+  <meta name="description" content="まんがびとのオーディオブックを聴き放題。仕事を倍速化する教科書からスタート。" />
+  <title>hitobito audio｜聴く読書、読み放題。</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="hitobito audio ホーム">
+      <span class="brand-mark">h</span><span>hitobito <b>audio</b></span>
+    </a>
+    <span class="beta">BETA</span>
+  </header>
+
+  <main>
+    <section id="home" class="hero view active" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">MANGABITO AUDIO LIBRARY</p>
+        <h1 id="hero-title">聴く読書、<br><span>読み放題。</span></h1>
+        <p class="lead">移動中も、家事中も。まんがびとの本を、耳から。</p>
+      </div>
+
+      <section class="library" aria-labelledby="new-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">NEW RELEASE</p><h2 id="new-title">新着オーディオブック</h2></div>
+          <span class="count">1 TITLE</span>
+        </div>
+        <button class="book-card" id="openBook" type="button">
+          <span class="cover" aria-hidden="true">
+            <span class="cover-kicker">毎朝読むだけ。</span>
+            <strong>仕事を<br>倍速化する<br>教科書</strong>
+            <span class="cover-band">残業ゼロを実現する<br>業務改善術。</span>
+            <span class="cover-publisher">まんがびと</span>
+          </span>
+          <span class="book-info">
+            <span class="pill">第一弾</span>
+            <strong>仕事を倍速化する教科書</strong>
+            <span>MBビジネス研究班</span>
+            <span class="meta">全17章 · 10分で読めるシリーズ</span>
+            <span class="listen-cta">▶ 今すぐ聴く</span>
+          </span>
+        </button>
+      </section>
+
+      <section class="promise">
+        <div><strong>1</strong><span>タイトル公開中</span></div>
+        <div><strong>0.8–2×</strong><span>再生速度</span></div>
+        <div><strong>自動</strong><span>続きから再生</span></div>
+      </section>
+    </section>
+
+    <section id="playerView" class="player-view view" aria-labelledby="bookTitle">
+      <button class="back" id="backHome" type="button">← 本棚へ</button>
+      <div class="book-hero">
+        <div class="cover cover-large" aria-hidden="true">
+          <span class="cover-kicker">毎朝読むだけ。</span>
+          <strong>仕事を<br>倍速化する<br>教科書</strong>
+          <span class="cover-band">残業ゼロを実現する<br>業務改善術。</span>
+          <span class="cover-publisher">まんがびと</span>
+        </div>
+        <div class="book-hero-copy">
+          <span class="pill">校正済み · 第1弾</span>
+          <h1 id="bookTitle">仕事を倍速化する教科書</h1>
+          <p>MBビジネス研究班</p>
+          <p class="summary">毎朝1分の「スピードアップリスト」で、仕事を速くする考え方を習慣化する一冊。</p>
+        </div>
+      </div>
+
+      <section class="player-panel" aria-label="オーディオプレイヤー">
+        <div class="now-playing">
+          <div><span>NOW PLAYING</span><strong id="chapterName">まえがき</strong></div>
+          <button id="voiceButton" class="voice-button" type="button" title="使用音声">日本語音声</button>
+        </div>
+        <div class="progress-track" aria-label="再生進捗"><div id="progressBar"></div></div>
+        <div class="progress-label"><span id="progressText">0%</span><span id="segmentText">準備完了</span></div>
+
+        <div class="controls">
+          <button class="minor" id="prevSegment" type="button" aria-label="前の文">↶<small>前の文</small></button>
+          <button class="play" id="playPause" type="button" aria-label="再生">▶</button>
+          <button class="minor" id="nextSegment" type="button" aria-label="次の文">↷<small>次の文</small></button>
+        </div>
+
+        <div class="player-options">
+          <label>速度
+            <select id="rateSelect">
+              <option value="0.8">0.8×</option>
+              <option value="1" selected>1.0×</option>
+              <option value="1.2">1.2×</option>
+              <option value="1.5">1.5×</option>
+              <option value="2">2.0×</option>
+            </select>
+          </label>
+          <label>スリープ
+            <select id="sleepSelect">
+              <option value="0">なし</option>
+              <option value="10">10分</option>
+              <option value="20">20分</option>
+              <option value="30">30分</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="chapters-section">
+        <div class="section-heading"><div><p class="eyebrow">CHAPTERS</p><h2>目次</h2></div><span class="count">17 CHAPTERS</span></div>
+        <div id="chapterList" class="chapter-list"></div>
+      </section>
+
+      <section class="transcript-section">
+        <div class="section-heading"><div><p class="eyebrow">TRANSCRIPT</p><h2>本文</h2></div><span class="proofed">誤字脱字を校正済み</span></div>
+        <article id="transcript" class="transcript"></article>
+      </section>
+    </section>
+  </main>
+
+  <footer><strong>hitobito audio</strong><span>株式会社まんがびと</span></footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>
