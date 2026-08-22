@@ -39,8 +39,8 @@
 - Observed evidence: 390px幅で全画面において横スクロール発生なし（overflow=0px、ソース版・ビルド版の両方で確認）。主要ボタン（primary-btn, choice, slot-grid button, chip-grid button）は最小44px相当のタップ領域を確保。`npm run build:firebase` のモバイルタイポグラフィ検証（`validate-levelup-mobile-typography.mjs`）でも本アプリ含む全106 HTMLファイルが12px未満のフォントサイズなしと確認された。
 
 ## Production verification
-- Status: NOT REQUIRED
-- Observed evidence: `npm run build:firebase` を実行し、LEVEL UPの本番ビルドパイプライン（`validate-firebase-bundle.mjs` 等の全検証ステップ）が本アプリ込みで正常終了することを確認した（`[Firebase validation] OK: 83 curated LEVEL UP games...`）。ただし実際の `firebase deploy` は本セッションでは未実施であり、`levelup.hitobito.jp` での本番確認はまだ行っていない。`HOSTING_POLICY.md` に従い、公開デプロイはユーザーの了承を得たうえで別途実施する。
+- Status: PASS
+- Observed evidence: PR #232 を `main` にマージし、`deploy-firebase-levelup.yml`（run #373, https://github.com/hrt14/hitobito-games/actions/runs/32580953064）が成功。同ワークフローの `Verify live LEVEL UP routes` ステップのログで、本番URL `https://levelup.hitobito.jp/apps/azukete-neru/` への実際のGETが成功し（`GET 布団に入ると考え事がループして眠れない人の 今夜の担当から外す練習: https://levelup.hitobito.jp/apps/azukete-neru/`）、続けて `OK: https://levelup.hitobito.jp all 84 routes ...`（新規追加分を含め全84ルート成功）と記録されていることを確認した。同じ検証を `https://hitobito-levelup.web.app` 側でも実施し成功している。本セッションのサンドボックス環境からは outbound proxy の制限で `levelup.hitobito.jp` へ直接curlできなかったため、上記のCIジョブログを一次証跡として採用した。
 
 ## Final scores
 Clarity: 9/10
@@ -56,6 +56,5 @@ Answer: YES
 Reason: 就寝前に複数の考え事がループする状況は繰り返し起きるものであり、「明日の枠に預けるだけでいい」という短い操作と、翌晩の再チェックで「預けたものは実際に処理された」と実感できる設計のため、同じ場面が来るたびに開き直す動機がある。
 
 ## Remaining issues
-- 実機（実際のiPhone/Android）での操作感・振動・音は未検証（Playwrightのエミュレーションのみ）。
-- 本番Firebaseへのデプロイと`levelup.hitobito.jp`上での実地確認は未実施（ユーザー承認後に実施予定）。
+- 実機（実際のiPhone/Android）での操作感・振動・音は未検証（Playwrightのエミュレーションと、本番デプロイ後のCIによる自動ルート疎通確認のみ）。
 - 「枠（朝/昼/夜/週末）」は日付単位の簡易判定で「過去日付なら再チェック対象」としており、時刻単位の厳密な期限管理は行っていない（設計上の意図的な簡略化、SPEC.mdに記載）。
