@@ -22,7 +22,7 @@ Ordinary PLAY games are the apps shipped as normal games. LEVEL UP apps and `aaa
 
 If the app is a LEVEL UP app, you MUST:
 
-1. Read `../docs/LEVELUP_QUALITY_STANDARD.md` and `../GAME_QUALITY.md`.
+1. Read `../docs/LEVELUP_QUALITY_STANDARD.md`, `../docs/LEVELUP_APP_QUALITY_TEMPLATE.md`, and `../GAME_QUALITY.md`.
 2. Before substantial implementation, create or update `SPEC.md` with:
    - exact user/use moment;
    - one central benefit;
@@ -117,15 +117,21 @@ Every score must be at least 7 to call the LEVEL UP app fully complete. Do not a
 
 If browser or live interaction is unavailable, mark that item unverified and do not invent a PASS or score.
 
-## Mechanical gate for PLAY
+## Mechanical gates
 
-Before completion, run:
+For PLAY, before completion run:
 
 `node ../scripts/validate-play-fun-gate.mjs --report FUN_REPORT.json`
 
 (or from repository root: `node scripts/validate-play-fun-gate.mjs --report apps/<slug>/FUN_REPORT.json`)
 
-The report must pass all required tests and score thresholds. GitHub Actions also checks changed PLAY app directories and fails when their `FUN_REPORT.json` is missing, stale from the PR, malformed, or below threshold.
+The PLAY report must pass all required tests and score thresholds. GitHub Actions also checks changed PLAY app directories and fails when their `FUN_REPORT.json` is missing, stale from the PR, malformed, or below threshold.
+
+For LEVEL UP, before completion run from repository root:
+
+`node scripts/validate-levelup-quality-gate.mjs --app apps/<slug>`
+
+The LEVEL UP gate must pass. It checks the required SPEC/QUALITY structure, actual PASS evidence for required real-use checks, five scores at 7/10 or above, no remaining UNVERIFIED claims, and a final YES to the return-use question.
 
 ## Completion language
 
@@ -146,6 +152,7 @@ A LEVEL UP app is fully complete only when:
 - `SPEC.md` reflects the actual finished product;
 - `QUALITY.md` contains real observed test evidence;
 - all five quality scores are at least 7/10;
+- `validate-levelup-quality-gate.mjs` passes;
 - relevant repository checks pass;
 - if production publication was requested, production is deployed and live-verified under `HOSTING_POLICY.md`.
 
