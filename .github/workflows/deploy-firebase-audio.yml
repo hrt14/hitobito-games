@@ -95,7 +95,6 @@ jobs:
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
         run: |
           set -euo pipefail
-          ffmpeg -version | head -1
           node scripts/generate-audiobook-tts.mjs
 
       - name: Verify generated HD audio
