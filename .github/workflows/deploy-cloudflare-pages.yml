@@ -10,8 +10,11 @@ on:
       - '.play-fun-gate-baseline'
       - 'apps/**'
       - 'index.html'
+      - 'package.json'
       - 'scripts/playtest-catalog.mjs'
       - 'scripts/sync-games-portal.mjs'
+      - 'scripts/enhance-play-navigation.mjs'
+      - 'scripts/enhance-play-card-art.mjs'
       - 'scripts/inject-play-top-nav.mjs'
       - 'scripts/validate-play-fun-gate.mjs'
       - 'docs/PLAY_FUN_FIRST.md'
@@ -62,6 +65,9 @@ jobs:
           test ! -e .dist/cloudflare/apps/yunagiso/index.html
           test -e .dist/cloudflare/404.html
           grep -q 'id="hitobito-play-nav"' .dist/cloudflare/index.html
+          grep -q 'data-play-card-art="v1"' .dist/cloudflare/index.html
+          grep -q 'data-art="door"' .dist/cloudflare/index.html
+          grep -q 'data-art="panda"' .dist/cloudflare/index.html
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -71,21 +77,24 @@ jobs:
           command: pages deploy .dist/cloudflare --project-name=hitobito-games-normal
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify Play hamburger navigation live
+      - name: Verify Play navigation and card artwork live
         run: |
           set -euo pipefail
           for ATTEMPT in $(seq 1 12); do
             BODY="$(curl -fsSL --max-time 15 "https://play.hitobito.jp/?_verify=${GITHUB_SHA}-${ATTEMPT}" || true)"
             if [[ "$BODY" == *'id="hitobito-play-nav"'* ]] \
+              && [[ "$BODY" == *'data-play-card-art="v1"'* ]] \
+              && [[ "$BODY" == *'data-art="door"'* ]] \
+              && [[ "$BODY" == *'data-art="panda"'* ]] \
               && [[ "$BODY" == *'https://levelup.hitobito.jp/'* ]] \
               && [[ "$BODY" == *'https://hitobito.jp/'* ]]; then
-              echo "Verified live Play hamburger navigation on attempt ${ATTEMPT}."
+              echo "Verified live Play navigation and rich card artwork on attempt ${ATTEMPT}."
               exit 0
             fi
-            echo "Attempt ${ATTEMPT}: fetched ${#BODY} bytes; navigation not confirmed yet."
+            echo "Attempt ${ATTEMPT}: fetched ${#BODY} bytes; PLAY card artwork not confirmed yet."
             sleep 5
           done
-          echo "Play hamburger navigation was not visible on the live custom domain." >&2
+          echo "PLAY navigation or rich card artwork was not visible on the live custom domain." >&2
           exit 1
 
       - name: Purge stale Yunagiso cache if permitted
@@ -154,10 +163,10 @@ jobs:
           set -euo pipefail
           if [ "$JOB_STATUS" = "success" ]; then
             STATE="success"
-            DESCRIPTION="Cloudflare Pages deployed and play.hitobito.jp verified"
+            DESCRIPTION="Cloudflare Pages deployed; PLAY navigation and card artwork verified"
           else
             STATE="failure"
-            DESCRIPTION="Cloudflare Pages deployment or live verification failed"
+            DESCRIPTION="Cloudflare Pages deployment or PLAY live verification failed"
           fi
           PAYLOAD="$(STATE="$STATE" DESCRIPTION="$DESCRIPTION" node -e "process.stdout.write(JSON.stringify({state:process.env.STATE,target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:process.env.DESCRIPTION,context:'Cloudflare Pages - games entrypoint'}))")"
           curl -fsS -X POST \
