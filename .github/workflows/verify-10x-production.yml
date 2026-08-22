@@ -1,0 +1,34 @@
+name: Verify 10x production
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-10x-production.yml'
+  workflow_dispatch:
+
+jobs:
+  production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify deployed app and LEVEL UP card
+        shell: bash
+        run: |
+          set -euo pipefail
+          app='https://levelup.hitobito.jp/apps/10x-thinking/'
+          home='https://levelup.hitobito.jp/'
+          ok=0
+          for i in $(seq 1 30); do
+            if curl -fsSL "$app" -o /tmp/10x.html \
+              && grep -F '目の前を10倍にする。' /tmp/10x.html >/dev/null \
+              && grep -F '今日の5つを10倍にする' /tmp/10x.html >/dev/null \
+              && curl -fsSL "$home" -o /tmp/home.html \
+              && grep -F 'data-game="10x-thinking"' /tmp/home.html >/dev/null \
+              && grep -F '1件・1回・1人で終わらせない' /tmp/home.html >/dev/null; then
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ok" = 1
+          echo 'Production 10x app route and LEVEL UP card are live.'
