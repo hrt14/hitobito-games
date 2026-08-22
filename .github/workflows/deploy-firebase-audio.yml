@@ -97,11 +97,11 @@ jobs:
           echo 'Firebase default domain verification failed.' >&2
           exit 1
 
-      - name: Configure audio.hitobito.jp on Firebase and Cloudflare DNS
+      - name: Configure audio.hitobito.jp on Firebase and Vercel DNS
         env:
           FIREBASE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: team_vCUqyPcmj2xuDuBM7f7aOiMQ
         run: node scripts/configure-audio-domain.mjs
 
       - name: Report custom-domain status
@@ -111,11 +111,23 @@ jobs:
         run: |
           curl -fsS -H "Authorization: Bearer ${FIREBASE_ACCESS_TOKEN}" \
             "https://firebasehosting.googleapis.com/v1beta1/projects/hitobito-levelup/sites/hitobito-audio/customDomains/audio.hitobito.jp" \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log(JSON.stringify({hostState:j.hostState,ownershipState:j.ownershipState,certState:j.cert&&j.cert.state,reconciling:j.reconciling,issues:j.issues||[]},null,2))})"
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log(JSON.stringify({hostState:j.hostState,ownershipState:j.ownershipState,certState:j.cert&&j.cert.state,reconciling:j.reconciling,issues:j.issues||[],requiredDnsUpdates:j.requiredDnsUpdates||{}},null,2))})"
 
       - name: Check custom domain when ready
         continue-on-error: true
-        run: curl -fLsS --max-time 20 'https://audio.hitobito.jp/' | grep -F 'hitobito audio'
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            if curl -fLsS --max-time 20 "https://audio.hitobito.jp/?_verify=${GITHUB_SHA}-${attempt}" -o /tmp/audio-custom.html \
+              && grep -F 'hitobito audio' /tmp/audio-custom.html >/dev/null; then
+              echo "audio.hitobito.jp is live on Firebase Hosting."
+              exit 0
+            fi
+            echo "Custom domain not live yet (attempt ${attempt})."
+            sleep 6
+          done
+          echo 'Custom domain is still provisioning.' >&2
+          exit 1
 
       - name: Report Firebase audio deployment status
         if: always()

@@ -1,19 +1,18 @@
-import { execFileSync } from 'node:child_process';
-
 const projectId = 'hitobito-levelup';
 const siteId = 'hitobito-audio';
 const customDomain = 'audio.hitobito.jp';
 const apexDomain = 'hitobito.jp';
 const firebaseToken = process.env.FIREBASE_ACCESS_TOKEN;
-const cloudflareToken = process.env.CLOUDFLARE_API_TOKEN;
-const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+const vercelToken = process.env.VERCEL_TOKEN;
+const vercelTeamId = process.env.VERCEL_TEAM_ID || 'team_vCUqyPcmj2xuDuBM7f7aOiMQ';
 
 if (!firebaseToken) throw new Error('FIREBASE_ACCESS_TOKEN is missing');
-if (!cloudflareToken) throw new Error('CLOUDFLARE_API_TOKEN is missing');
+if (!vercelToken) throw new Error('VERCEL_TOKEN is missing');
 
 const fbHeaders = { Authorization: `Bearer ${firebaseToken}`, 'Content-Type': 'application/json' };
-const cfHeaders = { Authorization: `Bearer ${cloudflareToken}`, 'Content-Type': 'application/json' };
+const vercelHeaders = { Authorization: `Bearer ${vercelToken}`, 'Content-Type': 'application/json' };
 const fbBase = `https://firebasehosting.googleapis.com/v1beta1/projects/${projectId}/sites/${siteId}/customDomains`;
+const vercelBase = `https://api.vercel.com`;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function jsonFetch(url, options = {}, allow = []) {
@@ -31,141 +30,178 @@ async function ensureCustomDomain() {
   const result = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
   if (result.response.status === 404) {
     console.log(`Creating Firebase custom domain ${customDomain}`);
-    await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, { method: 'POST', headers: fbHeaders, body: '{}' });
+    await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, {
+      method: 'POST', headers: fbHeaders, body: '{}'
+    });
     await sleep(3000);
   } else {
     console.log(`Firebase custom domain already exists: ${customDomain}`);
   }
 }
 
-async function getZoneId() {
-  const zoneLookup = await jsonFetch(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(apexDomain)}`, { headers: cfHeaders }, [403]);
-  const zone = zoneLookup.body?.result?.[0];
-  if (zoneLookup.body?.success && zone?.id) {
-    console.log('Resolved Cloudflare zone through zone listing.');
-    return zone.id;
-  }
-  throw new Error('Cloudflare token does not have Zone Read access, so direct Firebase DNS cannot be configured automatically.');
+function cleanName(value) {
+  return String(value || '').trim().replace(/\.$/, '');
 }
 
-async function listRecords(zoneId, name) {
-  const clean = name.replace(/\.$/, '');
-  const { body } = await jsonFetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name=${encodeURIComponent(clean)}&per_page=100`, { headers: cfHeaders });
-  if (!body?.success) throw new Error(`Could not list DNS records for ${clean}: ${JSON.stringify(body?.errors || body)}`);
-  return body.result || [];
+function relativeName(value) {
+  const clean = cleanName(value).toLowerCase();
+  const apex = apexDomain.toLowerCase();
+  if (!clean || clean === apex) return '';
+  if (clean.endsWith(`.${apex}`)) return clean.slice(0, -(apex.length + 1));
+  return clean;
 }
 
 function normalizeTxt(value) {
   const v = String(value ?? '').trim();
-  return v.length >= 2 && v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1).replace(/\\"/g, '"') : v;
+  return v.length >= 2 && v.startsWith('"') && v.endsWith('"')
+    ? v.slice(1, -1).replace(/\\"/g, '"')
+    : v;
 }
 
-function cfPayload(record) {
-  const name = record.domainName.replace(/\.$/, '');
-  if (record.type === 'CAA') {
-    const match = String(record.rdata).match(/^\s*(\d+)\s+(\S+)\s+"?(.+?)"?\s*$/);
-    if (!match) return null;
-    return { type: 'CAA', name, data: { flags: Number(match[1]), tag: match[2], value: match[3] }, ttl: 1 };
+function normalizeValue(type, value) {
+  if (type === 'TXT') return normalizeTxt(value);
+  return cleanName(value);
+}
+
+function desiredFromFirebase(record) {
+  if (!record?.type || !record?.domainName || record.rdata == null) return null;
+  const type = String(record.type).toUpperCase();
+  if (!['A', 'AAAA', 'CNAME', 'TXT', 'CAA'].includes(type)) {
+    console.log(`Skipping unsupported Firebase DNS type ${type}: ${JSON.stringify(record)}`);
+    return null;
   }
   return {
-    type: record.type,
-    name,
-    content: record.type === 'TXT' ? normalizeTxt(record.rdata) : String(record.rdata).replace(/\.$/, ''),
-    ttl: 1,
-    ...(record.type === 'A' || record.type === 'AAAA' || record.type === 'CNAME' ? { proxied: false } : {})
+    type,
+    name: relativeName(record.domainName),
+    value: normalizeValue(type, record.rdata),
   };
 }
 
-function sameRecord(existing, desired) {
-  if (existing.type !== desired.type || existing.name !== desired.name) return false;
-  if (desired.type === 'CAA') {
-    return Number(existing.data?.flags ?? existing.flags ?? -1) === desired.data.flags && String(existing.data?.tag ?? existing.tag ?? '') === desired.data.tag && String(existing.data?.value ?? existing.value ?? '') === desired.data.value;
+async function listVercelRecords() {
+  const url = `${vercelBase}/v5/domains/${encodeURIComponent(apexDomain)}/records?limit=100&teamId=${encodeURIComponent(vercelTeamId)}`;
+  const { body } = await jsonFetch(url, { headers: vercelHeaders });
+  return body?.records || [];
+}
+
+function vercelRecordId(record) {
+  return record?.uid || record?.id;
+}
+
+function vercelRecordName(record) {
+  return relativeName(record?.name || '');
+}
+
+function sameRecord(record, desired) {
+  return String(record?.type || '').toUpperCase() === desired.type
+    && vercelRecordName(record) === desired.name
+    && normalizeValue(desired.type, record?.value) === desired.value;
+}
+
+async function deleteVercelRecord(record) {
+  const id = vercelRecordId(record);
+  if (!id) throw new Error(`Vercel DNS record has no id: ${JSON.stringify(record)}`);
+  const url = `${vercelBase}/v2/domains/${encodeURIComponent(apexDomain)}/records/${encodeURIComponent(id)}?teamId=${encodeURIComponent(vercelTeamId)}`;
+  await jsonFetch(url, { method: 'DELETE', headers: vercelHeaders });
+  console.log(`Removed Vercel DNS ${record.type} ${record.name || '@'} ${record.value || ''}`);
+}
+
+async function createVercelRecord(desired) {
+  const url = `${vercelBase}/v2/domains/${encodeURIComponent(apexDomain)}/records?teamId=${encodeURIComponent(vercelTeamId)}`;
+  const payload = {
+    type: desired.type,
+    name: desired.name,
+    value: desired.value,
+    ttl: 60,
+    comment: 'Firebase Hosting: audio.hitobito.jp',
+  };
+  await jsonFetch(url, { method: 'POST', headers: vercelHeaders, body: JSON.stringify(payload) });
+  console.log(`Added Vercel DNS ${desired.type} ${desired.name || '@'} ${desired.value}`);
+}
+
+async function ensureVercelRecord(desired) {
+  let records = await listVercelRecords();
+  if (records.some(record => sameRecord(record, desired))) {
+    console.log(`Vercel DNS already present: ${desired.type} ${desired.name || '@'} ${desired.value}`);
+    return;
   }
-  const existingContent = desired.type === 'TXT' ? normalizeTxt(existing.content) : String(existing.content || '').replace(/\.$/, '');
-  return existingContent === desired.content;
-}
 
-async function deleteRecord(zoneId, record) {
-  await jsonFetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${record.id}`, { method: 'DELETE', headers: cfHeaders });
-  console.log(`Removed DNS ${record.type} ${record.name} ${record.content || ''}`);
-}
-
-async function ensureRecord(zoneId, desiredRecord) {
-  const payload = cfPayload(desiredRecord);
-  if (!payload) return;
-  const existing = await listRecords(zoneId, payload.name);
-  if (existing.some(r => sameRecord(r, payload))) return;
-  if (['A', 'AAAA', 'CNAME'].includes(payload.type)) {
-    for (const conflict of existing.filter(r => ['A', 'AAAA', 'CNAME'].includes(r.type))) await deleteRecord(zoneId, conflict);
+  if (['A', 'AAAA', 'CNAME'].includes(desired.type)) {
+    const conflicts = records.filter(record =>
+      vercelRecordName(record) === desired.name
+      && ['A', 'AAAA', 'CNAME'].includes(String(record?.type || '').toUpperCase())
+    );
+    for (const conflict of conflicts) await deleteVercelRecord(conflict);
   }
-  const { body } = await jsonFetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`, { method: 'POST', headers: cfHeaders, body: JSON.stringify(payload) });
-  if (!body?.success) throw new Error(`Cloudflare failed to create ${payload.type} ${payload.name}: ${JSON.stringify(body?.errors)}`);
-  console.log(`Added DNS ${payload.type} ${payload.name}`);
+
+  await createVercelRecord(desired);
 }
 
-async function applyFirebaseDns(zoneId) {
-  await ensureRecord(zoneId, { type: 'A', domainName: customDomain, rdata: '199.36.158.100', requiredAction: 'ADD' });
-  for (let attempt = 1; attempt <= 6; attempt++) {
+async function removeFirebaseRequestedRecord(record) {
+  const desired = desiredFromFirebase(record);
+  if (!desired) return;
+  const records = await listVercelRecords();
+  for (const existing of records.filter(item => sameRecord(item, desired))) {
+    await deleteVercelRecord(existing);
+  }
+}
+
+async function logLevelupAndAudioRecords() {
+  const records = await listVercelRecords();
+  const selected = records
+    .filter(record => ['levelup', 'audio'].includes(vercelRecordName(record)))
+    .map(record => ({
+      id: vercelRecordId(record),
+      name: record.name,
+      type: record.type,
+      value: record.value,
+      ttl: record.ttl,
+    }));
+  console.log('Vercel DNS comparison (LEVEL UP / audio):');
+  console.log(JSON.stringify(selected, null, 2));
+}
+
+async function applyFirebaseDnsToVercel() {
+  await logLevelupAndAudioRecords();
+
+  // Firebase Hosting's standard custom-domain address. This exact record overrides
+  // any Vercel wildcard record that previously made audio.hitobito.jp return Vercel 404.
+  await ensureVercelRecord({ type: 'A', name: 'audio', value: '199.36.158.100' });
+
+  for (let attempt = 1; attempt <= 8; attempt++) {
     const { response, body: domain } = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
-    if (response.status === 404) { await sleep(3000); continue; }
+    if (response.status === 404) {
+      await sleep(3000);
+      continue;
+    }
+
     const updates = domain?.requiredDnsUpdates || {};
     const discovered = (updates.discovered || []).flatMap(set => set.records || []);
     const desired = (updates.desired || []).flatMap(set => set.records || []);
+
     for (const record of discovered.filter(r => r.requiredAction === 'REMOVE')) {
-      const existing = await listRecords(zoneId, String(record.domainName || customDomain).replace(/\.$/, ''));
-      const payload = cfPayload(record);
-      for (const match of existing.filter(r => payload && sameRecord(r, payload))) await deleteRecord(zoneId, match);
+      await removeFirebaseRequestedRecord(record);
     }
-    for (const record of desired.filter(r => r.requiredAction === 'ADD')) await ensureRecord(zoneId, record);
+    for (const record of desired.filter(r => r.requiredAction === 'ADD')) {
+      const target = desiredFromFirebase(record);
+      if (target) await ensureVercelRecord(target);
+    }
+
     console.log(`Firebase domain status: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'}`);
     if (domain?.hostState === 'HOST_ACTIVE' && domain?.ownershipState === 'OWNERSHIP_ACTIVE') break;
     if (desired.length) break;
     await sleep(3000);
   }
-}
 
-function runWrangler(args, allowFailure = false) {
-  try {
-    execFileSync('npx', ['--yes', 'wrangler@latest', ...args], { stdio: 'inherit', env: process.env });
-    return true;
-  } catch (error) {
-    if (allowFailure) return false;
-    throw error;
-  }
-}
+  await logLevelupAndAudioRecords();
 
-async function configurePagesEdge() {
-  if (!cloudflareAccountId) throw new Error('CLOUDFLARE_ACCOUNT_ID is missing for Pages fallback.');
-  console.log('Using Cloudflare Pages as a transparent edge for the Firebase origin.');
-  runWrangler(['pages', 'project', 'create', 'hitobito-audio-edge', '--production-branch', 'main'], true);
-  runWrangler(['pages', 'deploy', 'audio-edge', '--project-name', 'hitobito-audio-edge', '--branch', 'main']);
-
-  const base = `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/pages/projects/hitobito-audio-edge/domains`;
-  let current = await jsonFetch(`${base}/${customDomain}`, { headers: cfHeaders }, [404]);
-  if (current.response.status === 404 || !current.body?.success || !current.body?.result?.name) {
-    const created = await jsonFetch(base, { method: 'POST', headers: cfHeaders, body: JSON.stringify({ name: customDomain }) });
-    if (!created.body?.success) throw new Error(`Could not attach Pages custom domain: ${JSON.stringify(created.body?.errors || created.body)}`);
-    console.log(`Pages custom domain attached: ${created.body.result?.name || customDomain}; status=${created.body.result?.status || 'unknown'}`);
-  } else {
-    console.log(`Pages custom domain already attached: ${current.body.result.name}; status=${current.body.result.status || 'unknown'}`);
-  }
-
-  for (let attempt = 1; attempt <= 8; attempt++) {
-    current = await jsonFetch(`${base}/${customDomain}`, { headers: cfHeaders }, [404]);
-    const status = current.body?.result?.status || 'unknown';
-    console.log(`Pages custom domain status: ${status}`);
-    if (status === 'active') break;
-    await sleep(4000);
+  for (let attempt = 1; attempt <= 12; attempt++) {
+    const { body: domain } = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders });
+    console.log(`Firebase propagation check ${attempt}: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'}`);
+    if (domain?.hostState === 'HOST_ACTIVE' && domain?.ownershipState === 'OWNERSHIP_ACTIVE') return;
+    await sleep(10000);
   }
 }
 
 await ensureCustomDomain();
-try {
-  const zoneId = await getZoneId();
-  await applyFirebaseDns(zoneId);
-  console.log('audio.hitobito.jp configured directly for Firebase Hosting.');
-} catch (error) {
-  console.log(`Direct Firebase DNS path unavailable: ${error.message}`);
-  await configurePagesEdge();
-  console.log('audio.hitobito.jp configured through Cloudflare Pages with Firebase as origin.');
-}
+await applyFirebaseDnsToVercel();
+console.log('audio.hitobito.jp DNS is configured in Vercel for direct Firebase Hosting.');
