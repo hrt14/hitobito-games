@@ -1,0 +1,86 @@
+name: Deploy audio.hitobito.jp Firebase edge
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'audio-edge/**'
+      - '.github/workflows/deploy-audio-edge.yml'
+
+concurrency:
+  group: hitobito-audio-edge-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate Firebase edge worker
+        run: |
+          set -euo pipefail
+          test -s audio-edge/_worker.js
+          node --check audio-edge/_worker.js
+          grep -F "https://hitobito-audio.web.app" audio-edge/_worker.js >/dev/null
+
+      - name: Ensure Pages project
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@latest pages project create hitobito-audio-edge --production-branch main >/tmp/pages-create.log 2>&1 || true
+          cat /tmp/pages-create.log
+
+      - name: Deploy Firebase proxy to Pages
+        run: npx --yes wrangler@latest pages deploy audio-edge --project-name hitobito-audio-edge --branch main
+
+      - name: Attach audio.hitobito.jp
+        run: |
+          set -euo pipefail
+          BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/hitobito-audio-edge/domains"
+          CURRENT="$(curl -sS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H 'Content-Type: application/json' "${BASE}/audio.hitobito.jp")"
+          if printf '%s' "$CURRENT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);process.exit(j.success&&j.result&&j.result.name?0:1)})"; then
+            printf '%s' "$CURRENT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log('Custom domain already attached:',j.result.name,'status=',j.result.status)})"
+          else
+            CREATED="$(curl -sS -X POST -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H 'Content-Type: application/json' "${BASE}" --data '{"name":"audio.hitobito.jp"}')"
+            printf '%s' "$CREATED" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('Custom domain attached:',j.result.name,'status=',j.result.status)})"
+          fi
+
+      - name: Verify custom domain
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 18); do
+            if curl -fLsS --max-time 20 "https://audio.hitobito.jp/?_verify=${GITHUB_SHA}-${attempt}" -D /tmp/audio-headers.txt -o /tmp/audio-custom.html \
+              && grep -F 'hitobito audio' /tmp/audio-custom.html >/dev/null; then
+              echo "audio.hitobito.jp is live."
+              grep -i 'x-hitobito-audio-origin' /tmp/audio-headers.txt || true
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'audio.hitobito.jp did not become reachable during verification.' >&2
+          exit 1
+
+      - name: Report audio edge status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then STATE=success; DESCRIPTION='audio.hitobito.jp live with Firebase origin'; else STATE=failure; DESCRIPTION='audio.hitobito.jp edge deployment failed'; fi
+          PAYLOAD="$(STATE="$STATE" DESCRIPTION="$DESCRIPTION" node -e "process.stdout.write(JSON.stringify({state:process.env.STATE,target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:process.env.DESCRIPTION,context:'Audio custom domain'}))")"
+          curl -fsS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" --data "$PAYLOAD"
