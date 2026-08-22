@@ -14,15 +14,12 @@ const root = process.cwd();
 const appDir = path.resolve(root, appDirArg);
 const specPath = path.join(appDir, 'SPEC.md');
 const qualityPath = path.join(appDir, 'QUALITY.md');
-
 const failures = [];
 const notes = [];
 
-function fail(message) {
-  failures.push(message);
-}
+const fail = (message) => failures.push(message);
 
-function requireFile(filePath, label) {
+function readRequired(filePath, label) {
   if (!fs.existsSync(filePath)) {
     fail(`${label} missing: ${path.relative(root, filePath)}`);
     return '';
@@ -30,13 +27,53 @@ function requireFile(filePath, label) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-function requireHeading(text, heading, label) {
-  const re = new RegExp(`^#{1,6}\\s+${heading.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*$`, 'mi');
-  if (!re.test(text)) fail(`${label} missing heading: ${heading}`);
+function linesOf(text) {
+  return String(text || '').split(/\r?\n/);
 }
 
-const spec = requireFile(specPath, 'SPEC.md');
-const quality = requireFile(qualityPath, 'QUALITY.md');
+function hasHeading(text, heading) {
+  return linesOf(text).some((line) => {
+    const match = line.match(/^#{1,6}\s+(.+?)\s*$/);
+    return match && match[1].trim() === heading;
+  });
+}
+
+function requireHeading(text, heading, label) {
+  if (!hasHeading(text, heading)) fail(`${label} missing heading: ${heading}`);
+}
+
+function sectionOf(text, heading) {
+  const lines = linesOf(text);
+  const start = lines.findIndex((line) => line.trim() === `## ${heading}`);
+  if (start < 0) return '';
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i += 1) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start + 1, end).join('\n');
+}
+
+function statusOf(section) {
+  return section.match(/^-\s*Status:\s*(PASS|FAIL|UNVERIFIED|NOT APPLICABLE|NOT REQUIRED)\s*$/mi)?.[1]?.toUpperCase() || '';
+}
+
+function evidenceOf(section) {
+  const match = section.match(/^-\s*Observed evidence:\s*(.*)$/mi);
+  return match?.[1]?.trim() || '';
+}
+
+function scoreOf(text, name) {
+  const line = linesOf(text).find((item) => item.trim().toLowerCase().startsWith(`${name.toLowerCase()}:`));
+  if (!line) return null;
+  const match = line.match(/:\s*(\d+(?:\.\d+)?)\s*\/\s*10\s*$/i);
+  return match ? Number(match[1]) : null;
+}
+
+const spec = readRequired(specPath, 'SPEC.md');
+const quality = readRequired(qualityPath, 'QUALITY.md');
 
 if (spec) {
   for (const heading of [
@@ -69,60 +106,55 @@ if (quality) {
     requireHeading(quality, heading, 'QUALITY.md');
   }
 
-  const requiredStatusSections = [
+  for (const heading of [
     'First-time clarity',
     'Main interaction',
     'Back / exit',
     'Reload',
     'Revisit',
     'Mobile readability and tap targets',
-  ];
-
-  for (const heading of requiredStatusSections) {
-    const section = quality.match(new RegExp(`^##\\s+${heading.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*$([\\s\\S]*?)(?=^##\\s+|\\Z)`, 'mi'))?.[1] || '';
-    const status = section.match(/-\s*Status:\s*(PASS|FAIL|UNVERIFIED|NOT APPLICABLE|NOT REQUIRED)/i)?.[1]?.toUpperCase();
+  ]) {
+    const section = sectionOf(quality, heading);
+    const status = statusOf(section);
     if (!status) fail(`QUALITY.md ${heading}: missing Status`);
     else if (status !== 'PASS') fail(`QUALITY.md ${heading}: completion gate requires PASS, found ${status}`);
-
-    const evidence = section.match(/-\s*Observed evidence:\s*([^\n].*)/i)?.[1]?.trim();
-    if (!evidence) fail(`QUALITY.md ${heading}: observed evidence is required`);
+    if (!evidenceOf(section)) fail(`QUALITY.md ${heading}: observed evidence is required`);
   }
 
   for (const heading of ['Wrong / failure path', 'Correct / success path']) {
-    const section = quality.match(new RegExp(`^##\\s+${heading.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*$([\\s\\S]*?)(?=^##\\s+|\\Z)`, 'mi'))?.[1] || '';
-    if (!section) continue;
-    const status = section.match(/-\s*Status:\s*(PASS|FAIL|UNVERIFIED|NOT APPLICABLE|NOT REQUIRED)/i)?.[1]?.toUpperCase();
+    if (!hasHeading(quality, heading)) continue;
+    const section = sectionOf(quality, heading);
+    const status = statusOf(section);
     if (!status) fail(`QUALITY.md ${heading}: missing Status`);
     else if (!['PASS', 'NOT APPLICABLE'].includes(status)) fail(`QUALITY.md ${heading}: found ${status}`);
-    if (status === 'PASS') {
-      const evidence = section.match(/-\s*Observed evidence:\s*([^\n].*)/i)?.[1]?.trim();
-      if (!evidence) fail(`QUALITY.md ${heading}: observed evidence is required when PASS`);
+    if (status === 'PASS' && !evidenceOf(section)) {
+      fail(`QUALITY.md ${heading}: observed evidence is required when PASS`);
     }
   }
 
-  const productionSection = quality.match(/^##\s+Production verification\s*$([\s\S]*?)(?=^##\s+|\Z)/mi)?.[1] || '';
-  const productionStatus = productionSection.match(/-\s*Status:\s*(PASS|FAIL|UNVERIFIED|NOT REQUIRED)/i)?.[1]?.toUpperCase();
+  const productionSection = sectionOf(quality, 'Production verification');
+  const productionStatus = statusOf(productionSection);
   if (!productionStatus) fail('QUALITY.md Production verification: missing Status');
-  else if (!['PASS', 'NOT REQUIRED'].includes(productionStatus)) fail(`QUALITY.md Production verification: found ${productionStatus}`);
-  if (productionStatus === 'PASS') {
-    const evidence = productionSection.match(/-\s*Observed evidence:\s*([^\n].*)/i)?.[1]?.trim();
-    if (!evidence) fail('QUALITY.md Production verification: observed evidence is required when PASS');
+  else if (!['PASS', 'NOT REQUIRED'].includes(productionStatus)) {
+    fail(`QUALITY.md Production verification: found ${productionStatus}`);
+  }
+  if (productionStatus === 'PASS' && !evidenceOf(productionSection)) {
+    fail('QUALITY.md Production verification: observed evidence is required when PASS');
   }
 
-  const scoreNames = ['Clarity', 'Usefulness', 'Interaction quality', 'Uniqueness', 'Repeat value'];
-  for (const name of scoreNames) {
-    const match = quality.match(new RegExp(`^${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}:\\s*(\\d+(?:\\.\\d+)?)\\s*\\/\\s*10\\s*$`, 'mi'));
-    if (!match) {
+  for (const name of ['Clarity', 'Usefulness', 'Interaction quality', 'Uniqueness', 'Repeat value']) {
+    const score = scoreOf(quality, name);
+    if (score === null) {
       fail(`QUALITY.md missing score: ${name}: N/10`);
       continue;
     }
-    const score = Number(match[1]);
     if (!Number.isFinite(score) || score < 0 || score > 10) fail(`${name} score must be between 0 and 10`);
     else if (score < 7) fail(`${name} score is ${score}/10; minimum is 7/10`);
     else notes.push(`${name}: ${score}/10`);
   }
 
-  const finalAnswer = quality.match(/^Answer:\s*(YES|NO|UNVERIFIED)\s*$/mi)?.[1]?.toUpperCase();
+  const finalAnswerLine = linesOf(sectionOf(quality, 'Final question')).find((line) => /^Answer:/i.test(line.trim()));
+  const finalAnswer = finalAnswerLine?.match(/^Answer:\s*(YES|NO|UNVERIFIED)\s*$/i)?.[1]?.toUpperCase() || '';
   if (!finalAnswer) fail('QUALITY.md Final question: missing `Answer: YES / NO / UNVERIFIED`');
   else if (finalAnswer !== 'YES') fail(`QUALITY.md Final question must be YES for completion, found ${finalAnswer}`);
 
