@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 
 const accessToken = process.env.FIREBASE_ACCESS_TOKEN || process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'hitobito-levelup';
@@ -91,15 +90,12 @@ async function synthesize(text, voiceName) {
   return Buffer.from(body.audioContent, 'base64');
 }
 
-function concatMp3(parts, output, tempDir) {
+function concatMp3(parts, output) {
   if (parts.length === 1) {
     fs.copyFileSync(parts[0], output);
     return;
   }
-  const listPath = path.join(tempDir, 'concat.txt');
-  fs.writeFileSync(listPath, parts.map(p => `file '${path.resolve(p).replaceAll("'", "'\\''")}'`).join('\n'));
-  const result = spawnSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', listPath, '-c', 'copy', output], { encoding: 'utf8' });
-  if (result.status !== 0) throw new Error(`ffmpeg concat failed: ${result.stderr || result.stdout}`);
+  fs.writeFileSync(output, Buffer.concat(parts.map(part => fs.readFileSync(part))));
 }
 
 const manifest = {
@@ -116,8 +112,7 @@ for (const voice of voices) {
   fs.mkdirSync(voiceDir, { recursive: true });
   console.log(`Generating ${voice.label} / ${voice.name}`);
 
-  for (let i = 0; i < book.chapters.length; i++) {
-    const chapter = book.chapters[i];
+  for (const chapter of book.chapters) {
     const chunks = splitForTts(chapter.text);
     const tempDir = path.join(outRoot, '.tmp', voice.key, chapter.id);
     fs.mkdirSync(tempDir, { recursive: true });
@@ -131,7 +126,7 @@ for (const voice of voices) {
     }
 
     const outputPath = path.join(voiceDir, `${chapter.id}.mp3`);
-    concatMp3(parts, outputPath, tempDir);
+    concatMp3(parts, outputPath);
     manifest.chapters[chapter.id] ||= {};
     manifest.chapters[chapter.id][voice.key] = `/${outputPath.replace(/^audio-site\//, '').replaceAll('\\', '/')}`;
   }
