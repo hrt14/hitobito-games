@@ -1,0 +1,44 @@
+name: Ryoma Firebase bundle gate
+
+on:
+  pull_request:
+    paths:
+      - 'apps/ryoma-big-picture/**'
+      - 'scripts/register-ryoma-big-picture-meta.mjs'
+      - 'scripts/inject-ryoma-big-picture-card.mjs'
+      - 'scripts/inject-ryoma-big-picture-book-card.mjs'
+      - 'package.json'
+      - '.github/workflows/ryoma-firebase-build.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/ryoma-big-picture/**'
+      - 'scripts/register-ryoma-big-picture-meta.mjs'
+      - 'scripts/inject-ryoma-big-picture-card.mjs'
+      - 'scripts/inject-ryoma-big-picture-book-card.mjs'
+      - '.github/workflows/ryoma-firebase-build.yml'
+  workflow_dispatch:
+
+jobs:
+  firebase-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm install
+      - name: Build full Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify Ryoma production assets and card
+        run: |
+          set -euo pipefail
+          test -s .dist/firebase/apps/ryoma-big-picture/index.html
+          test -s .dist/firebase/apps/ryoma-big-picture/app.js
+          grep -F '目先のことで頭がいっぱいになる人の 坂本龍馬に学ぶ「大きく考える」練習' .dist/firebase/index.html >/dev/null
+          grep -F 'class="book-obi">目的・時間・人・手段を広げてから、盤面を変える一手を選ぶ。' .dist/firebase/index.html >/dev/null
+          grep -F 'ryoma-big-picture' .dist/firebase/levelup-catalog.json >/dev/null
+          echo 'Ryoma Firebase bundle verified.'
