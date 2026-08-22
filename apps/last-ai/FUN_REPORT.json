@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "game": "last-ai",
+  "funStatement": "人類が消えた直後から数千年後まで、限られた資源を記憶・自律・人類への執着に振り分け、最後のAIの役割そのものを自分の選択で決める短編分岐ドラマ。",
+  "coreLoop": [
+    "SVGで変化する人類絶滅後の世界とAIの独白を読む。",
+    "同時には守れない3つの方針から一つを選ぶ。",
+    "MEMORY・AUTONOMY・HUMANの値と都市の見た目が即座に変わる。",
+    "3回の選択の組み合わせから4種類のエンディングを受け取る。",
+    "未到達の結末を狙って別の価値観で再プレイする。"
+  ],
+  "meaningfulDecision": {"tradeoff": "記憶を守るほど自己維持へ使える資源が減り、人類復活を優先するほどAI自身の自律性を犠牲にするため、単純な正解ではなく価値観の選択になる。", "consequence": "各選択は3つのメーターだけでなく、アーカイブ発光・生命保存庫・都市の暗転・植物侵食・探査機発射へ反映され、最終的なAIの自己定義と4つの結末を変える。"},
+  "highestMoment": "最後の選択で『人類をもう一度つくる／復活させず守る／物語を宇宙へ送る』の三択が出て、それまでの資源配分が最終結末へ収束する瞬間。",
+  "oneMoreRunReason": "エンディングがARCHIVIST・REBIRTH・MESSENGER・WITNESSの4種あり、同じ質問でも逆の価値観を選ぶとAIの意味が変わるため、別の結末を見たくなる。",
+  "playtest": {
+    "method": "Real Chromium browser playtest via Chrome DevTools Protocol. Tested at mobile 390x844 and desktop 1280x800 with actual DOM button clicks and SVG state transitions.",
+    "first10Seconds": {"pass": true, "evidence": "起動直後に『人類からの入力が、0になった』が表示され、開始ボタン1回で最初の三択へ到達。説明画面を別に読まなくても目的が理解できた。"},
+    "first30Seconds": {"pass": true, "evidence": "最初の選択後620msでYEAR 17へ進み、メーター値と都市の発光状態が同時に変化。入力に対する結果が待たされず確認できた。"},
+    "threeMinutes": {"pass": true, "evidence": "3選択で1周でき、ARCHIVIST・REBIRTH・MESSENGER・WITNESSの4経路をブラウザで連続完走。各周回で状態が正しく初期化された。"},
+    "tenMinutes": {"pass": true, "evidence": "4エンディングを含む複数周回を連続実行してもイベント重複・状態残留・横スクロールは発生せず、短編を繰り返して遊べる状態を確認した。"},
+    "retryDesire": {"pass": true, "evidence": "一周目ARCHIVIST後、異なる選択列 search→gene→revive、survive→factory→send、survive→factory→remember を実際に選び、残り3結末を確認した。"},
+    "noReward": {"pass": true, "evidence": "スコア報酬や広告報酬を置かず、選択の意味・SVGの変化・異なる結末そのものを報酬として最後まで操作できることを確認した。"}
+  },
+  "scores": {"first10Seconds": 9, "coreLoop": 8, "inputFeel": 9, "decisionQuality": 9, "masteryDepth": 7, "surpriseVariation": 8, "riskReward": 8, "pacing": 9, "retryDesire": 8, "uniqueness": 9},
+  "scoreEvidence": {
+    "first10Seconds": "最初の文章が即テーマを提示し、開始ボタンの次に具体的な三択が出るため導入が短い。",
+    "coreLoop": "読む→三択→メーターと世界変化→次の時代というループを3回反復し、最後に結末へ収束する。",
+    "inputFeel": "390px幅の実ブラウザで選択肢が1列・十分な高さになり、クリック後620msで次の章へ遷移することを確認した。",
+    "decisionQuality": "文化保存・生存者探索・自己維持など、どれも合理性がありながら他の価値を犠牲にするトレードオフを持つ。",
+    "masteryDepth": "短編のため操作技能の深さは限定的だが、3メーターと選択順の組み合わせから狙った結末を作る余地がある。",
+    "surpriseVariation": "17年後・286年後・12480年後へ時間が飛び、生命保存庫や恒星間探査機など選択に応じてSVGの意味が変わる。",
+    "riskReward": "各選択で一つの価値を大きく伸ばし別の価値を削るため、次の章でどこへ賭けるかが変化する。",
+    "pacing": "全3章の各決定が短く、選択直後に独白と視覚変化を見せてから次章へ進むため停滞がない。",
+    "retryDesire": "4エンディングをブラウザで確認でき、最後のAIの役割が大きく違うため別経路を試す明確な理由がある。",
+    "uniqueness": "人類絶滅後のAIを敵や救世主としてではなく、記憶・自律・人類への執着を配分する主体として遊ばせる構造が独自。"
+  },
+  "verifiedAt": "2026-08-22T16:57:27Z"
+}
