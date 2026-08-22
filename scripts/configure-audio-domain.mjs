@@ -7,12 +7,13 @@ const vercelToken = process.env.VERCEL_TOKEN;
 const vercelTeamId = process.env.VERCEL_TEAM_ID || 'team_vCUqyPcmj2xuDuBM7f7aOiMQ';
 
 if (!firebaseToken) throw new Error('FIREBASE_ACCESS_TOKEN is missing');
-if (!vercelToken) throw new Error('VERCEL_TOKEN is missing');
 
 const fbHeaders = { Authorization: `Bearer ${firebaseToken}`, 'Content-Type': 'application/json' };
-const vercelHeaders = { Authorization: `Bearer ${vercelToken}`, 'Content-Type': 'application/json' };
+const vercelHeaders = vercelToken
+  ? { Authorization: `Bearer ${vercelToken}`, 'Content-Type': 'application/json' }
+  : null;
 const fbBase = `https://firebasehosting.googleapis.com/v1beta1/projects/${projectId}/sites/${siteId}/customDomains`;
-const vercelBase = `https://api.vercel.com`;
+const vercelBase = 'https://api.vercel.com';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function jsonFetch(url, options = {}, allow = []) {
@@ -28,53 +29,77 @@ async function jsonFetch(url, options = {}, allow = []) {
 
 async function ensureCustomDomain() {
   const result = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
-  if (result.response.status === 404) {
-    console.log(`Creating Firebase custom domain ${customDomain}`);
-    await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, {
-      method: 'POST', headers: fbHeaders, body: '{}'
-    });
-    await sleep(3000);
-  } else {
+  if (result.response.status !== 404) {
     console.log(`Firebase custom domain already exists: ${customDomain}`);
+    return;
   }
+  console.log(`Creating Firebase custom domain ${customDomain}`);
+  await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, {
+    method: 'POST', headers: fbHeaders, body: '{}'
+  });
+  await sleep(3000);
 }
 
-function cleanName(value) {
-  return String(value || '').trim().replace(/\.$/, '');
+function clean(value) {
+  return String(value ?? '').trim().replace(/\.$/, '');
 }
 
-function relativeName(value) {
-  const clean = cleanName(value).toLowerCase();
+function relativeName(domainName) {
+  const value = clean(domainName).toLowerCase();
   const apex = apexDomain.toLowerCase();
-  if (!clean || clean === apex) return '';
-  if (clean.endsWith(`.${apex}`)) return clean.slice(0, -(apex.length + 1));
-  return clean;
+  if (!value || value === apex) return '';
+  return value.endsWith(`.${apex}`) ? value.slice(0, -(apex.length + 1)) : value;
 }
 
 function normalizeTxt(value) {
-  const v = String(value ?? '').trim();
-  return v.length >= 2 && v.startsWith('"') && v.endsWith('"')
-    ? v.slice(1, -1).replace(/\\"/g, '"')
-    : v;
+  const text = String(value ?? '').trim();
+  return text.length >= 2 && text.startsWith('"') && text.endsWith('"')
+    ? text.slice(1, -1).replace(/\\"/g, '"')
+    : text;
 }
 
 function normalizeValue(type, value) {
-  if (type === 'TXT') return normalizeTxt(value);
-  return cleanName(value);
+  return type === 'TXT' ? normalizeTxt(value) : clean(value);
 }
 
-function desiredFromFirebase(record) {
+function firebaseRecord(record) {
   if (!record?.type || !record?.domainName || record.rdata == null) return null;
   const type = String(record.type).toUpperCase();
-  if (!['A', 'AAAA', 'CNAME', 'TXT', 'CAA'].includes(type)) {
-    console.log(`Skipping unsupported Firebase DNS type ${type}: ${JSON.stringify(record)}`);
-    return null;
-  }
+  if (!['A', 'AAAA', 'CNAME', 'TXT', 'CAA'].includes(type)) return null;
   return {
     type,
     name: relativeName(record.domainName),
     value: normalizeValue(type, record.rdata),
+    requiredAction: record.requiredAction,
   };
+}
+
+async function getFirebaseDomain() {
+  const { body } = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders });
+  return body;
+}
+
+function printFirebaseRequirements(domain) {
+  const updates = domain?.requiredDnsUpdates || {};
+  const desired = (updates.desired || [])
+    .flatMap(set => set.records || [])
+    .map(firebaseRecord)
+    .filter(Boolean);
+  const discovered = (updates.discovered || [])
+    .flatMap(set => set.records || [])
+    .map(firebaseRecord)
+    .filter(Boolean);
+
+  console.log('Firebase custom-domain state:');
+  console.log(JSON.stringify({
+    hostState: domain?.hostState || null,
+    ownershipState: domain?.ownershipState || null,
+    certState: domain?.cert?.state || null,
+    desired,
+    discovered,
+    issues: domain?.issues || [],
+  }, null, 2));
+  return { desired, discovered };
 }
 
 async function listVercelRecords() {
@@ -83,125 +108,77 @@ async function listVercelRecords() {
   return body?.records || [];
 }
 
-function vercelRecordId(record) {
+function recordId(record) {
   return record?.uid || record?.id;
 }
 
-function vercelRecordName(record) {
-  return relativeName(record?.name || '');
-}
-
-function sameRecord(record, desired) {
-  return String(record?.type || '').toUpperCase() === desired.type
-    && vercelRecordName(record) === desired.name
-    && normalizeValue(desired.type, record?.value) === desired.value;
+function sameRecord(record, wanted) {
+  return String(record?.type || '').toUpperCase() === wanted.type
+    && relativeName(record?.name || '') === wanted.name
+    && normalizeValue(wanted.type, record?.value) === wanted.value;
 }
 
 async function deleteVercelRecord(record) {
-  const id = vercelRecordId(record);
-  if (!id) throw new Error(`Vercel DNS record has no id: ${JSON.stringify(record)}`);
+  const id = recordId(record);
+  if (!id) return;
   const url = `${vercelBase}/v2/domains/${encodeURIComponent(apexDomain)}/records/${encodeURIComponent(id)}?teamId=${encodeURIComponent(vercelTeamId)}`;
   await jsonFetch(url, { method: 'DELETE', headers: vercelHeaders });
   console.log(`Removed Vercel DNS ${record.type} ${record.name || '@'} ${record.value || ''}`);
 }
 
-async function createVercelRecord(desired) {
-  const url = `${vercelBase}/v2/domains/${encodeURIComponent(apexDomain)}/records?teamId=${encodeURIComponent(vercelTeamId)}`;
-  const payload = {
-    type: desired.type,
-    name: desired.name,
-    value: desired.value,
-    ttl: 60,
-    comment: 'Firebase Hosting: audio.hitobito.jp',
-  };
-  await jsonFetch(url, { method: 'POST', headers: vercelHeaders, body: JSON.stringify(payload) });
-  console.log(`Added Vercel DNS ${desired.type} ${desired.name || '@'} ${desired.value}`);
-}
-
-async function ensureVercelRecord(desired) {
+async function ensureVercelRecord(wanted) {
   let records = await listVercelRecords();
-  if (records.some(record => sameRecord(record, desired))) {
-    console.log(`Vercel DNS already present: ${desired.type} ${desired.name || '@'} ${desired.value}`);
+  if (records.some(record => sameRecord(record, wanted))) {
+    console.log(`Vercel DNS already present: ${wanted.type} ${wanted.name || '@'} ${wanted.value}`);
     return;
   }
 
-  if (['A', 'AAAA', 'CNAME'].includes(desired.type)) {
+  if (['A', 'AAAA', 'CNAME'].includes(wanted.type)) {
     const conflicts = records.filter(record =>
-      vercelRecordName(record) === desired.name
+      relativeName(record?.name || '') === wanted.name
       && ['A', 'AAAA', 'CNAME'].includes(String(record?.type || '').toUpperCase())
     );
     for (const conflict of conflicts) await deleteVercelRecord(conflict);
   }
 
-  await createVercelRecord(desired);
+  const url = `${vercelBase}/v2/domains/${encodeURIComponent(apexDomain)}/records?teamId=${encodeURIComponent(vercelTeamId)}`;
+  await jsonFetch(url, {
+    method: 'POST',
+    headers: vercelHeaders,
+    body: JSON.stringify({
+      type: wanted.type,
+      name: wanted.name,
+      value: wanted.value,
+      ttl: 60,
+      comment: 'Firebase Hosting: audio.hitobito.jp',
+    }),
+  });
+  console.log(`Added Vercel DNS ${wanted.type} ${wanted.name || '@'} ${wanted.value}`);
 }
 
-async function removeFirebaseRequestedRecord(record) {
-  const desired = desiredFromFirebase(record);
-  if (!desired) return;
-  const records = await listVercelRecords();
-  for (const existing of records.filter(item => sameRecord(item, desired))) {
-    await deleteVercelRecord(existing);
-  }
-}
-
-async function logLevelupAndAudioRecords() {
-  const records = await listVercelRecords();
-  const selected = records
-    .filter(record => ['levelup', 'audio'].includes(vercelRecordName(record)))
-    .map(record => ({
-      id: vercelRecordId(record),
-      name: record.name,
-      type: record.type,
-      value: record.value,
-      ttl: record.ttl,
-    }));
-  console.log('Vercel DNS comparison (LEVEL UP / audio):');
-  console.log(JSON.stringify(selected, null, 2));
-}
-
-async function applyFirebaseDnsToVercel() {
-  await logLevelupAndAudioRecords();
-
-  // Firebase Hosting's standard custom-domain address. This exact record overrides
-  // any Vercel wildcard record that previously made audio.hitobito.jp return Vercel 404.
+async function applyToVercel(requirements) {
+  // Exact A record beats the Vercel wildcard that currently sends audio.hitobito.jp to a Vercel 404.
   await ensureVercelRecord({ type: 'A', name: 'audio', value: '199.36.158.100' });
 
-  for (let attempt = 1; attempt <= 8; attempt++) {
-    const { response, body: domain } = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
-    if (response.status === 404) {
-      await sleep(3000);
-      continue;
-    }
-
-    const updates = domain?.requiredDnsUpdates || {};
-    const discovered = (updates.discovered || []).flatMap(set => set.records || []);
-    const desired = (updates.desired || []).flatMap(set => set.records || []);
-
-    for (const record of discovered.filter(r => r.requiredAction === 'REMOVE')) {
-      await removeFirebaseRequestedRecord(record);
-    }
-    for (const record of desired.filter(r => r.requiredAction === 'ADD')) {
-      const target = desiredFromFirebase(record);
-      if (target) await ensureVercelRecord(target);
-    }
-
-    console.log(`Firebase domain status: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'}`);
-    if (domain?.hostState === 'HOST_ACTIVE' && domain?.ownershipState === 'OWNERSHIP_ACTIVE') break;
-    if (desired.length) break;
-    await sleep(3000);
+  for (const record of requirements.desired.filter(r => r.requiredAction === 'ADD')) {
+    await ensureVercelRecord(record);
   }
 
-  await logLevelupAndAudioRecords();
-
-  for (let attempt = 1; attempt <= 12; attempt++) {
-    const { body: domain } = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders });
-    console.log(`Firebase propagation check ${attempt}: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'}`);
-    if (domain?.hostState === 'HOST_ACTIVE' && domain?.ownershipState === 'OWNERSHIP_ACTIVE') return;
-    await sleep(10000);
-  }
+  const current = await listVercelRecords();
+  console.log('Vercel audio/levelup DNS records:');
+  console.log(JSON.stringify(current
+    .filter(record => ['audio', 'levelup'].includes(relativeName(record?.name || '')))
+    .map(record => ({ name: record.name, type: record.type, value: record.value, ttl: record.ttl })), null, 2));
 }
 
 await ensureCustomDomain();
-await applyFirebaseDnsToVercel();
+const domain = await getFirebaseDomain();
+const requirements = printFirebaseRequirements(domain);
+
+if (!vercelToken) {
+  console.log('VERCEL_TOKEN is not configured. Firebase DNS requirements were reported; Vercel DNS write was skipped.');
+  process.exit(0);
+}
+
+await applyToVercel(requirements);
 console.log('audio.hitobito.jp DNS is configured in Vercel for direct Firebase Hosting.');
