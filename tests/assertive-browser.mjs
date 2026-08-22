@@ -10,9 +10,9 @@ fs.mkdirSync(outputDir, { recursive: true });
 async function dismissReflexes(page) {
   const cards = page.locator('.reflex-card');
   assert.equal(await cards.count(), 2, 'two reflex cards should be visible');
-  await cards.nth(0).click();
-  await page.waitForTimeout(80);
   await cards.nth(1).click();
+  await page.waitForTimeout(120);
+  await cards.nth(0).click();
   await page.locator('#buildStage:not(.hidden)').waitFor();
 }
 
