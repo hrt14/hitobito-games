@@ -5,18 +5,24 @@ on:
     paths:
       - 'apps/ryoma-big-picture/**'
       - '.github/workflows/ryoma-big-picture-browser.yml'
+      - 'scripts/register-ryoma-big-picture-meta.mjs'
+      - 'scripts/inject-ryoma-big-picture-card.mjs'
+      - 'package.json'
   push:
     branches:
       - main
     paths:
       - 'apps/ryoma-big-picture/**'
       - '.github/workflows/ryoma-big-picture-browser.yml'
+      - 'scripts/register-ryoma-big-picture-meta.mjs'
+      - 'scripts/inject-ryoma-big-picture-card.mjs'
+      - 'package.json'
   workflow_dispatch:
 
 jobs:
   mobile-playtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,6 +49,15 @@ jobs:
         run: node apps/ryoma-big-picture/smoke-browser.mjs
       - name: Run LEVEL UP quality gate
         run: node scripts/validate-levelup-quality-gate.mjs --app apps/ryoma-big-picture
+      - name: Build Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify Ryoma in Firebase bundle and home catalog
+        run: |
+          test -f .dist/firebase/apps/ryoma-big-picture/index.html
+          grep -q '目先に振り回されない' .dist/firebase/apps/ryoma-big-picture/index.html
+          grep -q 'ryoma-big-picture' .dist/firebase/levelup-catalog.json
+          grep -q '目先に振り回されない' .dist/firebase/index.html
+          grep -q '対立・失敗・数字悪化' .dist/firebase/index.html
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
