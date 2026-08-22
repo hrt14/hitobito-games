@@ -1,0 +1,104 @@
+name: Deploy hitobito audio to Firebase Hosting
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'audio-site/**'
+      - 'firebase.audio.json'
+      - 'scripts/configure-audio-domain.mjs'
+      - '.github/workflows/deploy-firebase-audio.yml'
+
+concurrency:
+  group: firebase-hitobito-audio-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+          token_format: access_token
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate audiobook bundle
+        run: |
+          set -euo pipefail
+          test -s audio-site/index.html
+          test -s audio-site/styles.css
+          test -s audio-site/app.js
+          test -s audio-site/books/shigoto-baisoku-kyokasho/book.json
+          node --check audio-site/app.js
+          node - <<'NODE'
+          const fs = require('fs');
+          const book = JSON.parse(fs.readFileSync('audio-site/books/shigoto-baisoku-kyokasho/book.json', 'utf8'));
+          if (book.title !== '仕事を倍速化する教科書') throw new Error('Unexpected first book title');
+          if (!Array.isArray(book.chapters) || book.chapters.length !== 17) throw new Error('Expected 17 audiobook chapters');
+          if (!book.chapters.every(ch => ch.title && ch.text)) throw new Error('Chapter data is incomplete');
+          console.log(`Audiobook validated: ${book.title}, ${book.chapters.length} chapters`);
+          NODE
+
+      - name: Ensure dedicated Firebase Hosting site and target
+        run: |
+          set -euo pipefail
+          if ! npx --yes firebase-tools@latest hosting:sites:get hitobito-audio --project hitobito-levelup --non-interactive >/dev/null 2>&1; then
+            npx --yes firebase-tools@latest hosting:sites:create hitobito-audio --project hitobito-levelup --non-interactive
+          fi
+          npx --yes firebase-tools@latest target:apply hosting audio hitobito-audio --project hitobito-levelup
+
+      - name: Deploy hitobito audio
+        run: npx --yes firebase-tools@latest deploy --config firebase.audio.json --only hosting:audio --project hitobito-levelup --non-interactive
+
+      - name: Verify Firebase default domain
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 8); do
+            if curl -fLsS --max-time 20 "https://hitobito-audio.web.app/?_verify=${GITHUB_SHA}-${attempt}" -o /tmp/audio-home.html \
+              && grep -F 'hitobito audio' /tmp/audio-home.html >/dev/null \
+              && curl -fLsS --max-time 20 'https://hitobito-audio.web.app/books/shigoto-baisoku-kyokasho/book.json' -o /tmp/audio-book.json \
+              && node -e "const b=require('/tmp/audio-book.json');if(b.title!=='仕事を倍速化する教科書'||b.chapters.length!==17)process.exit(1)"; then
+              echo "Firebase default domain is live."
+              exit 0
+            fi
+            sleep 4
+          done
+          echo 'Firebase default domain verification failed.' >&2
+          exit 1
+
+      - name: Configure audio.hitobito.jp on Firebase and Cloudflare DNS
+        env:
+          FIREBASE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/configure-audio-domain.mjs
+
+      - name: Report custom-domain status
+        continue-on-error: true
+        env:
+          FIREBASE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          curl -fsS -H "Authorization: Bearer ${FIREBASE_ACCESS_TOKEN}" \
+            "https://firebasehosting.googleapis.com/v1beta1/projects/hitobito-levelup/sites/hitobito-audio/customDomains/audio.hitobito.jp" \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log(JSON.stringify({hostState:j.hostState,ownershipState:j.ownershipState,certState:j.cert&&j.cert.state,reconciling:j.reconciling,issues:j.issues||[]},null,2))})"
+
+      - name: Check custom domain when ready
+        continue-on-error: true
+        run: curl -fLsS --max-time 20 'https://audio.hitobito.jp/' | grep -F 'hitobito audio'
