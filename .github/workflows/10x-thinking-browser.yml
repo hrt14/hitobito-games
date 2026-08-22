@@ -41,6 +41,8 @@ jobs:
         env:
           TENX_URL: http://127.0.0.1:4173/apps/10x-thinking/?test=1
         run: node apps/10x-thinking/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/10x-thinking
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
