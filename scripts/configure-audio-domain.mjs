@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+
 const projectId = 'hitobito-levelup';
 const siteId = 'hitobito-audio';
 const customDomain = 'audio.hitobito.jp';
@@ -12,7 +14,6 @@ if (!cloudflareToken) throw new Error('CLOUDFLARE_API_TOKEN is missing');
 const fbHeaders = { Authorization: `Bearer ${firebaseToken}`, 'Content-Type': 'application/json' };
 const cfHeaders = { Authorization: `Bearer ${cloudflareToken}`, 'Content-Type': 'application/json' };
 const fbBase = `https://firebasehosting.googleapis.com/v1beta1/projects/${projectId}/sites/${siteId}/customDomains`;
-
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function jsonFetch(url, options = {}, allow = []) {
@@ -30,9 +31,7 @@ async function ensureCustomDomain() {
   const result = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
   if (result.response.status === 404) {
     console.log(`Creating Firebase custom domain ${customDomain}`);
-    await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, {
-      method: 'POST', headers: fbHeaders, body: '{}'
-    });
+    await jsonFetch(`${fbBase}?customDomainId=${encodeURIComponent(customDomain)}`, { method: 'POST', headers: fbHeaders, body: '{}' });
     await sleep(3000);
   } else {
     console.log(`Firebase custom domain already exists: ${customDomain}`);
@@ -46,24 +45,7 @@ async function getZoneId() {
     console.log('Resolved Cloudflare zone through zone listing.');
     return zone.id;
   }
-
-  if (cloudflareAccountId) {
-    const knownPagesDomains = [
-      ['hitobito-games-normal', 'play.hitobito.jp'],
-      ['hitobito-games-normal', 'games.hitobito.jp']
-    ];
-    for (const [project, domain] of knownPagesDomains) {
-      const url = `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/pages/projects/${project}/domains/${domain}`;
-      const result = await jsonFetch(url, { headers: cfHeaders }, [404, 403]);
-      const zoneTag = result.body?.result?.zone_tag || result.body?.result?.zone_id;
-      if (result.body?.success && zoneTag) {
-        console.log(`Resolved Cloudflare zone through Pages domain ${domain}.`);
-        return zoneTag;
-      }
-    }
-  }
-
-  throw new Error(`Cloudflare zone ID could not be resolved for ${apexDomain}; token cannot list zones and no Pages domain exposed zone_tag`);
+  throw new Error('Cloudflare token does not have Zone Read access, so direct Firebase DNS cannot be configured automatically.');
 }
 
 async function listRecords(zoneId, name) {
@@ -97,9 +79,7 @@ function cfPayload(record) {
 function sameRecord(existing, desired) {
   if (existing.type !== desired.type || existing.name !== desired.name) return false;
   if (desired.type === 'CAA') {
-    return Number(existing.data?.flags ?? existing.flags ?? -1) === desired.data.flags &&
-      String(existing.data?.tag ?? existing.tag ?? '') === desired.data.tag &&
-      String(existing.data?.value ?? existing.value ?? '') === desired.data.value;
+    return Number(existing.data?.flags ?? existing.flags ?? -1) === desired.data.flags && String(existing.data?.tag ?? existing.tag ?? '') === desired.data.tag && String(existing.data?.value ?? existing.value ?? '') === desired.data.value;
   }
   const existingContent = desired.type === 'TXT' ? normalizeTxt(existing.content) : String(existing.content || '').replace(/\.$/, '');
   return existingContent === desired.content;
@@ -112,25 +92,19 @@ async function deleteRecord(zoneId, record) {
 
 async function ensureRecord(zoneId, desiredRecord) {
   const payload = cfPayload(desiredRecord);
-  if (!payload) { console.log(`Skipping unsupported DNS value: ${JSON.stringify(desiredRecord)}`); return; }
+  if (!payload) return;
   const existing = await listRecords(zoneId, payload.name);
-  if (existing.some(r => sameRecord(r, payload))) {
-    console.log(`DNS already present: ${payload.type} ${payload.name}`);
-    return;
-  }
+  if (existing.some(r => sameRecord(r, payload))) return;
   if (['A', 'AAAA', 'CNAME'].includes(payload.type)) {
     for (const conflict of existing.filter(r => ['A', 'AAAA', 'CNAME'].includes(r.type))) await deleteRecord(zoneId, conflict);
   }
-  const { body } = await jsonFetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`, {
-    method: 'POST', headers: cfHeaders, body: JSON.stringify(payload)
-  });
+  const { body } = await jsonFetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`, { method: 'POST', headers: cfHeaders, body: JSON.stringify(payload) });
   if (!body?.success) throw new Error(`Cloudflare failed to create ${payload.type} ${payload.name}: ${JSON.stringify(body?.errors)}`);
-  console.log(`Added DNS ${payload.type} ${payload.name} ${payload.content || JSON.stringify(payload.data)}`);
+  console.log(`Added DNS ${payload.type} ${payload.name}`);
 }
 
 async function applyFirebaseDns(zoneId) {
   await ensureRecord(zoneId, { type: 'A', domainName: customDomain, rdata: '199.36.158.100', requiredAction: 'ADD' });
-
   for (let attempt = 1; attempt <= 6; attempt++) {
     const { response, body: domain } = await jsonFetch(`${fbBase}/${customDomain}`, { headers: fbHeaders }, [404]);
     if (response.status === 404) { await sleep(3000); continue; }
@@ -138,19 +112,60 @@ async function applyFirebaseDns(zoneId) {
     const discovered = (updates.discovered || []).flatMap(set => set.records || []);
     const desired = (updates.desired || []).flatMap(set => set.records || []);
     for (const record of discovered.filter(r => r.requiredAction === 'REMOVE')) {
-      const name = String(record.domainName || customDomain).replace(/\.$/, '');
-      const existing = await listRecords(zoneId, name);
+      const existing = await listRecords(zoneId, String(record.domainName || customDomain).replace(/\.$/, ''));
       const payload = cfPayload(record);
       for (const match of existing.filter(r => payload && sameRecord(r, payload))) await deleteRecord(zoneId, match);
     }
     for (const record of desired.filter(r => r.requiredAction === 'ADD')) await ensureRecord(zoneId, record);
-    console.log(`Firebase domain status: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'} reconciling=${Boolean(domain?.reconciling)}`);
+    console.log(`Firebase domain status: host=${domain?.hostState || 'unknown'} ownership=${domain?.ownershipState || 'unknown'} cert=${domain?.cert?.state || 'unknown'}`);
     if (domain?.hostState === 'HOST_ACTIVE' && domain?.ownershipState === 'OWNERSHIP_ACTIVE') break;
     if (desired.length) break;
     await sleep(3000);
   }
 }
 
+function runWrangler(args, allowFailure = false) {
+  try {
+    execFileSync('npx', ['--yes', 'wrangler@latest', ...args], { stdio: 'inherit', env: process.env });
+    return true;
+  } catch (error) {
+    if (allowFailure) return false;
+    throw error;
+  }
+}
+
+async function configurePagesEdge() {
+  if (!cloudflareAccountId) throw new Error('CLOUDFLARE_ACCOUNT_ID is missing for Pages fallback.');
+  console.log('Using Cloudflare Pages as a transparent edge for the Firebase origin.');
+  runWrangler(['pages', 'project', 'create', 'hitobito-audio-edge', '--production-branch', 'main'], true);
+  runWrangler(['pages', 'deploy', 'audio-edge', '--project-name', 'hitobito-audio-edge', '--branch', 'main']);
+
+  const base = `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/pages/projects/hitobito-audio-edge/domains`;
+  let current = await jsonFetch(`${base}/${customDomain}`, { headers: cfHeaders }, [404]);
+  if (current.response.status === 404 || !current.body?.success || !current.body?.result?.name) {
+    const created = await jsonFetch(base, { method: 'POST', headers: cfHeaders, body: JSON.stringify({ name: customDomain }) });
+    if (!created.body?.success) throw new Error(`Could not attach Pages custom domain: ${JSON.stringify(created.body?.errors || created.body)}`);
+    console.log(`Pages custom domain attached: ${created.body.result?.name || customDomain}; status=${created.body.result?.status || 'unknown'}`);
+  } else {
+    console.log(`Pages custom domain already attached: ${current.body.result.name}; status=${current.body.result.status || 'unknown'}`);
+  }
+
+  for (let attempt = 1; attempt <= 8; attempt++) {
+    current = await jsonFetch(`${base}/${customDomain}`, { headers: cfHeaders }, [404]);
+    const status = current.body?.result?.status || 'unknown';
+    console.log(`Pages custom domain status: ${status}`);
+    if (status === 'active') break;
+    await sleep(4000);
+  }
+}
+
 await ensureCustomDomain();
-const zoneId = await getZoneId();
-await applyFirebaseDns(zoneId);
+try {
+  const zoneId = await getZoneId();
+  await applyFirebaseDns(zoneId);
+  console.log('audio.hitobito.jp configured directly for Firebase Hosting.');
+} catch (error) {
+  console.log(`Direct Firebase DNS path unavailable: ${error.message}`);
+  await configurePagesEdge();
+  console.log('audio.hitobito.jp configured through Cloudflare Pages with Firebase as origin.');
+}
