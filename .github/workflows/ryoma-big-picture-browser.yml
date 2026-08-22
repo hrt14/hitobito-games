@@ -41,6 +41,8 @@ jobs:
         env:
           RYOMA_URL: http://127.0.0.1:4173/apps/ryoma-big-picture/
         run: node apps/ryoma-big-picture/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/ryoma-big-picture
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
