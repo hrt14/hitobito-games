@@ -89,7 +89,7 @@ async function completeRound(page, index) {
 async function runDesktop(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
   assert.equal(await page.title(), '言いたいことを、ちゃんと言える。 | LEVEL UP');
   await page.locator('h1').first().waitFor();
   assert.match(await page.locator('#homeView').innerText(), /断る。頼む。反対する。/);
@@ -105,7 +105,7 @@ async function runDesktop(browser) {
   assert.equal(stored.sessions, 1, 'completed session should persist');
   await page.screenshot({ path: path.join(outputDir, 'desktop-result.png'), fullPage: true });
 
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.locator('#homeView.active').waitFor();
   assert.equal(await page.locator('#homeStats').isVisible(), true, 'revisit should surface prior progress');
   assert.match(await page.locator('#homeStats').innerText(), /累計 1セッション/);
@@ -124,7 +124,8 @@ async function runMobile(browser) {
     hasTouch: true,
   });
   const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.locator('#startBtn').waitFor();
   const dimensions = await page.evaluate(() => ({
     width: innerWidth,
     scrollWidth: document.documentElement.scrollWidth,
