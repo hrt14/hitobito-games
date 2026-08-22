@@ -118,8 +118,7 @@ for (const voice of voices) {
 
   for (let i = 0; i < book.chapters.length; i++) {
     const chapter = book.chapters[i];
-    const text = `${chapter.title}\n${chapter.text}`;
-    const chunks = splitForTts(text);
+    const chunks = splitForTts(chapter.text);
     const tempDir = path.join(outRoot, '.tmp', voice.key, chapter.id);
     fs.mkdirSync(tempDir, { recursive: true });
     const parts = [];
