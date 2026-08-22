@@ -28,6 +28,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Mark Firebase audio deployment pending
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PAYLOAD="$(node -e "process.stdout.write(JSON.stringify({state:'pending',target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:'Deploying hitobito audio to Firebase Hosting',context:'Firebase Hosting - audio'}))")"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            --data "$PAYLOAD"
+
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v3
@@ -42,7 +54,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Validate audiobook source bundle
+      - name: Validate audiobook bundle
         run: |
           set -euo pipefail
           test -s audio-site/index.html
@@ -53,7 +65,14 @@ jobs:
           test -s scripts/generate-audiobook-tts.mjs
           node --check audio-site/app.js
           node --check scripts/generate-audiobook-tts.mjs
-          node --check scripts/configure-audio-domain.mjs
+          node - <<'NODE'
+          const fs = require('fs');
+          const book = JSON.parse(fs.readFileSync('audio-site/books/shigoto-baisoku-kyokasho/book.json', 'utf8'));
+          if (book.title !== '仕事を倍速化する教科書') throw new Error('Unexpected first book title');
+          if (!Array.isArray(book.chapters) || book.chapters.length !== 17) throw new Error('Expected 17 audiobook chapters');
+          if (!book.chapters.every(ch => ch.title && ch.text)) throw new Error('Chapter data is incomplete');
+          console.log(`Audiobook validated: ${book.title}, ${book.chapters.length} chapters`);
+          NODE
 
       - name: Compute Chirp audio cache key
         id: audio_cache_key
@@ -85,10 +104,11 @@ jobs:
           COUNT="$(find audio-site/generated-audio -type f -name '*.mp3' | wc -l | tr -d ' ')"
           test "$COUNT" = "51"
           node - <<'NODE'
-          const fs = require('fs');
-          const m = JSON.parse(fs.readFileSync('audio-site/generated-audio/manifest.json', 'utf8'));
-          if (m.model !== 'Chirp 3: HD' || m.voices.length !== 3) process.exit(1);
-          if (Object.keys(m.chapters).length !== 17) process.exit(1);
+          const fs=require('fs');
+          const m=JSON.parse(fs.readFileSync('audio-site/generated-audio/manifest.json','utf8'));
+          if(m.model!=='Chirp 3: HD'||m.voices.length!==3) process.exit(1);
+          if(Object.keys(m.chapters).length!==17) process.exit(1);
+          console.log(`HD audio ready: ${m.voices.length} voices × ${Object.keys(m.chapters).length} chapters`);
           NODE
 
       - name: Ensure dedicated Firebase Hosting site and target
@@ -108,8 +128,9 @@ jobs:
           for attempt in $(seq 1 8); do
             if curl -fLsS --max-time 20 "https://hitobito-audio.web.app/?_verify=${GITHUB_SHA}-${attempt}" -o /tmp/audio-home.html \
               && grep -F 'Google Chirp 3 HD' /tmp/audio-home.html >/dev/null \
-              && curl -fLsS --max-time 20 'https://hitobito-audio.web.app/generated-audio/manifest.json' -o /tmp/audio-manifest.json; then
-              echo "Firebase default domain is live."
+              && curl -fLsS --max-time 20 'https://hitobito-audio.web.app/generated-audio/manifest.json' -o /tmp/audio-manifest.json \
+              && node -e "const m=require('/tmp/audio-manifest.json');if(m.model!=='Chirp 3: HD'||m.voices.length!==3||Object.keys(m.chapters).length!==17)process.exit(1)"; then
+              echo "Firebase default domain with Chirp 3 HD audio is live."
               exit 0
             fi
             sleep 4
@@ -117,9 +138,11 @@ jobs:
           echo 'Firebase default domain verification failed.' >&2
           exit 1
 
-      - name: Ensure Firebase custom domain and report DNS requirements
+      - name: Configure audio.hitobito.jp on Firebase and Vercel DNS
         env:
           FIREBASE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: team_vCUqyPcmj2xuDuBM7f7aOiMQ
         run: node scripts/configure-audio-domain.mjs
 
       - name: Report custom-domain status
@@ -131,13 +154,40 @@ jobs:
             "https://firebasehosting.googleapis.com/v1beta1/projects/hitobito-levelup/sites/hitobito-audio/customDomains/audio.hitobito.jp" \
             | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log(JSON.stringify({hostState:j.hostState,ownershipState:j.ownershipState,certState:j.cert&&j.cert.state,reconciling:j.reconciling,issues:j.issues||[],requiredDnsUpdates:j.requiredDnsUpdates||{}},null,2))})"
 
-      - name: Check custom domain when DNS is ready
+      - name: Check custom domain when ready
         continue-on-error: true
         run: |
           set -euo pipefail
-          if curl -fLsS --max-time 20 "https://audio.hitobito.jp/?_verify=${GITHUB_SHA}" -o /tmp/audio-custom.html \
-            && grep -F 'Google Chirp 3 HD' /tmp/audio-custom.html >/dev/null; then
-            echo "audio.hitobito.jp is live on Firebase Hosting."
+          for attempt in $(seq 1 20); do
+            if curl -fLsS --max-time 20 "https://audio.hitobito.jp/?_verify=${GITHUB_SHA}-${attempt}" -o /tmp/audio-custom.html \
+              && grep -F 'Google Chirp 3 HD' /tmp/audio-custom.html >/dev/null; then
+              echo "audio.hitobito.jp is live on Firebase Hosting with Chirp 3 HD."
+              exit 0
+            fi
+            echo "Custom domain not live yet (attempt ${attempt})."
+            sleep 6
+          done
+          echo 'Custom domain is still provisioning.' >&2
+          exit 1
+
+      - name: Report Firebase audio deployment status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATE="success"
+            DESCRIPTION="hitobito audio + Chirp 3 HD deployed"
           else
-            echo "audio.hitobito.jp is not switched yet. See the Firebase DNS requirements in this run summary."
+            STATE="failure"
+            DESCRIPTION="hitobito audio deployment failed"
           fi
+          PAYLOAD="$(STATE="$STATE" DESCRIPTION="$DESCRIPTION" node -e "process.stdout.write(JSON.stringify({state:process.env.STATE,target_url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID,description:process.env.DESCRIPTION,context:'Firebase Hosting - audio'}))")"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            --data "$PAYLOAD"
