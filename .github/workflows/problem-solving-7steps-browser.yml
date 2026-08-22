@@ -7,6 +7,7 @@ on:
       - '.github/workflows/problem-solving-7steps-browser.yml'
       - 'scripts/register-problem-solving-7steps-meta.mjs'
       - 'scripts/inject-problem-solving-7steps-card.mjs'
+      - 'scripts/validate-firebase-bundle.mjs'
       - 'package.json'
   push:
     branches:
@@ -16,6 +17,7 @@ on:
       - '.github/workflows/problem-solving-7steps-browser.yml'
       - 'scripts/register-problem-solving-7steps-meta.mjs'
       - 'scripts/inject-problem-solving-7steps-card.mjs'
+      - 'scripts/validate-firebase-bundle.mjs'
       - 'package.json'
   workflow_dispatch:
 
@@ -28,10 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install browser harness
-        run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install Node dependencies
+        run: npm install --no-save playwright@1.55.0
       - name: Build and validate LEVEL UP Firebase bundle
         run: |
           npm run build:firebase
@@ -46,6 +46,8 @@ jobs:
           }
           console.log('Firebase catalog entry verified:', game.title);
           NODE
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - name: Start local static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/problem-solving-server.log 2>&1 &
