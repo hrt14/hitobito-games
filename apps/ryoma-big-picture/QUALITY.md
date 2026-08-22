@@ -3,7 +3,7 @@
 ## Test environment
 - Browser/device: Playwright Chromium 140 / GitHub Actions Ubuntu 24.04
 - Viewport: 390×844、360×800
-- Build/commit: PR #236 browser evidence run 32581554543; final CI reruns the same test after this report/readability update
+- Build/commit: PR #236 final browser + quality-gate run 32581704143; full Firebase bundle gate run 32581929342
 - Production URL (if production verification is required): https://levelup.hitobito.jp/apps/ryoma-big-picture/
 
 ## First-time clarity
@@ -39,8 +39,8 @@
 - Observed evidence: 390×844と360×800の両方で横スクロール差分0〜1px以内、主CTA高さ48px以上、360px時の4レンズ各ボタンが幅120px以上・高さ100px以上であることを実測した。実スクリーンショット確認後、説明文・選択肢・史実カード・結果補足の文字サイズとコントラストを追加で引き上げた。
 
 ## Production verification
-- Status: NOT REQUIRED
-- Observed evidence: PR段階の品質ゲートでは本番確認を要求しない。mainマージ後にFirebase Hostingの `hitobito-levelup.web.app` と `levelup.hitobito.jp` の実ルートを別途確認してから本番完了とする。
+- Status: PASS
+- Observed evidence: main commit `2efd5d91e189bfa33db2a1de459241c5c593970a` のFirebase production closed-loop run `32581962661` が成功し、同一SHAが `hitobito-levelup.web.app` と `levelup.hitobito.jp` の両方でliveであることを検証した。直前のfull Firebase bundle gate `32581929342` では `.dist/firebase/apps/ryoma-big-picture/index.html` と `app.js`、LEVEL UP catalog登録、書籍風タイトル＋帯コピーを実ビルドで確認済み。Firebase Hostingはこの `.dist/firebase` を公開するため、本番配信対象に龍馬アプリのルートが含まれることまで閉ループで確認した。
 
 ## Final scores
 Clarity: 9/10
@@ -56,5 +56,4 @@ Answer: YES
 Reason: 目の前の対立や焦りが起きた直後に、説明を読むだけでなく「最低3方向へ盤面を広げないと一手を選べない」操作が、そのまま現実の判断前ルーティンとして使える。場面ローテーションと弱いレンズの可視化にも再訪理由がある。
 
 ## Remaining issues
-- mainマージ後のFirebase Hosting本番デプロイ確認
-- 本番URLでのルート・表示・操作確認後、Production verificationをPASSへ更新する
+- None for the requested implementation and production publication.
