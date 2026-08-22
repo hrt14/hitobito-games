@@ -1,2 +1,2 @@
-Production deploy trigger: PLAY-CARD-ART-20260822-0932
-Reason: upgrade PLAY game-card artwork with richer per-game visual scenes and mobile-friendly presentation
+Production deploy trigger: PLAY-CARD-ART-VERIFY-20260822-0953
+Reason: redeploy PLAY card artwork and verify the rich card-art markers on the live play.hitobito.jp homepage
