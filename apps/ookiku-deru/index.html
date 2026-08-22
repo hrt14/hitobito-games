@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0b0704" />
+  <meta name="description" content="迷惑・拒否・身の丈を先回りして小さくした一文を、大きい版に書き換えて実際に送る・言う・出すLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>大きく出る。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="step-dots" id="stepDots" aria-label="進行状況"><i class="active"></i><i></i><i></i><i></i></div>
+      <button class="reset-btn" id="resetBtn" type="button" aria-label="最初からやり直す">↻</button>
+    </header>
+
+    <section class="screen active" id="startScreen" data-step="0">
+      <div class="hero-mark" aria-hidden="true"><span>BIG</span></div>
+      <div class="hero-copy">
+        <p class="eyebrow">SHRINK → EXPAND</p>
+        <h1>大きく<span>出る。</span></h1>
+        <p class="lead">出す前に、もう小さくしてる。<br><strong>そのまま出すのを、一度やめる。</strong></p>
+      </div>
+
+      <label class="task-card" for="smallInput">
+        <span>今、何を小さくして出そうとしてる？</span>
+        <input id="smallInput" type="text" maxlength="90" autocomplete="off" enterkeyhint="done" placeholder="例：予算はいつもどおりで、と頼む" />
+      </label>
+
+      <button class="primary-btn" id="startBtn" type="button" disabled><span>大きい版を作る</span><b>→</b></button>
+      <p class="microcopy">大きくしろとは言いません。まず、本当のサイズを書くだけ。</p>
+
+      <div class="local-stats" id="localStats" hidden>
+        <div><span>大きいまま出せた率</span><strong id="bigRate">0%</strong></div>
+        <div><span>よく縮める理由</span><strong id="topCause">—</strong></div>
+      </div>
+    </section>
+
+    <section class="screen" id="causeScreen" data-step="1">
+      <div class="screen-copy compact">
+        <p class="eyebrow">STEP 1 / FIND THE SHRINK</p>
+        <h2>何が、<br>それを小さくしてる？</h2>
+        <p>考え込まず、いちばん近いものを1つ。</p>
+      </div>
+      <div class="cause-grid" id="causeGrid"></div>
+    </section>
+
+    <section class="screen" id="expandScreen" data-step="2">
+      <div class="screen-copy compact">
+        <p class="eyebrow">STEP 2 / WRITE IT BIGGER</p>
+        <h2>本当は、<br><span>どこまで欲しい？</span></h2>
+        <p id="prescriptionLead">縮めている理由に合わせて、大きい版を先に書き換えます。</p>
+      </div>
+
+      <div class="task-preview"><span>小さい版</span><p id="smallPreview"></p></div>
+
+      <div class="action-card">
+        <div class="action-label"><span>大きい版</span><b id="causeBadge">BIG</b></div>
+        <textarea id="bigAction" rows="3" maxlength="160" aria-label="本当はどこまで欲しいかを書いた大きい版"></textarea>
+        <p id="actionHint">自分が本当に欲しい形まで、書き換えてください。</p>
+      </div>
+
+      <label class="today-card" for="todayInput">
+        <span>今日中に、大きい版でやること</span>
+        <input id="todayInput" type="text" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="例：このままLINEで送る" />
+      </label>
+
+      <button class="primary-btn" id="prepareBtn" type="button" disabled><span>この大きさで出す</span><b>→</b></button>
+    </section>
+
+    <section class="screen launch-screen" id="launchScreen" data-step="3">
+      <div class="launch-orbit" aria-hidden="true"><i></i><i></i></div>
+      <p class="eyebrow">STEP 3 / LEAVE THIS APP</p>
+      <div class="countdown" id="countdown">3</div>
+      <h2 id="launchTitle">大きいまま、<br>出す。</h2>
+      <div class="launch-action" id="launchAction"></div>
+      <p class="launch-note" id="launchNote">この画面を閉じて、実際に送る・言う・出す相手や画面を開いてください。戻ってきたら出せたか記録します。</p>
+      <button class="primary-btn launch-btn" id="goBtn" type="button" hidden><span>今すぐ出す</span><b>↗</b></button>
+      <button class="secondary-btn" id="alreadyStartedBtn" type="button" hidden>もう出した</button>
+    </section>
+
+    <section class="screen" id="checkScreen" data-step="3">
+      <div class="screen-copy centered">
+        <p class="eyebrow">CHECK / DID YOU STAY BIG?</p>
+        <h2>大きいまま、<br>出せた？</h2>
+        <p>相手の反応はまだいい。出した内容のサイズだけ。</p>
+      </div>
+      <div class="check-task" id="checkTask"></div>
+      <div class="check-actions">
+        <button class="success-btn" id="didStayBigBtn" type="button"><span>大きいまま出せた</span><b>✓</b></button>
+        <button class="retry-btn" id="shrunkBackBtn" type="button"><span>また縮めた</span><b>↓</b></button>
+      </div>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen" data-step="4">
+      <div class="result-burst" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="eyebrow">SHRINK BROKEN</p>
+      <div class="result-word">出た<span>。</span></div>
+      <p class="result-copy">相手がどう答えるかは、相手の仕事。<br><strong>自分で先に削るのは、もうやめた。</strong></p>
+      <div class="result-compare">
+        <div><span>小さい版</span><p id="resultSmall"></p></div>
+        <div class="arrow" aria-hidden="true">↓</div>
+        <div class="big"><span>出した版</span><p id="resultBig"></p></div>
+      </div>
+      <div class="result-stats"><span>これまで <b id="resultSessions">0</b>回</span><span>大きいまま出せた率 <b id="resultRate">0%</b></span></div>
+      <button class="primary-btn" id="againBtn" type="button"><span>また縮めそうになったら使う</span><b>↻</b></button>
+      <a class="secondary-link" href="/">LEVEL UPへ戻る</a>
+      <p class="privacy-note">入力した小さい版・大きい版・理由・結果はこの端末内に保存します。自由記述の内容を外部送信する処理はこのアプリにはありません。</p>
+    </section>
+
+    <section class="screen rescue-screen" id="rescueScreen" data-step="2">
+      <div class="screen-copy compact">
+        <p class="eyebrow">SHRUNK AGAIN → HALF STEP UP</p>
+        <h2>縮めたなら、<br><span>半歩だけ戻す。</span></h2>
+        <p>最初の小さい版へは戻さず、それより確実に大きい形にします。</p>
+      </div>
+      <div class="rescue-grid" id="rescueGrid"></div>
+      <button class="text-btn" id="backActionBtn" type="button">大きい版を書き直す ←</button>
+    </section>
+  </main>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
