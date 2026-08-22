@@ -15,6 +15,7 @@ const game = {
   kicker: 'MANAGER LINE CARE',
   skill: '部下育成 / リスク管理 / 自己管理',
   description: '「いつもと違う」変化に気づき、聴き、職場を整え、必要なら社内の支援につなぐ判断を6ケースで反復する。',
+  obi: '管理職の「気づく→聴く→整える→つなぐ」を、6つの現場ケースで反射化。',
   icon: 'CARE',
   href: '/apps/manager-line-care/',
   updateCount: 1,
@@ -51,6 +52,7 @@ const card = `
       <div class="kicker">${escapeHtml(game.kicker)}</div>
       <div class="skill">${escapeHtml(game.skill)}</div>
       <h2>${escapeHtml(game.title)}</h2>
+      <p class="book-obi">${escapeHtml(game.obi)}</p>
       <p>${escapeHtml(game.description)}</p>
       <div class="card-values" aria-label="このゲームの対象・目的・ベネフィット">
         <div class="card-value"><span class="card-value-label">こんな人に</span><span class="card-value-text">${escapeHtml(game.forWho)}</span></div>
@@ -66,4 +68,4 @@ const pattern = /<article class="card is-new" data-game="manager-line-care" data
 if (!pattern.test(html)) throw new Error('manager-line-care auto-discovered card not found in LEVEL UP home');
 html = html.replace(pattern, card.trim());
 fs.writeFileSync(homePath, html);
-console.log('[LEVEL UP] manager-line-care card copy injected');
+console.log('[LEVEL UP] manager-line-care card copy + book obi injected');
