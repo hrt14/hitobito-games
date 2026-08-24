@@ -1,4 +1,5 @@
 import { GAME_META } from './playtest-catalog.mjs';
+import './register-unfair-blame-meta.mjs';
 
 GAME_META['result-steps'] = [
   'levelup',
