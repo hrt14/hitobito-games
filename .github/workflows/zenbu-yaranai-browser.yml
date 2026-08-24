@@ -9,7 +9,6 @@ on:
       - 'apps/zenbu-yaranai/**'
       - 'tests/zenbu-yaranai-browser.mjs'
       - 'scripts/inject-levelup-zenbu-yaranai.mjs'
-      - 'package.json'
       - '.github/workflows/zenbu-yaranai-browser.yml'
 
 permissions:
