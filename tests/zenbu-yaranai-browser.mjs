@@ -117,10 +117,12 @@ async function runDesktop(browser) {
   await page.screenshot({ path: path.join(outputDir, 'desktop-history.png'), fullPage: true });
 
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
+  assert.equal(await page.locator('[data-testid="complete-title"]').innerText(), '1件、減った。');
+  await page.locator('[data-action="show-history"]').click();
   assert.match(await page.locator('h1').innerText(), /一個ずつ、減らした記録/);
   await page.locator('[data-action="close-history"]').click();
   assert.equal(await page.locator('[data-testid="complete-title"]').innerText(), '1件、減った。');
-  observe('revisit', 'Reload after completion preserves the completed state; opening/closing history returns to the completed session.');
+  observe('revisit', 'Reload after completion preserves the completed session; history can be reopened and closed back to that result.');
 
   const dimensions = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   assert.ok(dimensions.scrollWidth <= dimensions.width + 1, 'desktop page should not overflow horizontally');
