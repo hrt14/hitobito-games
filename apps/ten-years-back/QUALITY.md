@@ -1,9 +1,9 @@
 # 10歳若返りました。 — Quality Report
 
 ## Test environment
-- Browser/device: Chromium 141 headless via Chrome DevTools Protocol local harness
+- Browser/device: Chromium 141 headless via Chrome DevTools Protocol local harness; GitHub Actions Playwright real-browser run pending
 - Viewport: 390 × 844 CSS px (mobile emulation)
-- Build/commit: local source corresponding to branch `levelup/ten-years-back` before GitHub integration commit
+- Build/commit: branch `levelup/ten-years-back`
 - Production URL (if production verification is required): https://levelup.hitobito.jp/apps/ten-years-back/
 
 ## First-time clarity
@@ -27,12 +27,12 @@
 - Observed evidence: ヘッダーRESETを実際に押すと開始画面へ戻り、年齢入力が空になった。ヘッダーと結果画面のLEVEL UPリンクはどちらも`/`を指していることもブラウザDOMで確認した。
 
 ## Reload
-- Status: PASS
-- Observed evidence: ローカルブラウザ検証ではページ再構築時にも初期化処理が正常に走り、保存済み状態を渡した再読込相当のハーネスで開始画面へ復帰した。保存APIが使えない環境では例外で停止せず「この環境では保存できません」と返すフォールバックも実装した。
+- Status: UNVERIFIED
+- Observed evidence: ローカル実行環境ではブラウザのURL遷移が管理ポリシーで遮断されるため、同一HTTP originでの実reloadは未確認。PR上のPlaywright workflowで実HTTPサーバーを使い、`page.reload()`後もlocalStorageが保持されることを確認してからPASSへ変更する。
 
 ## Revisit
-- Status: PASS
-- Observed evidence: ブラウザ保存APIを同じインターフェースで保持するローカルハーネス上で1回保存後に再訪すると「未来から戻ってきて 2回目。」と前回の「本の企画を1行だけ書く」が開始画面に表示された。実本番originでの永続化はProduction verificationで再確認する。
+- Status: UNVERIFIED
+- Observed evidence: ローカルハーネスでは保存データを使った再訪表示まで確認したが、実HTTP origin＋実reloadによる再訪証拠ではない。PR上のPlaywright workflowで「2回目」、前回の一手、年齢48の復元を確認してからPASSへ変更する。
 
 ## Mobile readability and tap targets
 - Status: PASS
@@ -56,5 +56,5 @@ Answer: YES
 Reason: 「もう遅い」と感じた瞬間に10年後まで進めて戻す操作だけで参照点を切り替えられ、その直後に未来の後悔を今日の1個へ落とせる。再訪時も前回の一手が残るため、単なる一度きりの読み物ではない。
 
 ## Remaining issues
-- main反映後、`https://levelup.hitobito.jp/apps/ten-years-back/` で本番表示・操作・実localStorage再訪を確認する。
-- 本番確認後にProduction verificationをPASSへ更新する。
+- GitHub Actions Playwrightで実HTTP originのreload/revisitを確認し、Reload / RevisitをPASSへ更新する。
+- main反映後、`https://levelup.hitobito.jp/apps/ten-years-back/` で本番表示を確認し、Production verificationをPASSへ更新する。
