@@ -41,6 +41,26 @@ jobs:
         env:
           UNFAIR_BLAME_URL: http://127.0.0.1:4173/apps/unfair-blame/?test=1
         run: node apps/unfair-blame/smoke-browser.mjs
+      - name: Wait for this commit on Firebase production
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          for i in $(seq 1 48); do
+            if curl -fsS --max-time 20 "https://levelup.hitobito.jp/deploy-meta.json?sha=$GITHUB_SHA&attempt=$i" -o /tmp/unfair-blame-deploy-meta.json; then
+              if grep -F "$GITHUB_SHA" /tmp/unfair-blame-deploy-meta.json >/dev/null; then
+                echo "Firebase production is on $GITHUB_SHA"
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "Firebase production did not reach $GITHUB_SHA"
+          cat /tmp/unfair-blame-deploy-meta.json || true
+          exit 1
+      - name: Verify unfair blame on Firebase production
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          UNFAIR_BLAME_PRODUCTION_URL: https://levelup.hitobito.jp/apps/unfair-blame/?sha=${{ github.sha }}
+        run: node apps/unfair-blame/production-smoke.mjs
       - name: Run LEVEL UP quality gate
         run: node scripts/validate-levelup-quality-gate.mjs --app apps/unfair-blame
       - name: Upload playtest evidence
