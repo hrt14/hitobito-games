@@ -1,50 +1,78 @@
-# 全部やらない。 — LEVEL UP
+# 全部やらなくていい — Quality Report
 
-## 目的
+## Test environment
 
-仕事が多すぎて圧倒されたときに、「全部やる」か「全部投げる」かの二択から離れ、破綻を防ぐ最低限だけを守って余力を残す判断を反射化する。
+- Browser/device: UNVERIFIED — production browser test pending
+- Viewport: UNVERIFIED — desktop and mobile browser test pending
+- Build/commit: implementation in progress
+- Production URL: https://levelup.hitobito.jp/apps/zenbu-yaranai/
 
-## 1回の利用で起こしたい変化
+## First-time clarity
 
-- すべてを同じ重要度で抱えない
-- 今日やらないと本当に壊れるものだけ見つける
-- 完成ではなく最低限へ縮める
-- 日程変更・委任・連絡で仕事を外へ逃がす
-- 意図的に捨てるものを決める
-- 終了条件を作って休息を守る
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。初期HTMLはタイトル、サブタイトル、セルフチェック1問目、3回答を直接表示する設計。
 
-## ゲームループ
+## Main interaction
 
-1. 圧倒されやすい仕事場面を表示
-2. 4つの「今日の防衛ライン」から最も破綻を防ぎ、余力を残せる案を選ぶ
-3. 選択直後に「破綻回避」と「余力」の変化を表示
-4. なぜその判断がよいかを短く返す
-5. 8問反復
-6. 実戦モードで現実の仕事を最大5件まで「守る・縮める・逃がす・捨てる」に仕分ける
-7. 最後に「これだけやれば今日は破綻しない」という終了条件を作る
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。診断 → タスク書き出し → 一件選択 → 最低成立ライン → 捨てる → 25分 → 結果判断の一連フローを実装済み。
 
-## 反復する4つの型
+## Wrong / failure path
 
-1. 守る — 今日やらないと本当に壊れるものだけ残す
-2. 縮める — 完成ではなく最低限にする
-3. 逃がす — 日程変更・委任・連絡で自分の今日から外す
-4. 捨てる — 今はやらないと決める
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。空タスク、空の最低成立ライン、捨て項目未選択では次へ進めず、短いエラー表示を返す設計。
 
-## UXルール
+## Correct / success path
 
-- スマホの主要プレイは1画面内で完結させる
-- 問題文を読む時間は急かさない
-- 選択後のフィードバックはユーザーが閉じるまで残す
-- タップ領域を大きくする
-- 「全部やる」を頑張りとして褒めない
-- 「全部投げる」も正解扱いしない
-- 休息をコストではなく、破綻防止の一部として扱う
-- 実戦モードの入力内容は端末内だけに保存する
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。最低ライン達成時に「+1」「1件、減った。」を表示し、履歴へ保存する設計。
 
-## 完了条件
+## Back / exit
 
-- 初見10秒以内に「全部を抱えず防衛ラインを決めるゲーム」だと分かる
-- 8問を迷子にならず完了できる
-- 「守る・縮める・逃がす・捨てる」の違いが反復で分かる
-- 実戦モードで現実のタスクから今日の終了条件を作れる
-- 仕事量を増やすのではなく、終了条件と余力を作る体験になっている
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。各入力段階に戻る導線、タイマー中断、LEVEL UPホーム導線を実装済み。
+
+## Reload
+
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。進行状態をlocalStorageへ保存し、再読込時に同じステップを再描画する設計。
+
+## Revisit
+
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。ローカル履歴とログイン時Firestore履歴、過去7日集計を実装済み。
+
+## Mobile readability and tap targets
+
+- Status: UNVERIFIED
+- Observed evidence: 実ブラウザ確認前。スマホ幅では回答を1列、捨てる項目を1列、タイマー情報を1列にし、主要ボタンはおおむね58–74px高で実装。
+
+## Production verification
+
+- Status: UNVERIFIED
+- Observed evidence: Firebase本番デプロイおよび本番URLでのブラウザフロー確認待ち。
+
+## Final scores
+
+Clarity: 0/10
+Usefulness: 0/10
+Interaction quality: 0/10
+Uniqueness: 0/10
+Repeat value: 0/10
+
+実ブラウザ確認前のため採点しない。0は未評価を表す。
+
+## Final question
+
+If I genuinely had this problem, would I open this app again?
+
+Answer: UNVERIFIED
+Reason: 本番環境で一連の利用を完了してから判断する。
+
+## Remaining issues
+
+- デスクトップ実ブラウザで全フローを確認する。
+- スマホ相当viewportで全フローを確認する。
+- 空入力・戻る・中断・リロード・再訪を確認する。
+- 本番URLへデプロイし、同じフローを確認する。
+- 実測後に5項目を採点し、全項目7/10以上でなければ修正する。
