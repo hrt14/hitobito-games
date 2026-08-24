@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..');
-const appsDir = path.join(root, '.dist', 'firebase', 'apps');
+const firebaseDir = path.join(root, '.dist', 'firebase');
+const appsDir = path.join(firebaseDir, 'apps');
 const menuMarker = 'data-levelup-app-menu';
 const dedupeStyleMarker = 'id="levelup-app-menu-dedupe-style"';
 const dedupeScriptMarker = 'id="levelup-app-menu-dedupe-script"';
@@ -27,14 +28,54 @@ const dedupeScript = `
 })();
 </script>`;
 
+function appEntries() {
+  return fs.readdirSync(appsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => ({
+      slug: entry.name,
+      appIndex: path.join(appsDir, entry.name, 'index.html'),
+      rootIndex: path.join(firebaseDir, entry.name, 'index.html'),
+    }))
+    .filter((entry) => fs.existsSync(entry.appIndex));
+}
+
+function injectBeforeBody(html, snippet) {
+  return html.includes('</body>') ? html.replace('</body>', `${snippet}\n</body>`) : `${html}\n${snippet}`;
+}
+
+const entries = appEntries();
+let mirrored = 0;
+
+// Some LEVEL UP apps are intentionally served at both /apps/<slug>/ and /<slug>/.
+// The shared menu injector runs against /apps/<slug>/; mirror the exact injected
+// menu block into each root alias so the public URL gets the same hamburger too.
+for (const { slug, appIndex, rootIndex } of entries) {
+  if (!fs.existsSync(rootIndex)) continue;
+
+  const appHtml = fs.readFileSync(appIndex, 'utf8');
+  let rootHtml = fs.readFileSync(rootIndex, 'utf8');
+  if (!appHtml.includes(menuMarker) || rootHtml.includes(menuMarker)) continue;
+
+  const menuMatch = appHtml.match(/<script\s+data-levelup-app-menu\b[\s\S]*?<\/script>/i);
+  if (!menuMatch) {
+    throw new Error(`LEVEL UP app menu block could not be mirrored to root alias: ${slug}`);
+  }
+
+  rootHtml = injectBeforeBody(rootHtml, menuMatch[0]);
+  fs.writeFileSync(rootIndex, rootHtml);
+  mirrored += 1;
+}
+
+const pages = [];
+for (const { slug, appIndex, rootIndex } of entries) {
+  pages.push({ slug, label: `apps/${slug}`, indexPath: appIndex });
+  if (fs.existsSync(rootIndex)) pages.push({ slug, label: slug, indexPath: rootIndex });
+}
+
 let updated = 0;
 let verified = 0;
 
-for (const entry of fs.readdirSync(appsDir, { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
-  const indexPath = path.join(appsDir, entry.name, 'index.html');
-  if (!fs.existsSync(indexPath)) continue;
-
+for (const { indexPath } of pages) {
   let html = fs.readFileSync(indexPath, 'utf8');
   if (!html.includes(menuMarker)) continue;
 
@@ -45,30 +86,34 @@ for (const entry of fs.readdirSync(appsDir, { withFileTypes: true })) {
   }
 
   if (!html.includes(dedupeScriptMarker)) {
-    html = html.includes('</body>')
-      ? html.replace('</body>', `${dedupeScript}\n</body>`)
-      : `${html}\n${dedupeScript}`;
+    html = injectBeforeBody(html, dedupeScript);
   }
 
   fs.writeFileSync(indexPath, html);
   updated += 1;
 }
 
-for (const entry of fs.readdirSync(appsDir, { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
-  const indexPath = path.join(appsDir, entry.name, 'index.html');
-  if (!fs.existsSync(indexPath)) continue;
+for (const { label, indexPath } of pages) {
   const html = fs.readFileSync(indexPath, 'utf8');
   if (!html.includes(menuMarker)) continue;
 
   if (!html.includes(dedupeStyleMarker) || !html.includes(dedupeScriptMarker) || !html.includes('#levelup-nav-fixed{display:none!important}')) {
-    throw new Error(`LEVEL UP duplicate hamburger guard missing from ${entry.name}`);
+    throw new Error(`LEVEL UP duplicate hamburger guard missing from ${label}`);
   }
   verified += 1;
+}
+
+for (const { slug, appIndex, rootIndex } of entries) {
+  if (!fs.existsSync(rootIndex)) continue;
+  const appHtml = fs.readFileSync(appIndex, 'utf8');
+  const rootHtml = fs.readFileSync(rootIndex, 'utf8');
+  if (appHtml.includes(menuMarker) && !rootHtml.includes(menuMarker)) {
+    throw new Error(`LEVEL UP hamburger missing from root alias /${slug}/`);
+  }
 }
 
 if (!verified) {
   throw new Error('LEVEL UP duplicate hamburger guard found no app pages to verify.');
 }
 
-console.log(`[Firebase] LEVEL UP duplicate hamburger guard applied to ${updated} pages; verified ${verified}`);
+console.log(`[Firebase] LEVEL UP root hamburger mirrored to ${mirrored} aliases; duplicate guard applied to ${updated} pages; verified ${verified}`);
