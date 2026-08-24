@@ -1,5 +1,59 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>10歳若返りました。 — LEVEL UP</title></head>
-<body><main id="app"></main></body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#11120f" />
+  <meta name="description" content="10年後の自分から今日へ戻ってきた感覚をつくり、10歳若返った今日の一手を決めるLEVEL UPアプリ。" />
+  <meta property="og:title" content="10歳若返りました。 — LEVEL UP" />
+  <meta property="og:description" content="10年後から、今日に戻ってきた。10歳若返ったあなたは、今日なにをする？" />
+  <title>10歳若返りました。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell" id="app">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="LEVEL UPトップへ戻る"><span class="brand-dot"></span>LEVEL UP</a>
+      <button class="text-button" id="resetBtn" type="button">RESET</button>
+    </header>
+    <div class="return-note" id="returnNote" hidden></div>
+    <section class="screen active" id="ageScreen" data-screen="age">
+      <div class="screen-copy compact">
+        <p class="eyebrow">TEN YEARS BACK</p>
+        <h1>今年、<br><span>何歳ですか？</span></h1>
+        <p class="lead">年齢だけ入れてください。<br>そこから10年先へ行きます。</p>
+      </div>
+      <form class="age-form" id="ageForm">
+        <label for="ageInput">今年の年齢</label>
+        <div class="age-input-wrap"><input id="ageInput" name="age" inputmode="numeric" type="number" min="10" max="110" placeholder="48" autocomplete="off" required /><span>歳</span></div>
+        <p class="form-error" id="ageError" role="alert"></p>
+        <button class="primary" type="submit"><span>10年後へ行く</span><b>→</b></button>
+      </form>
+      <div class="last-action" id="lastAction" hidden></div>
+    </section>
+    <section class="screen" id="timelineScreen" data-screen="timeline" aria-live="polite">
+      <div class="timeline-head"><p class="eyebrow" id="timelineEyebrow">MOVE THE CLOCK</p><p class="timeline-instruction" id="timelineInstruction">指で、10年先まで時間を進める。</p></div>
+      <div class="age-stage" id="ageStage"><div class="year-pill"><span id="yearLabel">2026</span>年</div><div class="age-hero"><strong id="ageHero">48</strong><span>歳</span></div><p id="ageCaption">今のあなた</p></div>
+      <div class="time-track-wrap"><div class="time-track-labels"><span>いま</span><span>10年後</span></div><input class="time-range" id="timeRange" type="range" min="0" max="10" value="0" step="1" aria-label="時間を10年先まで動かす" /><div class="year-dots" id="yearDots" aria-hidden="true"></div></div>
+      <div class="future-message" id="futureMessage" hidden><p>ここが、10年後。</p><strong id="futureAgeLine">58歳のあなたです。</strong><button class="secondary" id="turnBackBtn" type="button">ここから、今日へ戻る ↓</button></div>
+    </section>
+    <section class="screen reborn-screen" id="rebornScreen" data-screen="reborn">
+      <div class="reborn-orbit" aria-hidden="true"><span></span><span></span><span></span></div><p class="eyebrow">WELCOME BACK</p><p class="small-line" id="fromFutureLine">58歳だったあなたは、</p><h2><span id="rebornAge">48</span>歳に<br><span class="return-line">戻ってきました。</span></h2><div class="reborn-badge">10歳、若返りました。</div><p class="lead centered">10年後から見れば、<br>今日は「もう遅い日」ではありません。</p><button class="primary" id="rebornNextBtn" type="button"><span>10歳若い今日を使う</span><b>→</b></button>
+    </section>
+    <section class="screen" id="moodScreen" data-screen="mood">
+      <div class="screen-copy"><p class="eyebrow">01 / FEEL IT</p><h2>10歳若返った今、<br><span>どんな気分？</span></h2><p class="lead">近いものを1つ。正解はありません。</p></div><div class="choice-list" id="moodChoices"></div><div class="free-row"><label for="moodOther">自分の言葉でも</label><input id="moodOther" type="text" maxlength="40" placeholder="例：急に時間が増えた感じ" /></div><button class="primary" id="moodNextBtn" type="button" disabled><span>未来の自分に聞く</span><b>→</b></button>
+    </section>
+    <section class="screen" id="regretScreen" data-screen="regret">
+      <div class="screen-copy"><p class="eyebrow">02 / MESSAGE FROM 10 YEARS LATER</p><h2><span id="futureAgeQuestion">58歳</span>のあなたは、<br>何を後悔していた？</h2><p class="lead">「もっと＿＿しておけばよかった」を埋めるつもりで。</p></div><div class="prompt-box">もっと、<textarea id="regretInput" rows="3" maxlength="120" placeholder="会いたい人に会えばよかった"></textarea></div><div class="helper-wrap"><p>言葉が出なければ</p><div class="helper-chips" id="regretHelpers"></div></div><button class="primary" id="regretNextBtn" type="button" disabled><span>今日まで小さくする</span><b>→</b></button>
+    </section>
+    <section class="screen" id="actionScreen" data-screen="action">
+      <div class="screen-copy"><p class="eyebrow">03 / CHANGE THE FUTURE</p><h2>じゃあ、<br><span>今日なにをする？</span></h2><p class="lead">人生を変える計画ではなく、今日できる1個にします。</p></div><div class="future-echo"><span>10年後の後悔</span><p id="regretEcho"></p></div><label class="action-field" for="actionInput"><span>今日の一手</span><textarea id="actionInput" rows="3" maxlength="100" placeholder="本の企画を1行だけ書く"></textarea></label><div class="action-sizers" id="actionSizers"></div><button class="primary" id="actionNextBtn" type="button" disabled><span>未来を書き換える</span><b>↗</b></button>
+    </section>
+    <section class="screen result-screen" id="resultScreen" data-screen="result">
+      <p class="eyebrow">TODAY / RETURNED FROM 10 YEARS LATER</p><div class="result-card" id="resultCard"><p class="result-kicker">私は10年後から戻ってきた。</p><div class="result-age"><strong id="resultAge">48</strong><span>歳</span><i>−10 YEARS</i></div><p class="result-mood" id="resultMood"></p><div class="result-rule"></div><p class="result-label">10歳若返った今日、やること</p><h2 id="resultAction"></h2><p class="result-regret" id="resultRegret"></p></div><p class="finish-copy">10年全部を変えなくていい。<br>今日の1個だけ、未来と違うことをする。</p><div class="result-actions"><button class="primary" id="doneBtn" type="button"><span>今日の一手を保存</span><b>✓</b></button><button class="secondary" id="shareBtn" type="button">この結果をシェア</button><button class="text-button bottom-reset" id="againBtn" type="button">もう一度、未来から戻る</button></div><div class="saved-note" id="savedNote" aria-live="polite"></div><a class="home-link" href="/">LEVEL UPへ戻る</a>
+    </section>
+  </main>
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script src="./app.js"></script>
+</body>
 </html>
