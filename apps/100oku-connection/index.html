@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0c0b">
+<meta name="description" content="目の前の人や小さな偶然を、すぐに切らずに未来の選択肢として残す。6つの出会いに限られた注意を配り、偶然の連鎖が100億円まで育つストーリーを体感するLEVEL UP。">
+<title>目の前の人が100億円 — 偶然の連鎖を切らない | LEVEL UP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="app" id="app">
+<header class="topbar">
+  <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る"><span class="home-mark">⌂</span><span>LEVEL UP</span></a>
+  <span class="mini-brand">100 OKU CONNECTION</span>
+  <button class="record-btn" id="recordBtn" type="button">記録</button>
+</header>
+
+<section class="screen active" id="introScreen">
+  <div class="hero-map" aria-hidden="true">
+    <div class="you-dot">YOU</div>
+    <i class="orbit o1"></i><i class="orbit o2"></i><i class="orbit o3"></i><i class="orbit o4"></i><i class="orbit o5"></i><i class="orbit o6"></i>
+    <span class="ghost-line l1"></span><span class="ghost-line l2"></span><span class="ghost-line l3"></span>
+  </div>
+  <p class="eyebrow">A FICTIONAL SERENDIPITY SIMULATION</p>
+  <h1>目の前の人が<br><span>100億円</span></h1>
+  <p class="lead">その人が重要かどうかは、<strong>会った瞬間には分からない。</strong></p>
+  <div class="rule-card">
+    <span>このゲームでやること</span>
+    <strong>6つの偶然に、限られた「注意」を配る。</strong>
+    <p>全員に深く関わる余裕はない。でも、全部切る必要もない。</p>
+  </div>
+  <button class="primary-btn" id="startBtn" type="button"><span>偶然の連鎖を始める</span><b>→</b></button>
+  <div class="intro-meta"><span>約3分</span><span>6つの出会い</span><span id="bestIntro">初回</span></div>
+  <p class="micro-note">100億円の展開はフィクションです。狙うのは「人を金額で見ること」ではなく、価値がまだ見えない接点を低コストで残す判断です。</p>
+</section>
+
+<section class="screen" id="gameScreen">
+  <div class="status-row">
+    <div><span>ENCOUNTER</span><strong id="roundLabel">1 / 6</strong></div>
+    <div><span>ATTENTION LEFT</span><strong><b id="attentionValue">10</b> / 10</strong></div>
+  </div>
+
+  <div class="network-stage" id="networkStage" aria-label="偶然のつながりマップ">
+    <svg class="network-svg" id="networkSvg" viewBox="0 0 360 220" role="img" aria-label="あなたと出会った人のつながり">
+      <g id="edgeLayer"></g>
+      <circle class="you-node" cx="180" cy="110" r="25"></circle>
+      <text class="you-label" x="180" y="115" text-anchor="middle">YOU</text>
+      <g id="nodeLayer"></g>
+    </svg>
+    <div class="future-caption" id="futureCaption">まだ、何につながるかは分からない。</div>
+  </div>
+
+  <article class="encounter-card" id="encounterCard">
+    <div class="encounter-head">
+      <span class="encounter-tag" id="encounterTag">展示会の帰り</span>
+      <span class="encounter-index" id="encounterIndex">01</span>
+    </div>
+    <h2 id="encounterTitle">片づけを手伝っていた人と少し話した。</h2>
+    <p id="encounterCopy">名刺交換するほどでもない雑談。いまの仕事とは直接関係なさそうだ。</p>
+    <div class="surface-detail" id="surfaceDetail">見えている情報：地方の小さな製造会社で働いているらしい。</div>
+  </article>
+
+  <div class="bridge-control">
+    <div class="control-title"><span>この接点に、どこまで注意を使う？</span><strong id="choiceLabel">糸を残す</strong></div>
+    <input id="attentionRange" class="attention-range" type="range" min="0" max="2" step="1" value="1" aria-label="接点への関わり方を選ぶ">
+    <div class="range-points" aria-hidden="true"><span>切る</span><span>糸を残す</span><span>深く聞く</span></div>
+    <div class="choice-preview" id="choicePreview">
+      <span id="choiceCost">注意 1</span>
+      <strong id="choiceAction">一言返す・連絡先を残す</strong>
+      <p id="choiceWhy">深追いはしない。でも、未来から戻ってこられる細い道を残す。</p>
+    </div>
+    <button class="commit-btn" id="commitBtn" type="button"><span>この距離でつなぐ</span><b id="commitCost">−1</b></button>
+  </div>
+</section>
+
+<section class="screen" id="rippleScreen">
+  <p class="eyebrow">THREAD SAVED</p>
+  <div class="ripple-mark" id="rippleMark">1 THREAD</div>
+  <h2 id="rippleHeadline">いまは、何も起きない。</h2>
+  <p class="rippleCopy" id="rippleCopy">でも接点は残った。偶然は、その場で回収できないことがある。</p>
+  <div class="ripple-rule">
+    <span>判断ルール</span>
+    <strong id="rippleRule">「今すぐ役立つか」だけで切らない。</strong>
+  </div>
+  <button class="primary-btn" id="nextBtn" type="button"><span>次の偶然へ</span><b>→</b></button>
+</section>
+
+<section class="screen" id="chainScreen">
+  <p class="eyebrow">YEARS LATER</p>
+  <h2>偶然が、<br>偶然を呼び始める。</h2>
+  <div class="chain-timeline" id="chainTimeline"></div>
+  <button class="primary-btn" id="revealResultBtn" type="button"><span>最後まで見る</span><b>→</b></button>
+</section>
+
+<section class="screen" id="resultScreen">
+  <p class="eyebrow">YOUR SERENDIPITY CHAIN</p>
+  <div class="value-kicker">FICTIONAL CUMULATIVE PROFIT</div>
+  <div class="value-display"><strong id="finalValue">0.6</strong><span>億円</span></div>
+  <h2 id="resultHeadline">いくつかの偶然は、そこで消えた。</h2>
+  <p class="result-copy" id="resultCopy">未来につながる接点は、会った瞬間には判別できない。</p>
+
+  <div class="result-grid">
+    <article><span>残した接点</span><strong><b id="keptCount">0</b><small> / 6</small></strong><p>深く関わらなくても、次に戻れる糸を残した数。</p></article>
+    <article><span>深く聞いた接点</span><strong><b id="deepCount">0</b><small> / 6</small></strong><p>限られた注意を、濃く使った数。</p></article>
+  </div>
+
+  <div class="lesson-card">
+    <span>このゲームの持ち帰り</span>
+    <strong>全員に3を使えない。だから、0か3ではなく「1」を持つ。</strong>
+    <p>人・依頼・雑談・小さな違和感を、即座に価値ゼロと決めない。低コストの接点が、後から組み合わさる余地を残す。</p>
+  </div>
+
+  <div class="today-rule"><span>今日一度だけやる</span><strong>「今は不要」でも、1の糸を残せないか？</strong></div>
+  <button class="primary-btn" id="againBtn" type="button"><span>順番を変えてもう一度</span><b>↻</b></button>
+  <button class="secondary-btn" id="shareBtn" type="button">結果を共有</button>
+  <button class="text-btn" id="resultHomeBtn" type="button">タイトルへ戻る</button>
+  <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+</section>
+
+<section class="screen" id="recordScreen">
+  <p class="eyebrow">LOCAL RECORD</p>
+  <h2>偶然を切らない<br>反射記録。</h2>
+  <div class="record-panel">
+    <div><span>SESSIONS</span><b id="recordSessions">0</b><small>回</small></div>
+    <div><span>BEST</span><b id="recordBest">—</b><small>億円</small></div>
+  </div>
+  <p class="record-note">記録はこの端末だけに保存されます。</p>
+  <button class="primary-btn" id="recordStartBtn" type="button"><span>6つの偶然をやる</span><b>→</b></button>
+  <button class="text-btn" id="recordBackBtn" type="button">戻る</button>
+</section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./app.js"></script>
+</body>
+</html>
