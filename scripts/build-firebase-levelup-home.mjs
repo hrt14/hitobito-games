@@ -22,6 +22,7 @@ const catalog = [
   {slug:'one-thing',title:'一個だけやれ',kicker:'ONE THING UNTIL DONE',skill:'集中 / WIP制御',description:'通知や割り込みに触れず、選んだ一個を最後まで終える集中力を鍛える。',icon:'01',updateCount:3},
   {slug:'timecraft',title:'時間を使え。',kicker:"USE TIME, DON'T FILL IT",skill:'時間術 / 優先順位',description:'時間の使い方、優先順位、余白の作り方を予定づくりで反復する。',icon:'8H',updateCount:1},
   {slug:'100-turns',title:'死ぬまでに、あと100ターン',kicker:'TIME IS FINITE',skill:'有限性 / 選択',description:'残り100ターンの人生で何に時間を使うかを選び、有限な時間を体で覚える。',icon:'100',updateCount:1},
+  {slug:'100oku-connection',title:'目の前の人が100億円',kicker:"DON'T CUT THE THREAD",skill:'偶然 / 接点 / 機会',description:'6つの偶然に限られた注意を配り、価値がまだ見えない接点を0か3ではなく「1」で残す。後から偶然同士がつながるストーリーを体感する。',icon:'100億',updateCount:1},
   {slug:'task-separation',title:'課題の分離',kicker:'WHOSE TASK IS THIS?',skill:'境界線 / 集中',description:'「これは誰の課題か？」を切り分け、自分の課題だけに集中する反射を鍛える。',icon:'↔',updateCount:2},
   {slug:'levelup-control',title:'変えられる？',kicker:'CONTROL WHAT YOU CAN',skill:'コントロール / 次の一手',description:'変えられることと変えられないことを素早く切り分け、次の一手へ進む。',icon:'◉',updateCount:1},
   {slug:'expect-nothing',title:'期待しない',kicker:'DROP THE SHOULD',skill:'期待を手放す',description:'相手や予定への「こうなるはず」を手放し、期待に振り回されない考え方を反復する。',icon:'0',updateCount:1},
