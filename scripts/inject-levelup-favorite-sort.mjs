@@ -43,6 +43,7 @@ const cardValueMeta = {
   'seikan-switch': { forWhom:'嫌な出来事に気持ちを引っ張られやすい人', purpose:'受容・感謝・言葉から次の見方を選ぶ', benefit:'出来事への反応を切り替え、次へ進みやすくなる' },
   'meeting-respawn': { forWhom:'会議のあとにぐったりして仕事へ戻れない人', purpose:'状態を整え、次の仕事を30秒の一手まで縮める', benefit:'会議後の空白を短くし、仕事へ復帰しやすくなる' },
   'extra-load': { forWhom:'仕事や人間関係を必要以上に頭の中へ抱えて消耗しやすい人', purpose:'余計に疲れを増やす思考を見抜き、必要な分だけ考える', benefit:'「全部」を背負わず、今必要な一手へ戻りやすくなる' },
+  '100oku-connection': { forWhom:'目の前の出会いや小さな会話を「今は関係ない」と切りがちな人', purpose:'限られた注意の中で、価値がまだ見えない接点を細く残す判断を練習する', benefit:'全部に深く関わらずに、未来の機会へ戻れる選択肢を残しやすくなる' },
 };
 
 const escapeHtml = (value) => String(value)
