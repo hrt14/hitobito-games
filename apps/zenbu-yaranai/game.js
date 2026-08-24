@@ -63,10 +63,13 @@
   let historyOpen=false;
   let currentUser=null;
   let cloudReady=false;
+  let cloudHistoryLoaded=false;
+  let cloudHistoryLoading=false;
+  let cloudUserId=null;
 
   function escapeHtml(value){
     return String(value??'').replace(/[&<>"']/g,ch=>({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'
     }[ch]));
   }
 
@@ -361,7 +364,7 @@
         ${state.timerRunning
           ?`<button class="timer-stop" type="button" data-action="pause-timer">中断して戻る</button>`
           :`<div class="actions"><button class="primary" type="button" data-testid="timer-start" data-action="start-timer">この一件だけ25分</button><button class="secondary" type="button" data-action="timer-back">捨てるものを見直す</button></div>`}
-        <p class="sync-note">セッション ${state.timerSessionCount}${state.timerSessionCount===1?'回':'回'}</p>
+        <p class="sync-note">セッション ${state.timerSessionCount}回</p>
       </section>`;
     if(state.timerRunning){
       app.querySelector('[data-action="pause-timer"]').onclick=pauseTimer;
@@ -515,7 +518,7 @@
         </div>
       </section>`;
     app.querySelector('[data-action="close-history"]').onclick=()=>{historyOpen=false;render();};
-    if(currentUser)loadCloudHistory();
+    if(currentUser&&!cloudHistoryLoaded&&!cloudHistoryLoading)loadCloudHistory();
   }
 
   function historyStats(rows){
@@ -588,9 +591,16 @@
     try{
       cloudReady=true;
       window.firebase.auth().onAuthStateChanged(user=>{
-        currentUser=user||null;
+        const nextUser=user||null;
+        const nextId=nextUser?.uid||null;
+        if(nextId!==cloudUserId){
+          cloudUserId=nextId;
+          cloudHistoryLoaded=false;
+          cloudHistoryLoading=false;
+        }
+        currentUser=nextUser;
         const note=document.querySelector('#syncNote');if(note)note.textContent=syncLabel();
-        if(currentUser){syncPendingRecords();if(historyOpen)loadCloudHistory();}
+        if(currentUser){syncPendingRecords();if(historyOpen&&!cloudHistoryLoaded&&!cloudHistoryLoading)loadCloudHistory();}
       });
       return true;
     }catch{return false;}
@@ -604,6 +614,7 @@
         ...record,cloudSynced:true,savedAt:window.firebase.firestore.FieldValue.serverTimestamp()
       },{merge:true});
       updateLocalRecord(record.id,{cloudSynced:true});
+      cloudHistoryLoaded=false;
     }catch(error){console.warn('[zenbu-yaranai] Firestore save failed',error?.code||error);}
   }
 
@@ -613,18 +624,25 @@
   }
 
   async function loadCloudHistory(){
-    if(!currentUser||!firebaseReady())return;
+    if(!currentUser||!firebaseReady()||cloudHistoryLoading)return;
+    cloudHistoryLoading=true;
     try{
       const snap=await window.firebase.firestore().collection('levelupUsers').doc(currentUser.uid).collection('history').get();
       const cloud=[];
       snap.forEach(doc=>{const data=doc.data();if(data.appSlug===APP_SLUG)cloud.push({...data,id:data.id||doc.id,cloudSynced:true});});
-      if(!cloud.length)return;
-      const merged=new Map(loadLocalHistory().map(row=>[row.id,row]));
-      cloud.forEach(row=>merged.set(row.id,{...merged.get(row.id),...row,cloudSynced:true}));
-      const rows=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
-      saveLocalHistory(rows);
+      if(cloud.length){
+        const merged=new Map(loadLocalHistory().map(row=>[row.id,row]));
+        cloud.forEach(row=>merged.set(row.id,{...merged.get(row.id),...row,cloudSynced:true}));
+        const rows=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+        saveLocalHistory(rows);
+      }
+      cloudHistoryLoaded=true;
       if(historyOpen)renderHistoryFromSync();
-    }catch(error){console.warn('[zenbu-yaranai] Firestore history load failed',error?.code||error);}
+    }catch(error){
+      console.warn('[zenbu-yaranai] Firestore history load failed',error?.code||error);
+    }finally{
+      cloudHistoryLoading=false;
+    }
   }
 
   function renderHistoryFromSync(){
