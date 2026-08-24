@@ -28,9 +28,12 @@ async function expectToast(page, text) {
 }
 
 async function fillThreeTasks(page) {
-  await page.locator('[data-action="add-task"]').click();
-  await page.locator('[data-action="add-task"]').click();
   const inputs = page.locator('[data-testid="task-input"]');
+  assert.equal(await inputs.count(), 1);
+  await page.locator('[data-action="add-task"]').click();
+  await inputs.nth(1).waitFor({ state: 'visible' });
+  await page.locator('[data-action="add-task"]').click();
+  await inputs.nth(2).waitFor({ state: 'visible' });
   assert.equal(await inputs.count(), 3);
   await inputs.nth(0).fill('木曜のA社コンサル準備');
   await inputs.nth(1).fill('B社資料作成');
@@ -39,6 +42,10 @@ async function fillThreeTasks(page) {
 
 async function waitForOutcome(page) {
   await page.locator('[data-testid="outcome-done"]').waitFor({ state: 'visible', timeout: 8000 });
+}
+
+async function settle(page) {
+  await page.waitForTimeout(320);
 }
 
 async function runDesktop(browser) {
@@ -114,6 +121,7 @@ async function runDesktop(browser) {
   assert.equal(await page.locator('[data-testid="stat-completed"]').innerText(), '1');
   assert.match(await page.locator('main').innerText(), /完璧な資料/);
   observe('history', 'Seven-day history immediately shows one RED day, three entered tasks, one completed item, and discarded-item aggregation.');
+  await settle(page);
   await page.screenshot({ path: path.join(outputDir, 'desktop-history.png'), fullPage: true });
 
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
@@ -174,6 +182,7 @@ async function runMobile(browser) {
   }));
   assert.ok(timerDimensions.scrollWidth <= timerDimensions.width + 1, 'mobile timer should not overflow horizontally');
   assert.ok(timerDimensions.startHeight >= 58, 'mobile timer primary control should be at least 58px');
+  await settle(page);
   await page.screenshot({ path: path.join(outputDir, 'mobile-timer.png'), fullPage: true });
 
   await page.locator('[data-testid="timer-start"]').click();
@@ -188,6 +197,7 @@ async function runMobile(browser) {
   await page.locator('[data-testid="outcome-stop"]').click();
   assert.equal(await page.locator('[data-testid="complete-title"]').innerText(), '今日はここまで。');
   observe('stop path', 'Mobile “今日はここまで” ends the session without pretending the task was completed.');
+  await settle(page);
   await page.screenshot({ path: path.join(outputDir, 'mobile-stop.png'), fullPage: true });
 
   const finalDimensions = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
