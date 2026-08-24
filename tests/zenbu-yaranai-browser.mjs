@@ -69,10 +69,12 @@ async function runDesktop(browser) {
   assert.equal(await choices.count(), 3);
   assert.match(await page.locator('main').innerText(), /被害が減るもの/);
   await choices.nth(0).click();
+  await page.locator('[data-testid="minimum-input"]').waitFor();
 
   await page.locator('[data-action="back"]').click();
   assert.equal(await page.locator('[data-testid="task-choice"]').count(), 3);
   await page.locator('[data-testid="task-choice"]').nth(0).click();
+  await page.locator('[data-testid="minimum-input"]').waitFor();
   observe('back / recovery', 'Back from minimum-line step returns to the three-task chooser without losing the task dump.');
 
   await page.locator('[data-action="minimum-next"]').click();
@@ -157,6 +159,7 @@ async function runMobile(browser) {
   await page.locator('[data-testid="task-input"]').fill('明日の会議準備');
   await page.locator('[data-action="tasks-next"]').click();
   await page.locator('[data-testid="task-choice"]').click();
+  await page.locator('[data-testid="minimum-input"]').waitFor();
   await page.locator('[data-testid="minimum-input"]').fill('議題3つをメモする');
   await page.locator('[data-action="minimum-next"]').click();
   await page.getByRole('button', { name: '詳細分析', exact: true }).click();
