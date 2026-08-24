@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f12" />
+  <meta name="description" content="身に覚えのないことで責められ、行動まで制限されそうな時に、事実・断定・制限を分け、自分に残る選択権と境界線を取り戻す練習。" />
+  <title>悪くないのに責められ、行動まで制限されたとき | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPへ戻る">←</a>
+      <div class="brand">LEVEL UP / KEEP YOUR AGENCY</div>
+      <div class="session-pill"><span id="sessionCount">0</span> sessions</div>
+    </header>
+
+    <main id="app">
+      <section id="introView" class="view active">
+        <div class="case-stamp">CASE FILE</div>
+        <p class="eyebrow">UNFAIR BLAME / KEEP YOUR AGENCY</p>
+        <h1>悪くないのに責められ、<br><em>行動まで制限されたとき。</em></h1>
+        <p class="lead">相手の断定を、そのまま自分の現実にしない。<strong>事実・思い込み・制限</strong>を分け、まだ自分に残っている選択権を取り戻す。</p>
+
+        <article class="case-card">
+          <div class="case-top"><span id="scenarioLabel"></span><b>CONFIDENTIAL</b></div>
+          <p id="scenarioScene"></p>
+          <blockquote id="scenarioAccusation"></blockquote>
+          <div class="restriction-line"><span>制限</span><p id="scenarioRestriction"></p></div>
+        </article>
+
+        <section class="meter-block" aria-labelledby="beforeLabel">
+          <div class="meter-head"><span id="beforeLabel">いま、どれくらい揺さぶられている？</span><strong id="beforeValue">65</strong></div>
+          <input id="beforeRange" class="range" type="range" min="0" max="100" value="65" aria-label="開始前の動揺度" />
+          <div class="range-labels"><span>冷静</span><span>かなり揺れている</span></div>
+        </section>
+
+        <button id="startBtn" class="primary" type="button">事実から取り戻す <span>→</span></button>
+        <p class="safety-note">暴力・監禁・脅迫など身の危険がある場合は、この練習より安全確保を優先してください。</p>
+      </section>
+
+      <section id="sortView" class="view">
+        <div class="step-head"><span>01 / CUT THE STORY</span><b id="sortProgress">1 / 5</b></div>
+        <h2>相手の言葉を、<br>3つに切り分ける。</h2>
+        <p class="helper">「責められた」ひとかたまりのまま受け取らない。</p>
+        <article class="evidence-card">
+          <span id="evidenceNo">EVIDENCE #01</span>
+          <p id="evidenceText"></p>
+        </article>
+        <div class="bucket-grid">
+          <button class="bucket" data-bucket="fact" type="button"><strong>確認できる事実</strong><span>記録・日時・実際の発言</span></button>
+          <button class="bucket" data-bucket="assumption" type="button"><strong>相手の断定</strong><span>推測・決めつけ・評価</span></button>
+          <button class="bucket" data-bucket="restriction" type="button"><strong>行動の制限</strong><span>禁止・権限停止・要求</span></button>
+        </div>
+        <div id="sortFeedback" class="feedback" aria-live="polite"></div>
+        <button id="sortNextBtn" class="next hidden" type="button">次の言葉 →</button>
+      </section>
+
+      <section id="controlView" class="view">
+        <div class="step-head"><span>02 / RECOVER AGENCY</span><b id="controlProgress">0 / 4</b></div>
+        <h2>自分で決められるものだけ、<br>回収する。</h2>
+        <p class="helper">相手の気持ちまで支配しない。自分の選択権だけ戻す。</p>
+        <div id="controlBoard" class="control-board"></div>
+        <div id="controlFeedback" class="feedback" aria-live="polite"></div>
+        <button id="controlCheckBtn" class="primary" type="button">回収した選択権を確認する</button>
+      </section>
+
+      <section id="buildView" class="view">
+        <div class="step-head"><span>03 / BUILD THE BOUNDARY</span><b id="buildProgress">0 / 4</b></div>
+        <h2>反論ではなく、<br>4行で境界を作る。</h2>
+        <p class="helper">事実 → 境界 → 条件確認 → 次の一手。この順番で組む。</p>
+        <article class="reply-paper">
+          <div class="paper-top"><span>RESPONSE DRAFT</span><span id="paperCount">0/4</span></div>
+          <div id="builtReply" class="built-reply"><p class="empty">下の断片から、最初の一文を選ぶ。</p></div>
+        </article>
+        <div id="replyParts" class="reply-parts"></div>
+        <div id="buildFeedback" class="feedback" aria-live="polite"></div>
+        <button id="buildNextBtn" class="next hidden" type="button">圧をかけられた場面へ →</button>
+      </section>
+
+      <section id="pressureView" class="view">
+        <div class="step-head"><span>04 / DON'T REACT ON IMPACT</span><b>1.2 SEC</b></div>
+        <h2>さらに責められても、<br>反射で返さない。</h2>
+        <p class="helper">怒りをゼロにする必要はない。返答までの主導権を取り戻す。</p>
+        <article class="pressure-box"><span>追加の圧</span><blockquote id="pressureText"></blockquote></article>
+        <button id="holdBtn" class="hold" type="button">押したまま 1.2秒 保留する</button>
+        <article id="steadyBox" class="steady-box hidden"><span>STEADY RESPONSE</span><p id="steadyReply"></p></article>
+        <div id="pressureFeedback" class="feedback" aria-live="polite"></div>
+        <button id="pressureNextBtn" class="primary hidden" type="button">今の自分を確認する →</button>
+      </section>
+
+      <section id="resultView" class="view">
+        <div class="case-stamp">CASE CLOSED?</div>
+        <p class="eyebrow">SEE CLEARLY. KEEP YOUR AGENCY.</p>
+        <h2>相手の断定と、<br>自分の現実を分けた。</h2>
+        <div class="result-grid">
+          <div><span>事実の切り分け</span><strong id="resultSort">5/5</strong></div>
+          <div><span>回収した選択権</span><strong id="resultControl">4/4</strong></div>
+          <div><span>境界の4行</span><strong id="resultBuild">4/4</strong></div>
+          <div><span>反射停止</span><strong id="resultPause">OK</strong></div>
+        </div>
+
+        <section class="meter-block">
+          <div class="meter-head"><span>いま、どれくらい揺さぶられている？</span><strong id="afterValue">65</strong></div>
+          <input id="afterRange" class="range" type="range" min="0" max="100" value="65" aria-label="終了後の動揺度" />
+          <div class="before-after"><span id="beforeResult">開始 65</span><strong id="deltaResult">変化なし</strong><span id="afterResult">現在 65</span></div>
+        </section>
+
+        <article class="rule-box">
+          <span>持ち帰るルール</span>
+          <p>「私は悪くない」と言い聞かせ続けるより、<strong>事実を確認し、断定を断定のまま置き、制限の根拠と条件を確認し、自分の次の一手を選ぶ。</strong></p>
+        </article>
+
+        <button id="saveBtn" class="primary" type="button">この結果を記録する</button>
+        <div id="savedPanel" class="saved-panel hidden" aria-live="polite"></div>
+        <p id="syncStatus" class="sync-status">端末に保存できます。ログイン中はFirestoreにも同期します。</p>
+
+        <div class="result-actions">
+          <button id="retryBtn" type="button">同じケースをもう一度</button>
+          <button id="nextScenarioBtn" type="button">次のケースへ</button>
+          <a href="/">LEVEL UPへ戻る</a>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
