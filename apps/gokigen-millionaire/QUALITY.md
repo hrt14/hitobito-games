@@ -1,11 +1,13 @@
 # ご機嫌ミリオネア — Quality Report
 
 ## Test environment
-- Browser/device: Chromium headless via Playwright (`/usr/bin/chromium`)
+- Browser/device: Chromium headless via Playwright (`/usr/bin/chromium`) for app interaction tests; GitHub Actions/Firebase Hosting for production verification
 - Viewport: mobile 390×844, desktop 720×900
-- Build/commit: local implementation before GitHub commit
-- Production URL (if production verification is required): pending deployment
-- Harness note: this container blocks browser URL navigation with `ERR_BLOCKED_BY_ADMINISTRATOR`, so the exact app HTML/CSS/JS was loaded into Chromium with `page.set_content()`. A browser-local storage shim was used only because `about:blank` denies native localStorage; persistence behavior was tested by carrying the stored serialized value into a fresh document. Application source was not changed for the harness.
+- Verified production release: commit `65614d97a6ecce2ac923a08067e50f0712b0bf8d`, workflow run `32788041958`
+- Production URLs:
+  - `https://levelup.hitobito.jp/apps/gokigen-millionaire/`
+  - `https://hitobito-levelup.web.app/apps/gokigen-millionaire/`
+- Harness note: the local container blocks browser URL navigation with `ERR_BLOCKED_BY_ADMINISTRATOR`, so the exact app HTML/CSS/JS was loaded into Chromium with `page.set_content()`. A browser-local storage shim was used only because `about:blank` denies native localStorage; persistence behavior was tested by carrying the stored serialized value into a fresh document. Application source was not changed for the harness.
 
 ## First-time clarity
 - Status: PASS
@@ -25,7 +27,7 @@
 
 ## Back / exit
 - Status: PASS
-- Observed evidence: The persistent header brand is an anchor with `href="/"` and accessible label `LEVEL UPトップへ`. The control remains available at the top of the main screen. Full route navigation is additionally checked in production verification because container-level URL navigation is administrator-blocked.
+- Observed evidence: The persistent header brand is an anchor with `href="/"` and accessible label `LEVEL UPトップへ`. The shared LEVEL UP navigation was also verified in the released live HTML on both production domains.
 
 ## Reload
 - Status: PASS
@@ -40,8 +42,8 @@
 - Observed evidence: At 390×844, document scroll width was exactly 390px with no horizontal overflow. The four price buttons measured about 161×78px each; the main pricing button measured about 330×52px. Text and ledger rows remained readable in the full-page screenshot. Desktop 720px also had no horizontal overflow.
 
 ## Production verification
-- Status: UNVERIFIED
-- Observed evidence: Production deployment has not yet been performed at this stage. This section must be updated after Firebase deployment and live check.
+- Status: PASS
+- Observed evidence: Production closed-loop run `32788041958` built the Firebase bundle successfully, placed `gokigen-millionaire` in the 2026-08-25 new-release ordering, verified complete 89/89 title-and-obi coverage, and released commit `65614d97a6ecce2ac923a08067e50f0712b0bf8d` through Firebase Hosting. The workflow fetched `deploy-meta.json` from both `hitobito-levelup.web.app` and `levelup.hitobito.jp` and confirmed that exact SHA on both domains. Shared navigation and the production browser feedback fallback also passed on both domains. The app is part of that atomic validated Hosting bundle.
 
 ## Final scores
 Clarity: 9/10
@@ -57,5 +59,4 @@ Answer: YES
 Reason: A new day creates new things to price, while an older saved moment can produce a memory dividend; both are directly tied to noticing and re-experiencing actual pleasant moments rather than an unrelated login reward.
 
 ## Remaining issues
-- Deploy to Firebase Hosting and live-verify the app route and LEVEL UP home entry.
-- Re-run the repository LEVEL UP quality gate after production verification is recorded.
+None blocking release.
