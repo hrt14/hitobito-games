@@ -1,0 +1,57 @@
+name: Unfair blame LEVEL UP browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/unfair-blame/**'
+      - '.github/workflows/unfair-blame-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/unfair-blame/**'
+      - '.github/workflows/unfair-blame-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: node --check apps/unfair-blame/app.js
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/unfair-blame-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/unfair-blame/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/unfair-blame-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          UNFAIR_BLAME_URL: http://127.0.0.1:4173/apps/unfair-blame/?test=1
+        run: node apps/unfair-blame/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/unfair-blame
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unfair-blame-browser-playtest
+          path: apps/unfair-blame/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/unfair-blame-server.log || true
