@@ -16,6 +16,7 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const available = new Set(manifest.games.map((game) => game.slug));
 
 const catalog = [
+  {slug:'gokigen-millionaire',title:'ご機嫌ミリオネア',kicker:'PRICE THE GOOD MOMENTS',skill:'楽しさ発見 / 味わい',description:'今日あった小さな楽しいことに自分で値段をつけ、ご機嫌資産として100万Gまで貯める。',icon:'G',updateCount:1},
   {slug:'start',title:'START',kicker:'MBTI TO ACTION',skill:'着手 / 極小化',description:'MBTIを選び、自分に合う始め方で宿題を最初の一手まで小さくして、現実で動き出す。',icon:'GO',href:'/start',updateCount:1,special:true},
   {slug:'3sec-action',title:'3秒で動け',kicker:'THINK LESS, START SMALL',skill:'即着手',description:'3秒以内に「やる・捨てる・任せる」。考え込む前に動く反射を鍛える。',icon:'03',updateCount:1},
   {slug:'ato-5min',title:'あと5分',kicker:'BREAK IT DOWN',skill:'タスク分解',description:'巨大な仕事を最初の一手まで小さくし、動けるサイズへ分解する反射を鍛える。',icon:'05',updateCount:3},
