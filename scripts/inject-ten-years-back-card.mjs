@@ -24,6 +24,7 @@ const game = catalog.games.find((item) => item.slug === slug);
 if (!game) throw new Error('ten-years-back missing from LEVEL UP catalog.');
 Object.assign(game, meta, { title: bookTitle, description: obi });
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
+
 let html = fs.readFileSync(homePath, 'utf8');
 const cardPattern = new RegExp(`(<article\\b[^>]*\\bdata-game="${slug}"[^>]*>)([\\s\\S]*?)(</article>)`);
 const match = html.match(cardPattern);
@@ -37,8 +38,15 @@ if (!/<h2\b[^>]*>[\s\S]*?<\/h2>/.test(body)) throw new Error('ten-years-back car
 body = body.replace(/<h2\b[^>]*>[\s\S]*?<\/h2>/, `<h2>${escapeHtml(bookTitle)}</h2>\n      <p class="book-obi">${escapeHtml(obi)}</p>`);
 body = body.replace(/<p>([\s\S]*?)<\/p>/, `<p>${escapeHtml(meta.description)}</p>`);
 body = body.replace(/aria-label="[^"]*をお気に入りに追加"/, `aria-label="${escapeHtml(bookTitle)}をお気に入りに追加"`);
+const cardValues = [meta.forWho, meta.purpose, meta.benefit];
+let valueIndex = 0;
+body = body.replace(/<span class="card-value-text">[\s\S]*?<\/span>/g, () => `<span class="card-value-text">${escapeHtml(cardValues[valueIndex++] || '')}</span>`);
+if (valueIndex !== 3) throw new Error(`ten-years-back expected 3 rendered card values, found ${valueIndex}.`);
 html = html.replace(cardPattern, `$1${body}$3`);
 fs.writeFileSync(homePath, html);
 const finalHtml = fs.readFileSync(homePath, 'utf8');
 if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class="book-obi">${escapeHtml(obi)}</p>`)) throw new Error('ten-years-back card injection failed.');
-console.log('[Firebase] ten-years-back discovery + title/obi copy injected.');
+for (const required of cardValues) {
+  if (!finalHtml.includes(escapeHtml(required))) throw new Error(`ten-years-back rendered card value missing: ${required}`);
+}
+console.log('[Firebase] ten-years-back discovery + title/obi + rendered values injected.');
