@@ -1,0 +1,140 @@
+name: Zenbu yaranai browser quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/zenbu-yaranai/**'
+      - 'tests/zenbu-yaranai-browser.mjs'
+      - 'scripts/inject-levelup-zenbu-yaranai.mjs'
+      - 'package.json'
+      - '.github/workflows/zenbu-yaranai-browser.yml'
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: zenbu-yaranai-browser-quality
+  cancel-in-progress: true
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post pending commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"pending\",\"context\":\"zenbu-yaranai-browser\",\"description\":\"Desktop/mobile and production overload-flow verification running\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Static source checks
+        run: |
+          set -euo pipefail
+          node --check apps/zenbu-yaranai/game.js
+          grep -F '全部やらなくていい | LEVEL UP' apps/zenbu-yaranai/index.html >/dev/null
+          grep -F "const FOCUS_SECONDS=QA_MODE?2:25*60" apps/zenbu-yaranai/game.js >/dev/null
+          grep -F "collection('history')" apps/zenbu-yaranai/game.js >/dev/null
+          test -s apps/zenbu-yaranai/SPEC.md
+          test -s apps/zenbu-yaranai/QUALITY.md
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local app server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/zenbu-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/apps/zenbu-yaranai/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/zenbu-http.log
+          exit 1
+
+      - name: Browser-test local app
+        env:
+          OUTPUT_DIR: test-results/zenbu-yaranai-local
+        run: node tests/zenbu-yaranai-browser.mjs
+
+      - name: Wait for Firebase production source
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in {1..36}; do
+            if curl -fLsS --max-time 20 https://levelup.hitobito.jp/apps/zenbu-yaranai/ -o /tmp/zenbu-live.html \
+              && grep -F '全部やらなくていい | LEVEL UP' /tmp/zenbu-live.html >/dev/null \
+              && curl -fLsS --max-time 20 https://levelup.hitobito.jp/apps/zenbu-yaranai/game.js -o /tmp/zenbu-live.js \
+              && grep -F "const FOCUS_SECONDS=QA_MODE?2:25*60" /tmp/zenbu-live.js >/dev/null \
+              && grep -F '一個ずつ、減らした記録' /tmp/zenbu-live.js >/dev/null; then
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo 'Production zenbu-yaranai route did not become available with expected source.'
+            exit 1
+          fi
+
+      - name: Verify LEVEL UP home card
+        run: |
+          set -euo pipefail
+          curl -fLsS --max-time 20 https://levelup.hitobito.jp/ -o /tmp/levelup-home.html
+          grep -F 'data-game="zenbu-yaranai"' /tmp/levelup-home.html >/dev/null
+          grep -F '全部やらなくていい' /tmp/levelup-home.html >/dev/null
+          grep -F 'ONE THING. MINIMUM. DROP.' /tmp/levelup-home.html >/dev/null
+
+      - name: Browser-test production app
+        env:
+          BASE_URL: https://levelup.hitobito.jp/apps/zenbu-yaranai/
+          OUTPUT_DIR: test-results/zenbu-yaranai-production
+        run: node tests/zenbu-yaranai-browser.mjs
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zenbu-yaranai-browser-evidence
+          path: |
+            test-results/zenbu-yaranai-local/**
+            test-results/zenbu-yaranai-production/**
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Post success commit status
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"success\",\"context\":\"zenbu-yaranai-browser\",\"description\":\"Local + production desktop/mobile overload flow passed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+
+      - name: Post failure commit status
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"failure\",\"context\":\"zenbu-yaranai-browser\",\"description\":\"Zenbu yaranai browser, home card, or production verification failed\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
