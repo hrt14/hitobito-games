@@ -70,6 +70,24 @@ const landingDefinitions = [
     lead: '疲れているときに、さらに自分へ課題を足さない。今の体力と脳内負荷を見て、回復につながる最小の一手を選びます。',
     candidates: ['self-management', 'extra-load', 'levelup-mood', 'nemuri-no-umi', 'nukeru'],
   },
+  {
+    slug: 'kotowarenai',
+    title: '断りたい・頼みたいのに言えないとき',
+    seoTitle: '断れない・頼めない・言いにくいことを伝えたいときの練習 | LEVEL UP',
+    description: '断りたい、頼みたい、反対したい、「やめてほしい」を言えず飲み込んでしまうときに。攻撃にも迎合にもならず、事実・自分の立場・要望を短く言葉にする無料トレーニングです。',
+    kicker: 'ASSERTIVE / BOUNDARY',
+    lead: '相手を負かすのではなく、自分の線を言葉にする。言いにくい場面を、小さく伝える練習から始めます。',
+    candidates: ['assertive', 'hard-request', 'task-separation', 'approval-off'],
+  },
+  {
+    slug: 'nerumae-kangaegoto',
+    title: '寝る前に考え事が止まらないとき',
+    seoTitle: '寝る前に考え事が止まらない・仕事が頭から離れないとき | LEVEL UP',
+    description: '布団に入ってから仕事や心配事を考え続けて眠れないときに。「今やること」と「明日に預けること」を分け、頭を休息モードへ切り替える無料トレーニングです。',
+    kicker: 'BEDTIME / PARK',
+    lead: '解決するまで考え続けるのではなく、明日に置く場所を作る。未完了を頭の外へ預けて、寝る準備に戻ります。',
+    candidates: ['azukete-neru', 'nemuri-no-umi', 'sukkiri-note', 'extra-load'],
+  },
 ];
 
 function escapeHtml(value) {
@@ -230,7 +248,7 @@ function landingHtml(definition) {
 
 function hubHtml(definitions) {
   const canonical = `${canonicalBase}/problems/`;
-  const description = '先延ばし、考えすぎ、嫌なことの反芻、人の目、スマホ、疲れ。今の悩みから、その場で使えるLEVEL UPの無料トレーニングを探せます。';
+  const description = '先延ばし、考えすぎ、嫌なことの反芻、人の目、スマホ、疲れ、言いにくいこと、寝る前の考え事。今の悩みから、その場で使えるLEVEL UPの無料トレーニングを探せます。';
   const list = definitions.map((definition) => `<a href="/problems/${escapeHtml(definition.slug)}/"><strong>${escapeHtml(definition.title)}</strong><span>${escapeHtml(definition.kicker)}</span></a>`).join('');
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -307,7 +325,7 @@ function refreshDiscoveryFiles(generated) {
 }
 
 function validate(generated) {
-  if (generated.length < 6) throw new Error(`Expected 6 problem landing pages, generated ${generated.length}.`);
+  if (generated.length < 8) throw new Error(`Expected 8 problem landing pages, generated ${generated.length}.`);
   const sitemap = fs.readFileSync(path.join(outDir, 'sitemap.xml'), 'utf8');
   const robots = fs.readFileSync(path.join(outDir, 'robots.txt'), 'utf8');
   for (const definition of generated) {
