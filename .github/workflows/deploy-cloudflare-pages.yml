@@ -2,23 +2,6 @@ name: Deploy normal games to Cloudflare Pages
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - .deploy-trigger
-      - '.play-fun-gate-baseline'
-      - 'apps/**'
-      - 'index.html'
-      - 'package.json'
-      - 'scripts/playtest-catalog.mjs'
-      - 'scripts/sync-games-portal.mjs'
-      - 'scripts/enhance-play-navigation.mjs'
-      - 'scripts/enhance-play-card-art.mjs'
-      - 'scripts/inject-play-top-nav.mjs'
-      - 'scripts/validate-play-fun-gate.mjs'
-      - 'docs/PLAY_FUN_FIRST.md'
-      - 'deploy-targets.json'
 
 concurrency:
   group: cloudflare-pages-production
