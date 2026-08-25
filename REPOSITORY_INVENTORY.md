@@ -24,14 +24,14 @@ GitHub / Vercel / Firebase / Cloudflare の役割が混ざらないようにす�
 | `habit-egg` | Habit Egg | 維持 | 独立サービスとして管理 |
 | `touch-egg` | Touch Egg | 維持 | 独立サービスとして管理 |
 | `chinese-instant-composition` | 中国語瞬間作文 | 維持 | 独立サービスとして管理 |
-| `lastfire-idle` | Working Planet | 維持 | repo 名を `working-planet` へ変更候補 |
+| `working-planet` | Working Planet | 維持 | 独立ゲームとして管理 |
 | `swipe-earth` | Swipe Earth | 当面維持 | 今後の利用状況で統合判断 |
-| `-hitobito-lab` | ひとびと素材 | 維持 | repo 名を `hitobito-sozai` へ変更候補 |
-| `forest-camp` | 雪原キャンプ MVP | 統合候補 | `hitobito-games/apps/forest-camp` へ移行後 Archive |
-| `infra-king` | インフラ王 | 統合候補 | `hitobito-games/apps/infra-king` へ移行後 Archive |
-| `coding-egg` | Touch Egg フィードバック実験 | Archive候補 | 必要要素を確認して Archive |
+| `hitobito-sozai` | ひとびと素材 | 維持 | 独立サービスとして管理 |
+| `forest-camp` | 雪原キャンプ MVP | 統合候補 | Vite構成をmonorepo向けに調整後 `apps/forest-camp` へ移行 |
+| `infra-king` | インフラ王 | 統合候補 | 静的構成のため `apps/infra-king` へ移行しやすい |
+| `coding-egg` | Touch Egg フィードバック実験 | Archive済み | 必要になれば解除可能 |
 | `hirata-ai-company` | AI会社ごっこ実験 | 保留 | 継続利用なら維持、不要なら Archive |
-| `-sleep-egg` | 空 repo | Archive候補 | Archive。不要確定後のみ削除検討 |
+| `-sleep-egg` | 空 repo | Archive済み | 不要確定後のみ削除検討 |
 
 ## 第一段階
 
@@ -41,16 +41,20 @@ GitHub / Vercel / Firebase / Cloudflare の役割が混ざらないようにす�
 2. `hitobito-tools` README の古い公開構成と自動デプロイ記述を修正 — **完了**
 3. `hitobito-games/HOSTING_POLICY.md` に Vercel manual deploy 方針を明記 — **完了**
 4. `deploy-targets.json` に `gitIntegration: false` / `deployMode: manual` を記録 — **完了**
-5. `-sleep-egg` を Archive — **手動管理操作待ち**
-6. `coding-egg` を Archive候補として最終確認 — **手動管理操作待ち**
-7. `-hitobito-lab` → `hitobito-sozai` の rename — **手動管理操作待ち**
-8. `lastfire-idle` → `working-planet` の rename — **手動管理操作待ち**
+5. `-sleep-egg` を Archive — **完了**
+6. `coding-egg` を Archive — **完了**
+7. `-hitobito-lab` → `hitobito-sozai` の rename — **完了**
+8. `lastfire-idle` → `working-planet` の rename — **完了**
+
+**第一段階は完了。**
 
 ## 第二段階
 
 本番を壊さないよう、移行先で確認してから元 repo を Archive する。
 
-- `forest-camp` → `hitobito-games/apps/forest-camp`
 - `infra-king` → `hitobito-games/apps/infra-king`
+  - 現状は HTML / CSS / JavaScript の静的構成。monorepoへの単純移行がしやすいため先行対象。
+- `forest-camp` → `hitobito-games/apps/forest-camp`
+  - 現状は Vite + React (`/src/main.jsx`)。そのまま静的ゲーム群へ置くと動かないため、ビルド方式または静的化を決めてから移行する。
 
 履歴保存が必要なら git subtree / filter-repo 等を検討する。単純コピーで十分なら、まず現在版を移して本番確認し、その後元 repo を Archive する。
