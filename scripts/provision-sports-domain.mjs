@@ -57,12 +57,22 @@ async function getZoneId() {
   }
 
   if (CF_ACCOUNT_ID) {
-    const url = `${cfBase}/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/domains/${CF_REFERENCE_DOMAIN}`;
-    const pages = await jsonFetch(url, { headers: cfHeaders }, [404]);
-    const pagesId = pages.body?.result?.zone_tag;
-    if (pages.body?.success && pagesId) {
+    const domainUrl = `${cfBase}/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/domains/${CF_REFERENCE_DOMAIN}`;
+    const domain = await jsonFetch(domainUrl, { headers: cfHeaders }, [404]);
+    const domainZone = domain.body?.result?.zone_tag;
+    if (domain.body?.success && domainZone) {
       console.log(`Resolved Cloudflare zone through Pages domain ${CF_REFERENCE_DOMAIN}.`);
-      return pagesId;
+      return domainZone;
+    }
+
+    const listUrl = `${cfBase}/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/domains`;
+    const list = await jsonFetch(listUrl, { headers: cfHeaders }, [403, 404]);
+    const domains = Array.isArray(list.body?.result) ? list.body.result : [];
+    const match = domains.find((item) => item?.name === CF_REFERENCE_DOMAIN && item?.zone_tag)
+      || domains.find((item) => item?.zone_tag && String(item?.name || '').endsWith('.hitobito.jp'));
+    if (list.body?.success && match?.zone_tag) {
+      console.log(`Resolved Cloudflare zone through Pages domain list (${match.name}).`);
+      return match.zone_tag;
     }
   }
 
