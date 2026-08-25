@@ -2,28 +2,6 @@ name: Deploy LEVEL UP to Firebase Hosting
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/**'
-      - 'firebase-overrides/**'
-      - 'deploy-targets.json'
-      - 'firebase.json'
-      - 'firestore.rules'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'scripts/build-host-targets.mjs'
-      - 'scripts/build-firebase-levelup-home.mjs'
-      - 'scripts/inject-levelup-home-link.mjs'
-      - 'scripts/inject-levelup-account.mjs'
-      - 'scripts/inject-levelup-refresh-button.mjs'
-      - 'scripts/patch-levelup-popup-auth.mjs'
-      - 'scripts/playtest-catalog.mjs'
-      - 'scripts/prepare-firebase-mobile.mjs'
-      - 'scripts/validate-firebase-bundle.mjs'
-      - '.github/workflows/deploy-firebase-levelup.yml'
-      - '.firebase-deploy-trigger'
 
 concurrency:
   group: firebase-levelup-production
