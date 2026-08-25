@@ -1,9 +1,11 @@
 {
-  "version": 1,
-  "updatedAt": "2026-08-22",
+  "version": 2,
+  "updatedAt": "2026-08-26",
   "targets": {
     "vercel": {
       "role": "portal-and-main-games",
+      "gitIntegration": false,
+      "deployMode": "manual",
       "projects": [
         { "name": "hitobito-games", "domain": "games.hitobito.jp", "scope": "portal" },
         { "name": "404-kaiki", "domain": "404.hitobito.jp", "scope": "apps/404-kaiki" },
