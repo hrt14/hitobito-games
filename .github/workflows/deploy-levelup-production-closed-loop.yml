@@ -1,9 +1,6 @@
 name: Deploy LEVEL UP production closed loop
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
