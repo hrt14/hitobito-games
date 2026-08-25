@@ -3,6 +3,9 @@ const SITE_ID = process.env.FIREBASE_SITE_ID || 'hitobito-sportsdata-995292';
 const DOMAIN = process.env.SPORTS_DOMAIN || 'xn--zckmom2i6hc.hitobito.jp';
 const GOOGLE_TOKEN = process.env.GOOGLE_ACCESS_TOKEN;
 const CF_TOKEN = process.env.CF_API_TOKEN;
+const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
+const CF_PAGES_PROJECT = process.env.CF_PAGES_PROJECT || 'hitobito-games-normal';
+const CF_REFERENCE_DOMAIN = process.env.CF_REFERENCE_DOMAIN || 'play.hitobito.jp';
 
 if (!GOOGLE_TOKEN) throw new Error('GOOGLE_ACCESS_TOKEN is required');
 if (!CF_TOKEN) throw new Error('CF_API_TOKEN is required');
@@ -46,10 +49,24 @@ async function ensureCustomDomain() {
 }
 
 async function getZoneId() {
-  const result = await jsonFetch(`${cfBase}/zones?name=hitobito.jp`, { headers: cfHeaders });
-  const id = result.body?.result?.[0]?.id;
-  if (!result.body?.success || !id) throw new Error('Cloudflare hitobito.jp zone not found');
-  return id;
+  const direct = await jsonFetch(`${cfBase}/zones?name=hitobito.jp`, { headers: cfHeaders });
+  const directId = direct.body?.result?.[0]?.id;
+  if (direct.body?.success && directId) {
+    console.log('Resolved Cloudflare zone through Zones API.');
+    return directId;
+  }
+
+  if (CF_ACCOUNT_ID) {
+    const url = `${cfBase}/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/domains/${CF_REFERENCE_DOMAIN}`;
+    const pages = await jsonFetch(url, { headers: cfHeaders }, [404]);
+    const pagesId = pages.body?.result?.zone_tag;
+    if (pages.body?.success && pagesId) {
+      console.log(`Resolved Cloudflare zone through Pages domain ${CF_REFERENCE_DOMAIN}.`);
+      return pagesId;
+    }
+  }
+
+  throw new Error('Cloudflare hitobito.jp zone not found through Zones API or Pages domain fallback');
 }
 
 const cleanName = (value) => String(value || '').replace(/\.$/, '');
@@ -62,7 +79,7 @@ function cleanContent(type, value) {
 
 async function listRecords(zoneId, name, type) {
   const result = await jsonFetch(`${cfBase}/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}&type=${encodeURIComponent(type)}&per_page=100`, { headers: cfHeaders });
-  if (!result.body?.success) throw new Error(`Cloudflare list failed for ${type} ${name}`);
+  if (!result.body?.success) throw new Error(`Cloudflare list failed for ${type} ${name}: ${JSON.stringify(result.body?.errors || [])}`);
   return result.body.result || [];
 }
 async function removeId(zoneId, id) {
@@ -78,7 +95,7 @@ async function addRecord(zoneId, record) {
   const payload = { type, name, content, ttl: 300 };
   if (type !== 'TXT') payload.proxied = false;
   const result = await jsonFetch(`${cfBase}/zones/${zoneId}/dns_records`, { method: 'POST', headers: cfHeaders, body: JSON.stringify(payload) });
-  if (!result.body?.success) throw new Error(`Cloudflare create failed for ${type} ${name}`);
+  if (!result.body?.success) throw new Error(`Cloudflare create failed for ${type} ${name}: ${JSON.stringify(result.body?.errors || [])}`);
   console.log(`DNS ADD ${type} ${name} ${content}`);
   return true;
 }
@@ -100,6 +117,7 @@ function required(domain) {
 }
 async function syncDns(zoneId, domain) {
   const records = required(domain);
+  console.log(`Firebase requires DNS add=${records.add.length} remove=${records.remove.length}`);
   for (const record of records.remove) await removeRecord(zoneId, record);
   for (const record of records.add) await addRecord(zoneId, record);
 }
