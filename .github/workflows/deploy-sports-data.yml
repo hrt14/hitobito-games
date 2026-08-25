@@ -1,0 +1,137 @@
+name: Deploy SPORTS DATA to Firebase Hosting
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'sports-data/**'
+      - 'firebase.sports-data.json'
+      - 'scripts/provision-sports-domain.mjs'
+      - '.github/workflows/deploy-sports-data.yml'
+
+concurrency:
+  group: firebase-sports-data-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: hitobito-levelup
+      FIREBASE_SITE_ID: hitobito-sportsdata-995292
+      SPORTS_DOMAIN: xn--zckmom2i6hc.hitobito.jp
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate static app
+        run: |
+          set -euo pipefail
+          node --check sports-data/app.js
+          grep -F '<title>スポーツデータ | hitobito</title>' sports-data/index.html >/dev/null
+          grep -F "fetch('/__/firebase/init.json'" sports-data/app.js >/dev/null
+          grep -F "collection('levelupUsers')" sports-data/app.js >/dev/null
+          grep -F 'CSV読込' sports-data/index.html >/dev/null
+          grep -F '選手・チームを比べる' sports-data/index.html >/dev/null
+
+      - name: Ensure Firebase Hosting site
+        run: |
+          set -euo pipefail
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          STATUS="$(curl -sS -o /tmp/site.json -w '%{http_code}' -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://firebasehosting.googleapis.com/v1beta1/projects/${FIREBASE_PROJECT_ID}/sites/${FIREBASE_SITE_ID}")"
+          if [ "$STATUS" = "404" ]; then
+            curl -fsS -X POST \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "https://firebasehosting.googleapis.com/v1beta1/projects/${FIREBASE_PROJECT_ID}/sites?siteId=${FIREBASE_SITE_ID}" \
+              --data '{}' >/tmp/site-create.json
+            cat /tmp/site-create.json
+          elif [ "$STATUS" != "200" ]; then
+            cat /tmp/site.json >&2
+            exit 1
+          else
+            cat /tmp/site.json
+          fi
+
+      - name: Deploy SPORTS DATA site
+        run: npx --yes firebase-tools@latest deploy --only hosting --config firebase.sports-data.json --project hitobito-levelup --non-interactive
+
+      - name: Verify Firebase default URL
+        run: |
+          set -euo pipefail
+          for ATTEMPT in $(seq 1 18); do
+            if curl -fLsS --max-time 20 "https://${FIREBASE_SITE_ID}.web.app/?v=${GITHUB_SHA}-${ATTEMPT}" -o /tmp/sports.html \
+              && grep -F '<title>スポーツデータ | hitobito</title>' /tmp/sports.html >/dev/null \
+              && grep -F 'スポーツの数字を、' /tmp/sports.html >/dev/null; then
+              echo "Firebase default URL verified on attempt ${ATTEMPT}."
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+
+      - name: Provision Firebase custom domain and Cloudflare DNS
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          export GOOGLE_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          node scripts/provision-sports-domain.mjs
+
+      - name: Add custom domain to Firebase Auth authorized domains
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          curl -fsS -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "https://identitytoolkit.googleapis.com/admin/v2/projects/${FIREBASE_PROJECT_ID}/config" >/tmp/auth-config.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('/tmp/auth-config.json', 'utf8'));
+          const domain = process.env.SPORTS_DOMAIN;
+          const domains = [...new Set([...(config.authorizedDomains || []), domain])];
+          fs.writeFileSync('/tmp/auth-patch.json', JSON.stringify({ authorizedDomains: domains }));
+          console.log('Authorized domains:', domains.join(', '));
+          NODE
+          curl -fsS -X PATCH \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://identitytoolkit.googleapis.com/admin/v2/projects/${FIREBASE_PROJECT_ID}/config?updateMask=authorizedDomains" \
+            --data-binary @/tmp/auth-patch.json >/tmp/auth-patch-result.json
+          cat /tmp/auth-patch-result.json
+
+      - name: Verify custom domain when ready
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          for ATTEMPT in $(seq 1 24); do
+            if curl -fLsS --max-time 20 "https://${SPORTS_DOMAIN}/?v=${GITHUB_SHA}-${ATTEMPT}" -o /tmp/custom-sports.html \
+              && grep -F '<title>スポーツデータ | hitobito</title>' /tmp/custom-sports.html >/dev/null; then
+              echo "Custom domain verified on attempt ${ATTEMPT}: https://${SPORTS_DOMAIN}/"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Custom domain DNS/SSL is still provisioning; Firebase default URL is already live."
+          exit 1
