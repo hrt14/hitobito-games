@@ -1,6 +1,6 @@
 # Hosting / Deploy Policy
 
-更新日: 2026-08-16
+更新日: 2026-08-26
 
 ## 基本方針
 
@@ -12,6 +12,17 @@
 - **AAA LAB**: サーバー公開しない。人間テストプレイ専用
 
 コミットと公開は分離する。作業中は何度でも commit してよいが、公開 deploy は作業セッションの区切りでまとめて行う。
+
+### Vercel Git Integration
+
+2026-08-26、Vercel の全プロジェクトで Git Integration を停止した。
+
+- GitHub への push / PR / merge を Vercel の自動デプロイのトリガーにしない。
+- Preview Deployment も自動生成しない。
+- Vercel へ公開するときは、対象プロジェクトと変更内容を確認して意図的にデプロイする。
+- 「GitHubへ保存」と「本番へ公開」は別作業として扱う。
+
+目的は、開発中の細かな commit や別作品の変更で Vercel の無料デプロイ枠を消費しないこと。
 
 ## 1. Vercel — 主力 / 入口
 
@@ -81,6 +92,7 @@ AAA LAB は人間テスト画面上で専用カテゴリとして表示する。
 ## 事故防止ルール
 
 - 新しい小〜中規模ゲームのためにVercelプロジェクトを新規作成しない。
+- Vercel の Git Integration を安易に再接続しない。
 - AAA LABをVercel / Cloudflare / Firebaseのproductionへ自動deployしない。
 - 404 / Working Planetを通常ゲーム一括ホスティングへ混ぜない。
 - ホスティング移行時は先に新環境で動作確認し、既存ドメインを最後に切り替える。
