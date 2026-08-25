@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#101722" />
+  <title>インフラ王 | INFRA KING</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<main class="game-shell">
+  <header class="topbar">
+    <div><p class="eyebrow">8-BIT CITY BUILDER</p><h1>インフラ王</h1></div>
+    <button id="resetBtn" class="ghost-button" type="button">はじめから</button>
+  </header>
+
+  <section class="status-panel" aria-label="都市ステータス">
+    <div><span>YEAR</span><strong id="yearValue">1</strong></div>
+    <div><span>資金</span><strong id="moneyValue">¥180</strong></div>
+    <div><span>人口</span><strong id="populationValue">0</strong></div>
+    <div><span>年間収支</span><strong id="incomeValue">¥0</strong></div>
+  </section>
+
+  <section class="play-area">
+    <div class="map-frame">
+      <div id="map" class="map" role="grid" aria-label="都市マップ"></div>
+      <div id="floatMessage" class="float-message" aria-live="polite"></div>
+      <div id="radialMenu" class="radial-menu" hidden></div>
+    </div>
+
+    <aside class="info-panel">
+      <div class="mode-line"><span>選択中</span><strong id="modeLabel">道路</strong><small id="modeHint">起点と終点をタップ</small></div>
+      <div class="report-box"><h2>市民レポート</h2><p id="reportText">道路を引き、電気と水を届けよう。</p></div>
+      <div class="tile-info"><h2>区画情報</h2><p id="tileInfoText">マスを長押しすると、その場で建設物を選べます。</p></div>
+    </aside>
+  </section>
+
+  <button id="nextYearBtn" class="next-year" type="button">▶ 1年進める</button>
+
+  <nav id="tools" class="tool-dock" aria-label="建設メニュー">
+    <button class="tool active" data-tool="road" type="button"><span class="tool-icon road-icon"></span><b>道路</b><small>¥4/マス</small></button>
+    <button class="tool" data-tool="rail" type="button"><span class="tool-icon rail-icon"></span><b>線路</b><small>¥6/マス</small></button>
+    <button class="tool" data-tool="station" type="button"><span>駅</span><b>駅</b><small>¥30</small></button>
+    <button class="tool" data-tool="power" type="button"><span>電</span><b>発電所</b><small>¥38</small></button>
+    <button class="tool" data-tool="water" type="button"><span>水</span><b>浄水場</b><small>¥34</small></button>
+    <button class="tool" data-tool="park" type="button"><span>木</span><b>公園</b><small>¥16</small></button>
+    <button class="tool danger" data-tool="bulldoze" type="button"><span>×</span><b>削除</b><small>¥1</small></button>
+  </nav>
+</main>
+<script src="./game.js"></script>
+</body>
+</html>
