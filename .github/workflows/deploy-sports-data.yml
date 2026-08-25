@@ -94,6 +94,7 @@ jobs:
       - name: Provision Firebase custom domain and Cloudflare DNS
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           export GOOGLE_ACCESS_TOKEN="$(gcloud auth print-access-token)"
