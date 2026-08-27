@@ -8,7 +8,7 @@ const appsDir = path.join(root, '.dist', 'firebase', 'apps');
 const apps = {
   'help-me': { required: ['id="realDelegateModal"', 'src="./real-delegation.js"'] },
   'expect-nothing': { required: ['id="realExpectationModal"', 'src="./real-life.js"'] },
-  'suteru-yuki': { required: ['src="./real-life.js"', 'href="./real-life.css"'] },
+  'suteru-yuki': { required: ['src="./app.js"', 'href="./style.css"'] },
   'jinsei-title': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'arigatou-sagashi': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
   'main-character': { injectAssets: true, required: ['src="./real-life.js"', 'href="./real-life.css"'] },
