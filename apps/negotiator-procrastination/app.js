@@ -129,7 +129,8 @@
       agreedLabel: '',
       action: '',
       timerSeconds: 0,
-      completed: false
+      completed: false,
+      continuation: false
     };
   }
 
@@ -145,8 +146,8 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch (_) {}
   }
 
-  function buzz(ms = 9) {
-    try { navigator.vibrate?.(ms); } catch (_) {}
+  function buzz(pattern = 9) {
+    try { navigator.vibrate?.(pattern); } catch (_) {}
   }
 
   function showToast(text) {
@@ -163,7 +164,7 @@
   function topResistance(map = state.resistances) {
     const entries = Object.entries(map).filter(([key]) => key !== 'quit');
     entries.sort((a, b) => b[1] - a[1]);
-    return entries[0]?.[0] || 'heavy';
+    return entries[0]?.[0] || null;
   }
 
   function renderNegotiation({ announce = false } = {}) {
@@ -177,8 +178,12 @@
     els.speech.innerHTML = contextualSpeech(stage);
     els.choices.innerHTML = '';
 
-    const accept = makeChoice(stage.accept, state.stageIndex === 0 ? '最初の要求を受ける' : `${stage.label}まで条件が縮みました`, 'accept', () => acceptStage(stage));
-    els.choices.appendChild(accept);
+    els.choices.appendChild(makeChoice(
+      stage.accept,
+      state.stageIndex === state.initialStageIndex ? 'この条件を受ける' : `${stage.label}まで条件が縮みました`,
+      'accept',
+      () => acceptStage(stage)
+    ));
 
     stage.rejects.forEach((item) => {
       const note = item.quit ? '交渉を打ち切る' : RESISTANCE[item.reason]?.label || '条件を変える';
@@ -231,6 +236,7 @@
   function acceptStage(stage) {
     state.agreedSeconds = stage.seconds;
     state.agreedLabel = stage.label;
+    state.continuation = false;
     buzz(18);
     showScreen('prepScreen');
   }
@@ -257,6 +263,7 @@
 
   function chooseAction(action) {
     state.action = action;
+    state.continuation = false;
     state.timerSeconds = Math.max(1, Math.min(30, state.agreedSeconds || 30));
     els.selectedAction.textContent = action;
     els.timerNumber.textContent = String(state.timerSeconds);
@@ -277,7 +284,7 @@
     timerStart = performance.now();
     els.startActionBtn.hidden = true;
     els.didStartBtn.hidden = false;
-    els.didStartBtn.textContent = 'もう始めた';
+    els.didStartBtn.textContent = state.continuation ? 'ここで終える' : 'もう始めた';
     tickTimer();
     timerId = window.setInterval(tickTimer, 100);
     buzz(16);
@@ -298,12 +305,20 @@
     state.completed = true;
     clearInterval(timerId);
     timerId = null;
-    const top = topResistance();
 
+    if (state.continuation) {
+      state.continuation = false;
+      showScreen('resultScreen');
+      showToast(source === 'timer' ? '追加の5分、完了' : 'ここまででOK');
+      buzz([18, 28, 18]);
+      return;
+    }
+
+    const top = topResistance();
     stats.sessions += 1;
     stats.starts += 1;
     stats.lastOutcome = 'started';
-    stats.lastTopResistance = top;
+    stats.lastTopResistance = top || '';
     Object.entries(state.resistances).forEach(([key, value]) => {
       stats.resistances[key] = (stats.resistances[key] || 0) + value;
     });
@@ -311,7 +326,7 @@
 
     els.initialAsk.textContent = STAGES[state.initialStageIndex].label;
     els.finalAsk.textContent = state.agreedLabel;
-    els.topResistance.textContent = RESISTANCE[top]?.label || 'まだ重い';
+    els.topResistance.textContent = top ? RESISTANCE[top]?.label : '抵抗なし';
     els.resultLead.textContent = source === 'button'
       ? `「${state.action}」を始めた時点で交渉成立。全部終わらせなくても、先延ばし状態からは一度抜けました。`
       : `約束した時間だけ「${state.action}」に触れました。全部終わらせる契約ではありません。開始したことが今回の成果です。`;
@@ -335,7 +350,7 @@
       energy: '今回は気力・体力が壁でした。次回は立つ・集中する前提を置かず、接触だけから始めます。',
       later: '今回は「今じゃない」が壁でした。次回は曖昧な後回しではなく、今の数秒だけを交渉対象にします。'
     };
-    return map[reason] || '今回は要求を小さくしたところで着手できました。次回も動ける条件まで縮めます。';
+    return reason ? map[reason] : '今回は最初の条件でそのまま着手できました。次回も余計な交渉を増やさず、その条件から始めます。';
   }
 
   function failNegotiation() {
@@ -345,12 +360,12 @@
     stats.sessions += 1;
     stats.failures += 1;
     stats.lastOutcome = 'failed';
-    stats.lastTopResistance = top;
+    stats.lastTopResistance = top || '';
     Object.entries(state.resistances).forEach(([key, value]) => {
       stats.resistances[key] = (stats.resistances[key] || 0) + value;
     });
     saveStats();
-    els.failResistance.textContent = RESISTANCE[top]?.label || 'まだ重い';
+    els.failResistance.textContent = top ? RESISTANCE[top]?.label : '今日はやらない';
     showScreen('failScreen');
   }
 
@@ -385,6 +400,7 @@
     state.timerSeconds = 300;
     state.action = state.action || 'このまま続ける';
     state.completed = false;
+    state.continuation = true;
     els.selectedAction.textContent = state.action;
     els.timerNumber.textContent = '300';
     els.timerNote.textContent = '追加の5分です。いつでも終了して構いません。';
