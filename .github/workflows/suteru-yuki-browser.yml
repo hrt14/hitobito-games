@@ -1,0 +1,85 @@
+name: Suteru-yuki browser quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feat/suteru-yuki-essential-focus
+    paths:
+      - 'apps/suteru-yuki/**'
+      - 'tests/suteru-yuki-browser.mjs'
+      - '.github/workflows/suteru-yuki-browser.yml'
+      - '.firebase-deploy-trigger'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suteru-yuki-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Static checks
+        run: |
+          set -euo pipefail
+          node --check apps/suteru-yuki/app.js
+          test -s apps/suteru-yuki/SPEC.md
+          test -s apps/suteru-yuki/QUALITY.md
+          grep -F 'やらないことを決める — LEVEL UP' apps/suteru-yuki/index.html >/dev/null
+          grep -F '今日やるのは' apps/suteru-yuki/app.js >/dev/null
+          grep -F '今日はやらない' apps/suteru-yuki/app.js >/dev/null
+      - name: Install Playwright
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/suteru-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/apps/suteru-yuki/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/suteru-http.log
+          exit 1
+      - name: Browser-test local app
+        env:
+          OUTPUT_DIR: test-results/suteru-yuki-local
+        run: node tests/suteru-yuki-browser.mjs
+      - name: Wait for Firebase production source
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in {1..42}; do
+            if curl -fLsS --max-time 20 https://levelup.hitobito.jp/apps/suteru-yuki/ -o /tmp/suteru-live.html \
+              && grep -F 'やらないことを決める — LEVEL UP' /tmp/suteru-live.html >/dev/null \
+              && curl -fLsS --max-time 20 https://levelup.hitobito.jp/apps/suteru-yuki/app.js -o /tmp/suteru-live.js \
+              && grep -F '今日やるのは' /tmp/suteru-live.js >/dev/null; then
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ok" -eq 1
+      - name: Browser-test production app
+        if: github.ref == 'refs/heads/main'
+        env:
+          BASE_URL: https://levelup.hitobito.jp/apps/suteru-yuki/
+          OUTPUT_DIR: test-results/suteru-yuki-production
+        run: node tests/suteru-yuki-browser.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suteru-yuki-browser-evidence-${{ github.run_id }}
+          path: test-results/suteru-yuki-*/**
+          if-no-files-found: ignore
+          retention-days: 14
