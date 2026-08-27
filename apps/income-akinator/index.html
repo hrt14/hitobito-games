@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d09">
+<meta name="description" content="はい・いいえだけで、あなたの職業と年収を推理する年収アキネーター。">
+<title>年収アキネーター</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;--bg:#0b0d09;--panel:#141810;--panel2:#1b2114;--ink:#f4f7ed;--muted:#a9b19d;--lime:#d8ff5b;--line:rgba(216,255,91,.18);--danger:#ff8d77}*{box-sizing:border-box}html,body{min-height:100%;margin:0;background:var(--bg);color:var(--ink)}body{-webkit-font-smoothing:antialiased;background:radial-gradient(circle at 50% -20%,rgba(216,255,91,.09),transparent 34%),var(--bg)}button{font:inherit}button:focus-visible{outline:3px solid #fff;outline-offset:3px}.app{min-height:100dvh;width:min(680px,100%);margin:auto;padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}.top{display:flex;align-items:center;justify-content:space-between;min-height:48px}.brand{font-weight:950;letter-spacing:-.04em;font-size:18px}.brand b{color:var(--lime)}.home{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer}.screen{display:none;flex:1}.screen.active{display:flex;flex-direction:column}.hero{padding:10vh 4px 30px}.eyebrow{color:var(--lime);font-weight:900;letter-spacing:.13em;font-size:11px}.hero h1{font-size:clamp(46px,14vw,78px);line-height:.9;letter-spacing:-.075em;margin:14px 0 20px}.hero p{color:var(--muted);font-size:16px;line-height:1.8;margin:0;max-width:520px}.promise{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:28px 0}.promise div{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 10px}.promise strong{display:block;font-size:17px}.promise span{display:block;color:var(--muted);font-size:10px;margin-top:4px}.primary{width:100%;min-height:62px;border:0;border-radius:18px;background:var(--lime);color:#10130c;font-weight:950;font-size:18px;cursor:pointer;box-shadow:0 10px 30px rgba(216,255,91,.13);transition:transform .12s ease}.primary:active,.answer:active{transform:scale(.98)}.last{margin-top:14px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;display:none}.last strong{color:var(--ink)}.quiz{padding-top:16px}.meter{height:5px;background:#20261a;border-radius:999px;overflow:hidden;margin:8px 0 20px}.meter>i{display:block;height:100%;width:0;background:var(--lime);transition:width .28s ease}.status{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:11px;font-weight:800}.qbox{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:360px;padding:28px 4px}.qno{color:var(--lime);font-weight:950;font-size:12px;letter-spacing:.08em;margin-bottom:16px}.question{font-size:clamp(29px,8vw,46px);line-height:1.2;letter-spacing:-.045em;font-weight:950;margin:0}.hint{color:var(--muted);margin-top:18px;font-size:12px;line-height:1.65}.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answer{min-height:78px;border-radius:20px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:22px;font-weight:950;cursor:pointer;transition:transform .12s,background .12s,border-color .12s}.answer.yes:hover{background:#223015;border-color:rgba(216,255,91,.45)}.answer.no:hover{background:#241915;border-color:rgba(255,141,119,.4)}.under{display:flex;justify-content:space-between;align-items:center;min-height:48px}.back{border:0;background:transparent;color:var(--muted);font-weight:800;padding:12px 2px;cursor:pointer}.thinking{color:var(--muted);font-size:11px}.thinking b{color:var(--lime)}.result{padding-top:22px}.reveal{border:1px solid var(--line);background:var(--panel);border-radius:28px;padding:24px;margin:10px 0 14px;position:relative;overflow:hidden}.reveal:before{content:"";position:absolute;width:180px;height:180px;border:1px solid rgba(216,255,91,.15);border-radius:50%;right:-80px;top:-100px}.resultLabel{color:var(--lime);font-size:11px;letter-spacing:.12em;font-weight:950}.job{font-size:clamp(38px,11vw,62px);line-height:1;letter-spacing:-.065em;margin:12px 0 24px;font-weight:950}.incomeLabel{font-size:12px;color:var(--muted)}.income{font-size:clamp(38px,10vw,56px);font-weight:950;letter-spacing:-.055em;margin-top:4px}.income small{font-size:.42em;color:var(--muted);letter-spacing:-.02em}.range{font-size:12px;color:var(--muted);margin-top:5px}.confidence{display:flex;align-items:center;gap:10px;margin-top:22px}.confidence span{font-size:11px;color:var(--muted);width:64px}.confidence div{height:7px;background:#252b1e;border-radius:999px;overflow:hidden;flex:1}.confidence i{display:block;height:100%;background:var(--lime)}.confidence b{font-size:12px}.why,.runners{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:18px;margin-top:10px}.why h2,.runners h2{font-size:12px;color:var(--lime);letter-spacing:.1em;margin:0 0 12px}.why ul{padding:0;margin:0;list-style:none;display:grid;gap:9px}.why li{font-size:13px;line-height:1.55;color:#d9dfcf}.why li:before{content:"— ";color:var(--lime)}.runner{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13px}.runner:first-of-type{border-top:0}.runner span:last-child{color:var(--muted)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.secondary{min-height:54px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);font-weight:900;cursor:pointer}.disclaimer{font-size:10px;line-height:1.6;color:#7f8875;text-align:center;padding:8px 10px 16px}@media(max-width:480px){.app{padding-left:12px;padding-right:12px}.hero{padding-top:7vh}.promise div{padding:12px 8px}.qbox{min-height:330px}.answer{min-height:74px}.reveal{padding:20px}.actions{grid-template-columns:1fr}.question{font-size:31px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top"><div class="brand">LEVEL <b>UP</b> / 年収アキネーター</div><button class="home" id="homeBtn" type="button">最初から</button></header>
+
+  <section class="screen active" id="startScreen">
+    <div class="hero">
+      <div class="eyebrow">YES / NO INFERENCE GAME</div>
+      <h1>年収<br>アキネーター</h1>
+      <p>職業名も年収も聞きません。<br><strong style="color:#f4f7ed">「はい / いいえ」だけ</strong>で、あなたの仕事と年収を当てにいきます。</p>
+      <div class="promise"><div><strong>入力なし</strong><span>文字を打たない</span></div><div><strong>最大12問</strong><span>回答で質問が変化</span></div><div><strong>2つ予想</strong><span>職業 ＋ 年収</span></div></div>
+      <button class="primary" id="startBtn" type="button">推理スタート</button>
+      <div class="last" id="lastResult"></div>
+    </div>
+  </section>
+
+  <section class="screen quiz" id="quizScreen">
+    <div class="status"><span id="progressText">QUESTION 1</span><span id="candidateText">候補を分析中</span></div>
+    <div class="meter"><i id="meterBar"></i></div>
+    <div class="qbox">
+      <div class="qno" id="qno">Q1</div>
+      <h1 class="question" id="question"></h1>
+      <p class="hint" id="hint">直感で答えてください。考えすぎない方が推理しやすくなります。</p>
+    </div>
+    <div class="answers"><button class="answer yes" data-answer="yes" type="button">はい</button><button class="answer no" data-answer="no" type="button">いいえ</button></div>
+    <div class="under"><button class="back" id="backBtn" type="button">← 1問戻る</button><span class="thinking" id="thinking">候補 <b>22</b> 職種</span></div>
+  </section>
+
+  <section class="screen result" id="resultScreen">
+    <div class="reveal">
+      <div class="resultLabel">MY GUESS</div>
+      <div class="job" id="resultJob">---</div>
+      <div class="incomeLabel">ゲーム内 推定年収</div>
+      <div class="income" id="resultIncome">---<small>万円</small></div>
+      <div class="range" id="resultRange"></div>
+      <div class="confidence"><span>推理確度</span><div><i id="confidenceBar"></i></div><b id="confidenceText">--%</b></div>
+    </div>
+    <div class="why"><h2>この回答が決め手</h2><ul id="reasons"></ul></div>
+    <div class="runners"><h2>次点候補</h2><div id="runnerList"></div></div>
+    <div class="actions"><button class="primary" id="retryBtn" type="button">別の人で試す</button><button class="secondary" id="shareBtn" type="button">結果をシェア</button></div>
+    <button class="back" id="changeBtn" type="button">← 最後の回答を変える</button>
+    <p class="disclaimer">これは回答パターンから推理するゲームです。実際の職業・所得を判定するものではなく、表示年収は統計値ではありません。</p>
+  </section>
+</main>
+<script>
+const questions=[
+{id:'payroll',text:'収入の半分以上は、会社や組織からの「給与」ですか？',feature:'payroll'},
+{id:'owner',text:'自分で商売や事業を動かしていますか？',feature:'owner'},
+{id:'desk',text:'仕事時間の半分以上を、PCやデスクの前で過ごしますか？',feature:'desk'},
+{id:'manager',text:'人の評価・配置・育成に責任を持っていますか？',feature:'manager'},
+{id:'sales',text:'売上や契約件数など、数字の目標を直接追いますか？',feature:'sales'},
+{id:'tech',text:'ソフトウェアやITの知識が、仕事の中心にありますか？',feature:'tech'},
+{id:'licensed',text:'その仕事をする上で、資格や免許がかなり重要ですか？',feature:'licensed'},
+{id:'medical',text:'人の健康や治療に直接かかわる仕事ですか？',feature:'medical'},
+{id:'creative',text:'成果物の良し悪しを、デザインや表現の質で評価されることが多いですか？',feature:'creative'},
+{id:'physical',text:'体を動かしたり、現場に立ったりする時間が長いですか？',feature:'physical'},
+{id:'public',text:'勤務先は国・自治体・学校など、公共性の高い組織ですか？',feature:'public'},
+{id:'education',text:'人に教えることが、仕事の中心ですか？',feature:'education'},
+{id:'client',text:'社外のお客さんに、提案や助言をする時間が長いですか？',feature:'client'},
+{id:'finance',text:'お金・投資・会計・金融商品を扱うことが仕事の中心ですか？',feature:'finance'},
+{id:'research',text:'調査・研究・分析で、まだ答えのないものを明らかにする仕事ですか？',feature:'research'},
+{id:'large',text:'1000人以上の大きな組織で働いていますか？',feature:'large'},
+{id:'executive',text:'会社や事業の最終判断に近い立場ですか？',feature:'executive'},
+{id:'performance',text:'成果が大きい年ほど、自分の収入も大きく変わりますか？',feature:'performance'},
+{id:'remote',text:'働く場所を自分で選べる日が多いですか？',feature:'remote'},
+{id:'shift',text:'土日や夜を含むシフト勤務が多いですか？',feature:'shift'},
+{id:'manufacturing',text:'モノを作る・直す・建てる工程に直接かかわりますか？',feature:'manufacturing'},
+{id:'people',text:'一日の大半を、人と話したり対応したりして過ごしますか？',feature:'people'}
+];
+const jobs=[
+{name:'会社員・事務／企画',income:560,features:{payroll:1,desk:1,large:.5,people:.2,remote:.4}},
+{name:'法人営業',income:690,features:{payroll:1,sales:1,client:1,people:1,performance:.6,desk:.5}},
+{name:'ITエンジニア',income:760,features:{payroll:.8,desk:1,tech:1,remote:.8,people:0,creative:.2}},
+{name:'プロダクト／IT企画',income:900,features:{payroll:.8,desk:1,tech:.7,client:.3,manager:.4,large:.6,people:.5}},
+{name:'管理職・部門責任者',income:980,features:{payroll:1,desk:.8,manager:1,executive:.5,large:.6,people:1}},
+{name:'経営者・事業オーナー',income:1350,features:{payroll:0,owner:1,manager:.8,executive:1,sales:.7,performance:1,client:.7}},
+{name:'コンサルタント',income:1050,features:{payroll:.5,desk:1,client:1,people:1,sales:.4,performance:.5,remote:.6}},
+{name:'金融・投資専門職',income:1100,features:{payroll:.8,desk:1,finance:1,large:.7,performance:.7,client:.5}},
+{name:'医師',income:1350,features:{payroll:.6,licensed:1,medical:1,people:1,shift:.5,desk:0}},
+{name:'看護師・医療スタッフ',income:500,features:{payroll:1,licensed:1,medical:1,people:1,shift:1,desk:0}},
+{name:'士業・専門資格職',income:950,features:{licensed:1,desk:.8,client:1,people:.6,owner:.4,finance:.5}},
+{name:'公務員',income:620,features:{payroll:1,public:1,large:.4,desk:.6,performance:0}},
+{name:'教師・教育職',income:580,features:{payroll:1,public:.6,education:1,people:1,desk:.3}},
+{name:'研究者・R&D',income:680,features:{payroll:.9,desk:.7,research:1,tech:.4,large:.5,people:0}},
+{name:'デザイナー・クリエイター',income:620,features:{payroll:.5,desk:.8,creative:1,remote:.7,owner:.2,performance:.5}},
+{name:'フリーランス専門職',income:760,features:{payroll:0,owner:.7,desk:.8,client:.9,remote:1,performance:1}},
+{name:'小売・サービス職',income:430,features:{payroll:.9,people:1,shift:1,physical:.6,desk:0,sales:.4}},
+{name:'製造・技術職',income:560,features:{payroll:1,manufacturing:1,physical:.8,desk:0,large:.5,shift:.5}},
+{name:'建設・現場専門職',income:590,features:{payroll:.7,manufacturing:1,physical:1,desk:0,owner:.2,licensed:.5}},
+{name:'不動産・高単価営業',income:820,features:{payroll:.7,sales:1,client:1,people:1,performance:1,desk:.3}},
+{name:'EC・マーケティング',income:780,features:{payroll:.6,desk:1,sales:.6,client:.5,tech:.5,remote:.6,performance:.6}},
+{name:'店舗・現場マネージャー',income:590,features:{payroll:1,manager:1,people:1,physical:.5,shift:.7,desk:.2}}
+];
+let state={answers:[],asked:[],scores:[],current:null};
+const $=id=>document.getElementById(id);
+const screens={start:$('startScreen'),quiz:$('quizScreen'),result:$('resultScreen')};
+function show(name){Object.values(screens).forEach(s=>s.classList.remove('active'));screens[name].classList.add('active');$('homeBtn').style.visibility=name==='start'?'hidden':'visible';}
+function resetScores(){state.scores=jobs.map(()=>1);}
+function featureVal(job,feature){const v=job.features[feature];return typeof v==='number'?v:.5;}
+function applyAnswer(q,yes,scores=state.scores){return scores.map((s,i)=>{const v=featureVal(jobs[i],q.feature);const fit=yes?v:(1-v);const factor=.42+fit*1.9;return s*factor;});}
+function normalized(){const total=state.scores.reduce((a,b)=>a+b,0)||1;return state.scores.map(v=>v/total);}
+function entropyPick(){const probs=normalized();let best=null,bestScore=-1;for(const q of questions){if(state.asked.includes(q.id))continue;let yesMass=0,neutral=0;for(let i=0;i<jobs.length;i++){const v=featureVal(jobs[i],q.feature);yesMass+=probs[i]*v;neutral+=probs[i]*(1-Math.abs(v-.5)*2);}const balance=1-Math.abs(.5-yesMass)*2;const score=balance-neutral*.28;if(score>bestScore){best=q;bestScore=score;}}return best||questions.find(q=>!state.asked.includes(q.id));}
+function topJobs(){return normalized().map((p,i)=>({p,job:jobs[i],i})).sort((a,b)=>b.p-a.p);}
+function updateQuestion(){const q=state.current||entropyPick();state.current=q;const n=state.answers.length+1;$('qno').textContent=`Q${n}`;$('progressText').textContent=`QUESTION ${n} / MAX 12`;$('question').textContent=q.text;$('meterBar').style.width=`${Math.min(94,(n-1)/12*100)}%`;const top=topJobs();const active=top.filter(x=>x.p>.025).length;$('candidateText').textContent=state.answers.length<3?'まだ広く探っています':state.answers.length<7?'かなり絞れてきました':'最終推理中';$('thinking').innerHTML=`有力候補 <b>${Math.max(2,active)}</b> 職種`;$('backBtn').style.visibility=state.answers.length?'visible':'hidden';}
+function start(){state={answers:[],asked:[],scores:[],current:null};resetScores();show('quiz');updateQuestion();try{navigator.vibrate?.(12)}catch(e){}}
+function answer(yes){const q=state.current;state.answers.push({id:q.id,feature:q.feature,text:q.text,yes});state.asked.push(q.id);state.scores=applyAnswer(q,yes);state.current=null;try{navigator.vibrate?.(yes?[14]:[8,35,8])}catch(e){}const top=topJobs();const confidence=top[0].p;const shouldFinish=state.answers.length>=12||(state.answers.length>=8&&confidence>.49)||(state.answers.length>=10&&confidence>.36);if(shouldFinish){renderResult();show('result');}else updateQuestion();}
+function rebuild(){resetScores();state.asked=[];for(const a of state.answers){const q=questions.find(q=>q.id===a.id);state.scores=applyAnswer(q,a.yes);state.asked.push(a.id);}state.current=null;}
+function back(){if(!state.answers.length)return;state.answers.pop();rebuild();show('quiz');updateQuestion();}
+function incomeEstimate(top){let base=top.job.income;const map=Object.fromEntries(state.answers.map(a=>[a.feature,a.yes]));if(map.manager)base+=90;if(map.executive)base+=230;if(map.performance)base+=80;if(map.large&&map.payroll)base+=45;if(map.owner)base+=90;if(map.sales&&map.performance)base+=55;if(map.public)base-=25;if(map.shift&&!map.medical)base-=20;return Math.max(320,Math.round(base/10)*10);}
+function reasonText(a){const yes=a.yes;const texts={payroll:yes?'給与中心の働き方':'給与だけに依存しない働き方',owner:yes?'自分で事業を動かしている':'事業オーナー型ではない',desk:yes?'PC・デスク中心':'現場・対人の比重が高い',manager:yes?'人や組織の責任を持つ':'人事評価の責任は持たない',sales:yes?'売上数字を直接追う':'売上目標が仕事の中心ではない',tech:yes?'IT知識が仕事の中心':'IT専門職ではない',licensed:yes?'資格・免許の専門性が高い':'資格依存度は低い',medical:yes?'医療・健康に直接かかわる':'医療職ではない',creative:yes?'表現・デザイン品質で評価される':'表現職の比重は低い',physical:yes?'現場で体を動かす':'デスクワーク寄り',public:yes?'公共性の高い組織':'民間寄り',education:yes?'教えることが中心':'教育職ではない',client:yes?'社外への提案・助言が多い':'社外顧客対応は中心ではない',finance:yes?'金融・会計が仕事の中心':'金融専門職ではない',research:yes?'研究・分析が中心':'研究職ではない',large:yes?'大組織で働く':'小〜中規模組織寄り',executive:yes?'最終判断に近い':'経営判断の最終層ではない',performance:yes?'成果で収入が動く':'収入変動が小さい',remote:yes?'働く場所の自由度が高い':'勤務場所が固定寄り',shift:yes?'シフト勤務が多い':'平日日中型に近い',manufacturing:yes?'ものづくり工程に直接かかわる':'製造・建設工程ではない',people:yes?'人と話す時間が長い':'一人で集中する時間が長い'};return texts[a.feature]||`${a.yes?'はい':'いいえ'}：${a.text}`;}
+function renderResult(){const tops=topJobs();const top=tops[0];const income=incomeEstimate(top);const conf=Math.max(41,Math.min(94,Math.round((top.p/(tops[0].p+tops[1].p+tops[2].p))*100+25)));$('resultJob').textContent=top.job.name;$('resultIncome').innerHTML=`${income.toLocaleString()}<small>万円</small>`;$('resultRange').textContent=`予想レンジ ${Math.round(income*.82/10)*10}〜${Math.round(income*1.18/10)*10}万円`;$('confidenceBar').style.width=conf+'%';$('confidenceText').textContent=conf+'%';const contributions=state.answers.map(a=>{const v=featureVal(top.job,a.feature);return{a,strength:Math.abs((a.yes?v:1-v)-.5)}}).sort((a,b)=>b.strength-a.strength).slice(0,4);$('reasons').innerHTML=contributions.map(x=>`<li>${reasonText(x.a)}</li>`).join('');$('runnerList').innerHTML=tops.slice(1,3).map(x=>`<div class="runner"><span>${x.job.name}</span><span>${incomeEstimate(x)}万円前後</span></div>`).join('');const saved={job:top.job.name,income,at:new Date().toISOString()};localStorage.setItem('incomeAkinatorLast',JSON.stringify(saved));loadLast();}
+function loadLast(){try{const x=JSON.parse(localStorage.getItem('incomeAkinatorLast'));if(!x)return;$('lastResult').style.display='block';$('lastResult').innerHTML=`前回の予想：<strong>${x.job} / ${x.income}万円</strong>`;}catch(e){}}
+async function share(){const job=$('resultJob').textContent;const inc=$('resultIncome').textContent.replace(/\s/g,'');const text=`年収アキネーターの予想：${job} / 年収${inc}\nはい・いいえだけで当てられた。`;try{if(navigator.share)await navigator.share({title:'年収アキネーター',text,url:location.href});else{await navigator.clipboard.writeText(text+'\n'+location.href);$('shareBtn').textContent='コピーしました';setTimeout(()=>$('shareBtn').textContent='結果をシェア',1500)}}catch(e){}}
+$('startBtn').addEventListener('click',start);document.querySelectorAll('.answer').forEach(b=>b.addEventListener('click',()=>answer(b.dataset.answer==='yes')));$('backBtn').addEventListener('click',back);$('changeBtn').addEventListener('click',back);$('retryBtn').addEventListener('click',start);$('shareBtn').addEventListener('click',share);$('homeBtn').addEventListener('click',()=>{show('start');loadLast()});loadLast();show('start');
+</script>
+</body>
+</html>
