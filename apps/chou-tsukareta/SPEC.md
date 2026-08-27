@@ -37,7 +37,7 @@ Akinatorのように1問ずつ答える。回答ごとに6つの疲労負荷軸�
 結果をlocalStorageに保存し、次回は前回の主因と比較して「前回と同じ / 今日は違う」を表示する。疲れの主因は日によって変わるため、再利用に意味がある。
 
 ## Title rationale
-- Main user benefit/motive: 漠然とした不快感から抜け、原因を言葉にして少し楽になる。
+- Main user benefit/motive: 漠然とした不快感から抜け、状態を言葉にして少し楽になる。
 - Why this title is direct and specific: 「疲れたの正体」は、ユーザーが知りたいものをそのままタイトルにしている。
 - How it matches the actual app: 最大7問で疲れの負荷源を絞り、最終的に一文で言語化する。
-- Market/uniqueness checks actually performed (if any): 今回は既存アプリの置き換え設計を優先し、Amazon等での名称独自性チェックは未実施。公開タイトルの著作権・商標上の独自性を保証するものではない。
+- Market/uniqueness checks actually performed: 2026-08-27にウェブ検索で Amazon.co.jp の完全一致語「疲れたの正体」と一般ウェブの同語を確認。今回の検索結果では Amazon.co.jp の完全一致タイトルは確認できなかったが、近い表現として「疲労の正体」を含む既刊・記事は複数存在した。検索は商標・著作権上の独占利用可否を保証するものではないため、その保証はしない。
