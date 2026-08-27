@@ -1,0 +1,71 @@
+name: NEGOTIATOR rest browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/negotiator-rest/**'
+      - 'scripts/register-negotiator-rest-meta.mjs'
+      - 'package.json'
+      - '.github/workflows/negotiator-rest-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/negotiator-rest/**'
+      - 'scripts/register-negotiator-rest-meta.mjs'
+      - 'package.json'
+      - '.github/workflows/negotiator-rest-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check inline JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          html = pathlib.Path('apps/negotiator-rest/index.html').read_text()
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          pathlib.Path('/tmp/negotiator-rest-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/negotiator-rest-inline.js
+      - name: Build production-shaped LEVEL UP page
+        run: |
+          npm run build:hosting
+          node scripts/inject-levelup-quality-pass.mjs
+          test -s .dist/firebase/apps/negotiator-rest/index.html
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .dist/firebase > /tmp/negotiator-rest-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/negotiator-rest/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/negotiator-rest-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          NEGOTIATOR_REST_URL: http://127.0.0.1:4173/apps/negotiator-rest/?test=1
+        run: node apps/negotiator-rest/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: negotiator-rest-browser-playtest
+          path: apps/negotiator-rest/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/negotiator-rest-server.log || true
