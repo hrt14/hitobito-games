@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - '.firebase-deploy-trigger'
+      - 'apps/nenshu-shindan/smoke-browser.mjs'
       - '.github/workflows/nenshu-shindan-production.yml'
   workflow_dispatch:
 
