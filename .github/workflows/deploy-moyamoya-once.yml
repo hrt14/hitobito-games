@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - firebase-overrides/levelup-home-diagnosis-v3/inject.mjs
+      - firebase-overrides/levelup-home-diagnosis-v3/deploy-trigger.txt
   workflow_dispatch:
 
 concurrency:
