@@ -1,0 +1,51 @@
+name: Verify salary diagnosis production v2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/nenshu-shindan-production-v2.yml'
+  workflow_dispatch:
+
+jobs:
+  production-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify live HTML on both production domains
+        run: |
+          set -euo pipefail
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            out="/tmp/nenshu.html"
+            curl -fLsS --max-time 30 "$base/apps/nenshu-shindan/?verify=${GITHUB_SHA}" -o "$out"
+            grep -F '30問でわかる' "$out" >/dev/null
+            grep -F '市場年収診断' "$out" >/dev/null
+            grep -F 'NO SALARY INPUT / 30 TAPS' "$out" >/dev/null
+            echo "Salary diagnosis live on $base"
+          done
+      - name: Run production mobile playtest on custom domain
+        env:
+          NENSHU_SHINDAN_URL: https://levelup.hitobito.jp/apps/nenshu-shindan/?production-smoke=${{ github.sha }}
+        run: node apps/nenshu-shindan/smoke-browser.mjs
+      - name: Run production mobile playtest on Firebase domain
+        env:
+          NENSHU_SHINDAN_URL: https://hitobito-levelup.web.app/apps/nenshu-shindan/?production-smoke=${{ github.sha }}
+        run: node apps/nenshu-shindan/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nenshu-shindan-production-v2-playtest
+          path: apps/nenshu-shindan/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
