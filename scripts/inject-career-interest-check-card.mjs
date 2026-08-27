@@ -34,6 +34,19 @@ const cards = [
       benefit: '会社員としての市場年収レンジと、年収を押し上げている要因・次に伸ばす要因が分かる',
     },
   },
+  {
+    slug: 'income-akinator',
+    copy: {
+      title: '年収アキネーター',
+      kicker: 'YES / NO ONLY · MAX 12',
+      skill: '仕事推理 / 自己理解',
+      obi: '職業名も年収も聞かない。「はい / いいえ」だけで、仕事と年収を当てにいく。',
+      description: '働き方・専門性・責任・顧客接点などを質問し、回答ごとに候補を絞って職業とゲーム内推定年収を予想する。',
+      forWho: '自分の仕事が周辺の特徴だけでどこまで当てられるか、短時間で試してみたい人',
+      purpose: '職業名や年収を直接入力せず、働き方の特徴から候補を絞る推理ゲームを楽しむ',
+      benefit: '自分の仕事を特徴づけている要素が、結果の決め手と一緒に見えてくる',
+    },
+  },
 ];
 
 if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
@@ -74,4 +87,4 @@ for (const { slug, copy } of cards) {
 
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 fs.writeFileSync(homePath, html);
-console.log('[LEVEL UP card] career-interest-check + nenshu-shindan specific title/obi/copy injected');
+console.log('[LEVEL UP card] career-interest-check + nenshu-shindan + income-akinator specific title/obi/copy injected');
