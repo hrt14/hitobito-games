@@ -44,3 +44,7 @@ card = card
 html = html.replace(cardRe, card);
 fs.writeFileSync(homePath, html);
 console.log(`[LEVEL UP card] ${slug}: specific title/obi/copy injected`);
+
+// success-mind is auto-discovered later than the curated catalog; patch its
+// app-specific value copy immediately before the generic-copy quality gate.
+await import('./inject-success-mind-card-copy.mjs');
