@@ -1,0 +1,39 @@
+name: Five intelligences production mobile playtest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/five-intelligences/**'
+      - '.github/workflows/five-intelligences-production-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  production-mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check app JavaScript syntax
+        run: node --check apps/five-intelligences/app.js
+      - name: Run production mobile playtest
+        env:
+          FIVE_INTELLIGENCES_URL: https://levelup.hitobito.jp/apps/five-intelligences/
+        run: node apps/five-intelligences/smoke-production.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: five-intelligences-production-mobile
+          path: apps/five-intelligences/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
