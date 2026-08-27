@@ -167,6 +167,22 @@
     return entries[0]?.[0] || null;
   }
 
+  function adaptiveStartIndex() {
+    if (stats.lastOutcome === 'failed') return 4;
+    if (!stats.sessions) return 0;
+    const strongest = topResistance(stats.resistances);
+    const startByResistance = {
+      time: 1,
+      mood: 2,
+      heavy: 3,
+      unclear: 2,
+      perfect: 3,
+      energy: 4,
+      later: 3
+    };
+    return strongest ? (startByResistance[strongest] ?? 0) : 0;
+  }
+
   function renderNegotiation({ announce = false } = {}) {
     const stage = STAGES[state.stageIndex];
     const max = STAGES[state.initialStageIndex].seconds;
@@ -203,7 +219,7 @@
       const remembered = stats.lastTopResistance && RESISTANCE[stats.lastTopResistance]?.label;
       els.sessionHint.hidden = false;
       els.sessionHint.textContent = remembered
-        ? `この端末では ${stats.sessions}回交渉。前回まで多かった抵抗：「${remembered}」`
+        ? `この端末では ${stats.sessions}回交渉。前回まで多かった抵抗：「${remembered}」→ 今回は${STAGES[state.initialStageIndex].label}から。`
         : `この端末では ${stats.sessions}回交渉しています。`;
     } else {
       els.sessionHint.hidden = true;
@@ -369,12 +385,12 @@
     showScreen('failScreen');
   }
 
-  function restart(startIndex = 0) {
+  function restart(startIndex = adaptiveStartIndex()) {
     clearInterval(timerId);
     timerId = null;
     state = freshState(startIndex);
     els.subcopy.textContent = startIndex > 0
-      ? '前回より小さい条件から始めます。断っても、また条件を変えます。'
+      ? `前回までの抵抗に合わせて、今回は${STAGES[startIndex].label}から。断っても、また条件を変えます。`
       : '断っていい。条件を変えて、あなたが動けるところまで交渉します。';
     renderNegotiation();
   }
@@ -420,7 +436,7 @@
   els.didStartBtn.addEventListener('click', () => completeSuccess('button'));
   els.continueBtn.addEventListener('click', continueFiveMinutes);
   els.shareBtn.addEventListener('click', shareResult);
-  els.againBtn.addEventListener('click', () => restart(stats.lastOutcome === 'failed' ? 4 : 0));
+  els.againBtn.addEventListener('click', () => restart());
   els.retryTinyBtn.addEventListener('click', () => restart(4));
 
   els.exitBtn.addEventListener('click', () => { els.exitModal.hidden = false; buzz(8); });
@@ -428,6 +444,5 @@
   els.exitModal.addEventListener('click', (event) => { if (event.target === els.exitModal) els.exitModal.hidden = true; });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') els.exitModal.hidden = true; });
 
-  const firstIndex = stats.lastOutcome === 'failed' ? 4 : 0;
-  restart(firstIndex);
+  restart();
 })();
