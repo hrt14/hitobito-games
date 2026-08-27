@@ -51,7 +51,7 @@ try {
   if (!(await active('startScreen'))) fail('Start screen is not visible on first visit.');
   const h1 = await page.locator('#startScreen h1').innerText();
   if (!h1.includes('疲れたの') || !h1.includes('正体')) fail(`Core promise missing from H1: ${h1}`);
-  const lead = await page.locator('.lead').innerText();
+  const lead = await page.locator('#startScreen .lead').innerText();
   if (!lead.includes('いま何に削られているか') || !lead.includes('言葉にします')) fail('First-screen benefit is unclear.');
   for (const label of ['7問以内', '文字入力なし', '約1分']) {
     if (!(await page.getByText(label, { exact: true }).isVisible())) fail(`Promise badge missing: ${label}`);
