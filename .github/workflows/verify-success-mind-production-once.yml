@@ -1,0 +1,36 @@
+name: Verify success mind production once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-success-mind-production-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  live-mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run live mobile playtest against production
+        env:
+          SUCCESS_MIND_URL: https://levelup.hitobito.jp/apps/success-mind/?test=1
+        run: node apps/success-mind/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: success-mind-production-playtest
+          path: apps/success-mind/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
