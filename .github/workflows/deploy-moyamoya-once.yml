@@ -50,11 +50,9 @@ jobs:
       - name: Verify moyamoya finder in bundle
         run: |
           set -euo pipefail
-          grep -F 'モヤモヤの正体、当てます。' .dist/firebase/index.html >/dev/null
-          grep -F 'なんか違う → 2問追加' .dist/firebase/index.html >/dev/null
           grep -F 'data-levelup-state-diagnosis-v3' .dist/firebase/index.html >/dev/null
-          grep -F 'approval-off' .dist/firebase/index.html >/dev/null
-          grep -F 'nukeru' .dist/firebase/index.html >/dev/null
+          grep -F 'lu-v3-start' .dist/firebase/index.html >/dev/null
+          grep -F 'lu-v3-more' .dist/firebase/index.html >/dev/null
 
       - name: Deploy Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
@@ -66,7 +64,7 @@ jobs:
           for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
             echo "Checking $base"
             curl -fLsS --max-time 30 "$base/?moyamoya_verify=$GITHUB_SHA" -o /tmp/levelup-home.html
-            grep -F 'モヤモヤの正体、当てます。' /tmp/levelup-home.html >/dev/null
-            grep -F 'なんか違う → 2問追加' /tmp/levelup-home.html >/dev/null
             grep -F 'data-levelup-state-diagnosis-v3' /tmp/levelup-home.html >/dev/null
+            grep -F 'lu-v3-start' /tmp/levelup-home.html >/dev/null
+            grep -F 'lu-v3-more' /tmp/levelup-home.html >/dev/null
           done
