@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0d0f" />
+  <meta name="description" content="現在の年収を入力せず、30問をタップするだけ。キャリア・責任範囲・専門性・事業インパクト・希少性・市場反応から、会社員としての市場年収レンジを診断します。" />
+  <title>30問でわかる 市場年収診断 | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPへ戻る">←</a>
+      <div class="brand">LEVEL UP / MARKET SALARY</div>
+      <button id="restartTopBtn" class="ghost-small" type="button">最初から</button>
+    </header>
+
+    <main id="app">
+      <section id="introView" class="view active">
+        <p class="eyebrow">NO SALARY INPUT / 30 TAPS</p>
+        <h1>30問でわかる<br><em>市場年収診断</em></h1>
+        <p class="lead">いまの年収は聞きません。仕事の<strong>役割・専門性・成果・希少性・市場反応</strong>をタップで棚卸しして、会社員としての市場年収レンジを出します。</p>
+
+        <div class="promise-grid" aria-label="診断の特徴">
+          <div><b>30</b><span>questions</span><small>質問は多め</small></div>
+          <div><b>0</b><span>typing</span><small>入力欄なし</small></div>
+          <div><b>6</b><span>factors</span><small>6要素で診断</small></div>
+        </div>
+
+        <button id="startBtn" class="primary" type="button">診断する <span>→</span></button>
+        <div id="previousResult" class="previous hidden"></div>
+        <p class="fineprint">統計を基準にした目安です。求人票や個別企業の報酬データを使う査定ではありません。</p>
+      </section>
+
+      <section id="questionView" class="view">
+        <div class="progress-head">
+          <button id="backBtn" class="back-btn" type="button">← 戻る</button>
+          <span id="sectionLabel">現在地</span>
+          <b id="questionCount">1 / 30</b>
+        </div>
+        <div class="progress-track"><i id="progressBar"></i></div>
+
+        <div class="section-map" aria-label="診断の6領域">
+          <span data-axis-dot="career">01</span>
+          <span data-axis-dot="scope">02</span>
+          <span data-axis-dot="expertise">03</span>
+          <span data-axis-dot="impact">04</span>
+          <span data-axis-dot="scarcity">05</span>
+          <span data-axis-dot="market">06</span>
+        </div>
+
+        <article id="questionCard" class="question-card">
+          <p id="questionKicker" class="question-kicker">CAREER</p>
+          <h2 id="questionText"></h2>
+          <p id="questionHint" class="question-hint"></p>
+        </article>
+
+        <div id="options" class="options"></div>
+        <p class="tap-note">いちばん近いものを1つ。タップすると次へ進みます。</p>
+      </section>
+
+      <section id="resultView" class="view">
+        <p class="eyebrow">YOUR MARKET SALARY RANGE</p>
+        <h2 class="result-title">会社員としての<br>市場年収の目安</h2>
+
+        <article class="salary-ticket">
+          <span class="ticket-label">ESTIMATED RANGE</span>
+          <div class="salary-range"><b id="salaryLow">—</b><span>〜</span><b id="salaryHigh">—</b><small>万円</small></div>
+          <div class="score-line"><span>市場価値スコア</span><strong id="marketScore">— / 100</strong></div>
+          <p id="uncertaintyNote"></p>
+        </article>
+
+        <section class="result-section">
+          <div class="section-title"><span>01</span><h3>年収を押し上げている要因</h3></div>
+          <div id="topDrivers" class="driver-list"></div>
+        </section>
+
+        <section class="result-section">
+          <div class="section-title"><span>02</span><h3>次に伸ばすならここ</h3></div>
+          <article id="nextLever" class="lever-card"></article>
+        </section>
+
+        <section class="result-section">
+          <div class="section-title"><span>03</span><h3>6要素の棚卸し</h3></div>
+          <div id="axisBars" class="axis-bars"></div>
+        </section>
+
+        <article id="comparisonCard" class="comparison-card hidden"></article>
+
+        <div class="result-actions">
+          <button id="shareBtn" class="primary" type="button">結果をシェア</button>
+          <button id="retryBtn" type="button">もう一度診断</button>
+          <a href="/">LEVEL UPへ戻る</a>
+        </div>
+        <div id="shareStatus" class="share-status" aria-live="polite"></div>
+
+        <details class="method-note">
+          <summary>この数字はどう出している？</summary>
+          <p>30問を「キャリア・責任範囲・専門性・事業インパクト・希少性・市場反応」の6軸でスコア化しています。国税庁「令和6年分 民間給与実態統計調査」の正社員（正職員）の平均給与545万円を中間基準に置き、回答スコアを広いレンジへ変換した、このアプリ独自の推定です。</p>
+          <p>実際の年収は職種、業界、企業、勤務地、採用需給、報酬制度などで大きく変わります。この診断は転職時の提示年収や将来年収を保証しません。</p>
+          <p class="source-links">根拠資料：<a href="https://www.nta.go.jp/publication/statistics/kokuzeicho/minkan/gaiyou/2024.htm" target="_blank" rel="noreferrer">国税庁「令和6年分 民間給与実態統計調査」</a> / <a href="https://www.mhlw.go.jp/toukei/itiran/roudou/chingin/kouzou/z2025/gaiyo.html" target="_blank" rel="noreferrer">厚生労働省「令和7年賃金構造基本統計調査」</a></p>
+        </details>
+      </section>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
