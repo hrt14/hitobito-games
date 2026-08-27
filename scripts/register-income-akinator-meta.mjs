@@ -1,5 +1,6 @@
 import './register-negotiator-sleep-meta.mjs';
 import './register-negotiator-move-meta.mjs';
+import './register-two-tasks-only-meta.mjs';
 import { GAME_META } from './playtest-catalog.mjs';
 
 GAME_META['income-akinator'] = [
