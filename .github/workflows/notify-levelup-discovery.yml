@@ -1,108 +1,28 @@
 name: Notify LEVEL UP organic discovery
 
 on:
-  workflow_run:
-    workflows:
-      - Deploy LEVEL UP production closed loop
-    types:
-      - completed
   workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
-
-concurrency:
-  group: levelup-organic-discovery
-  cancel-in-progress: true
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve deployed commit
-        id: target
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Verify that commit is actually live
-        id: live
-        shell: bash
-        run: |
-          set -euo pipefail
-          TARGET_SHA="${{ steps.target.outputs.sha }}"
-          LIVE_JSON="$(curl -fsS --retry 4 --retry-delay 3 https://levelup.hitobito.jp/deploy-meta.json || true)"
-          LIVE_SHA="$(printf '%s' "$LIVE_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{console.log(JSON.parse(s).sha||'')}catch{console.log('')}})")"
-          echo "live_sha=$LIVE_SHA" >> "$GITHUB_OUTPUT"
-          if [ -z "$LIVE_SHA" ] || [ "$LIVE_SHA" != "$TARGET_SHA" ]; then
-            echo "notify=false" >> "$GITHUB_OUTPUT"
-            echo "Production is not on target SHA; skipping discovery notification. target=$TARGET_SHA live=$LIVE_SHA"
-            exit 0
-          fi
-          echo "notify=true" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout deployed commit
-        if: steps.live.outputs.notify == 'true'
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.target.outputs.sha }}
 
       - name: Setup Node
-        if: steps.live.outputs.notify == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Notify IndexNow and WebSub
-        id: discovery_notify
-        if: steps.live.outputs.notify == 'true'
-        continue-on-error: true
-        run: node scripts/notify-levelup-discovery.mjs
-
-      - name: Record organic discovery notification status
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TARGET_SHA: ${{ steps.target.outputs.sha }}
-          LIVE_SHA: ${{ steps.live.outputs.live_sha }}
-          SHOULD_NOTIFY: ${{ steps.live.outputs.notify }}
-          NOTIFY_OUTCOME: ${{ steps.discovery_notify.outcome }}
-        shell: bash
+      - name: Build LEVEL UP discovery assets
         run: |
-          set -euo pipefail
-          title='LEVEL UP organic discovery notification status'
-          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
-          if [ "$SHOULD_NOTIFY" = "true" ] && [ "$NOTIFY_OUTCOME" = "success" ]; then
-            status='success'
-            details='- exact production SHA was verified before notification
-- IndexNow accepted the production URL batch
-- the WebSub hub accepted the Atom feed publish notification'
-          elif [ "$SHOULD_NOTIFY" != "true" ]; then
-            status='skipped'
-            details="- notification was skipped because the exact target SHA was not verified live\n- live SHA: \`${LIVE_SHA:-unknown}\`"
-          else
-            status='failure'
-            details='- production SHA was live, but IndexNow or WebSub notification failed; inspect this workflow run before treating notification as complete'
-          fi
-          {
-            echo "Status: **$status**"
-            echo
-            echo "Commit: \`$TARGET_SHA\`"
-            echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            echo
-            printf '%b\n' "$details"
-          } > /tmp/discovery-status.md
-          if [ -n "$issue" ]; then
-            gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file /tmp/discovery-status.md
-          else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/discovery-status.md
-          fi
+          npm install
+          node scripts/prepare-firebase-mobile.mjs
+          npm run build:firebase
 
-      - name: Fail when discovery notification failed
-        if: steps.live.outputs.notify == 'true' && steps.discovery_notify.outcome != 'success'
-        run: exit 1
+      - name: Notify IndexNow and WebSub
+        run: node scripts/notify-levelup-discovery.mjs
