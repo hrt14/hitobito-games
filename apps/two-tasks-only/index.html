@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11120f">
+<meta name="description" content="今日やる仕事を2つだけにする。3つ目を入れるなら、必ず1つ追い出すLEVEL UPアプリ。">
+<title>今日やるのは2つだけ</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;--bg:#11120f;--paper:#f2f0e8;--ink:#141510;--muted:#77786f;--line:rgba(20,21,16,.17);--hot:#e6ff57;--red:#ff765f;--blue:#8ed7ff;--dark:#1b1c18}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--paper)}body{-webkit-font-smoothing:antialiased}button,textarea{font:inherit}.app{width:min(720px,100%);min-height:100dvh;margin:auto;padding:max(13px,env(safe-area-inset-top)) 13px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}.top{height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px}.brand{font-size:10px;font-weight:950;letter-spacing:.14em}.brand b{color:var(--hot)}.ghost{border:1px solid rgba(255,255,255,.14);border-radius:999px;background:transparent;color:#aeb0a8;padding:8px 11px;font-size:10px;font-weight:900;cursor:pointer}.screen{display:none;flex:1}.screen.active{display:flex;flex-direction:column}.start{justify-content:center;padding:7vh 1px}.eyebrow{font-size:10px;letter-spacing:.17em;font-weight:950;color:var(--hot)}.start h1{font-size:clamp(48px,14vw,78px);line-height:.91;letter-spacing:-.075em;margin:14px 0 16px;max-width:660px}.start p{font-size:17px;line-height:1.7;color:#c7c9c0;margin:0;max-width:550px}.start p strong{color:#fff}.big-two{display:flex;align-items:center;gap:12px;margin:30px 0 24px}.big-two span{width:50%;height:83px;border:1px solid rgba(230,255,87,.24);border-radius:18px;background:#171911;display:grid;place-items:center;font-size:12px;color:#aeb29b;font-weight:900;position:relative}.big-two span:before{content:attr(data-n);position:absolute;left:11px;top:9px;color:var(--hot);font-size:10px}.primary{min-height:60px;border:0;border-radius:17px;background:var(--hot);color:#11130d;font-size:17px;font-weight:950;cursor:pointer;transition:transform .1s}.primary:active,.action:active,.slot-button:active{transform:scale(.985)}.resume{margin-top:9px;min-height:49px;border:1px solid rgba(255,255,255,.13);border-radius:15px;background:transparent;color:#d3d5cc;font-weight:900;cursor:pointer;display:none}.resume.show{display:block}.input-screen{padding-top:4vh}.screen-kicker{font-size:9px;letter-spacing:.17em;color:var(--hot);font-weight:950}.input-screen h1,.sort-screen h1,.swap-screen h1,.result-screen h1{font-size:clamp(34px,9.4vw,53px);line-height:1.02;letter-spacing:-.055em;margin:10px 0 8px}.sub{color:#9fa198;font-size:13px;line-height:1.65;margin:0 0 17px}.task-input{width:100%;min-height:238px;resize:vertical;border:1px solid rgba(255,255,255,.13);border-radius:20px;background:#191a16;color:#fff;padding:18px;font-size:16px;line-height:1.65;outline:none}.task-input:focus{border-color:rgba(230,255,87,.6);box-shadow:0 0 0 3px rgba(230,255,87,.07)}.task-input::placeholder{color:#696b64}.input-meta{display:flex;justify-content:space-between;gap:10px;color:#777a72;font-size:10px;margin:9px 2px 17px}.error{min-height:19px;color:#ff9a89;font-size:11px;font-weight:850;margin-top:8px}.sort-screen{padding-top:3px}.today-board{background:var(--paper);color:var(--ink);border-radius:24px;padding:14px;margin:3px 0 12px}.board-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.board-head strong{font-size:11px;letter-spacing:.12em}.board-head span{font-size:9px;color:var(--muted);font-weight:900}.slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}.slot{min-height:91px;border:1px dashed #b8b8ad;border-radius:16px;padding:12px;background:#e7e5dc;position:relative;display:flex;align-items:flex-end}.slot.filled{border-style:solid;border-color:#1b1c18;background:#fff}.slot-num{position:absolute;top:9px;left:10px;font-size:9px;font-weight:950;color:#77786f}.slot-text{font-size:14px;line-height:1.35;font-weight:950;word-break:break-word}.slot.empty .slot-text{color:#aaa99f;font-weight:800}.progress-row{display:flex;justify-content:space-between;align-items:center;color:#85887f;font-size:9px;font-weight:900;letter-spacing:.08em;margin:3px 2px 10px}.card-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:260px}.candidate{border:1px solid rgba(255,255,255,.13);background:#191a16;border-radius:25px;padding:20px 18px;min-height:172px;display:flex;flex-direction:column;justify-content:space-between}.candidate .label{font-size:9px;letter-spacing:.15em;font-weight:950;color:#85887f}.candidate p{font-size:clamp(24px,6.4vw,34px);line-height:1.28;letter-spacing:-.035em;font-weight:950;margin:17px 0 4px;word-break:break-word}.actions{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:7px}.action{min-height:57px;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:#1a1b17;color:#f1f2ec;font-weight:900;font-size:13px;cursor:pointer}.action.today{background:var(--hot);color:#11130d;border-color:var(--hot)}.action.drop{color:#ffab9d}.undo-row{display:flex;justify-content:center;margin-top:8px}.undo{border:0;background:transparent;color:#777a72;font-size:10px;font-weight:850;padding:8px 14px;cursor:pointer}.undo:disabled{opacity:.25}.toast{min-height:23px;text-align:center;font-size:10px;color:#9da097;padding-top:5px}.swap-screen{padding-top:5vh}.swap-screen .alert{display:inline-block;color:#11130d;background:var(--hot);border-radius:999px;padding:6px 9px;font-size:9px;font-weight:950;letter-spacing:.12em;align-self:flex-start}.swap-screen h1{margin-top:14px}.new-task{border:1px solid rgba(230,255,87,.35);border-radius:18px;padding:15px;margin:14px 0 16px}.new-task span{display:block;font-size:9px;color:#85887f;letter-spacing:.12em;font-weight:950}.new-task strong{display:block;font-size:20px;line-height:1.35;margin-top:8px}.swap-list{display:grid;gap:8px}.slot-button{width:100%;min-height:75px;text-align:left;border:1px solid rgba(255,255,255,.13);background:#191a16;border-radius:17px;color:#fff;padding:13px 14px;cursor:pointer}.slot-button small{display:block;color:#85887f;font-size:9px;font-weight:900;letter-spacing:.1em}.slot-button strong{display:block;font-size:16px;margin-top:6px;line-height:1.35}.slot-button.new-stays{border-color:rgba(230,255,87,.25)}.slot-button.new-loses{color:#b9bbb3}.result-screen{padding-top:4vh}.result-board{background:var(--paper);color:var(--ink);border-radius:25px;padding:18px 16px}.result-board .final-label{font-size:9px;letter-spacing:.14em;font-weight:950;color:#74756c}.final-task{border-top:1px solid var(--line);padding:16px 2px 14px;display:grid;grid-template-columns:31px 1fr;gap:10px;align-items:start}.final-task:first-of-type{margin-top:10px}.final-task .num{width:27px;height:27px;border-radius:50%;background:var(--ink);color:var(--hot);display:grid;place-items:center;font-size:10px;font-weight:950}.final-task strong{font-size:19px;line-height:1.35;letter-spacing:-.02em;word-break:break-word}.load-cut{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:11px 0}.cut-box{border:1px solid rgba(255,255,255,.11);border-radius:15px;background:#181915;padding:13px}.cut-box b{display:block;font-size:27px}.cut-box span{display:block;font-size:9px;color:#7e8178;margin-top:3px;font-weight:900}.declaration{font-size:clamp(28px,7.8vw,42px);line-height:1.1;letter-spacing:-.045em;font-weight:950;margin:22px 0 18px}.start-now{border:1px solid rgba(230,255,87,.25);border-radius:19px;background:#171911;padding:15px;margin-bottom:9px}.start-now span{display:block;color:#85887f;font-size:9px;letter-spacing:.12em;font-weight:950}.start-now strong{display:block;font-size:18px;margin:7px 0 13px;line-height:1.35}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.secondary{min-height:51px;border:1px solid rgba(255,255,255,.13);border-radius:15px;background:#1a1b17;color:#e9eae4;font-weight:900;cursor:pointer}.started{display:none;color:var(--hot);font-size:12px;font-weight:950;text-align:center;margin:8px 0 0}.started.show{display:block}.tiny-note{font-size:10px;line-height:1.6;color:#73766e;margin:11px 2px 0}.shake{animation:shake .28s linear}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}@media(max-width:480px){.app{padding-left:11px;padding-right:11px}.start{padding-top:4vh}.start p{font-size:15px}.big-two span{height:72px}.task-input{min-height:205px}.today-board{border-radius:20px}.slot{min-height:82px}.candidate{min-height:155px}.actions{grid-template-columns:1fr 1fr}.action.today{grid-column:1/-1;grid-row:1}.result-actions{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="top"><div class="brand">LEVEL <b>UP</b> / WIP LIMIT</div><button class="ghost" id="restartTop" type="button">最初から</button></header>
+
+<section class="screen start active" id="startScreen">
+  <div class="eyebrow">TODAY HAS ONLY TWO SEATS</div>
+  <h1>今日やるのは<br>2つだけ</h1>
+  <p><strong>3つ目を入れるなら、1つ追い出す。</strong><br>優先順位をきれいに並べるアプリではありません。今日抱える仕事を減らします。</p>
+  <div class="big-two"><span data-n="01">TODAY</span><span data-n="02">TODAY</span></div>
+  <button class="primary" id="startBtn" type="button">今日を2つにする</button>
+  <button class="resume" id="resumeBtn" type="button">今日の2つを開く</button>
+</section>
+
+<section class="screen input-screen" id="inputScreen">
+  <div class="screen-kicker">STEP 1 / DUMP</div>
+  <h1>今日やりそうなことを<br>全部出す</h1>
+  <p class="sub">1行に1件。雑でOK。2〜12件。スマホの音声入力でもそのまま入れられます。</p>
+  <textarea class="task-input" id="taskInput" autocomplete="off" autocapitalize="sentences" placeholder="embの資料を仕上げる&#10;ゴルフパートナーの競合を見る&#10;メールを返す&#10;新しいアプリを考える"></textarea>
+  <div class="input-meta"><span id="countText">0件</span><span>最大12件</span></div>
+  <button class="primary" id="sortBtn" type="button">2つに絞る</button>
+  <div class="error" id="inputError" aria-live="polite"></div>
+</section>
+
+<section class="screen sort-screen" id="sortScreen">
+  <div class="today-board" id="todayBoard">
+    <div class="board-head"><strong>TODAY / 2 SEATS</strong><span>増席なし</span></div>
+    <div class="slots" id="slots"></div>
+  </div>
+  <div class="progress-row"><span id="progressText">1 / 4</span><span id="offCount">今日から外した 0</span></div>
+  <div class="card-wrap"><div class="candidate"><div class="label">この仕事は？</div><p id="candidateText"></p></div></div>
+  <div class="actions">
+    <button class="action today" id="todayBtn" type="button">今日に入れる</button>
+    <button class="action" id="laterBtn" type="button">あと</button>
+    <button class="action drop" id="dropBtn" type="button">捨てる</button>
+  </div>
+  <div class="undo-row"><button class="undo" id="undoBtn" type="button">1つ戻す</button></div>
+  <div class="toast" id="toast" aria-live="polite"></div>
+</section>
+
+<section class="screen swap-screen" id="swapScreen">
+  <div class="alert">TODAY IS FULL</div>
+  <h1>満席です。<br>どっちを追い出す？</h1>
+  <p class="sub">3つ目は追加できません。入れるなら、いまの2つのどちらかを今日から外します。</p>
+  <div class="new-task"><span>新しく入れたい仕事</span><strong id="swapNewTask"></strong></div>
+  <div class="swap-list" id="swapList"></div>
+</section>
+
+<section class="screen result-screen" id="resultScreen">
+  <div class="screen-kicker">TODAY / FIXED</div>
+  <h1>今日の2つ、<br>これで固定。</h1>
+  <div class="result-board" id="resultBoard"></div>
+  <div class="load-cut"><div class="cut-box"><b id="laterCount">0</b><span>今日はやらない</span></div><div class="cut-box"><b id="dropCount">0</b><span>捨てた</span></div></div>
+  <div class="declaration">今日はこれ以外、<br>やらない。</div>
+  <div class="start-now" id="startNow"><span>最初に触る</span><strong id="firstTask"></strong><button class="primary" id="startedBtn" type="button">10秒だけ始めた</button><div class="started" id="startedMessage">開始した。あとはこの1件だけ見ればいい。</div></div>
+  <div class="result-actions"><button class="secondary" id="shareBtn" type="button">結果を共有</button><button class="secondary" id="editBtn" type="button">候補からやり直す</button></div>
+  <p class="tiny-note">「あと」は今日やらない場所です。明日の約束ではありません。</p>
+</section>
+</main>
+<script>
+(()=>{
+'use strict';
+const $=(id)=>document.getElementById(id);
+const screens=[...document.querySelectorAll('.screen')];
+const KEY='levelup-two-tasks-only-v1';
+let state={source:[],index:0,today:[],later:[],dropped:[],history:[],swapCandidate:null,started:false};
+const vibrate=(ms=18)=>{try{navigator.vibrate?.(ms)}catch{}};
+function show(id){screens.forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo({top:0,behavior:'instant'});}
+function cleanTasks(text){const seen=new Set();return text.split(/\n+/).map(v=>v.trim().replace(/^[-・•\s]+/,'' )).filter(Boolean).filter(v=>{const k=v.toLowerCase();if(seen.has(k))return false;seen.add(k);return true}).slice(0,12);}
+function snapshot(){return JSON.stringify({source:state.source,index:state.index,today:state.today,later:state.later,dropped:state.dropped,started:state.started});}
+function restore(raw){const v=JSON.parse(raw);state={...state,...v,history:state.history.slice(0,-1),swapCandidate:null};}
+function pushHistory(){state.history.push(snapshot());if(state.history.length>30)state.history.shift();}
+function renderSlots(){const el=$('slots');el.innerHTML='';[0,1].forEach(i=>{const t=state.today[i];const d=document.createElement('div');d.className='slot '+(t?'filled':'empty');d.innerHTML='<span class="slot-num">0'+(i+1)+'</span><div class="slot-text"></div>';d.querySelector('.slot-text').textContent=t||'空席';el.appendChild(d)});}
+function renderSort(){if(state.index>=state.source.length){finish();return}show('sortScreen');renderSlots();$('progressText').textContent=(state.index+1)+' / '+state.source.length;$('offCount').textContent='今日から外した '+(state.later.length+state.dropped.length);$('candidateText').textContent=state.source[state.index];$('undoBtn').disabled=!state.history.length;$('toast').textContent='';}
+function classify(kind){pushHistory();const task=state.source[state.index];if(kind==='later'){state.later.push(task);state.index++;vibrate(10);renderSort();$('toast').textContent='今日から外した。';return}if(kind==='drop'){state.dropped.push(task);state.index++;vibrate([9,25,9]);renderSort();$('toast').textContent='消した。今日の負荷 -1。';return}if(state.today.length<2){state.today.push(task);state.index++;vibrate(18);renderSort();return}state.history.pop();state.swapCandidate=task;renderSwap();}
+function renderSwap(){show('swapScreen');$('swapNewTask').textContent=state.swapCandidate;const list=$('swapList');list.innerHTML='';state.today.forEach((task,i)=>{const b=document.createElement('button');b.type='button';b.className='slot-button new-stays';b.innerHTML='<small>この仕事を「あと」へ追い出す</small><strong></strong>';b.querySelector('strong').textContent=task;b.addEventListener('click',()=>swapIn(i));list.appendChild(b)});const keep=document.createElement('button');keep.type='button';keep.className='slot-button new-loses';keep.innerHTML='<small>新しい仕事を「あと」へ</small><strong></strong>';keep.querySelector('strong').textContent=state.swapCandidate;keep.addEventListener('click',keepCurrent);list.appendChild(keep);}
+function swapIn(i){pushHistory();const old=state.today[i];state.later.push(old);state.today[i]=state.swapCandidate;state.swapCandidate=null;state.index++;vibrate([14,22,14]);renderSort();}
+function keepCurrent(){pushHistory();state.later.push(state.swapCandidate);state.swapCandidate=null;state.index++;vibrate(10);renderSort();}
+function finish(){while(state.today.length<2&&state.later.length){state.today.push(state.later.shift())}save();renderResult();}
+function renderResult(){show('resultScreen');const board=$('resultBoard');board.innerHTML='<div class="final-label">TODAY / 2 SEATS</div>';state.today.forEach((task,i)=>{const row=document.createElement('div');row.className='final-task';row.innerHTML='<div class="num">0'+(i+1)+'</div><strong></strong>';row.querySelector('strong').textContent=task;board.appendChild(row)});if(!state.today.length){const row=document.createElement('div');row.className='final-task';row.innerHTML='<div class="num">--</div><strong>今日は無理に増やさない。</strong>';board.appendChild(row)};$('laterCount').textContent=state.later.length;$('dropCount').textContent=state.dropped.length;$('firstTask').textContent=state.today[0]||'今日は開始する仕事なし';$('startNow').style.display=state.today.length?'block':'none';$('startedMessage').classList.toggle('show',!!state.started);}
+function todayKey(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({date:todayKey(),source:state.source,today:state.today,later:state.later,dropped:state.dropped,started:state.started}))}catch{}}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||'null');return v&&v.date===todayKey()?v:null}catch{return null}}
+function updateResume(){const v=load();$('resumeBtn').classList.toggle('show',!!v&&Array.isArray(v.today));}
+function beginInput(){show('inputScreen');const v=load();if(v?.source?.length&&!$('taskInput').value)$('taskInput').value=v.source.join('\n');countInput();setTimeout(()=>$('taskInput').focus(),120);}
+function startSort(){const tasks=cleanTasks($('taskInput').value);if(tasks.length<2){$('inputError').textContent='候補を2つ以上入れてください。';$('taskInput').classList.add('shake');setTimeout(()=>$('taskInput').classList.remove('shake'),320);return}$('inputError').textContent='';state={source:tasks,index:0,today:[],later:[],dropped:[],history:[],swapCandidate:null,started:false};renderSort();}
+function countInput(){const n=cleanTasks($('taskInput').value).length;$('countText').textContent=n+'件';$('inputError').textContent='';}
+function resume(){const v=load();if(!v)return beginInput();state={source:v.source||[],index:(v.source||[]).length,today:v.today||[],later:v.later||[],dropped:v.dropped||[],history:[],swapCandidate:null,started:!!v.started};renderResult();}
+function undo(){if(!state.history.length)return;const raw=state.history[state.history.length-1];restore(raw);vibrate(8);renderSort();}
+function restart(){state={source:[],index:0,today:[],later:[],dropped:[],history:[],swapCandidate:null,started:false};$('taskInput').value='';countInput();show('startScreen');updateResume();}
+async function share(){const text=['今日やるのは2つだけ','',...state.today.map((t,i)=>(i+1)+'. '+t),'','今日はやらない '+state.later.length+'件 / 捨てた '+state.dropped.length+'件'].join('\n');try{if(navigator.share){await navigator.share({title:'今日やるのは2つだけ',text});return}await navigator.clipboard.writeText(text);$('shareBtn').textContent='コピーしました';setTimeout(()=>$('shareBtn').textContent='結果を共有',1300)}catch{}}
+$('startBtn').addEventListener('click',beginInput);$('resumeBtn').addEventListener('click',resume);$('sortBtn').addEventListener('click',startSort);$('taskInput').addEventListener('input',countInput);$('todayBtn').addEventListener('click',()=>classify('today'));$('laterBtn').addEventListener('click',()=>classify('later'));$('dropBtn').addEventListener('click',()=>classify('drop'));$('undoBtn').addEventListener('click',undo);$('restartTop').addEventListener('click',restart);$('editBtn').addEventListener('click',()=>{show('inputScreen');$('taskInput').value=state.source.join('\n');countInput()});$('shareBtn').addEventListener('click',share);$('startedBtn').addEventListener('click',()=>{state.started=true;save();$('startedMessage').classList.add('show');$('startedBtn').textContent='開始済み';vibrate([18,30,24])});updateResume();countInput();
+})();
+</script>
+</body>
+</html>
