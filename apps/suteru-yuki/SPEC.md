@@ -36,4 +36,5 @@
 - Main user benefit/motive: 時間を節約し、重要なことに集中する。
 - Why this title is direct and specific: 「優先順位」「集中力」のような抽象語ではなく、ユーザーが実際に行う行動をそのままタイトルにした。
 - How it matches the actual app: 候補を削り、最後に「今日はやらない」リストを確定する体験そのもの。
-- Market/uniqueness checks actually performed (if any): 今回は既存LEVEL UP内の重複確認を実施。`suteru-yuki` を改修し、新規重複アプリは作らない判断とした。外部市場のタイトル固有性チェックは未実施。
+- Internal uniqueness check: 既存LEVEL UP内を確認し、同目的の新規アプリを増やさず既存 `suteru-yuki` を全面改修した。`zenbu-yaranai` / `important-first` とは利用場面と主操作を分離している。
+- External title check (2026-08-27): WebおよびAmazon.co.jpドメイン検索を実施。書籍では完全一致タイトルは確認できなかったが、2026-04-28発売の大平信孝『やらないことを決める技術　仕事も人生も「戦略的先送り」でうまくいく』（ソシム、ISBN 978-4-8026-1538-9）という近似タイトルを確認した。Amazon Musicには「やらないことを決める」という同名エピソードも確認した。したがって「同名書籍なし／近似書名あり」と記録し、書籍名そのものを借用したタイトルではない状態を維持する。
