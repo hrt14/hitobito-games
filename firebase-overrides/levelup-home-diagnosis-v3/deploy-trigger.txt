@@ -1,1 +1,2 @@
 Deploy moyamoya finder to production and verify live URLs.
+Retry after robust verifier fix.
