@@ -53,6 +53,8 @@ jobs:
         env:
           OUTPUT_DIR: test-results/suteru-yuki-local
         run: node tests/suteru-yuki-browser.mjs
+      - name: LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/suteru-yuki
       - name: Wait for Firebase production source
         if: github.ref == 'refs/heads/main'
         run: |
