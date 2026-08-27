@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#080a08" />
+  <meta name="description" content="12の現実的な意思決定から、実行・統制感・学習・複利・レバレッジ・リスク設計を診断し、『成功マインド換算 生涯年収』として可視化するLEVEL UP診断。" />
+  <title>成功マインド診断｜考え方から生涯年収を判定 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る">← <span>LEVEL UP</span></a>
+      <span class="mode">MIND → MONEY</span>
+    </header>
+
+    <section class="screen active" id="startScreen">
+      <div class="vault" aria-hidden="true">
+        <span class="vault-label">LIFETIME EARNINGS</span>
+        <strong>???<small>円</small></strong>
+        <i></i>
+      </div>
+      <p class="eyebrow">12 DECISIONS. NO TYPING.</p>
+      <h1>成功マインド<br><span>診断。</span></h1>
+      <p class="lead">成功する人は、<strong>何を考えるかより<br>分岐点で何を選ぶか。</strong></p>
+      <p class="sublead">仕事・失敗・お金・競争・チャンス。12の場面で、今のあなたが本当に選びそうな道をタップ。</p>
+      <button class="primary" id="startBtn" type="button">生涯年収を開封する <b>→</b></button>
+      <button class="last-result" id="lastResultBtn" type="button" hidden>前回の診断結果を見る</button>
+      <p class="tiny">約2分。入力なし。表示金額は実収入の予測ではなく、意思決定パターンをゲーム用の金額スケールに換算した「成功マインド換算」です。</p>
+    </section>
+
+    <section class="screen" id="questionScreen">
+      <div class="progress-row">
+        <span id="progressText">01 / 12</span>
+        <div class="progress"><b id="progressBar"></b></div>
+        <span class="streak" id="signalLabel">判断中</span>
+      </div>
+
+      <div class="future-line" aria-hidden="true">
+        <span>NOW</span><i><b id="futureDot"></b></i><span>10Y</span>
+      </div>
+
+      <p class="scene-kicker" id="sceneKicker">SCENE 01 · WORK</p>
+      <h2 id="questionTitle"></h2>
+      <p class="question-note" id="questionNote"></p>
+
+      <div class="paths" id="choices" aria-live="polite"></div>
+      <p class="inst">正解を探さず、今の自分なら選ぶ方をタップ。</p>
+      <button class="back" id="backBtn" type="button">← ひとつ戻る</button>
+    </section>
+
+    <section class="screen" id="revealScreen">
+      <p class="eyebrow">CALCULATING YOUR TRAJECTORY</p>
+      <div class="scanner" aria-hidden="true"><i></i></div>
+      <h2>12の判断を<br>未来に積み上げています。</h2>
+      <div class="calc-grid" id="calcGrid"></div>
+    </section>
+
+    <section class="screen" id="resultScreen">
+      <p class="eyebrow">SUCCESS MIND EQUIVALENT</p>
+      <div class="money-card">
+        <span>成功マインド換算 生涯年収</span>
+        <strong id="moneyValue">0円</strong>
+        <small id="moneyRange"></small>
+      </div>
+      <h2 class="result-title" id="resultTitle"></h2>
+      <p class="result-lead" id="resultLead"></p>
+
+      <div class="result-grid">
+        <article class="strength-card good">
+          <small>一番の複利</small>
+          <strong id="topStrength"></strong>
+          <p id="topStrengthText"></p>
+        </article>
+        <article class="strength-card brake">
+          <small id="weakLabel">最大のブレーキ</small>
+          <strong id="topWeakness"></strong>
+          <p id="topWeaknessText"></p>
+        </article>
+      </div>
+
+      <div class="meter-card">
+        <div class="meter-head"><span>あなたの6つの成功資本</span><strong id="scoreValue">0</strong></div>
+        <div class="meters" id="meters"></div>
+      </div>
+
+      <section class="upgrade" id="upgradeSection">
+        <div class="upgrade-head">
+          <span>ONE DECISION UPGRADE</span>
+          <strong>最弱1項目だけ、選び直す。</strong>
+        </div>
+        <p id="upgradePrompt"></p>
+        <div class="upgrade-actions" id="upgradeActions"></div>
+        <div class="upgrade-result" id="upgradeResult" hidden>
+          <span>改善後の換算ポテンシャル</span>
+          <strong id="upgradeMoney"></strong>
+          <p id="upgradeCopy"></p>
+        </div>
+      </section>
+
+      <div class="share-card" id="shareCard">
+        <span>MY SUCCESS MIND</span>
+        <strong id="shareMoney"></strong>
+        <p id="shareType"></p>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary" id="shareBtn" type="button">結果をシェア <b>↗</b></button>
+        <button class="secondary" id="againBtn" type="button">もう一度診断 <b>↻</b></button>
+        <a class="ghost-link" href="/">LEVEL UPへ戻る</a>
+      </div>
+
+      <details class="evidence">
+        <summary>この診断の「根拠」と限界</summary>
+        <div>
+          <p>性格・非認知特性と所得には関連が報告されています。たとえば、Gensowskiの長期研究では教育とパーソナリティが生涯所得に影響しうること、locus of control（自分の行動で結果を変えられるという統制感）についても賃金との関連を扱う研究蓄積があります。</p>
+          <p>ただし、研究結果は性別・職業・時代・環境で異なり、考え方だけから個人の生涯年収を精密に予測することはできません。そのため本アプリの金額は、研究で扱われる特性を参考にした<strong>ゲーム用の換算指標</strong>です。</p>
+          <p>日本の公的な生涯賃金統計も、個人の未来を予言する値ではなく、現在の年齢別賃金を積み上げた推計値だとJILPTが説明しています。</p>
+          <div class="source-links">
+            <a href="https://www.iza.org/publications/dp/8235" target="_blank" rel="noreferrer">IZA: Personality, IQ, and Lifetime Earnings</a>
+            <a href="https://docs.iza.org/dp5630.pdf" target="_blank" rel="noreferrer">IZA: Locus of Control review</a>
+            <a href="https://www.jil.go.jp/kokunai/statistics/qa/a04.html" target="_blank" rel="noreferrer">JILPT: 生涯賃金の考え方</a>
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>

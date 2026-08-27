@@ -1,0 +1,80 @@
+name: Success mind browser quality
+
+on:
+  pull_request:
+    paths:
+      - 'apps/success-mind/**'
+      - 'scripts/register-success-mind-meta.mjs'
+      - 'scripts/register-success-mind-catalog.mjs'
+      - 'scripts/inject-success-mind-card.mjs'
+      - 'scripts/register-10x-thinking-meta.mjs'
+      - 'scripts/inject-levelup-seikan-switch.mjs'
+      - 'scripts/validate-levelup-book-cards.mjs'
+      - '.github/workflows/success-mind-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/success-mind/**'
+      - 'scripts/register-success-mind-meta.mjs'
+      - 'scripts/register-success-mind-catalog.mjs'
+      - 'scripts/inject-success-mind-card.mjs'
+      - 'scripts/register-10x-thinking-meta.mjs'
+      - 'scripts/inject-levelup-seikan-switch.mjs'
+      - 'scripts/validate-levelup-book-cards.mjs'
+      - '.github/workflows/success-mind-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies and Chromium
+        run: |
+          npm install
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Syntax checks
+        run: |
+          node --check apps/success-mind/app.js
+          node --check apps/success-mind/smoke-browser.mjs
+          node --check scripts/register-success-mind-meta.mjs
+          node --check scripts/register-success-mind-catalog.mjs
+          node --check scripts/inject-success-mind-card.mjs
+      - name: Build Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify catalog integration
+        run: |
+          grep -F 'data-game="success-mind"' .dist/firebase/index.html >/dev/null
+          grep -F '成功マインド診断' .dist/firebase/levelup-catalog.json >/dev/null
+          test -f .dist/firebase/apps/success-mind/index.html
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/success-mind-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/success-mind/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/success-mind-server.log
+          exit 1
+      - name: Real mobile playtest
+        env:
+          SUCCESS_MIND_URL: http://127.0.0.1:4173/apps/success-mind/?test=1
+        run: node apps/success-mind/smoke-browser.mjs
+      - name: LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/success-mind
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: success-mind-browser-playtest
+          path: apps/success-mind/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/success-mind-server.log || true
