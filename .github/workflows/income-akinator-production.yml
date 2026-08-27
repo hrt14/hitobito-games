@@ -33,10 +33,10 @@ jobs:
             const page=await browser.newPage({viewport});
             const errors=[];
             page.on('pageerror',e=>errors.push(String(e)));
-            const res=await page.goto(url,{waitUntil:'networkidle'});
+            const res=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
             if(!res || res.status()!==200) throw new Error(`${label}: HTTP ${res?.status()}`);
             if(!(await page.title()).includes('年収アキネーター')) throw new Error(`${label}: unexpected title: ${await page.title()}`);
-            await page.getByRole('button',{name:'推理スタート'}).waitFor({state:'visible'});
+            await page.getByRole('button',{name:'推理スタート'}).waitFor({state:'visible',timeout:10000});
             await page.getByRole('button',{name:'推理スタート'}).click();
             if((await page.locator('#qno').textContent())!=='Q1') throw new Error(`${label}: Q1 missing`);
             await page.getByRole('button',{name:'はい'}).click();
@@ -54,8 +54,8 @@ jobs:
             if(!job || job==='---' || !income || income.startsWith('---')) throw new Error(`${label}: result incomplete`);
             await page.getByRole('button',{name:'別の人で試す'}).click();
             if((await page.locator('#qno').textContent())!=='Q1') throw new Error(`${label}: retry failed`);
-            await page.reload({waitUntil:'networkidle'});
-            if(!(await page.getByRole('button',{name:'推理スタート'}).isVisible())) throw new Error(`${label}: reload unusable`);
+            await page.reload({waitUntil:'domcontentloaded',timeout:30000});
+            await page.getByRole('button',{name:'推理スタート'}).waitFor({state:'visible',timeout:10000});
             if(errors.length) throw new Error(`${label}: page errors: ${errors.join(' | ')}`);
             console.log(`PASS ${label} ${url} result=${job}/${income}`);
             await page.close();
