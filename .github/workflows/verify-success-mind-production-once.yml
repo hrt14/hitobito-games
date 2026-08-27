@@ -34,3 +34,4 @@ jobs:
           path: apps/success-mind/.artifacts/*
           if-no-files-found: warn
           retention-days: 7
+# one-time production verification trigger
