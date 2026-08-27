@@ -1,0 +1,61 @@
+name: Income Akinator browser quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/income-akinator
+      - main
+    paths:
+      - 'apps/income-akinator/**'
+      - 'tests/income-akinator-browser.mjs'
+      - '.github/workflows/income-akinator-browser.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: income-akinator-browser-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Syntax check
+        run: node --check apps/income-akinator/app.js
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local app server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/income-akinator-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/apps/income-akinator/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/income-akinator-http.log
+          exit 1
+
+      - name: Browser-test desktop and mobile
+        run: node tests/income-akinator-browser.mjs
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: income-akinator-browser-evidence
+          path: test-results/income-akinator/**
+          if-no-files-found: ignore
+          retention-days: 14
