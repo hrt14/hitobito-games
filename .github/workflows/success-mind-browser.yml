@@ -7,8 +7,11 @@ on:
       - 'scripts/register-success-mind-meta.mjs'
       - 'scripts/register-success-mind-catalog.mjs'
       - 'scripts/inject-success-mind-card.mjs'
+      - 'scripts/inject-success-mind-card-copy.mjs'
       - 'scripts/register-10x-thinking-meta.mjs'
       - 'scripts/inject-levelup-seikan-switch.mjs'
+      - 'scripts/inject-five-intelligences-card.mjs'
+      - 'scripts/inject-consultant-hanseikai-card-copy.mjs'
       - 'scripts/validate-levelup-book-cards.mjs'
       - '.github/workflows/success-mind-browser.yml'
   push:
@@ -18,8 +21,11 @@ on:
       - 'scripts/register-success-mind-meta.mjs'
       - 'scripts/register-success-mind-catalog.mjs'
       - 'scripts/inject-success-mind-card.mjs'
+      - 'scripts/inject-success-mind-card-copy.mjs'
       - 'scripts/register-10x-thinking-meta.mjs'
       - 'scripts/inject-levelup-seikan-switch.mjs'
+      - 'scripts/inject-five-intelligences-card.mjs'
+      - 'scripts/inject-consultant-hanseikai-card-copy.mjs'
       - 'scripts/validate-levelup-book-cards.mjs'
       - '.github/workflows/success-mind-browser.yml'
   workflow_dispatch:
@@ -45,6 +51,8 @@ jobs:
           node --check scripts/register-success-mind-meta.mjs
           node --check scripts/register-success-mind-catalog.mjs
           node --check scripts/inject-success-mind-card.mjs
+          node --check scripts/inject-success-mind-card-copy.mjs
+          node --check scripts/inject-consultant-hanseikai-card-copy.mjs
       - name: Build Firebase LEVEL UP bundle
         run: npm run build:firebase
       - name: Verify catalog integration
