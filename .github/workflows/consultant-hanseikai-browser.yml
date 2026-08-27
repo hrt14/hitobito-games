@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - 'apps/consultant-hanseikai/**'
+      - 'scripts/register-consultant-hanseikai-meta.mjs'
+      - 'package.json'
       - '.github/workflows/consultant-hanseikai-browser.yml'
   push:
     branches:
       - main
     paths:
       - 'apps/consultant-hanseikai/**'
+      - 'scripts/register-consultant-hanseikai-meta.mjs'
+      - 'package.json'
       - '.github/workflows/consultant-hanseikai-browser.yml'
   workflow_dispatch:
 
@@ -35,9 +39,14 @@ jobs:
           pathlib.Path('/tmp/consultant-hanseikai-inline.js').write_text('\n'.join(scripts))
           PY
           node --check /tmp/consultant-hanseikai-inline.js
+      - name: Build production-shaped LEVEL UP page
+        run: |
+          npm run build:hosting
+          node scripts/inject-levelup-quality-pass.mjs
+          test -s .dist/firebase/apps/consultant-hanseikai/index.html
       - name: Start static server
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/consultant-hanseikai-server.log 2>&1 &
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .dist/firebase > /tmp/consultant-hanseikai-server.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS 'http://127.0.0.1:4173/apps/consultant-hanseikai/?test=1' >/dev/null; then exit 0; fi
             sleep 1
