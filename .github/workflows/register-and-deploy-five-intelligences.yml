@@ -1,0 +1,102 @@
+name: Register and deploy five-intelligences
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/register-and-deploy-five-intelligences.yml'
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: firebase-levelup-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Register app in LEVEL UP catalog
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'scripts/playtest-catalog.mjs';
+          let src = fs.readFileSync(path, 'utf8');
+          const slug = "'five-intelligences':";
+          if (!src.includes(slug)) {
+            const anchor = "  'fear-door':";
+            if (!src.includes(anchor)) throw new Error('Catalog insertion anchor not found');
+            const line = "  'five-intelligences': ['levelup', '日常の10シーンでEQ・SQ・IQ・BKQ・NQのうち最初に使う知能を瞬時に選び、感情・場・思考・身体・つながりを使い分ける反射を鍛える。'],\n";
+            src = src.replace(anchor, line + anchor);
+            fs.writeFileSync(path, src);
+          }
+          if (!fs.readFileSync(path, 'utf8').includes(slug)) throw new Error('Catalog registration failed');
+          NODE
+          node --check apps/five-intelligences/app.js
+          grep -F '60秒で使い分ける 5つの知能' apps/five-intelligences/index.html >/dev/null
+          grep -F '心理検査・知能検査ではありません' apps/five-intelligences/index.html >/dev/null
+
+      - name: Commit catalog registration and remove one-time workflow
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/playtest-catalog.mjs
+          git rm .github/workflows/register-and-deploy-five-intelligences.yml
+          if ! git diff --cached --quiet; then
+            git commit -m 'Register five-intelligences in LEVEL UP catalog'
+            git push origin HEAD:main
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare and build LEVEL UP
+        run: |
+          set -euo pipefail
+          node scripts/prepare-firebase-mobile.mjs
+          npm run build:firebase
+          test -s .dist/firebase/apps/five-intelligences/index.html
+          test -s .dist/firebase/apps/five-intelligences/app.js
+          grep -F '60秒で使い分ける 5つの知能' .dist/firebase/apps/five-intelligences/index.html >/dev/null
+          grep -F 'five-intelligences' .dist/firebase/levelup-catalog.json >/dev/null
+
+      - name: Deploy Firebase Hosting
+        run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
+
+      - name: Verify live game and catalog
+        run: |
+          set -euo pipefail
+          sleep 5
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            echo "Checking $base"
+            curl -fLsS --max-time 30 "$base/apps/five-intelligences/" -o /tmp/five-intelligences.html
+            grep -F '60秒で使い分ける 5つの知能' /tmp/five-intelligences.html >/dev/null
+            grep -F 'data-type="EQ"' /tmp/five-intelligences.html >/dev/null
+            grep -F 'data-type="NQ"' /tmp/five-intelligences.html >/dev/null
+            curl -fLsS --max-time 30 "$base/apps/five-intelligences/app.js" -o /tmp/five-intelligences.js
+            grep -F "const SCENARIOS" /tmp/five-intelligences.js >/dev/null
+            curl -fLsS --max-time 30 "$base/" -o /tmp/levelup-home.html
+            grep -F '60秒で使い分ける 5つの知能' /tmp/levelup-home.html >/dev/null
+            echo "LIVE OK: $base/apps/five-intelligences/"
+          done
