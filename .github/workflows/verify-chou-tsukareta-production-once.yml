@@ -1,0 +1,35 @@
+name: Verify 疲れたの正体 production once
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.verify-chou-tsukareta-production-once'
+
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run production mobile playtest
+        env:
+          CHOU_TSUKARETA_URL: https://levelup.hitobito.jp/apps/chou-tsukareta/?production_verify=${{ github.sha }}
+        run: node apps/chou-tsukareta/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chou-tsukareta-production-playtest
+          path: apps/chou-tsukareta/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
