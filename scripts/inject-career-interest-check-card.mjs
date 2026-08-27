@@ -47,6 +47,32 @@ const cards = [
       benefit: '自分の仕事を特徴づけている要素が、結果の決め手と一緒に見えてくる',
     },
   },
+  {
+    slug: 'negotiator-sleep',
+    copy: {
+      title: 'NEGOTIATOR｜寝かせる',
+      kicker: 'NO IS PART OF THE GAME',
+      skill: '就寝前の切り替え / 小さい行動',
+      obi: '「まだ寝ない」と断っていい。NOのたびに要求を小さくして、最後は3秒だけ目を閉じる。',
+      description: '仕事・照明・スマホ・体勢を少しずつ寝る側へ。拒否理由に合わせて条件が変わる睡眠前の交渉ゲーム。',
+      forWho: '寝た方がいいと思っていても「まだ仕事」「眠くない」「スマホを見たい」と切り替えられない人',
+      purpose: '「寝る」という大きな決断を、照明・スマホ・体勢・数秒の目閉じまで小さく分解する',
+      benefit: '寝る気分になるのを待たず、今できる最小の一手だけを睡眠側へ進めやすくなる',
+    },
+  },
+  {
+    slug: 'negotiator-rest',
+    copy: {
+      title: 'NEGOTIATOR｜休ませる',
+      kicker: 'NO IS PART OF THE GAME',
+      skill: '休息への切り替え / 小さい行動',
+      obi: '「休めない」と断っていい。2週間から5分、1分、水一口まで要求を下げて交渉する。',
+      description: 'NOを材料に条件を小さくし、水・脱力・視線オフ・呼吸など数十秒の休息まで実際に始める。',
+      forWho: '疲れていても「仕事がある」「休む暇がない」と止まれず、休息へ切り替えにくい人',
+      purpose: '「休む」という大きな要求を、水・脱力・視線オフ・呼吸など小さな行動へ分解する',
+      benefit: '長く休めない時でも、数十秒から休息を実際に始めやすくなる',
+    },
+  },
 ];
 
 if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
@@ -87,4 +113,4 @@ for (const { slug, copy } of cards) {
 
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 fs.writeFileSync(homePath, html);
-console.log('[LEVEL UP card] career-interest-check + nenshu-shindan + income-akinator specific title/obi/copy injected');
+console.log('[LEVEL UP card] career diagnosis + NEGOTIATOR specific title/obi/copy injected');
