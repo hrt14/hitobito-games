@@ -202,7 +202,7 @@ const screens = {start:$('startScreen'),question:$('questionScreen'),result:$('r
 function freshScores(){return Object.fromEntries(AXES.map(a=>[a,0]));}
 function show(name){Object.values(screens).forEach(s=>s.classList.remove('active'));screens[name].classList.add('active');window.scrollTo({top:0,behavior:'instant'});}
 function apply(weights,sign=1){Object.entries(weights||{}).forEach(([axis,value])=>{scores[axis]=(scores[axis]||0)+(value*sign);});}
-function sortedAxes(){return AXES.slice().sort((a,b)=>scores[b]-scores[a] || AXES.indexOf(a)-AXES.indexOf(b));}
+function sortedAxes(values=scores){return AXES.slice().sort((a,b)=>(values[b]||0)-(values[a]||0) || AXES.indexOf(a)-AXES.indexOf(b));}
 function askedIds(){return new Set(history.map(h=>h.question.id));}
 
 function questionValue(q,top){
@@ -292,7 +292,7 @@ function resultSentence(data){
 }
 
 function renderCauses(data){
-  const ranked=sortedAxes().slice(0,4);
+  const ranked=sortedAxes(data.scores).slice(0,4);
   const max=Math.max(...ranked.map(a=>data.scores[a]||0),1);
   $('causeStack').innerHTML=ranked.map((axis,index)=>{
     const pct=Math.max(5,Math.round((data.scores[axis]||0)/max*100));
