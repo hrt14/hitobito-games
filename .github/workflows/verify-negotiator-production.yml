@@ -1,0 +1,28 @@
+name: Verify NEGOTIATOR production
+
+on:
+  push:
+    paths:
+      - '.negotiator-verify-trigger'
+      - 'scripts/verify-negotiator-production.mjs'
+      - '.github/workflows/verify-negotiator-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify production app in mobile Chromium
+        env:
+          NEGOTIATOR_URL: https://hitobito-levelup.web.app/apps/negotiator-move/
+        run: node scripts/verify-negotiator-production.mjs
