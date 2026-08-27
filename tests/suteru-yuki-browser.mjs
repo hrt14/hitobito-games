@@ -9,13 +9,23 @@ async function assert(cond, message) {
   if (!cond) throw new Error(message);
 }
 
+async function openReady(page) {
+  await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('#app').waitFor({ state: 'visible', timeout: 10000 });
+}
+
+async function reloadReady(page) {
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('#app').waitFor({ state: 'visible', timeout: 10000 });
+}
+
 async function run(viewport, label) {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport });
   page.on('console', msg => { if (msg.type() === 'error') console.log(`[console:${label}]`, msg.text()); });
-  await page.goto(base, { waitUntil: 'networkidle' });
+  await openReady(page);
   await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: 'networkidle' });
+  await reloadReady(page);
 
   await assert(await page.getByRole('heading', { name: /やらないことを/ }).isVisible(), `${label}: title not visible`);
   await assert(await page.getByRole('button', { name: /この.*件を絞る/ }).isDisabled(), `${label}: must not start with fewer than 3 tasks`);
@@ -56,7 +66,7 @@ async function run(viewport, label) {
 
   await page.screenshot({ path: `${out}/${label}-result.png`, fullPage: true });
   await page.getByRole('button', { name: /この1つを始める/ }).click();
-  await page.reload({ waitUntil: 'networkidle' });
+  await reloadReady(page);
   await assert(await page.locator('.previous').isVisible(), `${label}: revisit summary missing after reload`);
   await assert((await page.locator('.previous').textContent()).includes('前回の一番'), `${label}: revisit copy missing`);
 
