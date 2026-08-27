@@ -73,6 +73,19 @@ const cards = [
       benefit: '長く休めない時でも、数十秒から休息を実際に始めやすくなる',
     },
   },
+  {
+    slug: 'negotiator-move',
+    copy: {
+      title: 'NEGOTIATOR｜動かす',
+      kicker: 'NO IS PART OF THE GAME',
+      skill: '着手 / 小さい行動',
+      obi: '「時間がない」「やる気がない」と断っていい。30分の要求を、最後は1動作まで削る。',
+      description: '仕事・勉強・家事・運動を選び、NOの理由に合わせて30分→5分→60秒→10秒→1動作まで条件を下げる交渉ゲーム。',
+      forWho: 'やるべきことは分かっているのに、時間・やる気・面倒さで最初の一歩が重くなっている人',
+      purpose: '「ちゃんと始める」という大きな要求を、今できる最小の現実行動まで交渉で小さくする',
+      benefit: 'やる気を待たず、自分が受け入れられる条件まで下げて最初の10秒を実際に始めやすくなる',
+    },
+  },
 ];
 
 if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
