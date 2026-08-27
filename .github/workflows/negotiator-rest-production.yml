@@ -1,0 +1,46 @@
+name: NEGOTIATOR rest production verify
+
+on:
+  workflow_run:
+    workflows: ["Deploy LEVEL UP to Firebase Hosting"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  production-playtest:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait for production artifact
+        run: |
+          for i in $(seq 1 30); do
+            body="$(curl -fsSL -H 'Cache-Control: no-cache' 'https://hitobito-levelup.web.app/apps/negotiator-rest/?test=1' || true)"
+            if printf '%s' "$body" | grep -q 'NEGOTIATOR｜休ませる'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'NEGOTIATOR rest production artifact was not observed'
+          exit 1
+      - name: Run mobile production playtest
+        env:
+          NEGOTIATOR_REST_URL: https://hitobito-levelup.web.app/apps/negotiator-rest/?test=1
+        run: node apps/negotiator-rest/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: negotiator-rest-production-playtest
+          path: apps/negotiator-rest/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
