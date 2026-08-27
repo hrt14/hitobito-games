@@ -3,7 +3,9 @@
 ## Test environment
 - Browser/device: GitHub Actions / Ubuntu 24.04 / Playwright 1.55.0 / Chromium 140
 - Viewport: desktop 1280×900 / mobile 390×844
-- Build/commit: af602b42975142fd3dd0ada149e4ed14963c0c42
+- Production app bundle: Firebase deploy from main commit `c5e25f2582e56ccb74e65f9ec87d02856b8800de`
+- Production browser test harness: `d3143d86df851fcc5fc75f2d0915ea5a831d0713`
+- Production test workflow: https://github.com/hrt14/hitobito-games/actions/runs/33071544522
 - Production URL: https://levelup.hitobito.jp/apps/suteru-yuki/
 
 ## First-time clarity
@@ -39,8 +41,8 @@
 - Observed evidence: 390×844のChromiumで初回から結果・再訪まで同じ一連の操作が完走した。結果画面の主要ボタン高は44px以上であることを実測した。
 
 ## Production verification
-- Status: NOT REQUIRED
-- Observed evidence: この品質報告更新時点はfeature branchのローカルブラウザ検証段階。main反映後はFirebase本番に対して同一ブラウザテストを実行し、別途PASSへ更新する。
+- Status: PASS
+- Observed evidence: Firebase Hostingへのデプロイ成功後、production URL `https://levelup.hitobito.jp/apps/suteru-yuki/` に対して同じPlaywrightシナリオを実行。desktop 1280×900 / mobile 390×844の双方で、初回表示、3件未満ガード、基準選択、実ドラッグによる左スワイプ、残す経路、最終比較、結果、44px以上の主要タップ領域、保存→reload→再訪、戻る／ホームまで完走した。Workflow run `33071544522` の Production browser test はPASS。
 
 ## Final scores
 Clarity: 9/10
@@ -56,4 +58,5 @@ Answer: YES
 Reason: 今日抱えている候補を3〜7件入れて、物理的に捨てながら最後の1件まで絞るため、仕事が散った瞬間に繰り返し使える。前回の一番も残る。
 
 ## Remaining issues
-- main反映後、Firebase本番URLで同一のdesktop/mobileブラウザ試験を通し、Production verificationをPASSへ更新する。
+- Blocking issue: none.
+- Title note: 外部チェックでは同名書籍は確認できなかったが、2026-04-28発売の『やらないことを決める技術』という近似書名は存在する。SPECに記録済み。
