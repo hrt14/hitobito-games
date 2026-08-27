@@ -1,0 +1,75 @@
+name: Salary diagnosis LEVEL UP browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/nenshu-shindan/**'
+      - 'scripts/register-career-interest-check-meta.mjs'
+      - 'scripts/inject-career-interest-check-card.mjs'
+      - '.github/workflows/nenshu-shindan-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/nenshu-shindan/**'
+      - 'scripts/register-career-interest-check-meta.mjs'
+      - 'scripts/inject-career-interest-check-card.mjs'
+      - '.github/workflows/nenshu-shindan-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript and LEVEL UP classification
+        run: |
+          node --check apps/nenshu-shindan/app.js
+          node --import ./scripts/register-career-interest-check-meta.mjs -e "import('./scripts/playtest-catalog.mjs').then(({GAME_META})=>{if(GAME_META['nenshu-shindan']?.[0]!=='levelup')throw new Error('nenshu-shindan is not classified as levelup')})"
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nenshu-shindan-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/nenshu-shindan/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nenshu-shindan-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          NENSHU_SHINDAN_URL: http://127.0.0.1:4173/apps/nenshu-shindan/?test=1
+        run: node apps/nenshu-shindan/smoke-browser.mjs
+      - name: Verify Firebase bundle includes the app
+        run: |
+          npm run build:firebase
+          test -s .dist/firebase/apps/nenshu-shindan/index.html
+          node - <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('.dist/firebase/manifest.json','utf8'));
+          const game = manifest.games.find((item) => item.slug === 'nenshu-shindan');
+          if (!game) throw new Error('nenshu-shindan missing from Firebase manifest');
+          if (game.category !== 'levelup') throw new Error(`unexpected category: ${game.category}`);
+          console.log(game);
+          NODE
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/nenshu-shindan
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nenshu-shindan-browser-playtest
+          path: apps/nenshu-shindan/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/nenshu-shindan-server.log || true
