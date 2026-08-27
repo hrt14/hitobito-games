@@ -1,0 +1,24 @@
+name: Income Akinator quality gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/income-akinator/**'
+      - 'scripts/validate-levelup-quality-gate.mjs'
+      - '.github/workflows/income-akinator-quality-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run LEVEL UP completion gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/income-akinator
