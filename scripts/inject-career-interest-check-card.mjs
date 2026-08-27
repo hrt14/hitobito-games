@@ -99,6 +99,58 @@ const cards = [
       benefit: '3件目以降を今日から外し、今見るべき仕事を2件だけにして頭の中のWIPを減らせる',
     },
   },
+  {
+    slug: 'prep-stop',
+    copy: {
+      title: '準備はここまで',
+      kicker: 'READY LINE / 4 LOCKS',
+      skill: '準備の終了 / やりすぎ防止',
+      obi: '目的・見る・聞く・次。4つ揃ったら「準備完了。もう調べない。」',
+      description: '会議や商談の最低条件を4項目だけ埋め、4/4で準備を封印。追加準備も本当に必須か1問で止める。',
+      forWho: '本番前に「これも調べたい」が増え続け、必要以上に準備時間を伸ばしてしまう人',
+      purpose: '準備の量ではなく、本番を成立させる最低条件を満たしたかで終了時点を決める',
+      benefit: '準備を100点まで増やさず、本番へ移るタイミングを自分で切りやすくなる',
+    },
+  },
+  {
+    slug: 'handoff-tomorrow',
+    copy: {
+      title: '明日の自分に渡す',
+      kicker: 'CLOSE TODAY SAFELY',
+      skill: '仕事終了 / 引き継ぎ',
+      obi: '残り仕事を明日の箱へ。朝イチの1件と最初の10秒だけ決めたら、今日は閉じる。',
+      description: '未完了を最大10件出し、明日の最初の1件だけ選択。具体的な最初の10秒を書いて仕事を引き継ぐ。',
+      forWho: '未完了タスクが頭に残り、「もう少しだけ」と仕事を終えにくい夜や退勤前の人',
+      purpose: '未完了を今日中に消すのではなく、安全に明日へ移して今日の仕事を終了する',
+      benefit: '覚えておく必要をなくし、翌朝の再開点を残したうえで仕事から離れやすくなる',
+    },
+  },
+  {
+    slug: 'not-now-decision',
+    copy: {
+      title: 'いま決めなくていい',
+      kicker: 'DECIDE WHETHER TO DECIDE',
+      skill: '判断WIP / 保留',
+      obi: '結論の前に「今日決める必要ある？」だけ3問で判定。不要なら再検討日まで保留。',
+      description: '締切・停止影響・追加情報の3問でNOW/LATERを判定し、保留案件は再検討日つきで置いておく。',
+      forWho: '新しい依頼やアイデアが来るたび、その場で全部判断しようとして頭の中の案件が増える人',
+      purpose: '判断内容ではなく、今日その判断をする必要があるかだけを先に判定する',
+      benefit: '今決める必要のない案件を正式に保留し、判断そのものを頭から降ろせる',
+    },
+  },
+  {
+    slug: 'enough-done',
+    copy: {
+      title: '十分やった',
+      kicker: 'STOP WHEN MORE IS NOT BETTER',
+      skill: '止め時 / 過剰改善防止',
+      obi: '目的達成・致命穴・追加30分の価値を3問で判定。止め時なら、そのまま出す。',
+      description: '資料やメールを直し続ける時、3つのSTOP条件で終了判定。続行しても最後の修正は1件だけ。',
+      forWho: 'すでに使える成果物を80点から100点へ直し続け、提出・送信・終了が遅れる人',
+      purpose: '品質を下げず、追加時間に見合う改善が残っているかだけを判定する',
+      benefit: '改善幅が小さくなった仕事を見切り、出す・送る・閉じる現実行動へ移りやすくなる',
+    },
+  },
 ];
 
 if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
@@ -139,4 +191,4 @@ for (const { slug, copy } of cards) {
 
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 fs.writeFileSync(homePath, html);
-console.log('[LEVEL UP card] career diagnosis + NEGOTIATOR + WIP limiter specific title/obi/copy injected');
+console.log('[LEVEL UP card] app-specific title/obi/copy injected');
