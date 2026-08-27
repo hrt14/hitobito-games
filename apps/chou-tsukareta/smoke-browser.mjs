@@ -13,6 +13,18 @@ page.on('pageerror', (error) => pageErrors.push(String(error)));
 
 function fail(message) { throw new Error(message); }
 async function active(id) { return page.locator(`#${id}.active`).isVisible(); }
+async function waitForAppReady() {
+  await page.waitForSelector('#startScreen', { state: 'attached', timeout: 15000 });
+  await page.waitForFunction(() => document.querySelector('#startScreen')?.classList.contains('active'), null, { timeout: 15000 });
+}
+async function openApp() {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await waitForAppReady();
+}
+async function reloadApp() {
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await waitForAppReady();
+}
 async function noHorizontalOverflow(label) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   if (overflow > 1) fail(`${label}: horizontal overflow ${overflow}px`);
@@ -32,9 +44,9 @@ async function finishCurrentRun() {
 }
 
 try {
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await openApp();
   await page.evaluate(() => localStorage.removeItem('levelup-chou-tsukareta-v2'));
-  await page.reload({ waitUntil: 'networkidle' });
+  await reloadApp();
 
   if (!(await active('startScreen'))) fail('Start screen is not visible on first visit.');
   const h1 = await page.locator('#startScreen h1').innerText();
@@ -80,7 +92,7 @@ try {
   if (!relatedHref?.startsWith('/apps/')) fail(`Related LEVEL UP link is invalid: ${relatedHref}`);
   await page.screenshot({ path: path.join(artifacts, '03-result-390.png'), fullPage: true });
 
-  await page.reload({ waitUntil: 'networkidle' });
+  await reloadApp();
   if (!(await active('startScreen'))) fail('Reload did not return to usable start screen.');
   if (!(await page.locator('#lastResultBtn').isVisible())) fail('Saved result entry is missing on revisit.');
   await page.locator('#lastResultBtn').click();
@@ -99,7 +111,7 @@ try {
   await page.screenshot({ path: path.join(artifacts, '04-second-run-comparison.png'), fullPage: true });
 
   await page.setViewportSize({ width: 360, height: 800 });
-  await page.reload({ waitUntil: 'networkidle' });
+  await reloadApp();
   await noHorizontalOverflow('360 revisit');
   const mobileStartBox = await page.locator('#startBtn').boundingBox();
   if (!mobileStartBox || mobileStartBox.height < 48) fail('360px primary tap target is too small.');
