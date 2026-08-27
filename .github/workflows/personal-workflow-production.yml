@@ -1,0 +1,56 @@
+name: Verify personal workflow apps production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.firebase-deploy-trigger'
+      - 'apps/prep-stop/**'
+      - 'apps/handoff-tomorrow/**'
+      - 'apps/not-now-decision/**'
+      - 'apps/enough-done/**'
+      - 'apps/personal-workflow-smoke.mjs'
+      - '.github/workflows/personal-workflow-production.yml'
+  workflow_dispatch:
+
+jobs:
+  production-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait for new apps on both production domains
+        run: |
+          set -euo pipefail
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            for slug in prep-stop handoff-tomorrow not-now-decision enough-done; do
+              ok=0
+              for attempt in $(seq 1 36); do
+                out="/tmp/${slug}-${attempt}.html"
+                if curl -fLsS --max-time 30 "$base/apps/$slug/?verify=${GITHUB_SHA}-${attempt}" -o "$out" \
+                  && grep -F '<title>' "$out" >/dev/null; then
+                  ok=1
+                  echo "$slug live on $base"
+                  break
+                fi
+                sleep 5
+              done
+              test "$ok" = "1"
+            done
+          done
+      - name: Run mobile playtests on custom domain
+        env:
+          LEVELUP_BASE: https://levelup.hitobito.jp
+        run: node apps/personal-workflow-smoke.mjs
+      - name: Run mobile playtests on Firebase domain
+        env:
+          LEVELUP_BASE: https://hitobito-levelup.web.app
+        run: node apps/personal-workflow-smoke.mjs
