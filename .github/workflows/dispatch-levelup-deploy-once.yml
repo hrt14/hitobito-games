@@ -1,0 +1,21 @@
+name: Dispatch LEVEL UP deploy once
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .deploy-levelup-once
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch official Firebase LEVEL UP deploy workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-firebase-levelup.yml --repo "$GITHUB_REPOSITORY" --ref main
