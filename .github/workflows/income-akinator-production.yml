@@ -1,0 +1,67 @@
+name: Verify Income Akinator production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/income-akinator-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser
+        run: |
+          npm install
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Exercise Firebase production on mobile and desktop
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const url='https://levelup.hitobito.jp/apps/income-akinator/';
+          const browser=await chromium.launch({headless:true});
+          async function run(viewport,label){
+            const page=await browser.newPage({viewport});
+            const errors=[];
+            page.on('pageerror',e=>errors.push(String(e)));
+            const res=await page.goto(url,{waitUntil:'networkidle'});
+            if(!res || res.status()!==200) throw new Error(`${label}: HTTP ${res?.status()}`);
+            if(!(await page.title()).includes('年収アキネーター')) throw new Error(`${label}: unexpected title: ${await page.title()}`);
+            await page.getByRole('button',{name:'推理スタート'}).waitFor({state:'visible'});
+            await page.getByRole('button',{name:'推理スタート'}).click();
+            if((await page.locator('#qno').textContent())!=='Q1') throw new Error(`${label}: Q1 missing`);
+            await page.getByRole('button',{name:'はい'}).click();
+            await page.getByRole('button',{name:'いいえ'}).click();
+            await page.getByRole('button',{name:'はい'}).click();
+            await page.getByRole('button',{name:/1問戻る/}).click();
+            if((await page.locator('#qno').textContent())!=='Q3') throw new Error(`${label}: back flow failed`);
+            for(let i=0;i<12 && !(await page.locator('#resultScreen.active').count());i++){
+              await (i%3===0?page.getByRole('button',{name:'いいえ'}):page.getByRole('button',{name:'はい'})).click();
+              await page.waitForTimeout(80);
+            }
+            if(!(await page.locator('#resultScreen.active').count())) throw new Error(`${label}: result not reached`);
+            const job=(await page.locator('#resultJob').textContent())?.trim();
+            const income=(await page.locator('#resultIncome').textContent())?.trim();
+            if(!job || job==='---' || !income || income.startsWith('---')) throw new Error(`${label}: result incomplete`);
+            await page.getByRole('button',{name:'別の人で試す'}).click();
+            if((await page.locator('#qno').textContent())!=='Q1') throw new Error(`${label}: retry failed`);
+            await page.reload({waitUntil:'networkidle'});
+            if(!(await page.getByRole('button',{name:'推理スタート'}).isVisible())) throw new Error(`${label}: reload unusable`);
+            if(errors.length) throw new Error(`${label}: page errors: ${errors.join(' | ')}`);
+            console.log(`PASS ${label} ${url} result=${job}/${income}`);
+            await page.close();
+          }
+          await run({width:390,height:844},'mobile-390x844');
+          await run({width:1280,height:900},'desktop-1280x900');
+          await browser.close();
+          console.log('INCOME AKINATOR FIREBASE PRODUCTION PASS');
+          NODE
