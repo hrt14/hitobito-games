@@ -6,19 +6,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 const homePath = path.join(outDir, 'index.html');
-const slug = 'five-intelligences';
+const slug = 'success-mind';
 const copy = {
-  title: '60秒で使い分ける 5つの知能',
-  kicker: '10 SCENES / 5 SWITCHES',
-  skill: '状況判断 / 思考切替',
-  obi: 'IQだけで解こうとしない。場面ごとにEQ・SQ・IQ・BKQ・NQを切り替える。',
-  description: '10の場面で5つの知能スイッチを選び、状況に合う最初の一手を反射化する。',
-  forWho: '仕事や人間関係で、今は考える・感じる・頼るのどれを使うべきか迷う人',
-  purpose: 'EQ・SQ・IQ・BKQ・NQを状況ごとの道具として見分け、使い分ける練習をする',
-  benefit: '何でもIQだけで解こうとせず、場面に合う別の突破口を選びやすくなる',
+  title: '成功マインド診断',
+  kicker: '12 DECISIONS → LIFETIME EARNINGS',
+  skill: '成功思考 / 意思決定 / 自己理解',
+  obi: '12の判断から「成功マインド換算 生涯年収」を出す。',
+  description: '仕事・失敗・お金・競争・チャンスの12場面から、成功につながる判断パターンを6軸で診断する。',
+  forWho: 'このままの考え方で、収入やキャリアが伸びるか知りたい人',
+  purpose: '実行・統制・複利・学習・協力・リスク設計の判断パターンを診断する',
+  benefit: '成功を一番伸ばしている考え方と、一番止めている考え方が金額スケールで分かる',
 };
 
-if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) throw new Error('LEVEL UP home/catalog missing for five-intelligences card injection');
+if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
+  throw new Error('LEVEL UP home/catalog missing for success-mind card copy');
+}
+
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 const game = catalog.games?.find((item) => item.slug === slug);
 if (!game) throw new Error(`${slug} is not in LEVEL UP catalog`);
@@ -26,14 +29,13 @@ Object.assign(game, copy);
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 
 let html = fs.readFileSync(homePath, 'utf8');
-const escaped = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const cardRe = new RegExp(`<article\\b[^>]*data-game=["']${escaped}["'][\\s\\S]*?<\\/article>`);
+const cardRe = /<article\b[^>]*data-game=["']success-mind["'][\s\S]*?<\/article>/;
 const match = html.match(cardRe);
 if (!match) throw new Error(`${slug} card missing from LEVEL UP home`);
 let card = match[0];
 card = card.replace(/<h2>[\s\S]*?<\/h2>/, `<h2>${copy.title}</h2>`);
 if (/class="book-obi"/.test(card)) card = card.replace(/<p class="book-obi">[\s\S]*?<\/p>/, `<p class="book-obi">${copy.obi}</p>`);
-else card = card.replace(/(<h2>[\s\S]*?<\/h2>)/, `$1<p class="book-obi">${copy.obi}</p>`);
+else card = card.replace(/(<h2>[\s\S]*?<\/h2>)/, `$1\n      <p class="book-obi">${copy.obi}</p>`);
 card = card.replace(/<div class="kicker">[\s\S]*?<\/div>/, `<div class="kicker">${copy.kicker}</div>`);
 card = card.replace(/<div class="skill">[\s\S]*?<\/div>/, `<div class="skill">${copy.skill}</div>`);
 card = card.replace(/<p>(?![^<]*class=)[\s\S]*?<\/p>/, `<p>${copy.description}</p>`);
@@ -43,8 +45,9 @@ card = card
   .replace(/(<span class="card-value-label">ベネフィット<\/span><span class="card-value-text">)[\s\S]*?(<\/span>)/, `$1${copy.benefit}$2`);
 html = html.replace(cardRe, card);
 fs.writeFileSync(homePath, html);
-console.log(`[LEVEL UP card] ${slug}: specific title/obi/copy injected`);
 
-// success-mind is auto-discovered later than the curated catalog; patch its
-// app-specific value copy immediately before the generic-copy quality gate.
-await import('./inject-success-mind-card-copy.mjs');
+const final = fs.readFileSync(homePath, 'utf8');
+for (const text of [copy.title, copy.forWho, copy.purpose, copy.benefit]) {
+  if (!final.includes(text)) throw new Error(`success-mind card copy patch missing: ${text}`);
+}
+console.log('[LEVEL UP card] success-mind: specific title/obi/copy injected');
