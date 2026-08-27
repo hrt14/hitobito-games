@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#081018" />
+  <meta name="description" content="日常の10シーンでEQ・SQ・IQ・BKQ・NQを使い分ける、LEVEL UPの60秒ミニゲーム。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>60秒で使い分ける 5つの知能 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="brand-mini">5 INTELLIGENCES</div>
+      <button class="stats-btn" id="statsBtn" type="button" aria-label="プレイ記録を見る">記録</button>
+    </header>
+
+    <section class="screen active home-screen" id="homeScreen">
+      <div class="window-stage" aria-hidden="true">
+        <div class="window-core"><span>YOU</span></div>
+        <i class="orbit-line orbit-a"></i>
+        <i class="orbit-line orbit-b"></i>
+        <div class="window-node eq"><b>EQ</b><span>感情</span></div>
+        <div class="window-node sq"><b>SQ</b><span>場</span></div>
+        <div class="window-node iq"><b>IQ</b><span>思考</span></div>
+        <div class="window-node bkq"><b>BKQ</b><span>身体</span></div>
+        <div class="window-node nq"><b>NQ</b><span>つながり</span></div>
+      </div>
+      <p class="eyebrow">SWITCH YOUR INTELLIGENCE</p>
+      <h1>60秒で<br><span>使い分ける</span><br>5つの知能</h1>
+      <p class="lead">「頭がいい」だけじゃない。<br><strong>場面に合う知能を、1つ選べ。</strong></p>
+      <button class="primary-btn" id="startBtn" type="button"><span>10シーンに挑戦</span><b>→</b></button>
+      <div class="mini-legend" aria-label="5つの知能">
+        <span><b>EQ</b> 感情</span><span><b>SQ</b> 場</span><span><b>IQ</b> 思考</span><span><b>BKQ</b> 身体</span><span><b>NQ</b> つながり</span>
+      </div>
+      <p class="microcopy">動画で紹介された5つの知能を題材にした学習ゲームです。心理検査・知能検査ではありません。</p>
+    </section>
+
+    <section class="screen play-screen" id="playScreen">
+      <div class="play-head">
+        <div class="progress-copy"><span id="questionCounter">1 / 10</span><b id="comboValue">COMBO 0</b></div>
+        <div class="progress-track"><i id="progressBar"></i></div>
+      </div>
+
+      <div class="lit-windows" id="litWindows" aria-label="点灯した知能の窓">
+        <span data-type="EQ">EQ</span><span data-type="SQ">SQ</span><span data-type="IQ">IQ</span><span data-type="BKQ">BKQ</span><span data-type="NQ">NQ</span>
+      </div>
+
+      <div class="scenario-card" id="scenarioCard">
+        <small id="scenarioArea">仕事</small>
+        <h2 id="scenarioTitle">売上が急に落ちた</h2>
+        <p id="scenarioText">原因がまだ分からない。最初に何を使う？</p>
+        <div class="difficulty" id="difficulty">LEVEL 1</div>
+      </div>
+
+      <p class="prompt">最初に使う知能を1つ押す</p>
+      <div class="switch-grid" id="switchGrid">
+        <button type="button" data-type="EQ"><b>EQ</b><span>感情を扱う</span></button>
+        <button type="button" data-type="SQ"><b>SQ</b><span>場を動かす</span></button>
+        <button type="button" data-type="IQ"><b>IQ</b><span>考えて解く</span></button>
+        <button type="button" data-type="BKQ"><b>BKQ</b><span>身体で掴む</span></button>
+        <button type="button" data-type="NQ"><b>NQ</b><span>つながる</span></button>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite">
+        <div class="feedback-badge" id="feedbackBadge">IQ</div>
+        <div><b id="feedbackTitle">そのスイッチ。</b><p id="feedbackText">まず数字を分解して、どこが落ちたかを切り分ける。</p></div>
+      </div>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen">
+      <p class="eyebrow">10 SCENES COMPLETE</p>
+      <h2>使い分けの<br><strong>窓が開いた。</strong></h2>
+
+      <div class="result-hero">
+        <div class="score-ring" id="scoreRing"><span><b id="scoreValue">0</b><small>/100</small></span></div>
+        <div class="result-summary"><b id="litValue">0 / 5</b><span>知能の窓が点灯</span><p id="resultCopy">まずは1つずつ、使う場面を見抜こう。</p></div>
+      </div>
+
+      <div class="type-results" id="typeResults"></div>
+
+      <div class="next-card">
+        <span>NEXT WINDOW</span>
+        <b id="nextType">EQ — 感情</b>
+        <p id="nextTip">イラッとしたら、返す前に感情へ名前をつける。</p>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary-btn" id="againBtn" type="button"><span>別の10シーンでもう一回</span><b>↻</b></button>
+        <button class="secondary-btn" id="shareBtn" type="button">結果をシェア</button>
+        <button class="text-btn" id="homeBtn" type="button">タイトルへ戻る</button>
+      </div>
+
+      <details class="source-box">
+        <summary>このゲームの前提・参考情報</summary>
+        <p>この結果は能力そのものの測定ではなく、ゲーム内で「どの知能を使う場面か」を見抜いた成績です。</p>
+        <a href="https://www.youtube.com/watch?v=TQOZPs8EA9g" target="_blank" rel="noopener">題材にした動画を見る</a>
+        <a href="https://www.harvard.edu/in-focus/happiness/" target="_blank" rel="noopener">Harvard: Happiness / relationships</a>
+        <a href="https://news.harvard.edu/gazette/story/2023/02/work-out-daily-ok-but-how-socially-fit-are-you/" target="_blank" rel="noopener">Harvard Gazette: Study of Adult Development</a>
+      </details>
+    </section>
+
+    <section class="screen stats-screen" id="statsScreen">
+      <div class="screen-copy">
+        <p class="eyebrow">LOCAL RECORD</p>
+        <h2>5つの知能<br>トレーニング記録</h2>
+      </div>
+      <div class="stats-panel">
+        <div><span>PLAY</span><b id="statSessions">0</b><small>回</small></div>
+        <div><span>BEST</span><b id="statBest">—</b><small>正答率</small></div>
+        <div><span>WINDOWS</span><b id="statWindows">—</b><small>最大点灯</small></div>
+      </div>
+      <button class="primary-btn" id="statsPlayBtn" type="button"><span>10シーンに挑戦</span><b>→</b></button>
+      <button class="text-btn" id="statsBackBtn" type="button">戻る</button>
+      <p class="privacy-note">記録はこの端末内だけに保存します。</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
