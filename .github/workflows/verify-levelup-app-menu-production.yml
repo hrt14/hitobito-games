@@ -23,7 +23,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify hamburger and favorite controls are live
+      - name: Verify hamburger, favorites, and success-mind are live
         id: verify
         shell: bash
         run: |
@@ -37,11 +37,11 @@ jobs:
             attempt_ok=1
             for base in "${bases[@]}"; do
               safe=$(echo "$base" | tr -cd '[:alnum:]')
-              out="/tmp/${safe}-ato5.html"
-              url="$base/apps/ato-5min/?verify=${GITHUB_SHA}-${attempt}"
-              echo "GET $url" | tee -a /tmp/levelup-app-menu-verify.log
-              if ! curl -fLsS --max-time 30 "$url" -o "$out"; then
-                echo "fetch failed: $base" | tee -a /tmp/levelup-app-menu-verify.log
+              ato_out="/tmp/${safe}-ato5.html"
+              ato_url="$base/apps/ato-5min/?verify=${GITHUB_SHA}-${attempt}"
+              echo "GET $ato_url" | tee -a /tmp/levelup-app-menu-verify.log
+              if ! curl -fLsS --max-time 30 "$ato_url" -o "$ato_out"; then
+                echo "fetch failed: $base/apps/ato-5min/" | tee -a /tmp/levelup-app-menu-verify.log
                 attempt_ok=0
                 continue
               fi
@@ -52,22 +52,55 @@ jobs:
                 'LEVEL UP トップ' \
                 'ログイン・マイデータ' \
                 'hitobito-levelup-favorites-v1'; do
-                if ! grep -F "$needle" "$out" >/dev/null; then
-                  echo "missing [$needle] on $base" | tee -a /tmp/levelup-app-menu-verify.log
+                if ! grep -F "$needle" "$ato_out" >/dev/null; then
+                  echo "missing [$needle] on $base/apps/ato-5min/" | tee -a /tmp/levelup-app-menu-verify.log
                   attempt_ok=0
                 fi
               done
+
+              success_out="/tmp/${safe}-success-mind.html"
+              success_url="$base/apps/success-mind/?verify=${GITHUB_SHA}-${attempt}"
+              echo "GET $success_url" | tee -a /tmp/levelup-app-menu-verify.log
+              if ! curl -fLsS --max-time 30 "$success_url" -o "$success_out"; then
+                echo "fetch failed: $base/apps/success-mind/" | tee -a /tmp/levelup-app-menu-verify.log
+                attempt_ok=0
+                continue
+              fi
+              for needle in \
+                '成功マインド' \
+                '生涯年収' \
+                '実収入の予測ではなく' \
+                'id="startBtn"' \
+                './app.js'; do
+                if ! grep -F "$needle" "$success_out" >/dev/null; then
+                  echo "missing success-mind [$needle] on $base" | tee -a /tmp/levelup-app-menu-verify.log
+                  attempt_ok=0
+                fi
+              done
+
+              home_out="/tmp/${safe}-home.html"
+              home_url="$base/?verify=${GITHUB_SHA}-${attempt}"
+              echo "GET $home_url" | tee -a /tmp/levelup-app-menu-verify.log
+              if ! curl -fLsS --max-time 30 "$home_url" -o "$home_out"; then
+                echo "fetch failed: $base/" | tee -a /tmp/levelup-app-menu-verify.log
+                attempt_ok=0
+                continue
+              fi
+              if ! grep -F 'data-game="success-mind"' "$home_out" >/dev/null; then
+                echo "success-mind card missing on LEVEL UP home: $base" | tee -a /tmp/levelup-app-menu-verify.log
+                attempt_ok=0
+              fi
             done
             if [ "$attempt_ok" = "1" ]; then
               ok=1
-              echo "PRODUCTION FAVORITE MENU VERIFIED" | tee -a /tmp/levelup-app-menu-verify.log
+              echo "PRODUCTION FAVORITE MENU + SUCCESS MIND VERIFIED" | tee -a /tmp/levelup-app-menu-verify.log
               break
             fi
             sleep 5
           done
 
           if [ "$ok" != "1" ]; then
-            echo "Favorite menu did not become live within the verification window." | tee -a /tmp/levelup-app-menu-verify.log
+            echo "LEVEL UP production verification did not become healthy within the verification window." | tee -a /tmp/levelup-app-menu-verify.log
             exit 1
           fi
 
@@ -95,12 +128,14 @@ jobs:
               echo "- LEVEL UP top navigation is shipped"
               echo "- login / My Data entry is shipped"
               echo "- existing LEVEL UP favorite storage key is used"
+              echo "- success-mind production page returns its title, lifetime-earnings copy, non-prediction disclaimer, start control, and app script"
+              echo "- LEVEL UP home contains the success-mind card"
             else
-              echo "Favorite-menu production verification failed. Do not report this feature as production-complete."
+              echo "LEVEL UP production verification failed. Do not report this feature as production-complete."
             fi
             echo
             echo '```text'
-            if [ -f /tmp/levelup-app-menu-verify.log ]; then tail -n 180 /tmp/levelup-app-menu-verify.log; else echo '(log unavailable)'; fi
+            if [ -f /tmp/levelup-app-menu-verify.log ]; then tail -n 220 /tmp/levelup-app-menu-verify.log; else echo '(log unavailable)'; fi
             echo '```'
           } > /tmp/levelup-app-menu-status.md
 
