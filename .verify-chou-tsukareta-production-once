@@ -1,1 +1,1 @@
-Verify https://levelup.hitobito.jp/apps/chou-tsukareta/ on 2026-08-27 after production-safe Playwright fix
+Verify https://levelup.hitobito.jp/apps/chou-tsukareta/ on 2026-08-27 after app-scoped selector fix
