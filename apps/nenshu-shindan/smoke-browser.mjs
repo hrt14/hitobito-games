@@ -14,11 +14,17 @@ page.on('pageerror', (error) => consoleErrors.push(String(error)));
 
 function fail(message) { throw new Error(message); }
 async function active(id) { return page.locator(`#${id}.active`).isVisible(); }
+async function waitForApp() {
+  await page.locator('#introView').waitFor({ state: 'attached', timeout: 15000 });
+  await page.waitForTimeout(300);
+}
 
 try {
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await waitForApp();
   await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await waitForApp();
 
   if (!(await active('introView'))) fail('Intro is not visible on first visit.');
   const firstText = await page.locator('#introView').innerText();
@@ -61,7 +67,8 @@ try {
   if ((await page.locator('#axisBars .axis-row').count()) !== 6) fail('Six factor bars were not rendered.');
   await page.screenshot({ path: path.join(artifacts, '02-result-mobile.png'), fullPage: true });
 
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await waitForApp();
   if (!(await active('introView'))) fail('Reload did not return to a usable intro.');
   const previous = await page.locator('#previousResult').innerText();
   if (!previous.includes('前回の結果') || !previous.includes('万円')) fail('Revisit did not restore the previous result summary.');
@@ -70,7 +77,8 @@ try {
   if (overflow390 > 1) fail(`390px viewport has horizontal overflow: ${overflow390}px`);
 
   await page.setViewportSize({ width: 360, height: 800 });
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await waitForApp();
   const overflow360 = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   if (overflow360 > 1) fail(`360px viewport has horizontal overflow: ${overflow360}px`);
   await page.locator('#startBtn').click();
