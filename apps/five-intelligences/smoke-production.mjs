@@ -13,8 +13,9 @@ const pageErrors = [];
 page.on('pageerror', (error) => pageErrors.push(String(error)));
 
 try {
-  await page.goto(`${url}?production-smoke=${Date.now()}`, { waitUntil: 'networkidle', timeout: 45000 });
-  await page.locator('h1').getByText('60秒で').waitFor({ state: 'visible' });
+  const response = await page.goto(`${url}?production-smoke=${Date.now()}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  if (!response || !response.ok()) throw new Error(`Production route returned HTTP ${response?.status() ?? 'no response'}`);
+  await page.locator('h1').getByText('60秒で').waitFor({ state: 'visible', timeout: 10000 });
   await page.locator('#startBtn').waitFor({ state: 'visible' });
   await page.screenshot({ path: path.join(artifacts, 'production-start.png'), fullPage: true });
 
