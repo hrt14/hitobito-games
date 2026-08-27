@@ -1,0 +1,50 @@
+name: NEGOTIATOR production browser verification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.firebase-deploy-trigger'
+
+jobs:
+  production-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait until NEGOTIATOR is live
+        run: |
+          set -euo pipefail
+          url='https://levelup.hitobito.jp/apps/negotiator-procrastination/'
+          for i in $(seq 1 36); do
+            if curl -fLsS --max-time 20 "$url?verify=$GITHUB_SHA" -o /tmp/negotiator-production.html \
+              && grep -F 'NEGOTIATOR / PROCRASTINATION' /tmp/negotiator-production.html >/dev/null \
+              && grep -F '先延ばしを' /tmp/negotiator-production.html >/dev/null; then
+              echo "NEGOTIATOR production route is live"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'NEGOTIATOR did not become live on production.'
+          exit 1
+      - name: Run production mobile browser playtest
+        env:
+          NEGOTIATOR_URL: https://levelup.hitobito.jp/apps/negotiator-procrastination/?production=1
+        run: node apps/negotiator-procrastination/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: negotiator-procrastination-production-playtest
+          path: apps/negotiator-procrastination/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
