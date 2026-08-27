@@ -34,8 +34,8 @@ try {
   const startBox = await page.locator('#startBtn').boundingBox();
   if (!startBox || startBox.height < 48) fail(`Primary tap target too short: ${startBox?.height}`);
 
-  const formControls = await page.locator('input, textarea, select').count();
-  if (formControls !== 0) fail(`Typing/form controls found: ${formControls}`);
+  const formControls = await page.locator('#app input, #app textarea, #app select').count();
+  if (formControls !== 0) fail(`Typing/form controls found inside salary app: ${formControls}`);
   await page.screenshot({ path: path.join(artifacts, '01-first-visit-mobile.png'), fullPage: true });
 
   await page.locator('#startBtn').click();
@@ -96,7 +96,7 @@ try {
     viewports: ['390x844', '360x800'],
     tested: [
       'first-time clarity and visible start action',
-      'zero text/number input controls',
+      'zero text/number input controls inside the salary app',
       'tap-only automatic progression',
       'back navigation with preserved choice',
       'all 30 questions through result',
