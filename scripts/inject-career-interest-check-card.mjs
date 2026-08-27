@@ -86,6 +86,19 @@ const cards = [
       benefit: 'やる気を待たず、自分が受け入れられる条件まで下げて最初の10秒を実際に始めやすくなる',
     },
   },
+  {
+    slug: 'two-tasks-only',
+    copy: {
+      title: '今日やるのは2つだけ',
+      kicker: 'TODAY HAS ONLY TWO SEATS',
+      skill: 'WIP制限 / 仕事を減らす',
+      obi: '今日の席は2つだけ。3つ目を入れるなら、いまの1つを必ず追い出す。',
+      description: '候補を1件ずつ「今日・あと・捨てる」へ送り、TODAYが満席なら既存タスクとの入れ替えを強制する。',
+      forWho: 'どの仕事も重要に見えて「これも今日やる」が増え、同時に抱える仕事が多くなりすぎる人',
+      purpose: '優先順位を細かく採点せず、今日同時に抱える仕事を2件までに物理的に制限する',
+      benefit: '3件目以降を今日から外し、今見るべき仕事を2件だけにして頭の中のWIPを減らせる',
+    },
+  },
 ];
 
 if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
@@ -126,4 +139,4 @@ for (const { slug, copy } of cards) {
 
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 fs.writeFileSync(homePath, html);
-console.log('[LEVEL UP card] career diagnosis + NEGOTIATOR specific title/obi/copy injected');
+console.log('[LEVEL UP card] career diagnosis + NEGOTIATOR + WIP limiter specific title/obi/copy injected');
