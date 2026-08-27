@@ -1,0 +1,87 @@
+name: Income Akinator browser test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/income-akinator/**'
+      - 'scripts/register-income-akinator-meta.mjs'
+      - '.github/workflows/income-akinator-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: |
+          npm install
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local app server
+        run: |
+          npm run dev > /tmp/income-akinator-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/income-akinator/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/income-akinator-server.log
+          exit 1
+      - name: Use app from start to finish on mobile and desktop
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          async function run(viewport,label){
+            const page = await browser.newPage({viewport});
+            const errors=[];
+            page.on('pageerror',e=>errors.push(String(e)));
+            await page.goto('http://127.0.0.1:4173/apps/income-akinator/',{waitUntil:'networkidle'});
+            await page.getByRole('heading',{name:/年収/}).waitFor();
+            await page.getByRole('button',{name:'推理スタート'}).click();
+            await page.getByRole('button',{name:'はい'}).waitFor();
+            await page.getByRole('button',{name:'いいえ'}).waitFor();
+            const q1=await page.locator('#qno').textContent();
+            if(q1!=='Q1') throw new Error(`${label}: expected Q1, got ${q1}`);
+            await page.getByRole('button',{name:'はい'}).click();
+            await page.getByRole('button',{name:'いいえ'}).click();
+            await page.getByRole('button',{name:'はい'}).click();
+            await page.getByRole('button',{name:/1問戻る/}).click();
+            const afterBack=await page.locator('#qno').textContent();
+            if(afterBack!=='Q3') throw new Error(`${label}: back did not return to Q3: ${afterBack}`);
+            let result=false;
+            for(let i=0;i<12;i++){
+              if(await page.locator('#resultScreen.active').count()){result=true;break;}
+              const btn=i%3===0?page.getByRole('button',{name:'いいえ'}):page.getByRole('button',{name:'はい'});
+              await btn.click();
+              await page.waitForTimeout(80);
+            }
+            if(!result && await page.locator('#resultScreen.active').count()) result=true;
+            if(!result) throw new Error(`${label}: result not reached within max questions`);
+            const job=(await page.locator('#resultJob').textContent())?.trim();
+            const income=(await page.locator('#resultIncome').textContent())?.trim();
+            if(!job || job==='---') throw new Error(`${label}: job result missing`);
+            if(!income || income.startsWith('---')) throw new Error(`${label}: income result missing`);
+            await page.getByRole('button',{name:'別の人で試す'}).click();
+            if((await page.locator('#qno').textContent())!=='Q1') throw new Error(`${label}: retry did not reset to Q1`);
+            await page.reload({waitUntil:'networkidle'});
+            if(!(await page.getByRole('button',{name:'推理スタート'}).isVisible())) throw new Error(`${label}: reload did not return to a usable start screen`);
+            await page.getByRole('button',{name:'推理スタート'}).click();
+            await page.getByRole('button',{name:'最初から'}).click();
+            if(!(await page.getByRole('button',{name:'推理スタート'}).isVisible())) throw new Error(`${label}: exit/home did not return to start`);
+            if(errors.length) throw new Error(`${label}: page errors: ${errors.join(' | ')}`);
+            console.log(`PASS ${label}: first visit, start, yes/no interaction, back, completion, retry, reload, exit; result=${job}/${income}`);
+            await page.close();
+          }
+          await run({width:390,height:844},'mobile-390x844');
+          await run({width:1280,height:900},'desktop-1280x900');
+          await browser.close();
+          console.log('INCOME AKINATOR REAL BROWSER FLOW PASS');
+          NODE
