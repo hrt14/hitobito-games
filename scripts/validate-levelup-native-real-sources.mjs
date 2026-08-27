@@ -14,7 +14,7 @@ const apps = {
     refs: ['./real-life.css', './real-life.js', 'id="realExpectationModal"', 'id="realExpectationButton"'],
   },
   'suteru-yuki': {
-    scripts: ['real-life.js'], files: ['real-life.css'], refs: ['./real-life.css', './real-life.js'],
+    scripts: ['app.js'], files: ['style.css'], refs: ['./style.css', './app.js'],
   },
   'jinsei-title': {
     scripts: ['real-life.js'], files: ['real-life.css'], refs: [],
