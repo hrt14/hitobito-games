@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0c0e">
+<meta name="description" content="断るほど条件が小さくなる。会話で最初の一歩まで持っていく、NEGOTIATOR｜動かす。">
+<title>NEGOTIATOR｜動かす</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;--bg:#0b0c0e;--panel:#14161a;--panel2:#1a1d22;--ink:#f5f7f2;--muted:#9ba2aa;--line:rgba(255,255,255,.11);--acid:#d8ff5b;--warm:#ffb86b;--red:#ff887c}*{box-sizing:border-box}html,body{min-height:100%;margin:0;background:var(--bg);color:var(--ink)}body{-webkit-font-smoothing:antialiased;background:radial-gradient(circle at 50% -15%,rgba(216,255,91,.07),transparent 31%),var(--bg)}button{font:inherit}button:focus-visible{outline:3px solid #fff;outline-offset:3px}.app{min-height:100dvh;width:min(720px,100%);margin:auto;padding:max(13px,env(safe-area-inset-top)) 14px max(22px,env(safe-area-inset-bottom));display:flex;flex-direction:column}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px}.brand{font-size:11px;font-weight:950;letter-spacing:.12em;color:#cbd0d5}.brand b{color:var(--acid)}.top-actions{display:flex;gap:6px}.ghost{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:8px 11px;font-size:11px;font-weight:850;cursor:pointer}.screen{display:none;flex:1}.screen.active{display:flex;flex-direction:column}.start{justify-content:center;padding:8vh 2px 7vh}.serial{font-size:10px;letter-spacing:.22em;color:var(--acid);font-weight:950}.hero h1{font-size:clamp(52px,15vw,86px);line-height:.83;letter-spacing:-.075em;margin:15px 0 19px;font-weight:950}.hero h1 small{display:block;font-size:.34em;letter-spacing:.02em;color:#aeb4ba;margin-top:16px}.hero p{font-size:17px;line-height:1.75;color:#b9bec5;margin:0;max-width:570px}.hero p strong{color:var(--ink)}.rule{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:27px 0}.rule div{border:1px solid var(--line);border-radius:15px;background:var(--panel);padding:13px 9px}.rule strong{display:block;font-size:15px}.rule span{display:block;font-size:9px;color:var(--muted);margin-top:5px;line-height:1.35}.primary{width:100%;min-height:62px;border:0;border-radius:17px;background:var(--acid);color:#10130d;font-weight:950;font-size:17px;cursor:pointer;box-shadow:0 13px 35px rgba(216,255,91,.11);transition:transform .11s}.primary:active,.choice:active,.target:active{transform:scale(.985)}.history-mini{margin-top:13px;font-size:11px;color:#7f8790;text-align:center}.target-screen{padding-top:6vh}.screen-label{color:var(--acid);font-weight:950;letter-spacing:.15em;font-size:10px}.target-screen h1{font-size:clamp(36px,10vw,54px);line-height:1.05;letter-spacing:-.055em;margin:12px 0 9px}.target-screen>p{margin:0 0 24px;color:var(--muted);font-size:13px;line-height:1.65}.targets{display:grid;grid-template-columns:1fr 1fr;gap:9px}.target{min-height:126px;text-align:left;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);padding:17px;cursor:pointer;transition:transform .11s,border-color .12s,background .12s}.target:hover{border-color:rgba(216,255,91,.36);background:#171c13}.target i{font-style:normal;color:var(--acid);font-size:10px;font-weight:950;letter-spacing:.13em}.target strong{display:block;font-size:24px;margin-top:13px;letter-spacing:-.04em}.target span{display:block;color:var(--muted);font-size:10px;margin-top:5px;line-height:1.4}.deal{padding-top:5px}.deal-head{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:12px 13px;margin:5px 0 10px}.deal-meta{display:flex;justify-content:space-between;align-items:center;color:#888f98;font-size:9px;font-weight:900;letter-spacing:.12em}.ask-row{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-top:7px}.ask{font-size:clamp(36px,11vw,58px);line-height:.9;font-weight:950;letter-spacing:-.06em;color:var(--acid);transition:font-size .22s}.ask small{font-size:.34em;letter-spacing:.02em;color:#9198a1;margin-left:5px}.cut{font-size:10px;color:var(--muted);font-weight:850;text-align:right}.ask-track{height:5px;border-radius:999px;background:#282b30;overflow:hidden;margin-top:11px}.ask-track i{display:block;height:100%;width:100%;background:var(--acid);border-radius:inherit;transition:width .3s ease}.table{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:315px;padding:16px 2px}.speaker{display:flex;align-items:center;gap:9px;margin-bottom:10px}.face{width:32px;height:32px;border:1px solid rgba(216,255,91,.32);border-radius:50%;display:grid;place-items:center;color:var(--acid);font-size:11px;font-weight:950}.speaker span{font-size:10px;letter-spacing:.14em;color:#a5abb2;font-weight:950}.bubble{position:relative;border:1px solid var(--line);border-radius:25px 25px 25px 7px;background:linear-gradient(145deg,#181b20,#121418);padding:23px 21px;min-height:144px;display:flex;align-items:center;box-shadow:0 18px 45px rgba(0,0,0,.17)}.bubble p{font-size:clamp(22px,6.4vw,34px);line-height:1.35;letter-spacing:-.035em;font-weight:900;margin:0}.bubble p em{font-style:normal;color:var(--acid)}.technique{margin-top:9px;color:#6f767f;font-size:9px;letter-spacing:.08em;min-height:14px}.choices{display:grid;gap:8px}.choice{min-height:57px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);padding:11px 14px;text-align:left;font-size:14px;line-height:1.35;font-weight:850;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:transform .11s,border-color .12s,background .12s}.choice span{color:#737a82;font-size:10px;white-space:nowrap}.choice.accept{border-color:rgba(216,255,91,.25)}.choice.accept span{color:var(--acid)}.choice:hover{background:var(--panel2);border-color:rgba(255,255,255,.2)}.leave{border:0;background:transparent;color:#737a82;font-size:11px;font-weight:800;padding:13px 4px;cursor:pointer}.action{justify-content:center;padding:5vh 0}.action-card{border:1px solid rgba(216,255,91,.24);border-radius:28px;background:linear-gradient(145deg,#171c12,#10120f 68%);padding:24px 20px;text-align:center}.action-card .tiny{font-size:9px;letter-spacing:.18em;font-weight:950;color:var(--acid)}.settled{font-size:12px;color:#929a91;margin-top:8px}.action-card h1{font-size:clamp(36px,10vw,56px);line-height:1.05;letter-spacing:-.055em;margin:23px 0 10px}.action-card p{color:#b4baaf;line-height:1.7;font-size:13px;margin:0 auto;max-width:490px}.timer{width:150px;height:150px;border-radius:50%;border:1px solid rgba(216,255,91,.25);margin:27px auto 20px;display:grid;place-items:center;background:#0f120c;box-shadow:inset 0 0 0 8px rgba(216,255,91,.025)}.timer b{font-size:54px;letter-spacing:-.07em}.timer small{display:block;font-size:9px;color:#737b70;letter-spacing:.14em;margin-top:-8px}.action-controls{display:grid;gap:8px}.secondary{min-height:53px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);font-weight:900;cursor:pointer}.done{justify-content:center;padding:4vh 0}.result-card{border:1px solid var(--line);background:var(--panel);border-radius:27px;padding:23px;position:relative;overflow:hidden}.result-card:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;border:1px solid rgba(216,255,91,.13);right:-110px;top:-100px}.result-kicker{color:var(--acid);font-size:10px;letter-spacing:.16em;font-weight:950}.result-card h1{font-size:clamp(45px,13vw,70px);letter-spacing:-.07em;line-height:.9;margin:13px 0 25px}.scoreline{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:9px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:15px 0}.scoreline div:last-child{text-align:right}.scoreline span{display:block;color:#818890;font-size:9px;letter-spacing:.1em;font-weight:900}.scoreline strong{display:block;font-size:19px;margin-top:4px}.scoreline b{color:var(--acid);font-size:19px}.stats-result{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}.stats-result div{border:1px solid rgba(255,255,255,.07);background:#111317;border-radius:14px;padding:12px 9px}.stats-result strong{display:block;font-size:21px}.stats-result span{display:block;font-size:8px;color:#777f87;margin-top:4px}.result-copy{font-size:13px;line-height:1.7;color:#b6bcc3;margin:17px 0 0}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.exit-card{margin:auto 0;text-align:center;padding:12vh 8px}.exit-card .mark{width:64px;height:64px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;margin:auto;color:#737a82;font-weight:950}.exit-card h1{font-size:38px;letter-spacing:-.05em;margin:20px 0 10px}.exit-card p{font-size:13px;line-height:1.7;color:var(--muted);max-width:480px;margin:0 auto 25px}@media(max-width:500px){.app{padding-left:11px;padding-right:11px}.start{padding-top:5vh}.hero p{font-size:15px}.rule div{padding:11px 8px}.targets{grid-template-columns:1fr}.target{min-height:98px}.target strong{margin-top:8px}.table{min-height:288px}.bubble{padding:19px 17px;min-height:132px}.bubble p{font-size:24px}.choice{min-height:55px}.action-card{padding:21px 15px}.result-actions{grid-template-columns:1fr}.stats-result strong{font-size:18px}}@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="top"><div class="brand">LEVEL <b>UP</b> / NEGOTIATOR</div><div class="top-actions"><button class="ghost" id="restartTop" type="button">最初から</button></div></header>
+
+<section class="screen start active" id="startScreen">
+  <div class="hero">
+    <div class="serial">NEGOTIATOR SERIES / 01</div>
+    <h1>動かす<small>NEGOTIATOR</small></h1>
+    <p><strong>やる気はいりません。</strong><br>断ってください。こちらが条件を下げます。</p>
+    <div class="rule"><div><strong>断ってOK</strong><span>拒否は失敗じゃない</span></div><div><strong>条件を下げる</strong><span>30分 → 1動作</span></div><div><strong>最後は現実</strong><span>10秒だけ動く</span></div></div>
+    <button class="primary" id="startBtn" type="button">交渉を始める</button>
+    <div class="history-mini" id="historyMini"></div>
+  </div>
+</section>
+
+<section class="screen target-screen" id="targetScreen">
+  <div class="screen-label">CHOOSE THE TABLE</div>
+  <h1>何を動かしますか？</h1>
+  <p>文字入力はありません。いま一番「やらなきゃ」と思っているものを1つ。</p>
+  <div class="targets" id="targets"></div>
+  <button class="leave" data-exit type="button">今日は交渉しない</button>
+</section>
+
+<section class="screen deal" id="dealScreen">
+  <div class="deal-head">
+    <div class="deal-meta"><span>現在の要求</span><span id="roundText">ROUND 1</span></div>
+    <div class="ask-row"><div class="ask" id="askValue">30<small>MIN</small></div><div class="cut" id="cutText">最初の提示</div></div>
+    <div class="ask-track"><i id="askBar"></i></div>
+  </div>
+  <div class="table">
+    <div class="speaker"><div class="face">N</div><span>NEGOTIATOR</span></div>
+    <div class="bubble" aria-live="polite"><p id="message"></p></div>
+    <div class="technique" id="technique"></div>
+  </div>
+  <div class="choices" id="choices"></div>
+  <button class="leave" data-exit type="button">交渉を終了する</button>
+</section>
+
+<section class="screen action" id="actionScreen">
+  <div class="action-card">
+    <div class="tiny">DEAL ACCEPTED</div>
+    <div class="settled" id="settledText"></div>
+    <h1 id="actionTitle"></h1>
+    <p id="actionCopy"></p>
+    <div class="timer"><div><b id="timerNum">10</b><small>SECONDS</small></div></div>
+    <div class="action-controls"><button class="primary" id="timerBtn" type="button">10秒だけ始める</button><button class="secondary" id="alreadyBtn" type="button">もうやった</button></div>
+  </div>
+  <button class="leave" data-exit type="button">やっぱり今日は終了</button>
+</section>
+
+<section class="screen done" id="doneScreen">
+  <div>
+    <div class="result-card">
+      <div class="result-kicker">NEGOTIATION CLOSED</div>
+      <h1>交渉成立。</h1>
+      <div class="scoreline"><div><span>最初の要求</span><strong>30 MIN</strong></div><b>→</b><div><span>成立条件</span><strong id="resultDeal">10 SEC</strong></div></div>
+      <div class="stats-result"><div><strong id="rejectCount">0</strong><span>断った回数</span></div><div><strong id="yesCount">1</strong><span>YES</span></div><div><strong id="totalCount">1</strong><span>累計成立</span></div></div>
+      <p class="result-copy" id="resultCopy"></p>
+    </div>
+    <div class="result-actions"><button class="primary" id="againBtn" type="button">もう一度、交渉する</button><button class="secondary" id="shareBtn" type="button">結果をシェア</button></div>
+  </div>
+</section>
+
+<section class="screen" id="exitScreen">
+  <div class="exit-card"><div class="mark">×</div><h1>交渉終了。</h1><p>今日は不成立。それも選択です。動かす必要が出たら、また条件を下げに来ます。</p><button class="primary" id="returnBtn" type="button">もう一度だけ交渉する</button></div>
+</section>
+</main>
+<script>
+(()=>{
+const $=(id)=>document.getElementById(id);
+const screens=[...document.querySelectorAll('.screen')];
+const show=(id)=>{screens.forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo({top:0,behavior:'instant'});};
+const buzz=(ms=18)=>{try{navigator.vibrate?.(ms)}catch{}};
+const store={get(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}},set(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}};
+const KEY='levelup-negotiator-move-v1';
+const saved=store.get(KEY,{deals:0,moves:0,last:null});
+const targets={
+ work:{name:'仕事',meta:'メール・資料・PC作業',micro:'仕事の画面を開く',microAlt:'机に座る',action:'仕事の画面を開いて、1行だけ触ってください。完成させなくていい。'},
+ study:{name:'勉強',meta:'宿題・資格・読書',micro:'教材を開く',microAlt:'ペンを持つ',action:'教材を開いて、1問の最初だけ見てください。解き切らなくていい。'},
+ house:{name:'家事',meta:'片づけ・洗い物・掃除',micro:'対象に1回触る',microAlt:'1個だけ動かす',action:'目の前の1個だけ動かしてください。全部片づけなくていい。'},
+ exercise:{name:'運動',meta:'散歩・筋トレ・ストレッチ',micro:'立ち上がる',microAlt:'靴かウェアに触る',action:'立って、身体を10秒だけ動かしてください。運動を終わらせなくていい。'}
+};
+const offers=[
+ {value:'30',unit:'MIN',bar:100,label:'最初の提示',tech:'大きめの条件から交渉開始',ask:t=>`今から<em>30分</em>、${t.name}を始めませんか？`,accept:'30 MIN'},
+ {value:'5',unit:'MIN',bar:58,label:'83%カット',tech:'要求を一気に小さくする',ask:t=>`30分は撤回します。では<em>5分だけ</em>、${t.name}に触るなら？`,accept:'5 MIN'},
+ {value:'60',unit:'SEC',bar:31,label:'さらに80%カット',tech:'「ちゃんとやる」を条件から外す',ask:t=>`ちゃんとやる必要もなし。<em>60秒</em>だけなら、まだ無理ですか？`,accept:'60 SEC'},
+ {value:'10',unit:'SEC',bar:15,label:'残り10秒',tech:'開始コストだけにする',ask:t=>`成果も進捗も要りません。<em>10秒だけ</em>始めて、すぐやめていいなら？`,accept:'10 SEC'},
+ {value:'1',unit:'MOVE',bar:7,label:'時間条件を撤回',tech:'時間ではなく1動作へ',ask:t=>`時間の話もやめます。<em>${t.micro}</em>。それ1回だけなら？`,accept:'1 MOVE'}
+];
+let state={target:null,stage:0,rejects:0,yes:0,settled:null,lastReason:null,timer:null,seconds:10};
+const reasonReplies={time:'時間がない、は受理します。',motivation:'やる気がない、も条件から外します。',tired:'しんどいなら、頑張ることも条件から外します。',perfect:'ちゃんとできない、も問題なし。完成は要求しません。'};
+function renderHistory(){const s=store.get(KEY,{deals:0,moves:0});$('historyMini').textContent=s.deals?`これまでの交渉成立 ${s.deals}回 / 10秒動いた ${s.moves||0}回`:'';}
+function renderTargets(){ $('targets').innerHTML=Object.entries(targets).map(([key,t])=>`<button class="target" type="button" data-target="${key}"><i>NEGOTIATE</i><strong>${t.name}</strong><span>${t.meta}</span></button>`).join('');document.querySelectorAll('[data-target]').forEach(b=>b.addEventListener('click',()=>chooseTarget(b.dataset.target)));}
+function chooseTarget(key){state={target:key,stage:0,rejects:0,yes:0,settled:null,lastReason:null,timer:null,seconds:10};saved.last=key;store.set(KEY,saved);show('dealScreen');renderDeal();}
+function askText(){const t=targets[state.target],o=offers[state.stage];const prefix=state.lastReason&&state.stage>0?`${reasonReplies[state.lastReason]} `:'';return prefix+o.ask(t);}
+function choicesForStage(){const t=targets[state.target],s=state.stage;if(s===0)return[{text:'無理。そんな時間ない',reason:'time'},{text:'今はやる気がない',reason:'motivation'},{text:'30分やる',accept:true}];if(s===1)return[{text:'5分でも今は長い',reason:'time'},{text:'面倒。まだ動きたくない',reason:'tired'},{text:'5分ならやる',accept:true}];if(s===2)return[{text:'1分でも始めたくない',reason:'motivation'},{text:'ちゃんとできないなら嫌だ',reason:'perfect'},{text:'60秒ならいい',accept:true}];if(s===3)return[{text:'10秒でも面倒',reason:'tired'},{text:'今は触りたくない',reason:'motivation'},{text:'10秒だけなら',accept:true}];return[{text:'それすら面倒',reason:'tired'},{text:'今は本当に無理',reason:'time'},{text:`${t.micro}だけやる`,accept:true}];}
+function renderDeal(){const o=offers[state.stage];$('roundText').textContent=`ROUND ${state.stage+1}`;$('askValue').innerHTML=`${o.value}<small>${o.unit}</small>`;$('cutText').textContent=o.label;$('askBar').style.width=o.bar+'%';$('message').innerHTML=askText();$('technique').textContent=`交渉メモ：${o.tech}`;$('choices').innerHTML=choicesForStage().map((c,i)=>`<button class="choice ${c.accept?'accept':''}" type="button" data-choice="${i}">${c.text}<span>${c.accept?'YES':'NO'}</span></button>`).join('');document.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>respond(Number(b.dataset.choice))));}
+function respond(index){const c=choicesForStage()[index];buzz(c.accept?28:14);if(c.accept){state.yes++;state.settled=offers[state.stage].accept;beginAction();return;}state.rejects++;state.lastReason=c.reason;if(state.stage<offers.length-1){state.stage++;renderDeal();return;}showExit(`そこまで下げてもNOなら、今日は不成立。`);}
+function beginAction(){const t=targets[state.target];$('settledText').textContent=`成立条件：${state.settled}`;$('actionTitle').textContent=state.stage===4?t.micro:`${t.name}を10秒だけ`;$('actionCopy').textContent=t.action;resetTimer();show('actionScreen');}
+function resetTimer(){if(state.timer){clearInterval(state.timer);state.timer=null;}state.seconds=10;$('timerNum').textContent='10';$('timerBtn').disabled=false;$('timerBtn').textContent='10秒だけ始める';}
+function startTimer(){if(state.timer)return;buzz(22);$('timerBtn').disabled=true;$('timerBtn').textContent='交渉成立。実行中';state.timer=setInterval(()=>{state.seconds--;$('timerNum').textContent=String(Math.max(0,state.seconds));if(state.seconds<=0){clearInterval(state.timer);state.timer=null;completeMove();}},1000);}
+function completeMove(){if(state.timer){clearInterval(state.timer);state.timer=null;}buzz([28,40,45]);const data=store.get(KEY,{deals:0,moves:0,last:null});data.deals=(data.deals||0)+1;data.moves=(data.moves||0)+1;data.last=state.target;store.set(KEY,data);$('resultDeal').textContent=state.settled;$('rejectCount').textContent=String(state.rejects);$('yesCount').textContent=String(state.yes);$('totalCount').textContent=String(data.deals);$('resultCopy').textContent=`${state.rejects}回断っても問題なし。あなたが受け入れた条件まで小さくして、実際に最初の一歩を動かしました。`;show('doneScreen');renderHistory();}
+function showExit(custom){if(state.timer){clearInterval(state.timer);state.timer=null;}const p=$('exitScreen').querySelector('p');p.textContent=custom||'今日は不成立。それも選択です。動かす必要が出たら、また条件を下げに来ます。';show('exitScreen');}
+function restart(){if(state.timer){clearInterval(state.timer);state.timer=null;}show('startScreen');renderHistory();}
+async function share(){const text=`NEGOTIATORに${state.rejects}回断ったのに、${state.settled}まで条件を下げられて10秒だけ動いた。\n要求 30 MIN → ${state.settled}\n#LEVELUP #NEGOTIATOR`;try{if(navigator.share){await navigator.share({title:'NEGOTIATOR｜動かす',text});return;}await navigator.clipboard.writeText(text);$('shareBtn').textContent='コピーしました';setTimeout(()=>$('shareBtn').textContent='結果をシェア',1600);}catch{}}
+$('startBtn').addEventListener('click',()=>show('targetScreen'));
+$('restartTop').addEventListener('click',restart);
+$('timerBtn').addEventListener('click',startTimer);
+$('alreadyBtn').addEventListener('click',completeMove);
+$('againBtn').addEventListener('click',()=>{show('targetScreen');});
+$('shareBtn').addEventListener('click',share);
+$('returnBtn').addEventListener('click',()=>show('targetScreen'));
+document.querySelectorAll('[data-exit]').forEach(b=>b.addEventListener('click',()=>showExit()));
+renderTargets();renderHistory();
+})();
+</script>
+</body>
+</html>
