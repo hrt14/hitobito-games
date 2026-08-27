@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0c0e" />
+  <meta name="description" content="入力なし。はい・いいえだけの質問で、あなたの職業と年収を12問以内に推理するゲーム。" />
+  <title>年収アキネーター｜はい・いいえだけで職業と年収を当てる</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="page" id="app">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="LEVEL UPトップへ戻る">HITOBITO / <strong>LEVEL UP</strong></a>
+      <span class="mode">YES / NO GUESSING GAME</span>
+    </header>
+
+    <section class="screen intro-screen is-active" data-screen="intro">
+      <div class="intro-mark" aria-hidden="true">¥?</div>
+      <p class="eyebrow">NO TYPING. JUST YES OR NO.</p>
+      <h1>年収<br><em>アキネーター</em></h1>
+      <p class="lead">質問には「はい」「いいえ」だけ。<br>12問以内に、あなたの職業と年収を推理します。</p>
+      <div class="rules" aria-label="ゲームの特徴">
+        <span>入力なし</span><span>12問以内</span><span>職業＋年収</span>
+      </div>
+      <button class="primary-button" type="button" data-action="start">見抜けるか試す <span aria-hidden="true">→</span></button>
+      <button class="last-result" type="button" data-action="restart" hidden>
+        <span>前回の予想</span>
+        <strong data-last-result></strong>
+        <small>別の人でもう一度試す</small>
+      </button>
+      <p class="disclaimer">※ 娯楽用の推理ゲームです。表示する年収は回答から計算するゲーム内の推定値で、公的統計による給与判定ではありません。</p>
+    </section>
+
+    <section class="screen game-screen" data-screen="question" aria-live="polite">
+      <div class="game-head">
+        <div class="question-counter"><span>QUESTION</span><strong data-question-number>01</strong><small>/ 12</small></div>
+        <div class="candidate-count"><span>候補</span><strong data-candidate-count>18</strong><small>職種</small></div>
+      </div>
+      <div class="progress" data-progress aria-label="進捗"></div>
+
+      <article class="question-card" data-question-card>
+        <div class="question-meta">
+          <span data-question-mode>職業を絞っています</span>
+          <b data-leading-candidate>分析中</b>
+        </div>
+        <h2 data-question-text></h2>
+        <div class="scan-line" aria-hidden="true"></div>
+      </article>
+
+      <div class="answer-grid">
+        <button class="answer-button yes-button" type="button" data-answer="yes"><span>YES</span><strong>はい</strong></button>
+        <button class="answer-button no-button" type="button" data-answer="no"><span>NO</span><strong>いいえ</strong></button>
+      </div>
+
+      <div class="reading-line" aria-hidden="true">
+        <span>いま近い候補</span><strong data-leading-short>分析中</strong><i>→</i><span data-second-short>?</span>
+      </div>
+      <button class="undo-button" type="button" data-action="undo" disabled>← 1問戻る</button>
+    </section>
+
+    <section class="screen result-screen" data-screen="result">
+      <p class="eyebrow">I THINK I GOT YOU.</p>
+      <h1>見えました。</h1>
+
+      <article class="result-card">
+        <div class="result-topline"><span>職業予想</span><strong data-confidence>推理確度 0%</strong></div>
+        <h2 data-job-result></h2>
+        <div class="salary-label">ゲーム内 推定年収</div>
+        <div class="salary-number"><span>¥</span><b data-income-result>0</b><small>万円</small></div>
+        <p class="range" data-income-range></p>
+      </article>
+
+      <div class="reason-block">
+        <p>決め手になった回答</p>
+        <div class="reason-chips" data-reasons></div>
+      </div>
+
+      <div class="alternatives">
+        <p>次点の予想</p>
+        <div data-alternatives></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary-button" type="button" data-action="restart">別の人で試す <span aria-hidden="true">↻</span></button>
+        <button class="share-button" type="button" data-action="share">結果をシェア</button>
+      </div>
+      <button class="undo-button result-undo" type="button" data-action="undo-result">← 最後の1問を変える</button>
+      <p class="disclaimer">※ これは娯楽用のヒューリスティック推定です。表示額を採用・転職・給与交渉などの判断材料には使わないでください。</p>
+    </section>
+
+    <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
+  </main>
+  <script src="./app.js" defer></script>
+</body>
+</html>
