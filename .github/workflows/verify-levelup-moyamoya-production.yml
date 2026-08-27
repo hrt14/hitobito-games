@@ -1,0 +1,80 @@
+name: Verify LEVEL UP moyamoya finder production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.firebase-deploy-trigger'
+      - '.github/workflows/verify-levelup-moyamoya-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: levelup-moyamoya-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify moyamoya finder is visible before search
+        shell: bash
+        run: |
+          set -euo pipefail
+          bases=("https://hitobito-levelup.web.app" "https://levelup.hitobito.jp")
+          ok=0
+
+          for attempt in $(seq 1 36); do
+            echo "Attempt $attempt/36"
+            attempt_ok=1
+            for base in "${bases[@]}"; do
+              out="/tmp/home-$(echo "$base" | tr -cd '[:alnum:]').html"
+              url="$base/?verify-moyamoya=${GITHUB_SHA}-${attempt}"
+              echo "GET $url"
+              if ! curl -fLsS --max-time 30 "$url" -o "$out"; then
+                attempt_ok=0
+                continue
+              fi
+              python - "$out" <<'PY' || attempt_ok=0
+          import sys
+          from pathlib import Path
+
+          html = Path(sys.argv[1]).read_text(errors='replace')
+          required = [
+              'id="levelup-state-diagnosis-v3"',
+              'モヤモヤの正体、当てます。',
+              'id="lu-v3-start"',
+              'モヤモヤを特定する →',
+              'data-levelup-state-diagnosis-v3',
+              'id="levelup-search"',
+              'id="levelup-categories"',
+          ]
+          missing = [token for token in required if token not in html]
+          if missing:
+              raise SystemExit('missing: ' + ', '.join(missing))
+          if html.count('id="levelup-state-diagnosis-v3"') != 1:
+              raise SystemExit('moyamoya finder entry must occur exactly once')
+          finder = html.index('id="levelup-state-diagnosis-v3"')
+          search = html.index('id="levelup-search"')
+          categories = html.index('id="levelup-categories"')
+          if not (finder < search < categories):
+              raise SystemExit('wrong home order: expected moyamoya -> search -> categories')
+          print('VISIBLE MOYAMOYA FINDER VERIFIED')
+          PY
+            done
+            if [ "$attempt_ok" = "1" ]; then
+              ok=1
+              break
+            fi
+            sleep 5
+          done
+
+          if [ "$ok" != "1" ]; then
+            echo "Moyamoya finder did not become visible on both production domains."
+            exit 1
+          fi
+
+          echo "PRODUCTION MOYAMOYA FINDER VERIFIED ON BOTH DOMAINS"
