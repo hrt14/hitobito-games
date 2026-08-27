@@ -78,7 +78,7 @@
   function setOffer(value){state.offer=value;$('offerSize').textContent=`${value}%`;$('shrinkBar').style.width=`${Math.max(3,value)}%`;}
   function renderNode(name){
     state.node=name;state.turns+=1;const node=nodes[name];if(!node)return finish(false);
-    setOffer(node.offer);$('refusalCount').textContent=String(state.refusals);$('techniqueLabel').textContent=node.technique;$('message').innerHTML=node.message;updateRoom();
+    setOffer(Math.min(state.offer,node.offer));$('refusalCount').textContent=String(state.refusals);$('techniqueLabel').textContent=node.technique;$('message').innerHTML=node.message;updateRoom();
     $('negotiatorCard').classList.remove('bump');requestAnimationFrame(()=>$('negotiatorCard').classList.add('bump'));setTimeout(()=>$('negotiatorCard').classList.remove('bump'),180);
     if(node.special==='hold'){setTimeout(()=>openHold(3),260);return;}
     $('choices').innerHTML='';
@@ -100,9 +100,11 @@
   function completeHold(){$('holdScreen').classList.remove('is-holding');state.accepted.add('eyes');toast(`${state.holdTarget}秒、成立。`);setTimeout(()=>finish(true),420);}
   function refuseHold(){state.refusals+=1;if(state.holdTarget>1){openHold(1);toast('了解。さらに条件を下げました。');}else finish(false);}
   function finish(succeeded){
-    const lastOffer=state.accepted.has('eyes')?state.holdTarget:Math.min(state.offer,6);$('finalOffer').textContent=`${lastOffer}%`;$('resultRefusals').textContent=String(state.refusals);
+    const direct=succeeded&&state.node==='opening';
+    const lastOffer=direct?100:(state.node==='eyesDeal'?state.holdTarget:state.offer);$('finalOffer').textContent=`${lastOffer}%`;$('resultRefusals').textContent=String(state.refusals);
     const done=[...state.accepted].filter((key)=>actionLabels[key]);$('doneList').innerHTML=done.length?done.map((key)=>`<div class="done-pill"><b>✓</b> ${actionLabels[key]}</div>`).join(''):'<div class="done-pill">大きな決断はしなくていい、と確認した。</div>';
     if(!succeeded){$('resultTitle').innerHTML='今日は、<br><em>不成立。</em>';$('resultLead').textContent='それでOKです。寝るかどうかはあなたが決める。交渉はここで打ち切ります。';$('lightsOutBtn').querySelector('span').textContent='それでも画面を閉じる';}
+    else if(direct){$('resultTitle').innerHTML='交渉、<br><em>即成立。</em>';$('resultLead').textContent='最初の提案で合意。今日は条件を下げる必要がありませんでした。';$('lightsOutBtn').querySelector('span').textContent='このまま画面を閉じる';}
     else{$('resultTitle').innerHTML='交渉、<br><em>成立。</em>';$('resultLead').textContent='「寝る」と大きく決める代わりに、寝られる形まで要求を小さくしました。';$('lightsOutBtn').querySelector('span').textContent='このまま画面を閉じる';}
     const record={at:Date.now(),refusals:state.refusals,accepted:done,succeeded,finalOffer:lastOffer};try{localStorage.setItem('negotiator-sleep:last',JSON.stringify(record));}catch{}showScreen('resultScreen');
   }
