@@ -1,0 +1,62 @@
+name: コンサル後反省会 browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/consultant-hanseikai/**'
+      - '.github/workflows/consultant-hanseikai-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/consultant-hanseikai/**'
+      - '.github/workflows/consultant-hanseikai-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check inline JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          html = pathlib.Path('apps/consultant-hanseikai/index.html').read_text()
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          pathlib.Path('/tmp/consultant-hanseikai-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/consultant-hanseikai-inline.js
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/consultant-hanseikai-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/consultant-hanseikai/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/consultant-hanseikai-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          CONSULTANT_HANSEIKAI_URL: http://127.0.0.1:4173/apps/consultant-hanseikai/?test=1
+        run: node apps/consultant-hanseikai/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consultant-hanseikai-browser-playtest
+          path: apps/consultant-hanseikai/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/consultant-hanseikai-server.log || true
