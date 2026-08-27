@@ -26,13 +26,22 @@ async function clickText(text) {
 async function offer(expected) {
   await expectText(page.locator('#offerSize'), expected);
 }
+async function loadApp() {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.locator('#startScreen.active').waitFor({ state: 'visible', timeout: 15000 });
+}
+async function reloadApp() {
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.locator('#startScreen.active').waitFor({ state: 'visible', timeout: 15000 });
+}
 
 try {
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
+  await loadApp();
   if (!(await page.title()).includes('NEGOTIATOR｜寝かせる')) throw new Error(`Unexpected title: ${await page.title()}`);
   await expectText(page.locator('h1'), '寝る気ゼロ');
   await page.screenshot({ path: path.join(artifacts, '01-start.png'), fullPage: true });
 
+  // Deep resistance path: the displayed ask must never grow after it shrinks.
   await clickText('交渉を始める');
   await offer('100%');
   await clickText('まだやることがある');
@@ -56,6 +65,7 @@ try {
   await expectText(page.locator('#holdSeconds'), '3');
   await page.screenshot({ path: path.join(artifacts, '02-three-second-deal.png'), fullPage: true });
 
+  // Door-in-the-face fallback: refuse 3 sec, accept only 1 sec.
   await clickText('それすら今は無理');
   await expectText(page.locator('#holdSeconds'), '1');
   const hold = page.locator('#holdBtn');
@@ -65,7 +75,7 @@ try {
   await page.locator('#resultScreen.active').waitFor({ state: 'visible', timeout: 10000 });
   await expectText(page.locator('#resultTitle'), '成立');
   await expectText(page.locator('#finalOffer'), '1%');
-  await expectText(page.locator('#resultRefusals'), '9');
+  await expectText(page.locator('#resultRefusals'), '10');
   await page.screenshot({ path: path.join(artifacts, '03-result.png'), fullPage: true });
 
   await clickText('このまま画面を閉じる');
@@ -73,24 +83,56 @@ try {
   await clickText('やっぱり戻る');
   await page.locator('#resultScreen.active').waitFor({ state: 'visible', timeout: 5000 });
 
-  await page.reload({ waitUntil: 'networkidle' });
-  await page.locator('#startScreen.active').waitFor({ state: 'visible', timeout: 10000 });
-  await expectText(page.locator('#previous'), '9回断って');
+  // Reload/revisit: the previous result is deliberately local-only and should survive.
+  await reloadApp();
+  await expectText(page.locator('#previous'), '10回断って');
   await expectText(page.locator('#previous'), '1%');
 
+  // Immediate YES path must not pretend that the ask was reduced.
   await page.evaluate(() => localStorage.removeItem('negotiator-sleep:last'));
-  await page.reload({ waitUntil: 'networkidle' });
+  await reloadApp();
   await clickText('交渉を始める');
   await clickText('はい。もう寝る');
   await page.locator('#resultScreen.active').waitFor({ state: 'visible', timeout: 10000 });
   await expectText(page.locator('#resultTitle'), '即成立');
   await expectText(page.locator('#finalOffer'), '100%');
 
-  const tapTargets = await page.evaluate(() => [...document.querySelectorAll('button')].filter((el) => getComputedStyle(el).display !== 'none').map((el) => ({ text: el.textContent?.trim(), h: el.getBoundingClientRect().height })).filter((item) => item.h > 0 && item.h < 44));
+  // Full refusal path: autonomy wins; the app must stop rather than force a YES.
+  await page.evaluate(() => localStorage.removeItem('negotiator-sleep:last'));
+  await reloadApp();
+  await clickText('交渉を始める');
+  await clickText('全然眠くない');
+  await clickText('まだスマホを見る');
+  await clickText('充電は十分ある');
+  await clickText('10秒も嫌');
+  await clickText('今はそれも嫌');
+  await clickText('まだ座っていたい');
+  await clickText('まだ動きたくない');
+  await page.locator('#holdScreen.active').waitFor({ state: 'visible', timeout: 10000 });
+  await clickText('それすら今は無理');
+  await expectText(page.locator('#holdSeconds'), '1');
+  await clickText('それすら今は無理');
+  await page.locator('#resultScreen.active').waitFor({ state: 'visible', timeout: 10000 });
+  await expectText(page.locator('#resultTitle'), '不成立');
+  await expectText(page.locator('#resultLead'), '寝るかどうかはあなたが決める');
+  await page.screenshot({ path: path.join(artifacts, '04-full-refusal.png'), fullPage: true });
+
+  const tapTargets = await page.evaluate(() => [...document.querySelectorAll('button')]
+    .filter((el) => getComputedStyle(el).display !== 'none')
+    .map((el) => ({ text: el.textContent?.trim(), h: el.getBoundingClientRect().height }))
+    .filter((item) => item.h > 0 && item.h < 44));
   if (tapTargets.length) throw new Error(`Tap targets below 44px: ${JSON.stringify(tapTargets)}`);
   if (errors.length) throw new Error(`Browser errors: ${errors.join(' | ')}`);
   console.log('NEGOTIATOR SLEEP PRODUCTION PLAYTEST PASSED');
-  console.log(JSON.stringify({ url, viewport: '390x844', refusalPath: '100→36→22→14→14→10→6→6→6→3→1', finalRefusals: 9, directAccept: '100%', screenshots: 3 }));
+  console.log(JSON.stringify({
+    url,
+    viewport: '390x844',
+    refusalPath: '100→36→22→14→14→10→6→6→6→3→1',
+    finalRefusals: 10,
+    directAccept: '100%',
+    fullRefusal: '不成立',
+    screenshots: 4,
+  }));
 } finally {
   await browser.close();
 }
