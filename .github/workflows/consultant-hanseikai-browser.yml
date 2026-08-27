@@ -53,6 +53,10 @@ jobs:
           done
           cat /tmp/consultant-hanseikai-server.log
           exit 1
+      - name: Log mobile tap target sizes
+        env:
+          CONSULTANT_HANSEIKAI_URL: http://127.0.0.1:4173/apps/consultant-hanseikai/?test=1
+        run: node apps/consultant-hanseikai/diagnose-taps.mjs
       - name: Run real mobile playtest
         env:
           CONSULTANT_HANSEIKAI_URL: http://127.0.0.1:4173/apps/consultant-hanseikai/?test=1
