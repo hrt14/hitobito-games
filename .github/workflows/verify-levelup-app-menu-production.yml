@@ -144,3 +144,4 @@ jobs:
           else
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/levelup-app-menu-status.md
           fi
+# success-mind production recheck 2026-08-27
