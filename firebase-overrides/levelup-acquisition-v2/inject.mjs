@@ -22,6 +22,11 @@ const problems = [
   ['tsukareta', '疲れて何もしたくない', '余計な負荷を増やさず回復する'],
   ['kotowarenai', '断れない・頼めない', '言いにくいことを短く伝える'],
   ['nerumae-kangaegoto', '寝る前に考え事が止まらない', '明日に預けて休息へ切り替える'],
+  ['shigoto-yaruki', '仕事のやる気が出ない', '仕事を最初の一手まで小さくする'],
+  ['asa-okirenai', '朝起きられない', '起きた直後の行動を1つにする'],
+  ['ikari-henshin', '怒りの返信を送りそう', '送る前に感情と文章を分ける'],
+  ['kaigi-hansei', '会議のあと反省が止まらない', '事実と想像を分けて終える'],
+  ['short-video-yametai', 'ショート動画をやめたい', '刺激の連鎖を切って次へ移る'],
 ];
 
 function escapeHtml(value) {
@@ -118,7 +123,7 @@ for (const [slug] of problems) {
   if (!fs.existsSync(target)) throw new Error(`Expected problem landing is missing: ${slug}`);
 }
 
-for (const required of [seoTitle, '/problems/ugokenai/', '/problems/hikizuru/', 'data-levelup-website-schema']) {
+for (const required of [seoTitle, '/problems/ugokenai/', '/problems/shigoto-yaruki/', '/problems/short-video-yametai/', 'data-levelup-website-schema']) {
   if (!html.includes(required)) throw new Error(`LEVEL UP acquisition v2 validation failed: ${required}`);
 }
 
