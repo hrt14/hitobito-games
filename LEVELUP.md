@@ -17,5 +17,10 @@
 - [疲れて何もしたくない](https://levelup.hitobito.jp/problems/tsukareta/) — 余計な負荷を増やさず回復する
 - [断れない・頼めない](https://levelup.hitobito.jp/problems/kotowarenai/) — 言いにくいことを短く伝える
 - [寝る前に考え事が止まらない](https://levelup.hitobito.jp/problems/nerumae-kangaegoto/) — 明日に預けて休息へ切り替える
+- [仕事のやる気が出ない](https://levelup.hitobito.jp/problems/shigoto-yaruki/) — 仕事を最初の一手まで小さくする
+- [朝起きられない](https://levelup.hitobito.jp/problems/asa-okirenai/) — 起きた直後の行動を1つにする
+- [怒りの返信を送りそう](https://levelup.hitobito.jp/problems/ikari-henshin/) — 送る前に感情と文章を分ける
+- [会議のあと反省が止まらない](https://levelup.hitobito.jp/problems/kaigi-hansei/) — 事実と想像を分けて終える
+- [ショート動画をやめたい](https://levelup.hitobito.jp/problems/short-video-yametai/) — 刺激の連鎖を切って次へ移る
 
 LEVEL UPは、説明を読むだけではなく、短い操作・判断・反復を通して日常で使える反射を作ることを目指しています。
