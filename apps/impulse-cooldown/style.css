@@ -25,7 +25,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid rgba(
 .app-shell{width:min(100%,640px);min-height:100svh;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
 .topbar{height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .home-link{color:var(--text);text-decoration:none;font-size:13px;font-weight:950;letter-spacing:.16em}
-.top-actions{display:flex;align-items:center;gap:8px}
+.top-actions{display:flex;align-items:center;gap:8px;margin-right:58px}
 .text-button{border:1px solid var(--line);background:#ffffff08;color:var(--text);min-height:42px;padding:0 14px;border-radius:14px;font-weight:850;cursor:pointer}
 .app-main{flex:1;display:flex;flex-direction:column;padding:16px 0 10px}
 .screen{width:100%;animation:screen-in .2s ease both}
