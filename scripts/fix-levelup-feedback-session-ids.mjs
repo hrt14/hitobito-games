@@ -32,3 +32,5 @@ for (const file of walk(outDir)) {
 
 if (!patched) throw new Error('No LEVEL UP feedback fallback pages were patched.');
 console.log(`[Firebase] LEVEL UP feedback fallback now uses explicit lowercase session IDs on ${patched} HTML pages.`);
+
+await import('../firebase-overrides/levelup-feedback/app-request.mjs');
