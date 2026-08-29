@@ -27,10 +27,9 @@ jobs:
           sleep 2
       - name: Browser playtest environment policy and water rescue
         run: |
-          cat > /tmp/audit.mjs <<'JS'
+          cat > audit.mjs <<'JS'
           import { chromium } from 'playwright';
           const browser = await chromium.launch({headless:true});
-          const runs=[];
           async function envRun(viewport,label){
             const page=await browser.newPage({viewport});
             const url='http://127.0.0.1:4173/apps/environment-policy-sim/';
@@ -92,4 +91,4 @@ jobs:
           await waterRun({width:1280,height:900},'desktop');
           await browser.close();
           JS
-          node /tmp/audit.mjs
+          node audit.mjs
