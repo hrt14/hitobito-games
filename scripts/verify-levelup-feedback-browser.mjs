@@ -55,7 +55,7 @@ async function verifyMindReading() {
 
     await page.click('[data-bin="story"]');
     const wrong = await page.$eval('#feedback', (el) => el.textContent);
-    if (!wrong.includes('見えた事実')) throw new Error(`mind-reading-off wrong-path feedback missing: ${wrong}`);
+    if (!wrong.includes('観察できた事実')) throw new Error(`mind-reading-off wrong-path feedback missing: ${wrong}`);
     await page.click('#next');
 
     await page.click('[data-bin="story"]');
