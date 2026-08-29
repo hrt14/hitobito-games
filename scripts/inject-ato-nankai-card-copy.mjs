@@ -36,6 +36,11 @@ const appCopies = {
     purpose: '12の具体場面への反応から、失敗恐怖・他人評価・完璧主義・面倒回避・考えすぎの5つの行動ブレーキを見分ける',
     benefit: '今出やすい主ブレーキと副ブレーキが分かり、次に止まった瞬間に使う30秒の解除行動と最適なLEVEL UPを1つ持ち帰れる',
   },
+  'praise-manual': {
+    forWho: '褒められるのは嬉しいはずなのに、褒め方によっては居心地が悪く、自分でも「どう褒められたいか」を説明しにくい人',
+    purpose: '10問で、人前/1対1・結果/努力・短い一言/具体的・言葉/行動など7軸の「褒められ方の好み」を言語化する',
+    benefit: '仕事・パートナーでそのまま使える例文とNG例まで入った取説を相手に送り、次に褒めてもらう瞬間から使える',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -96,4 +101,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, and what-stops-you specific LEVEL UP card copy injected; book copy ready.');
+console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, and praise-manual specific LEVEL UP card copy injected; book copy ready.');
