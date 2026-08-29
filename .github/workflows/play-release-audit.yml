@@ -1,6 +1,6 @@
 name: PLAY release browser audit
 
-# release-audit-v3
+# release-audit-v4
 on:
   push:
     branches: [main]
@@ -104,7 +104,7 @@ jobs:
             const grade=(await page.locator('#grade').textContent())?.trim();
             const hist=await page.locator('#history li').count(); if(hist!==4) throw new Error(label+' history '+hist);
             await page.locator('#restartBtn').click();
-            if(!(await page.locator('#roleScreen.active').isVisible())) throw new Error(label+' restart missing role screen');
+            if(!(await page.locator('#startScreen.active').isVisible())) throw new Error(label+' restart did not return to start');
             await page.reload({waitUntil:'networkidle'});
             if(!(await page.locator('#quickBtn').isVisible())) throw new Error(label+' reload failed');
             if(errors.length) throw new Error(label+' page errors '+errors.join('|'));
