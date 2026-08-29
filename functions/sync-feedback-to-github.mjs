@@ -20,6 +20,7 @@ const feedbackTypes = {
   idea: 'アイデア',
 };
 const feedbackTypeSet = new Set(Object.keys(feedbackTypes));
+const requestTypeSet = new Set(['improvement', 'new_app']);
 
 async function github(path, options = {}) {
   const response = await fetch(`${apiBase}${path}`, {
@@ -40,8 +41,7 @@ async function github(path, options = {}) {
   return response.json();
 }
 
-async function ensureLabel() {
-  const label = 'levelup-feedback';
+async function ensureLabel(label, color, description) {
   const encoded = encodeURIComponent(label);
   const exists = await fetch(`${apiBase}/repos/${owner}/${name}/labels/${encoded}`, {
     headers: {
@@ -51,11 +51,11 @@ async function ensureLabel() {
     },
   });
   if (exists.ok) return label;
-  if (exists.status !== 404) throw new Error(`Unable to check label: ${exists.status}`);
+  if (exists.status !== 404) throw new Error(`Unable to check label ${label}: ${exists.status}`);
   if (dryRun) return label;
   await github(`/repos/${owner}/${name}/labels`, {
     method: 'POST',
-    body: JSON.stringify({ name: label, color: 'D8FF5B', description: 'LEVEL UPの画面から送られた改善要望' }),
+    body: JSON.stringify({ name: label, color, description }),
   });
   return label;
 }
@@ -69,30 +69,108 @@ function oneLine(value, max = 70) {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
+function requestTypeFor(data) {
+  return data?.requestType === 'new_app' ? 'new_app' : 'improvement';
+}
+
 function bodyFor(id, data) {
+  const requestType = requestTypeFor(data);
   const kind = feedbackTypes[data.type] || data.type || '改善';
   const created = timestamp(data.createdAt) || 'unknown';
-  return `<!-- levelup-feedback-id:${id} -->\n` +
-`## 要望\n\n${data.message || ''}\n\n` +
-`## 発生場所\n\n` +
-`- 種類: ${kind}\n` +
-`- アプリ: ${data.appTitle || data.appSlug || '-'}\n` +
-`- slug: \`${data.appSlug || '-'}\`\n` +
-`- 画面: ${data.screenLabel || data.pageTitle || '-'}\n` +
-`- path: \`${data.pagePath || '-'}\`\n` +
-`- build: \`${data.buildSha || '-'}\`\n` +
-`- viewport: \`${data.viewport || '-'}\`\n` +
-`- 送信日時: ${created}\n\n` +
-`## 改善ルーチン\n\n` +
-`- [ ] 要望の意図と再現箇所を確認\n` +
-`- [ ] 改善案を決める\n` +
-`- [ ] 実装・テスト\n` +
-`- [ ] 本番反映を確認\n\n` +
-`このIssueはLEVEL UPの「改善要望」ボタンから自動生成されました。ChappyはこのIssueを改善候補として読めます。\n`;
+  if (requestType === 'new_app') {
+    return `<!-- levelup-feedback-id:${id} -->\
+` +
+`## 悩み・作ってほしいアプリ\
+\
+${data.message || ''}\
+\
+` +
+`## 送信場所\
+\
+` +
+`- 依頼種別: 新規アプリ制作\
+` +
+`- 送信元アプリ: ${data.appTitle || data.appSlug || '-'}\
+` +
+`- slug: \`${data.appSlug || '-'}\`\
+` +
+`- 画面: ${data.screenLabel || data.pageTitle || '-'}\
+` +
+`- path: \`${data.pagePath || '-'}\`\
+` +
+`- build: \`${data.buildSha || '-'}\`\
+` +
+`- viewport: \`${data.viewport || '-'}\`\
+` +
+`- 送信日時: ${created}\
+\
+` +
+`## アプリ制作ルーチン\
+\
+` +
+`- [ ] 安全性・合法性・公序良俗を確認\
+` +
+`- [ ] 既存アプリとの重複・近い解決策を確認\
+` +
+`- [ ] 悩みを解決するアプローチを決める\
+` +
+`- [ ] 実装・テスト\
+` +
+`- [ ] Firebase本番反映と実URLを確認\
+\
+` +
+`違法・危険・他者への加害を助長するなど、公序良俗に反する依頼は制作しません。既存アプリで十分に解決できる場合は、新規制作より既存アプリの案内・改善を優先します。\
+\
+` +
+`このIssueはLEVEL UPの「アプリ制作依頼」導線から自動生成されました。ChappyはこのIssueを新規アプリ制作候補として読めます。\
+`;
+  }
+  return `<!-- levelup-feedback-id:${id} -->\
+` +
+`## 要望\
+\
+${data.message || ''}\
+\
+` +
+`## 発生場所\
+\
+` +
+`- 種類: ${kind}\
+` +
+`- アプリ: ${data.appTitle || data.appSlug || '-'}\
+` +
+`- slug: \`${data.appSlug || '-'}\`\
+` +
+`- 画面: ${data.screenLabel || data.pageTitle || '-'}\
+` +
+`- path: \`${data.pagePath || '-'}\`\
+` +
+`- build: \`${data.buildSha || '-'}\`\
+` +
+`- viewport: \`${data.viewport || '-'}\`\
+` +
+`- 送信日時: ${created}\
+\
+` +
+`## 改善ルーチン\
+\
+` +
+`- [ ] 要望の意図と再現箇所を確認\
+` +
+`- [ ] 改善案を決める\
+` +
+`- [ ] 実装・テスト\
+` +
+`- [ ] 本番反映を確認\
+\
+` +
+`このIssueはLEVEL UPの「改善要望」ボタンから自動生成されました。ChappyはこのIssueを改善候補として読めます。\
+`;
 }
 
 function validSessionFeedback(raw, docs) {
   if (!raw || raw.v !== 1) return null;
+  const requestType = String(raw.requestType || 'improvement');
   const type = String(raw.type || '');
   const message = String(raw.message || '').trim();
   const appSlug = String(raw.appSlug || '');
@@ -102,6 +180,7 @@ function validSessionFeedback(raw, docs) {
   const screenLabel = String(raw.screenLabel || '').trim();
   const buildSha = String(raw.buildSha || '');
   const viewport = String(raw.viewport || '');
+  if (!requestTypeSet.has(requestType)) return null;
   if (!feedbackTypeSet.has(type)) return null;
   if (message.length < 2 || message.length > 800) return null;
   if (!/^(home|[a-z0-9-]{1,64})$/.test(appSlug)) return null;
@@ -112,7 +191,7 @@ function validSessionFeedback(raw, docs) {
   if (!/^(local|[a-f0-9]{4,12})$/.test(buildSha)) return null;
   if (!/^\d{2,5}x\d{2,5}$/.test(viewport)) return null;
   if (docs.some((doc) => doc.data()?.slug !== appSlug || doc.data()?.buildSha !== buildSha)) return null;
-  return { type, message, appSlug, appTitle, pageTitle, pagePath, screenLabel, buildSha, viewport };
+  return { requestType, type, message, appSlug, appTitle, pageTitle, pagePath, screenLabel, buildSha, viewport };
 }
 
 async function markSessionGroup(docs, batchId, state) {
@@ -178,7 +257,7 @@ async function syncSessionFallbacks() {
         .filter(Boolean)
         .sort((a, b) => (a?.toMillis?.() || 0) - (b?.toMillis?.() || 0))[0] || FieldValue.serverTimestamp();
       await feedbackRef.set({
-        schemaVersion: 1,
+        schemaVersion: 2,
         source: 'levelup-feedback-session-fallback',
         ...payload,
         status: 'new',
@@ -192,12 +271,12 @@ async function syncSessionFallbacks() {
 }
 
 async function findExistingIssue(feedbackId) {
-  const q = encodeURIComponent(`repo:${repo} in:body "levelup-feedback-id:${feedbackId}"`);
+  const q = encodeURIComponent(`repo:${repo} in:body \"levelup-feedback-id:${feedbackId}\"`);
   const result = await github(`/search/issues?q=${q}&per_page=5`);
   return result?.items?.[0] || null;
 }
 
-async function syncPending(label) {
+async function syncPending(feedbackLabel, appRequestLabel) {
   const snap = await db.collection('levelupFeedback').where('syncStatus', '==', 'pending').limit(25).get();
   const docs = [...snap.docs].sort((a, b) => {
     const ta = a.data()?.createdAt?.toMillis?.() || 0;
@@ -207,13 +286,17 @@ async function syncPending(label) {
   console.log(`Pending feedback: ${docs.length}`);
   for (const doc of docs) {
     const data = doc.data() || {};
+    const requestType = requestTypeFor(data);
     let issue = await findExistingIssue(doc.id);
     if (!issue && !dryRun) {
       const kind = feedbackTypes[data.type] || '改善';
-      const title = `[改善要望] ${oneLine(data.appTitle || data.appSlug, 28)} / ${kind}: ${oneLine(data.message, 58)}`;
+      const title = requestType === 'new_app'
+        ? `[アプリ制作依頼] ${oneLine(data.message, 72)}`
+        : `[改善要望] ${oneLine(data.appTitle || data.appSlug, 28)} / ${kind}: ${oneLine(data.message, 58)}`;
+      const labels = requestType === 'new_app' ? [feedbackLabel, appRequestLabel] : [feedbackLabel];
       issue = await github(`/repos/${owner}/${name}/issues`, {
         method: 'POST',
-        body: JSON.stringify({ title, body: bodyFor(doc.id, data), labels: [label] }),
+        body: JSON.stringify({ title, body: bodyFor(doc.id, data), labels }),
       });
     }
     if (dryRun) {
@@ -251,7 +334,8 @@ async function syncClosed() {
 }
 
 await syncSessionFallbacks();
-const label = await ensureLabel();
-await syncPending(label);
+const feedbackLabel = await ensureLabel('levelup-feedback', 'D8FF5B', 'LEVEL UPの画面から送られた改善・アプリ制作要望');
+const appRequestLabel = await ensureLabel('levelup-app-request', '7C5CFC', 'LEVEL UPの新規アプリ制作依頼');
+await syncPending(feedbackLabel, appRequestLabel);
 await syncClosed();
 console.log('LEVEL UP feedback sync complete.');
