@@ -1,0 +1,95 @@
+name: PLAY release browser audit
+
+on:
+  push:
+    paths:
+      - '.browser-playtest-trigger'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 >/tmp/play-http.log 2>&1 &
+          echo $! > /tmp/play-http.pid
+          sleep 2
+      - name: Browser playtest environment policy and water rescue
+        run: |
+          cat > /tmp/audit.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          const runs=[];
+          async function envRun(viewport,label){
+            const page=await browser.newPage({viewport});
+            const url='http://127.0.0.1:4173/apps/environment-policy-sim/';
+            await page.goto(url,{waitUntil:'networkidle'});
+            const intro=await page.locator('#intro').innerText();
+            const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
+            await page.getByRole('button',{name:/政策責任者/}).click();
+            await page.locator('#startBtn').click();
+            const years=[];
+            for(let y=1;y<=4;y++){
+              const event=await page.locator('#eventTitle').innerText();
+              const buttons=page.locator('#actions button:not(:disabled)');
+              await buttons.nth(0).click();
+              if(await buttons.count()>1) await buttons.nth(1).click();
+              await page.locator('#applyBtn').click();
+              const feedback=await page.locator('#feedbackBody').innerText();
+              years.push({y,event,feedback:feedback.slice(0,180)});
+              await page.locator('#nextBtn').click();
+            }
+            await page.locator('#result').waitFor({state:'visible'});
+            const grade=await page.locator('#grade').innerText();
+            const score=await page.locator('#score').innerText();
+            const result=await page.locator('#resultText').innerText();
+            console.log('ENV_AUDIT',JSON.stringify({label,intro:intro.slice(0,160),overflow,years,grade,score,result}));
+            await page.close();
+          }
+          async function waterRun(viewport,label){
+            const page=await browser.newPage({viewport});
+            const url='http://127.0.0.1:4173/apps/water-rescue/';
+            await page.goto(url,{waitUntil:'networkidle'});
+            const intro=await page.locator('#intro').innerText();
+            const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
+            await page.locator('#startBtn').click();
+            const missions=[];
+            for(let i=0;i<4;i++){
+              const title=await page.locator('#missionTitle').innerText();
+              const jobs=page.locator('#jobChoices button');
+              await jobs.nth(0).click();
+              await page.locator('#actionPhase').waitFor({state:'visible'});
+              const tools=page.locator('#toolChoices button');
+              await tools.nth(0).click();
+              await tools.nth(2).click();
+              const before={water:await page.locator('#waterStat').innerText(),budget:await page.locator('#budgetStat').innerText(),trust:await page.locator('#trustStat').innerText()};
+              await page.locator('#resolveBtn').click();
+              await page.locator('#result').waitFor({state:'visible'});
+              const report=await page.locator('#resultCopy').innerText();
+              const after={water:await page.locator('#waterStat').innerText(),budget:await page.locator('#budgetStat').innerText(),trust:await page.locator('#trustStat').innerText()};
+              missions.push({title,before,after,report:report.slice(0,160)});
+              await page.locator('#nextBtn').click();
+            }
+            await page.locator('#final').waitFor({state:'visible'});
+            const final=await page.locator('#finalScore').innerText();
+            console.log('WATER_AUDIT',JSON.stringify({label,intro:intro.slice(0,160),overflow,missions,final}));
+            await page.close();
+          }
+          await envRun({width:390,height:844},'mobile');
+          await envRun({width:1280,height:900},'desktop');
+          await waterRun({width:390,height:844},'mobile');
+          await waterRun({width:1280,height:900},'desktop');
+          await browser.close();
+          JS
+          node /tmp/audit.mjs
