@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   browser:
-    timeout-minutes: 3
+    timeout-minutes: 4
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,53 +31,116 @@ jobs:
           cat > .how-seen-browser-test.mjs <<'NODE'
           import puppeteer from 'puppeteer-core';
           const browser = await puppeteer.launch({headless:true, executablePath:'/usr/bin/google-chrome', args:['--no-sandbox']});
-          const page = await browser.newPage();
-          page.setDefaultTimeout(10000);
-          await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          const API='https://asia-northeast1-hitobito-levelup.cloudfunctions.net/howSeenApi';
           const base='http://127.0.0.1:4173/apps/how-seen/';
-          const nav=(p,u)=>p.goto(u,{waitUntil:'domcontentloaded',timeout:10000});
+          const sid='testsession1234567890';
+          const ownerToken='a'.repeat(64);
+          const selfScores={calm:62,warm:74,drive:50,reliable:85,considerate:62};
+          const friendScores={calm:38,warm:74,drive:62,reliable:74,considerate:85};
+          let friendCount=0;
+          const responseIds=new Set();
+
+          const cors={
+            'access-control-allow-origin':'http://127.0.0.1:4173',
+            'access-control-allow-headers':'Authorization, Content-Type',
+            'access-control-allow-methods':'GET, POST, OPTIONS',
+            'content-type':'application/json',
+          };
+          const send=(req,status,body)=>req.respond({status,headers:cors,body:JSON.stringify(body)});
+          async function mockApi(page){
+            await page.setRequestInterception(true);
+            page.on('request', req=>{
+              const url=req.url();
+              if(!url.startsWith(API)) return req.continue();
+              const parsed=new URL(url); const path=parsed.pathname.replace('/howSeenApi','') || '/';
+              if(req.method()==='OPTIONS') return req.respond({status:204,headers:cors,body:''});
+              if(req.method()==='POST' && path==='/session') return send(req,201,{ok:true,sid,ownerToken,friendCount:0,complete:false});
+              if(req.method()==='GET' && path===`/session/${sid}/public`) return send(req,200,{ok:true,friendCount,open:friendCount<3});
+              if(req.method()==='POST' && path===`/session/${sid}/response`){
+                const body=JSON.parse(req.postData()||'{}');
+                if(responseIds.has(body.responseId)) return send(req,200,{ok:true,friendCount,complete:friendCount>=3,duplicate:true});
+                if(friendCount>=3) return send(req,409,{ok:false,error:'SESSION_FULL'});
+                responseIds.add(body.responseId); friendCount++;
+                return send(req,200,{ok:true,friendCount,complete:friendCount>=3,duplicate:false});
+              }
+              if(req.method()==='GET' && path===`/session/${sid}`){
+                if(req.headers().authorization!==`Bearer ${ownerToken}`) return send(req,403,{ok:false,error:'FORBIDDEN'});
+                return send(req,200,{ok:true,selfScores,friendCount,complete:friendCount>=3,friendAverage:friendCount>=3?friendScores:null});
+              }
+              return send(req,404,{ok:false,error:'NOT_FOUND'});
+            });
+          }
+          const nav=(page,url)=>page.goto(url,{waitUntil:'domcontentloaded',timeout:10000});
+          async function answerTen(page,offset=0){
+            for(let i=0;i<10;i++){
+              await page.waitForSelector('.choice');
+              const choices=await page.$$('.choice');
+              if(choices.length!==4) throw new Error(`expected 4 choices at question ${i+1}`);
+              await choices[(i+offset)%4].click();
+            }
+          }
+
+          const owner=await browser.newPage(); owner.setDefaultTimeout(10000); await owner.setViewport({width:390,height:844,isMobile:true,hasTouch:true}); await mockApi(owner);
           console.log('stage:first-view');
-          await nav(page,base);
-          const title=await page.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim());
-          if(!title.includes('他人から')) throw new Error('first view title missing');
-          const start=await page.$('#start'); if(!start) throw new Error('start missing');
+          await nav(owner,base);
+          const title=await owner.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim());
+          if(!title.includes('友達から見た')) throw new Error('first view title missing');
+          const start=await owner.$('#startSelf'); if(!start) throw new Error('start missing');
           const box=await start.boundingBox(); if(!box || box.height<48) throw new Error('start tap target too small');
           await start.click();
-          console.log('stage:self-questions');
-          for(let i=0;i<8;i++){await page.waitForSelector('.choice'); const choices=await page.$$('.choice'); if(choices.length!==2) throw new Error('expected 2 choices'); await choices[i%2].click();}
-          await page.waitForSelector('.result-card');
-          const bars=await page.$$('.bar-row'); if(bars.length<4) throw new Error('result bars missing');
-          const last=await page.evaluate(()=>JSON.parse(localStorage.getItem('how-seen-last')));
-          if(!last?.id || !last?.self) throw new Error('self result not persisted');
-          const ask=await page.evaluate((token)=>{const s=btoa(unescape(encodeURIComponent(JSON.stringify(token)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return location.origin+location.pathname+'?ask='+encodeURIComponent(s)},last);
-          console.log('stage:friend-flow');
-          const friend=await browser.newPage(); friend.setDefaultTimeout(10000); await friend.setViewport({width:390,height:844,isMobile:true,hasTouch:true}); await nav(friend,ask);
-          const friendTitle=await friend.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim()); if(!friendTitle.includes('実際どう見える')) throw new Error('friend intro missing');
-          await friend.click('#peerStart');
-          for(let i=0;i<8;i++){await friend.waitForSelector('.choice');const choices=await friend.$$('.choice');await choices[(i+1)%2].click();}
-          await friend.waitForSelector('#sendBack');
-          const returnUrl=await friend.evaluate((token)=>{
-            const labels={'親しみやすさ':'warm','押しの強さ':'drive','安定感':'steady','本音の見えやすさ':'open'};
-            const scores={};document.querySelectorAll('.bar-row').forEach(row=>scores[labels[row.querySelector('b').textContent]]=Number(row.querySelector('span').textContent));
-            const obj={id:token.id,self:token.self,peer:scores};const s=btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return location.origin+location.pathname+'?back='+encodeURIComponent(s)
-          },last);
-          console.log('stage:return-import');
-          const returned=await browser.newPage(); returned.setDefaultTimeout(10000); await returned.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
-          await nav(returned,base);
-          await returned.evaluate((token)=>localStorage.setItem('how-seen-last',JSON.stringify(token)),last);
-          await nav(returned,returnUrl);
-          await returned.waitForSelector('.gap-number');
-          const imported=await returned.$eval('.notice',el=>el.textContent); if(!imported.includes('追加')) throw new Error('return response not imported');
-          const responses=await returned.evaluate((id)=>JSON.parse(localStorage.getItem('how-seen-responses:'+id)||'[]'),last.id); if(responses.length!==1) throw new Error('response not saved');
-          await returned.reload({waitUntil:'domcontentloaded',timeout:10000}); await returned.waitForSelector('.gap-number');
-          const persistedCount=await returned.$eval('.friend-badge',el=>el.textContent); if(!persistedCount.includes('1人')) throw new Error('revisit average missing');
-          await returned.click('#resetBtn'); await returned.waitForSelector('#start');
-          const resetTitle=await returned.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim()); if(!resetTitle.includes('他人から')) throw new Error('reset/back path failed');
-          console.log('stage:desktop');
-          await returned.setViewport({width:1280,height:900});
-          if(!(await returned.$('.shell'))) throw new Error('desktop shell missing');
-          console.log('HOW-SEEN BROWSER PASS: first view, 8 self choices, result, friend flow, return import, reload/revisit, reset/back, mobile and desktop verified.');
+
+          console.log('stage:self-10');
+          await answerTen(owner,0);
+          await owner.waitForSelector('#inviteFriend');
+          const waiting=await owner.$eval('.lock',el=>el.textContent.trim());
+          if(waiting!=='0/3') throw new Error(`expected 0/3, got ${waiting}`);
+          const ownerLocation=owner.url();
+          if(!ownerLocation.includes(`?owner=${sid}`) || !ownerLocation.includes('#key=')) throw new Error('private owner URL missing');
+
+          console.log('stage:three-friends');
+          for(let friendNo=0;friendNo<3;friendNo++){
+            const context=await browser.createBrowserContext();
+            const friend=await context.newPage(); friend.setDefaultTimeout(10000); await friend.setViewport({width:390,height:844,isMobile:true,hasTouch:true}); await mockApi(friend);
+            await nav(friend,`${base}?friend=${sid}`);
+            const friendTitle=await friend.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim());
+            if(!friendTitle.includes('実際どう見える')) throw new Error('friend intro missing');
+            await friend.click('#friendStart');
+            await answerTen(friend,friendNo+1);
+            await friend.waitForSelector('.thanks-card');
+            const sent=await friend.$eval('.thanks-card p',el=>el.textContent.replace(/\s+/g,' ').trim());
+            if(!sent.includes(`${friendNo+1}/3人`)) throw new Error(`friend count did not advance: ${sent}`);
+            if(!(await friend.$('#startMine'))) throw new Error('viral start-mine CTA missing');
+            await context.close();
+            if(friendNo<2){
+              await owner.click('#manualRefresh');
+              await owner.waitForFunction(expected=>document.querySelector('.lock')?.textContent.trim()===expected,{},`${friendNo+1}/3`);
+            }
+          }
+
+          console.log('stage:unlock-at-three');
+          await owner.click('#manualRefresh');
+          await owner.waitForSelector('.result-hero');
+          const resultTitle=await owner.$eval('.result-hero h1',el=>el.textContent.trim());
+          if(resultTitle!=='冷静さ') throw new Error(`largest gap should be 冷静さ, got ${resultTitle}`);
+          const rows=await owner.$$('.compare-row'); if(rows.length!==5) throw new Error('expected five comparison rows');
+          const pair=await owner.$eval('.hero-score-pair',el=>el.textContent.replace(/\s+/g,' ').trim());
+          if(!pair.includes('62') || !pair.includes('38')) throw new Error('self/friend score pair missing');
+
+          console.log('stage:fourth-friend-blocked');
+          const fourthContext=await browser.createBrowserContext(); const fourth=await fourthContext.newPage(); fourth.setDefaultTimeout(10000); await mockApi(fourth); await nav(fourth,`${base}?friend=${sid}`);
+          await fourth.waitForFunction(()=>document.body.textContent.includes('3人の回答が揃いました'));
+          if(await fourth.$('#friendStart')) throw new Error('fourth response should not be accepted');
+          await fourthContext.close();
+
+          console.log('stage:reload-owner');
+          await owner.reload({waitUntil:'domcontentloaded',timeout:10000});
+          await owner.waitForSelector('.result-hero');
+          if((await owner.$$('.compare-row')).length!==5) throw new Error('owner result did not survive reload');
+          await owner.click('#resetBtn'); await owner.waitForSelector('#startSelf');
+          await owner.setViewport({width:1280,height:900}); if(!(await owner.$('.shell'))) throw new Error('desktop shell missing');
+
+          console.log('HOW-SEEN BROWSER PASS: 10 self answers, one friend URL, 3 isolated friend responses, automatic 3/3 unlock, fourth response blocked, private owner reload, viral CTA, mobile and desktop verified.');
           await browser.close();
           NODE
-          timeout 90s node .how-seen-browser-test.mjs
+          timeout 120s node .how-seen-browser-test.mjs
           rm .how-seen-browser-test.mjs
