@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f3f6df" />
+  <meta name="description" content="90歳まで生きると仮定したら、春・土曜日・大切な人との時間はあと何回？ 残り回数を具体化して、今日大切にする1回を決めるLEVEL UPアプリ。" />
+  <meta property="og:title" content="人生、あと何回？ — LEVEL UP" />
+  <meta property="og:description" content="春、土曜日、大切な人との時間。残り回数にすると、今日の見え方が変わる。" />
+  <meta property="og:type" content="website" />
+  <title>人生、あと何回？ — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a href="/" class="brand" aria-label="LEVEL UPトップへ戻る"><span class="brand-mark">L</span><span>LEVEL UP</span></a>
+      <button id="resetBtn" class="text-button" type="button">RESET</button>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">COUNT WHAT IS LIMITED</p>
+      <h1>人生、<br><span>あと何回？</span></h1>
+      <p class="hero-copy">寿命の予測ではありません。<br><strong id="assumptionCopy">90歳まで生きると仮定して</strong>、身近な出来事を残り回数にします。</p>
+    </section>
+
+    <section class="control-card" aria-labelledby="ageHeading">
+      <div class="control-heading">
+        <div><p>STEP 1</p><h2 id="ageHeading">今の年齢を動かす</h2></div>
+        <strong><span id="ageValue">40</span><small>歳</small></strong>
+      </div>
+      <input id="ageRange" type="range" min="10" max="89" value="40" aria-label="現在の年齢" />
+      <div class="range-labels"><span>10</span><span>89</span></div>
+      <div class="assumption-row">
+        <span>何歳までと仮定する？</span>
+        <div class="segmented" id="endAgeButtons" role="group" aria-label="仮定する年齢">
+          <button type="button" data-end="80">80</button>
+          <button type="button" data-end="90" class="active">90</button>
+          <button type="button" data-end="100">100</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="count-stage" aria-live="polite">
+      <div class="meter" aria-hidden="true"><div id="meterFill"></div></div>
+      <div class="primary-count">
+        <span>春を迎えるのは</span>
+        <strong id="springCount">50</strong>
+        <b>回くらい</b>
+      </div>
+      <div class="count-grid">
+        <article><span>土曜日</span><strong id="saturdayCount">2,609</strong><small>回くらい</small></article>
+        <article><span>誕生日</span><strong id="birthdayCount">50</strong><small>回くらい</small></article>
+        <article><span>夏</span><strong id="summerCount">50</strong><small>回くらい</small></article>
+        <article><span>年末</span><strong id="yearEndCount">50</strong><small>回くらい</small></article>
+      </div>
+    </section>
+
+    <section class="control-card parent-card" aria-labelledby="parentHeading">
+      <div class="control-heading compact">
+        <div><p>STEP 2</p><h2 id="parentHeading">大切な人と会うペース</h2></div>
+      </div>
+      <p class="hint">「親」に限らず、会えるうちに会いたい人を想像してください。</p>
+      <div class="frequency-grid" id="parentFrequency">
+        <button type="button" data-per-year="52">週1</button>
+        <button type="button" data-per-year="12" class="active">月1</button>
+        <button type="button" data-per-year="4">3か月に1回</button>
+        <button type="button" data-per-year="1">年1</button>
+      </div>
+      <div class="human-count">
+        <span>今のペースなら、会えるのは</span>
+        <strong id="parentCount">600</strong>
+        <b>回くらい</b>
+      </div>
+      <p class="tiny-note">※ 相手の年齢や健康状態は計算していません。あなたが設定した仮定年齢まで同じ頻度が続く場合の単純計算です。</p>
+    </section>
+
+    <section class="choice-section" id="choiceSection">
+      <p class="eyebrow">STEP 3 / CHOOSE ONE</p>
+      <h2>今日、どの「1回」を<br>雑にしない？</h2>
+      <div class="choice-grid" id="choiceGrid">
+        <button type="button" data-choice="春" data-source="spring"><span>季節</span><strong>春</strong><small id="choiceSpring">あと50回</small></button>
+        <button type="button" data-choice="土曜日" data-source="saturday"><span>休日</span><strong>土曜日</strong><small id="choiceSaturday">あと2,609回</small></button>
+        <button type="button" data-choice="誕生日" data-source="birthday"><span>節目</span><strong>誕生日</strong><small id="choiceBirthday">あと50回</small></button>
+        <button type="button" data-choice="大切な人に会う" data-source="parent"><span>人</span><strong>会う時間</strong><small id="choiceParent">あと600回</small></button>
+      </div>
+    </section>
+
+    <section class="result-section" id="resultSection" hidden>
+      <p class="eyebrow">YOUR ONE</p>
+      <div class="result-card" id="resultCard">
+        <p>人生、あと何回？</p>
+        <span id="resultAssumption">40歳 → 90歳と仮定</span>
+        <div class="result-focus">
+          <small>今日、雑にしない1回</small>
+          <strong id="resultChoice">土曜日</strong>
+          <b>あと <em id="resultCount">2,609</em> 回くらい</b>
+        </div>
+        <div class="mini-stats">
+          <span>春 <b id="resultSpring">50</b></span>
+          <span>土曜 <b id="resultSaturday">2,609</b></span>
+          <span>会う <b id="resultParent">600</b></span>
+        </div>
+        <footer>LEVEL UP · levelup.hitobito.jp</footer>
+      </div>
+      <p class="result-message">数を減らすためのアプリではなく、<br>残っている1回を大切にするためのアプリです。</p>
+      <div class="actions">
+        <button id="shareBtn" type="button" class="primary">結果をシェアする <span>↗</span></button>
+        <button id="copyBtn" type="button" class="secondary">結果をコピー</button>
+        <button id="backBtn" type="button" class="secondary">選び直す</button>
+      </div>
+      <p class="share-status" id="shareStatus" role="status"></p>
+    </section>
+
+    <section class="revisit" id="revisitBox" hidden>
+      <span>前回あなたが大切にすると決めたのは</span>
+      <strong id="previousChoice"></strong>
+      <small id="previousDate"></small>
+    </section>
+  </main>
+
+  <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
+  <script src="./app.js"></script>
+</body>
+</html>
