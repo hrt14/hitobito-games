@@ -1,5 +1,6 @@
 name: PLAY release browser audit
 
+# release-audit-v2
 on:
   push:
     branches: [main]
@@ -62,7 +63,7 @@ jobs:
                 const tools2=page.locator('#toolChoices .tool'); await tools2.nth(0).click(); await tools2.nth(2).click();
                 await page.locator('#resolveBtn').click(); await page.locator('#result:not(.hidden)').waitFor();
               }
-              if(m<3) await page.locator('#nextBtn').click(); else await page.locator('#nextBtn').click();
+              await page.locator('#nextBtn').click();
             }
             await page.locator('#final:not(.hidden)').waitFor();
             const score=(await page.locator('#finalScore').textContent())?.trim();
