@@ -31,8 +31,9 @@ jobs:
           page.on('pageerror',e=>failed.push(String(e)));
           page.on('requestfailed',req=>{if(!req.url().endsWith('/favicon.ico')) failed.push(`${req.url()} ${req.failure()?.errorText||''}`)});
           const url='https://levelup.hitobito.jp/apps/ato-nankai/';
-          const response=await page.goto(url,{waitUntil:'networkidle0',timeout:60000});
+          const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
           if(!response || response.status()!==200) throw new Error(`production HTTP status ${response?.status()}`);
+          await page.waitForSelector('#springCount',{timeout:10000});
           const title=await page.title();
           if(!title.includes('人生、あと何回？')) throw new Error(`production title mismatch: ${title}`);
           const disclaimer=await page.$eval('.hero-copy',el=>el.textContent);
