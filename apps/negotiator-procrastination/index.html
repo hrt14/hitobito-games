@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#090909" />
+  <meta name="description" content="先延ばし中の自分と交渉するLEVEL UPアプリ。25分の要求を断っても、5分、60秒、30秒、10秒へ条件を小さくし、今の最小着手まで連れていく。" />
+  <meta property="og:title" content="NEGOTIATOR｜先延ばしをやめろ — LEVEL UP" />
+  <meta property="og:description" content="断っていい。NEGOTIATORが条件を変える。先延ばしを最小の着手まで縮める。" />
+  <title>NEGOTIATOR｜先延ばしをやめろ — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a href="/" class="home-link" aria-label="LEVEL UPトップへ戻る">← <span>LEVEL UP</span></a>
+      <div class="series-mark">NEGOTIATOR</div>
+      <button id="exitBtn" class="icon-btn" type="button" aria-label="交渉を終了する">×</button>
+    </header>
+
+    <section class="screen active" id="negotiationScreen" aria-labelledby="appTitle">
+      <div class="title-block">
+        <p class="eyebrow">NEGOTIATOR / PROCRASTINATION</p>
+        <h1 id="appTitle">先延ばしを<br><span>やめろ。</span></h1>
+        <p class="subcopy" id="subcopy">断っていい。条件を変えて、あなたが動けるところまで交渉します。</p>
+      </div>
+
+      <div class="negotiator-card">
+        <div class="negotiator-head">
+          <div class="avatar" aria-hidden="true"><span>N</span></div>
+          <div>
+            <b>NEGOTIATOR</b>
+            <span id="stageLabel">OPENING OFFER</span>
+          </div>
+          <div class="ask-chip" id="askChip">25:00</div>
+        </div>
+
+        <div class="ask-track" aria-label="要求サイズ">
+          <i id="askTrackFill"></i>
+        </div>
+        <div class="ask-scale"><span>大きい要求</span><span>小さい要求</span></div>
+
+        <div class="speech" id="speech" aria-live="polite"></div>
+        <div class="concession" id="concession" hidden></div>
+      </div>
+
+      <div class="reply-label"><span>あなたの返事</span><small>拒否しても続きます</small></div>
+      <div class="choices" id="choices" role="group" aria-label="返事を選ぶ"></div>
+
+      <div class="session-hint" id="sessionHint" hidden></div>
+    </section>
+
+    <section class="screen" id="prepScreen" aria-labelledby="prepTitle">
+      <p class="eyebrow">DEAL / 具体化</p>
+      <h2 id="prepTitle">交渉成立。<br>何を最初に動かす？</h2>
+      <p class="lead">終わらせなくていい。いま触れる最初の1操作だけ選んでください。</p>
+      <div class="action-grid" id="actionGrid">
+        <button type="button" data-action="対象を開く"><b>01</b><span>対象を開く</span><small>ファイル・教材・連絡画面など</small></button>
+        <button type="button" data-action="道具を1つ出す"><b>02</b><span>道具を1つ出す</span><small>PC・ノート・洗剤など</small></button>
+        <button type="button" data-action="最初の1操作をする"><b>03</b><span>最初の1操作をする</span><small>1文字・1クリック・1個だけ</small></button>
+      </div>
+      <button class="text-btn" id="backToNegotiation" type="button">← 交渉に戻る</button>
+    </section>
+
+    <section class="screen timer-screen" id="timerScreen" aria-labelledby="timerTitle">
+      <p class="eyebrow">ACTION / 約束した分だけ</p>
+      <h2 id="timerTitle">今、<span id="selectedAction">対象を開く</span>。</h2>
+      <p class="timer-note" id="timerNote"></p>
+
+      <div class="timer-ring" id="timerRing" style="--progress:0deg">
+        <div><strong id="timerNumber">30</strong><span>SEC</span></div>
+      </div>
+
+      <button class="primary-btn" id="startActionBtn" type="button"><span>タイマー開始</span><b>→</b></button>
+      <button class="secondary-btn" id="didStartBtn" type="button" hidden>もう始めた</button>
+      <p class="microcopy">途中で止めてもOK。今回の約束以上は要求しません。</p>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen" aria-labelledby="resultTitle">
+      <p class="eyebrow">NEGOTIATION WON</p>
+      <div class="result-mark" aria-hidden="true">✓</div>
+      <h2 id="resultTitle">先延ばしを、<br>1回止めた。</h2>
+      <p class="result-lead" id="resultLead"></p>
+
+      <div class="deal-card">
+        <div><span>最初の要求</span><strong id="initialAsk">25分</strong></div>
+        <div class="deal-arrow">→</div>
+        <div><span>動けた条件</span><strong id="finalAsk">30秒</strong></div>
+      </div>
+
+      <div class="resistance-card">
+        <span>今回いちばん強かった抵抗</span>
+        <strong id="topResistance">時間がない</strong>
+        <p id="resultInsight"></p>
+      </div>
+
+      <div class="stats-row" id="statsRow"></div>
+
+      <div class="result-actions">
+        <button class="primary-btn" id="continueBtn" type="button"><span>このまま5分だけ続ける</span><b>→</b></button>
+        <button class="secondary-btn" id="shareBtn" type="button">結果をシェア</button>
+        <button class="text-btn" id="againBtn" type="button">別の先延ばしでもう一度</button>
+        <a class="text-link" href="/">LEVEL UPへ戻る</a>
+      </div>
+    </section>
+
+    <section class="screen fail-screen" id="failScreen" aria-labelledby="failTitle">
+      <p class="eyebrow">NEGOTIATION CLOSED</p>
+      <h2 id="failTitle">今日は交渉不成立。</h2>
+      <p class="result-lead">無理やり続けません。ただし、次回は最初から25分を要求せず、もっと小さい条件から始めます。</p>
+      <div class="resistance-card">
+        <span>今回の主な抵抗</span>
+        <strong id="failResistance">まだ重い</strong>
+        <p>「なんとなく後で」に戻すより、今日はやらないと決めた方が条件は明確です。</p>
+      </div>
+      <button class="primary-btn" id="retryTinyBtn" type="button"><span>10秒から再交渉</span><b>↻</b></button>
+      <a class="text-link" href="/">LEVEL UPへ戻る</a>
+    </section>
+  </main>
+
+  <div class="modal" id="exitModal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+      <p class="eyebrow">EXIT?</p>
+      <h2 id="exitTitle">交渉をやめる？</h2>
+      <p>終了しても記録は壊れません。</p>
+      <button class="secondary-btn" id="stayBtn" type="button">まだ続ける</button>
+      <a class="text-link" href="/">今日は終了</a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
