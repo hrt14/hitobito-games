@@ -47,7 +47,7 @@ jobs:
           page.on('pageerror', err => consoleErrors.push(`pageerror: ${err.message}`));
 
           try {
-            const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+            const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
             assert(response, 'No navigation response');
             assert.equal(response.status(), 200, `Expected 200, got ${response.status()}`);
             assert.match(await page.title(), /10年後から戻ってきた/);
@@ -101,7 +101,7 @@ jobs:
             await checkMobile('result');
             await page.screenshot({ path: '10-years-back-production.png', fullPage: true });
 
-            await page.reload({ waitUntil: 'networkidle' });
+            await page.reload({ waitUntil: 'domcontentloaded' });
             const storedAfterReload = await page.evaluate(() => localStorage.getItem('levelup-10-years-back-v1'));
             assert.equal(storedAfterReload, storedBeforeReload, 'localStorage log did not survive reload');
             await page.locator('#start').waitFor();
