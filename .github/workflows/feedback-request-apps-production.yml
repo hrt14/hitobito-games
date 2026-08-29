@@ -1,0 +1,47 @@
+name: Feedback-requested LEVEL UP apps production verification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/life-rpg-status/**'
+      - 'apps/sasshi-sugi-stop/**'
+      - 'apps/listening-reflex/**'
+      - 'scripts/register-feedback-apps-meta.mjs'
+      - 'scripts/inject-feedback-app-cards.mjs'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
+      - 'scripts/verify-feedback-request-apps-production.mjs'
+      - '.github/workflows/feedback-request-apps-production.yml'
+  workflow_dispatch:
+
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for exact commit on Firebase production
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            if curl -fLsS --max-time 20 "https://levelup.hitobito.jp/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/deploy-meta.json; then
+              live=$(node -e "const x=require('/tmp/deploy-meta.json');process.stdout.write(String(x.sha||''))")
+              echo "attempt=$attempt live=$live expected=$GITHUB_SHA"
+              if [ "$live" = "$GITHUB_SHA" ]; then exit 0; fi
+            fi
+            sleep 10
+          done
+          echo "Exact commit did not become live within verification window."
+          exit 1
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Exercise all three production apps on mobile viewport
+        env:
+          LEVELUP_BASE: https://levelup.hitobito.jp
+        run: node scripts/verify-feedback-request-apps-production.mjs
