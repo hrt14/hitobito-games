@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'scripts/inject-levelup-app-menu.mjs'
+      - 'scripts/dedupe-levelup-app-menus.mjs'
       - 'package.json'
       - '.firebase-deploy-trigger'
       - '.github/workflows/verify-levelup-app-menu-production.yml'
@@ -23,7 +24,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify hamburger, favorites, and success-mind are live
+      - name: Verify hamburger, favorites, feedback, and success-mind are live
         id: verify
         shell: bash
         run: |
@@ -51,7 +52,11 @@ jobs:
                 'お気に入りに追加' \
                 'LEVEL UP トップ' \
                 'ログイン・マイデータ' \
-                'hitobito-levelup-favorites-v1'; do
+                'hitobito-levelup-favorites-v1' \
+                'data-levelup-feedback-v1' \
+                'id="lu-fb-fab"' \
+                'id="levelup-feedback-menu-bridge"' \
+                '改善要望を送る'; do
                 if ! grep -F "$needle" "$ato_out" >/dev/null; then
                   echo "missing [$needle] on $base/apps/ato-5min/" | tee -a /tmp/levelup-app-menu-verify.log
                   attempt_ok=0
@@ -93,7 +98,7 @@ jobs:
             done
             if [ "$attempt_ok" = "1" ]; then
               ok=1
-              echo "PRODUCTION FAVORITE MENU + SUCCESS MIND VERIFIED" | tee -a /tmp/levelup-app-menu-verify.log
+              echo "PRODUCTION FAVORITE MENU + FEEDBACK + SUCCESS MIND VERIFIED" | tee -a /tmp/levelup-app-menu-verify.log
               break
             fi
             sleep 5
@@ -103,6 +108,64 @@ jobs:
             echo "LEVEL UP production verification did not become healthy within the verification window." | tee -a /tmp/levelup-app-menu-verify.log
             exit 1
           fi
+
+      - name: Verify feedback link on every public LEVEL UP app
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import concurrent.futures
+          import os
+          import sys
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          base = 'https://levelup.hitobito.jp'
+          sha = os.environ.get('GITHUB_SHA', '')[:12]
+          sitemap_url = f'{base}/sitemap.xml?verify={sha}'
+          req = urllib.request.Request(sitemap_url, headers={'User-Agent': 'LEVEL-UP-production-verifier/1.0'})
+          with urllib.request.urlopen(req, timeout=30) as response:
+              root = ET.fromstring(response.read())
+
+          urls = []
+          for elem in root.iter():
+              if elem.tag.endswith('loc') and elem.text and '/apps/' in elem.text:
+                  urls.append(elem.text.strip())
+          urls = sorted(set(urls))
+          if len(urls) < 100:
+              raise SystemExit(f'Expected at least 100 public app URLs in sitemap; got {len(urls)}')
+
+          needles = (
+              'data-levelup-feedback-v1',
+              'id="lu-fb-fab"',
+              'id="levelup-feedback-menu-bridge"',
+              '改善要望を送る',
+          )
+
+          def check(url):
+              sep = '&' if '?' in url else '?'
+              req = urllib.request.Request(f'{url}{sep}verify-feedback={sha}', headers={'User-Agent': 'LEVEL-UP-production-verifier/1.0'})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      html = response.read().decode('utf-8', errors='replace')
+              except Exception as exc:
+                  return url, [f'fetch-error:{exc}']
+              return url, [needle for needle in needles if needle not in html]
+
+          failures = []
+          with concurrent.futures.ThreadPoolExecutor(max_workers=16) as pool:
+              for url, missing in pool.map(check, urls):
+                  if missing:
+                      failures.append((url, missing))
+
+          if failures:
+              print(f'PRODUCTION FEEDBACK COVERAGE FAILED: {len(failures)}/{len(urls)} apps', file=sys.stderr)
+              for url, missing in failures[:30]:
+                  print(f'- {url}: {", ".join(missing)}', file=sys.stderr)
+              raise SystemExit(1)
+
+          print(f'PRODUCTION FEEDBACK COVERAGE VERIFIED: {len(urls)} public app URLs')
+          PY
 
       - name: Update favorite-menu production status issue
         if: always()
@@ -121,13 +184,16 @@ jobs:
             echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo
             if [ "$JOB_STATUS" = "success" ]; then
-              echo "Verified on both production domains:"
+              echo "Verified on production:"
               echo "- shared hamburger menu is present in app HTML"
               echo "- current app slug is injected"
               echo "- favorite add/remove UI is shipped"
               echo "- LEVEL UP top navigation is shipped"
               echo "- login / My Data entry is shipped"
               echo "- existing LEVEL UP favorite storage key is used"
+              echo "- fixed feedback tab and feedback form are shipped"
+              echo "- hamburger contains the 改善要望を送る action"
+              echo "- every public /apps/ URL in the production sitemap has the feedback widget and menu action"
               echo "- success-mind production page returns its title, lifetime-earnings copy, non-prediction disclaimer, start control, and app script"
               echo "- LEVEL UP home contains the success-mind card"
             else
