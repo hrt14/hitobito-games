@@ -14,6 +14,10 @@ const copies = {
     title: '毎日の24時間を「残り人生の何年」に変えると、自由な時間が見えてくる',
     obi: '睡眠・仕事・スマホ・移動・家事に使う時間の先に、自由な人生が何年残るかを見る。',
   },
+  'praise-manual': {
+    title: '私の褒め方 取説 — どう褒めると刺さる？',
+    obi: '人前か1対1か、結果か努力か、言葉か行動か。10問で「私に刺さる褒め方」を相手に渡す。',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -45,4 +49,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai + jinsei-kieteru book titles and obi injected after shared book conversion.');
+console.log('[Firebase] ato-nankai + jinsei-kieteru + praise-manual book titles and obi injected after shared book conversion.');
