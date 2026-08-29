@@ -47,12 +47,13 @@ try {
   await must(await page.locator('#resultScreen').evaluate(el=>el.classList.contains('active')),'result did not survive reload');
   await page.getByRole('button',{name:'もう一度診断'}).click();
   await must((await page.locator('#progressText').textContent())?.includes('01 / 12'),'retry did not restart');
+  const metrics=await page.evaluate(()=>({w:document.documentElement.scrollWidth,vw:window.innerWidth,answerRects:[...document.querySelectorAll('.answer')].filter(el=>getComputedStyle(el).display!=='none'&&el.offsetParent!==null).map(el=>({w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height}))}));
+  await must(metrics.w<=metrics.vw,'horizontal overflow on mobile');
+  await must(metrics.answerRects.length===5,'five visible answer targets missing');
+  await must(metrics.answerRects.every(r=>r.h>=44&&r.w>=44),'tap target below 44px');
   await page.getByRole('button',{name:'最初から'}).click();
   await must(await page.getByRole('button',{name:'自分のステータスを見る'}).isVisible(),'reset did not return intro');
   await must(await page.locator('#lastResult').isVisible(),'previous result was not shown on revisit');
-  const metrics=await page.evaluate(()=>({w:document.documentElement.scrollWidth,vw:window.innerWidth,answerRects:[...document.querySelectorAll('.answer')].map(el=>({w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height}))}));
-  await must(metrics.w<=metrics.vw,'horizontal overflow on mobile');
-  await must(metrics.answerRects.every(r=>r.h>=44&&r.w>=44),'tap target below 44px');
   console.log(JSON.stringify({status:'PASS',job,ability,lv,pngBytes:stat.size,mobile:metrics},null,2));
 } finally {
   await browser.close();
