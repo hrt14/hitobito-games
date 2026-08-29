@@ -55,6 +55,13 @@ const appCopies = {
     bookTitle: 'あなたの日常特殊能力診断｜普通の強みを能力名にする',
     obi: '12の日常二択から、いつもの行動に潜む強みを「能力名・発動条件・副能力」に変える。',
   },
+  '100nin-rank': {
+    forWho: '自分の決断力・行動速度・メンタル耐久などの傾向を、直感的な順位表示で見てみたい人',
+    purpose: '12問の行動・考え方への回答を一定ルールで換算し、複数の行動特性を「100人いたら何位？」という推定順位で可視化する',
+    benefit: '自分の強く出ている行動特性を一目で把握し、実測統計ではない推定だと分かったうえで結果を共有できる',
+    bookTitle: '100人いたら何位？｜12問で行動特性を推定順位にする',
+    obi: '決断力・行動速度・メンタル耐久などを100人中の推定順位で可視化。実測統計ではなく回答パターンから算出。',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -115,4 +122,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] app-specific LEVEL UP card copy injected for ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, praise-manual, life-rpg-status, and daily-special-ability; book copy ready.');
+console.log('[Firebase] app-specific LEVEL UP card copy injected for ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, praise-manual, life-rpg-status, daily-special-ability, and 100nin-rank; book copy ready.');
