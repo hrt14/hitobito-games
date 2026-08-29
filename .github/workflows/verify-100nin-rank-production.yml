@@ -1,0 +1,27 @@
+name: Verify 100nin-rank production
+
+on:
+  push:
+    branches: [main]
+    paths: ['.verify-100nin-rank-production']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify production interaction
+        env:
+          RANK_URL: https://levelup.hitobito.jp/apps/100nin-rank/?test=1
+        run: node apps/100nin-rank/smoke-browser.mjs
