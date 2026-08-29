@@ -1,0 +1,124 @@
+name: Verify 10 years back production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-10-years-back-production.yml'
+      - 'apps/10-years-back/**'
+      - 'scripts/patch-10-years-back-timer.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          mkdir -p /tmp/ten-years-qa
+          cd /tmp/ten-years-qa
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Run production browser QA
+        working-directory: /tmp/ten-years-qa
+        run: |
+          cat > verify.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+
+          const url = 'https://levelup.hitobito.jp/apps/10-years-back/';
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+          const page = await context.newPage();
+          const consoleErrors = [];
+          page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+          page.on('pageerror', err => consoleErrors.push(`pageerror: ${err.message}`));
+
+          try {
+            const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+            assert(response, 'No navigation response');
+            assert.equal(response.status(), 200, `Expected 200, got ${response.status()}`);
+            assert.match(await page.title(), /10年後から戻ってきた/);
+            await page.locator('#start').waitFor({ state: 'visible' });
+            assert.match(await page.locator('body').innerText(), /今日の分岐を\s*1つだけ変える/);
+
+            const checkMobile = async (label) => {
+              const dims = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth }));
+              assert(dims.sw <= dims.iw + 1, `${label}: horizontal overflow ${dims.sw} > ${dims.iw}`);
+            };
+            await checkMobile('intro');
+
+            await page.click('#start');
+            await page.locator('.choice[data-id="start"]').click();
+            assert.equal(await page.locator('.choice.selected').count(), 1);
+            await page.click('#next');
+            await page.locator('.future-log').waitFor();
+            assert.match(await page.locator('.future-log').innerText(), /2036/);
+            await page.click('#next');
+
+            await page.locator('.mission').first().click();
+            assert.equal(await page.locator('.mission.selected').count(), 1);
+            await page.click('#next');
+            await page.locator('#capsule').waitFor();
+            await checkMobile('carry');
+
+            const capsule = await page.locator('#capsule').boundingBox();
+            const track = await page.locator('#track').boundingBox();
+            assert(capsule && track, 'Capsule or track has no bounding box');
+            await page.mouse.move(capsule.x + capsule.width / 2, capsule.y + capsule.height / 2);
+            await page.mouse.down();
+            await page.mouse.move(capsule.x + capsule.width / 2, track.y + track.height - 35, { steps: 16 });
+            await page.mouse.up();
+            await page.locator('#timer').waitFor({ timeout: 5000 });
+            assert.equal(await page.locator('#timer').innerText(), '3:00');
+
+            await page.click('#toggle');
+            await page.waitForTimeout(1250);
+            const runningValue = await page.locator('#timer').innerText();
+            assert.notEqual(runningValue, '3:00', 'Timer did not start');
+            await page.click('#toggle');
+            const pausedValue = await page.locator('#timer').innerText();
+            await page.waitForTimeout(1300);
+            assert.equal(await page.locator('#timer').innerText(), pausedValue, 'Timer kept ticking after pause');
+
+            await page.click('#done');
+            await page.locator('.done-card').waitFor();
+            assert.match(await page.locator('.done-card').innerText(), /分岐を1つ変えた/);
+            const storedBeforeReload = await page.evaluate(() => localStorage.getItem('levelup-10-years-back-v1'));
+            assert(storedBeforeReload && storedBeforeReload.includes('入口だけ開く'), 'Completion log missing from localStorage');
+            await checkMobile('result');
+            await page.screenshot({ path: '10-years-back-production.png', fullPage: true });
+
+            await page.reload({ waitUntil: 'networkidle' });
+            const storedAfterReload = await page.evaluate(() => localStorage.getItem('levelup-10-years-back-v1'));
+            assert.equal(storedAfterReload, storedBeforeReload, 'localStorage log did not survive reload');
+            await page.locator('#start').waitFor();
+            await checkMobile('reload');
+
+            assert.equal(consoleErrors.length, 0, `Console errors: ${consoleErrors.join(' | ')}`);
+            console.log('PASS: live 390px production flow, drag, timer pause, completion, persistence, and console checks');
+          } finally {
+            await browser.close();
+          }
+          EOF
+          node verify.mjs
+
+      - name: Upload production screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 10-years-back-production-screenshot
+          path: /tmp/ten-years-qa/10-years-back-production.png
+          if-no-files-found: ignore
