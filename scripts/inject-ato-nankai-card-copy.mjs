@@ -26,6 +26,11 @@ const appCopies = {
     purpose: '8つの二択で自己像を出し、友人の匿名回答と4軸で比べて「自分が思う自分」と「他人から見える自分」のズレを可視化する',
     benefit: '友人の実回答から、親しみやすさ・押しの強さ・安定感・本音の見えやすさのどこに認識差があるか分かる',
   },
+  'praise-manual': {
+    forWho: '褒められるのは嬉しいはずなのに、褒め方によっては居心地が悪く、自分でも「どう褒められたいか」を説明しにくい人',
+    purpose: '10問で、人前/1対1・結果/努力・短い一言/具体的・言葉/行動など7軸の「褒められ方の好み」を言語化する',
+    benefit: '仕事・パートナーでそのまま使える例文とNG例まで入った取説を相手に送り、次に褒めてもらう瞬間から使える',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -86,4 +91,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai, jinsei-kieteru, and how-seen specific LEVEL UP card copy injected; book copy ready.');
+console.log('[Firebase] ato-nankai, jinsei-kieteru, how-seen, and praise-manual specific LEVEL UP card copy injected; book copy ready.');
