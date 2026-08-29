@@ -22,6 +22,10 @@ const copies = {
     title: 'なぜ、やればいいのに動けない？ あなたを止める5つのブレーキ',
     obi: '12問で「失敗・他人の目・完璧・面倒・考えすぎ」を見分け、30秒の解除行動を持ち帰る。',
   },
+  'praise-manual': {
+    title: '私の褒め方 取説 — どう褒めると刺さる？',
+    obi: '人前か1対1か、結果か努力か、言葉か行動か。10問で「私に刺さる褒め方」を相手に渡す。',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -53,4 +57,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you book titles and obi injected after shared book conversion.');
+console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual book titles and obi injected after shared book conversion.');
