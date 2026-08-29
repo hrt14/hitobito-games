@@ -35,5 +35,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 }
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] existing late book-card overrides injected.');
-await import('./inject-feedback-app-cards.mjs');
+console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual + daily-special-ability + life-rpg-status + 100nin-rank book titles and obi injected after shared book conversion.');
