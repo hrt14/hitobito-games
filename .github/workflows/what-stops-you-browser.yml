@@ -1,0 +1,55 @@
+name: あなたを止めているもの診断 browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/what-stops-you/**'
+      - '.github/workflows/what-stops-you-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/what-stops-you/**'
+      - '.github/workflows/what-stops-you-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check test JavaScript syntax
+        run: node --check apps/what-stops-you/smoke-browser.mjs
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/what-stops-you-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/what-stops-you/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/what-stops-you-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          WHAT_STOPS_YOU_URL: http://127.0.0.1:4173/apps/what-stops-you/
+        run: node apps/what-stops-you/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: what-stops-you-browser-playtest
+          path: apps/what-stops-you/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/what-stops-you-server.log || true

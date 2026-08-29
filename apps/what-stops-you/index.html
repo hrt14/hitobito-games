@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f2e9">
+<meta name="description" content="やればいいのに動けない。その止まり方を12問で整理し、失敗恐怖・他人評価・完璧主義・面倒回避・考えすぎの5タイプから、今出やすいブレーキと解除の一手を見つけます。">
+<link rel="canonical" href="https://levelup.hitobito.jp/apps/what-stops-you/">
+<meta property="og:title" content="あなたを止めているもの診断 | LEVEL UP">
+<meta property="og:description" content="やればいいのに動けない。その“止まり方”を12問で見つけます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://levelup.hitobito.jp/apps/what-stops-you/">
+<title>あなたを止めているもの診断 | LEVEL UP</title>
+<style>
+:root{
+  --bg:#f6f2e9;--paper:#fffdf8;--ink:#171714;--muted:#6e6b63;--line:#d9d3c7;
+  --red:#d84b3f;--blue:#4169aa;--violet:#7757a8;--ochre:#b77c19;--teal:#2e8176;
+  --shadow:0 18px 50px rgba(45,38,25,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;-webkit-font-smoothing:antialiased}
+button,a{font:inherit}
+button{color:inherit}
+a{color:inherit}
+.wrap{width:min(760px,100%);margin:0 auto;padding:0 18px 70px}
+.topbar{height:60px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(23,23,20,.09);margin-bottom:28px}
+.brand{text-decoration:none;font-size:12px;font-weight:950;letter-spacing:.14em}
+.home{text-decoration:none;font-size:12px;color:var(--muted);font-weight:800;padding:9px 0}
+.hero{padding:18px 0 10px}
+.eyebrow{font-size:11px;font-weight:900;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:15px}
+h1{font-size:clamp(42px,9vw,70px);line-height:.98;letter-spacing:-.055em;margin:0;font-weight:950}
+.lead{font-size:17px;line-height:1.8;margin:23px 0 0;max-width:620px;font-weight:650}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:11px;color:var(--muted);font-weight:800;background:rgba(255,255,255,.4)}
+.friend-banner{display:none;margin:18px 0 0;border-left:4px solid var(--ink);padding:12px 14px;background:var(--paper);font-size:13px;line-height:1.65}
+.friend-banner.show{display:block}
+.primary{width:100%;border:0;border-radius:16px;background:var(--ink);color:#fff;padding:18px 20px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 rgba(23,23,20,.12);transition:transform .12s ease,box-shadow .12s ease}
+.primary:active{transform:translateY(3px);box-shadow:0 5px 0 rgba(23,23,20,.12)}
+.primary.light{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.start-actions{margin-top:34px;display:grid;gap:10px}
+.last-result{display:none;margin-top:13px;text-align:center;font-size:12px;color:var(--muted)}
+.last-result.show{display:block}
+.note{margin:18px 2px 0;font-size:11px;line-height:1.7;color:#77736a}
+.screen{display:none}
+.screen.active{display:block}
+.quiz-head{position:sticky;top:0;z-index:10;background:rgba(246,242,233,.96);padding:12px 0 14px;backdrop-filter:blur(8px)}
+.quiz-topline{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:9px}
+.progress-label{font-size:12px;color:var(--muted);font-weight:850}
+.progress-num{font-size:12px;font-weight:950;font-variant-numeric:tabular-nums}
+.progress-track{height:5px;background:#ded8cd;border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:var(--ink);transition:width .25s ease}
+.hidden-meters{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:9px}
+.hidden-meter{height:3px;background:#ddd7cc;border-radius:99px;overflow:hidden}
+.hidden-meter i{display:block;width:0;height:100%;background:#88847c;transition:width .22s ease}
+.question-card{margin-top:22px;background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:25px 22px;box-shadow:var(--shadow)}
+.scene{font-size:11px;letter-spacing:.12em;font-weight:900;color:var(--muted);margin-bottom:13px}
+.question{font-size:clamp(23px,5.5vw,31px);line-height:1.35;letter-spacing:-.025em;margin:0;font-weight:950}
+.prompt{font-size:12px;color:var(--muted);margin:13px 0 0;line-height:1.65}
+.answers{display:grid;gap:10px;margin-top:18px}
+.answer{width:100%;text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:16px;padding:16px 17px;cursor:pointer;line-height:1.55;font-size:14px;font-weight:720;transition:border-color .12s ease,transform .12s ease,background .12s ease}
+.answer:active{transform:scale(.988)}
+.answer:hover{border-color:#8e897f;background:#fff}
+.answer:focus-visible,.primary:focus-visible,.secondary:focus-visible{outline:3px solid #161614;outline-offset:3px}
+.back-row{margin-top:15px;display:flex;justify-content:center}
+.text-button{border:0;background:none;color:var(--muted);font-size:12px;font-weight:850;padding:10px;cursor:pointer}
+.reveal{margin-top:18px;text-align:center;font-size:12px;color:var(--muted);min-height:22px;opacity:0;transition:opacity .15s ease}
+.reveal.show{opacity:1}
+.result-wrap{padding-top:2px}
+.result-kicker{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.12em;margin-bottom:12px}
+.result-card{background:var(--paper);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:var(--shadow)}
+.result-hero{padding:28px 24px 24px;border-bottom:1px solid var(--line)}
+.result-label{font-size:12px;font-weight:900;color:var(--muted);margin-bottom:10px}
+.type-name{font-size:clamp(39px,9vw,62px);line-height:1;letter-spacing:-.055em;margin:0;font-weight:950}
+.type-line{font-size:16px;line-height:1.65;margin:18px 0 0;font-weight:700}
+.type-badge{display:inline-flex;align-items:center;gap:8px;margin-top:18px;border:1px solid currentColor;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:900}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.result-section{padding:22px 24px;border-bottom:1px solid var(--line)}
+.result-section:last-child{border-bottom:0}
+.section-title{font-size:11px;color:var(--muted);font-weight:950;letter-spacing:.1em;margin-bottom:13px}
+.moments{display:grid;gap:9px;margin:0;padding:0;list-style:none}
+.moments li{font-size:14px;line-height:1.5;padding-left:18px;position:relative}
+.moments li:before{content:"";position:absolute;width:7px;height:7px;border-radius:50%;left:0;top:.55em;background:var(--ink)}
+.release-box{border:2px solid var(--ink);border-radius:18px;padding:17px}
+.release-time{font-size:10px;font-weight:950;letter-spacing:.12em;color:var(--muted)}
+.release-action{font-size:20px;line-height:1.45;font-weight:950;margin-top:6px;letter-spacing:-.02em}
+.release-why{font-size:12px;color:var(--muted);line-height:1.65;margin-top:8px}
+.secondary-type{font-size:16px;font-weight:900}
+.secondary-desc{font-size:12px;line-height:1.7;color:var(--muted);margin-top:6px}
+.bars{display:grid;gap:12px}
+.bar-row{display:grid;grid-template-columns:96px 1fr 34px;gap:9px;align-items:center}
+.bar-name{font-size:11px;font-weight:850;white-space:nowrap}
+.bar-track{height:9px;border-radius:99px;background:#e4dfd5;overflow:hidden}
+.bar-fill{height:100%;width:0;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.bar-value{text-align:right;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums}
+.rec-card{display:flex;gap:13px;align-items:center;border:1px solid var(--line);border-radius:17px;padding:14px;text-decoration:none;background:#fff;transition:transform .12s ease,border-color .12s ease}
+.rec-card:hover{transform:translateY(-2px);border-color:#8e897f}
+.rec-icon{width:42px;height:42px;border-radius:12px;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:18px;font-weight:950;flex:none}
+.rec-copy{min-width:0}
+.rec-title{font-size:14px;font-weight:950}
+.rec-desc{font-size:11px;color:var(--muted);line-height:1.55;margin-top:3px}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.secondary{border:1px solid var(--line);border-radius:15px;background:var(--paper);padding:15px;font-size:14px;font-weight:900;cursor:pointer}
+.share-status{min-height:22px;margin:8px 0 0;text-align:center;font-size:11px;color:var(--muted)}
+.share-preview{margin-top:18px;border:1px dashed #aaa397;border-radius:20px;padding:18px;background:#fff}
+.share-top{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.share-brand{font-size:10px;letter-spacing:.13em;font-weight:950;color:var(--muted)}
+.share-type{font-size:27px;line-height:1.08;font-weight:950;letter-spacing:-.035em;margin-top:9px}
+.share-copy{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+.share-bars{display:flex;gap:4px;margin-top:16px}
+.share-bars span{height:6px;flex:1;border-radius:99px;background:#ddd8ce}
+.share-bars span.on{background:var(--ink)}
+.disclaimer{font-size:10px;line-height:1.65;color:#817c72;margin-top:18px}
+@media(max-width:520px){
+  .wrap{padding:0 14px 54px}.topbar{margin-bottom:18px}.hero{padding-top:10px}
+  .question-card{padding:22px 18px;border-radius:21px}.answer{padding:15px 14px}
+  .result-hero,.result-section{padding-left:19px;padding-right:19px}.result-actions{grid-template-columns:1fr}
+  .bar-row{grid-template-columns:82px 1fr 31px}.bar-name{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="https://levelup.hitobito.jp/">LEVEL UP</a>
+    <a class="home" href="https://levelup.hitobito.jp/">一覧へ</a>
+  </header>
+
+  <main>
+    <section id="startScreen" class="screen active">
+      <div class="hero">
+        <div class="eyebrow">2 MIN / 12 QUESTIONS</div>
+        <h1>あなたを<br>止めているもの診断</h1>
+        <p class="lead">やればいいのに動けない。<br>その“止まり方”を12問で見つけます。</p>
+        <div class="meta-row">
+          <span class="chip">入力なし</span><span class="chip">約2分</span><span class="chip">5タイプ</span>
+        </div>
+        <div id="friendBanner" class="friend-banner"></div>
+        <div class="start-actions">
+          <button id="startBtn" class="primary" type="button">診断する</button>
+        </div>
+        <div id="lastResult" class="last-result"></div>
+        <p class="note">※ 医療・心理検査ではありません。回答時点で出やすかった「行動のブレーキ」を整理する自己理解ツールです。</p>
+      </div>
+    </section>
+
+    <section id="quizScreen" class="screen" aria-live="polite">
+      <div class="quiz-head">
+        <div class="quiz-topline"><span class="progress-label">直感で一番近いものを選ぶ</span><span id="progressNum" class="progress-num">1 / 12</span></div>
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="hiddenMeters" class="hidden-meters" aria-hidden="true"></div>
+      </div>
+      <article class="question-card">
+        <div id="scene" class="scene"></div>
+        <h2 id="question" class="question"></h2>
+        <p class="prompt">その瞬間、頭の中に一番近いのは？</p>
+      </article>
+      <div id="answers" class="answers"></div>
+      <div id="reveal" class="reveal">いまの答えを記録しました</div>
+      <div class="back-row"><button id="backBtn" class="text-button" type="button">← 1つ戻る</button></div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="result-wrap">
+        <div class="result-kicker">YOUR BRAKE PATTERN</div>
+        <div class="result-card">
+          <div class="result-hero">
+            <div class="result-label">あなたを止めやすいのは</div>
+            <h2 id="typeName" class="type-name"></h2>
+            <p id="typeLine" class="type-line"></p>
+            <div id="typeBadge" class="type-badge"><span class="dot"></span><span id="typeBadgeText"></span></div>
+          </div>
+          <div class="result-section">
+            <div class="section-title">止まりやすい瞬間</div>
+            <ul id="moments" class="moments"></ul>
+          </div>
+          <div class="result-section">
+            <div class="section-title">次に止まったら、これだけ</div>
+            <div class="release-box">
+              <div class="release-time">30 SECOND RELEASE</div>
+              <div id="releaseAction" class="release-action"></div>
+              <div id="releaseWhy" class="release-why"></div>
+            </div>
+          </div>
+          <div class="result-section">
+            <div class="section-title">裏で一緒に出やすかったブレーキ</div>
+            <div id="secondaryType" class="secondary-type"></div>
+            <div id="secondaryDesc" class="secondary-desc"></div>
+          </div>
+          <div class="result-section">
+            <div class="section-title">今回の12回答</div>
+            <div id="bars" class="bars"></div>
+          </div>
+          <div class="result-section">
+            <div class="section-title">このブレーキを外すLEVEL UP</div>
+            <a id="recommendation" class="rec-card" href="#">
+              <div class="rec-icon">↗</div>
+              <div class="rec-copy"><div id="recTitle" class="rec-title"></div><div id="recDesc" class="rec-desc"></div></div>
+            </a>
+          </div>
+        </div>
+
+        <div class="share-preview" aria-label="共有される結果のイメージ">
+          <div class="share-top"><div><div class="share-brand">LEVEL UP / WHAT STOPS YOU?</div><div id="shareType" class="share-type"></div></div></div>
+          <div class="share-copy">私を止めていたのはこれでした。<br>あなたは何型？</div>
+          <div id="shareBars" class="share-bars"></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="shareBtn" class="primary" type="button">結果をシェア</button>
+          <button id="retryBtn" class="secondary" type="button">もう一度診断</button>
+        </div>
+        <div id="shareStatus" class="share-status"></div>
+        <p class="disclaimer">この結果は性格を固定するものではありません。状況や時期でブレーキは変わります。回答内容そのものは共有URLに含まれません。</p>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+(() => {
+  'use strict';
+
+  const TYPE_ORDER = ['failure','approval','perfect','avoid','overthink'];
+  const TYPES = {
+    failure:{
+      name:'失敗恐怖型', short:'失敗を避けたい', color:'#d84b3f',
+      line:'「やって失敗する」くらいなら、まだ動かない方が安全。そんなブレーキが先に踏まれやすいようです。',
+      moments:['新しいことを始める直前','正解が分からないまま決めるとき','一度失敗したことへもう一度挑むとき'],
+      release:'「成功する？」ではなく「10分だけ試せる？」に質問を変える。',
+      why:'結果ではなく実験にすると、失敗の意味が「判定」から「情報」に変わります。',
+      secondary:'失敗を避けるために、別のブレーキが補助的に働いている可能性があります。',
+      rec:{title:'失敗して進め。',desc:'60点で出して、反応を得て直す練習。',href:'https://levelup.hitobito.jp/apps/fail-forward/'}
+    },
+    approval:{
+      name:'他人評価型', short:'どう見られるかが気になる', color:'#4169aa',
+      line:'自分の判断より先に「相手はどう思う？」が立ち上がり、動きを止めやすいようです。',
+      moments:['返信や投稿を送る直前','人にお願い・相談するとき','期待と違う選択をしようとするとき'],
+      release:'「相手の評価」と「自分が選べる行動」を、頭の中で2つに分ける。',
+      why:'評価は相手の領域。自分が決められるのは、伝え方と行動までです。',
+      secondary:'他人の目が気になるとき、もう1つのブレーキが判断をさらに重くしているようです。',
+      rec:{title:'他人軸OFF',desc:'「評価は相手。行動は自分。」へ戻る練習。',href:'https://levelup.hitobito.jp/apps/approval-off/'}
+    },
+    perfect:{
+      name:'完璧主義型', short:'不十分なまま出したくない', color:'#7757a8',
+      line:'始める力がないのではなく、「ちゃんとやる」の最低ラインが高すぎて入口が重くなりやすいようです。',
+      moments:['資料や作品を人に見せる前','時間が足りない仕事に着手するとき','完成形がまだ見えないプロジェクトを始めるとき'],
+      release:'最初の成果物を「完成版」ではなく「たたき台」と命名する。',
+      why:'品質を捨てるのではなく、品質を上げる順番を「出してから直す」に変えます。',
+      secondary:'高い基準を守ろうとするとき、別の不安も一緒にブレーキを踏んでいるようです。',
+      rec:{title:'失敗して進め。',desc:'完璧になるまで待たず、60点で出して改善する練習。',href:'https://levelup.hitobito.jp/apps/fail-forward/'}
+    },
+    avoid:{
+      name:'面倒回避型', short:'始める負荷が重い', color:'#b77c19',
+      line:'目的には賛成でも、工程の多さや最初のひと押しが大きく見えると、脳が「あとで」を選びやすいようです。',
+      moments:['細かい手順が多い事務作業','片付けや返信をまとめて考えたとき','疲れている状態で仕事を始めるとき'],
+      release:'ゴールを消して、「最初の30秒で触る場所」だけ決める。',
+      why:'やる気を作ってから始めるのではなく、開始コストそのものを小さくします。',
+      secondary:'「面倒」の中には、もう1つ別の避けたいものも混ざっているようです。',
+      rec:{title:'3秒で動け',desc:'考え込む前に、やる・捨てる・任せるを決める。',href:'https://levelup.hitobito.jp/apps/3sec-action/'}
+    },
+    overthink:{
+      name:'考えすぎ型', short:'考えるほど決められない', color:'#2e8176',
+      line:'考える力が強いぶん、選択肢・先の展開・例外まで増やしてしまい、決断の終点を失いやすいようです。',
+      moments:['選択肢が3つ以上あるとき','情報を調べ始めたあと','まだ起きていない問題まで想像したとき'],
+      release:'「今決める必要があること」を1文にして、それ以外を一度保留する。',
+      why:'思考を止めるのではなく、今日の判断に必要な範囲だけへ戻します。',
+      secondary:'考え続ける背景に、もう1つ避けたい結果があるようです。',
+      rec:{title:'余計な疲れを増やさない練習',desc:'自分で足している負荷を見抜き、必要な分だけ考える。',href:'https://levelup.hitobito.jp/apps/extra-load/'}
+    }
+  };
+
+  const QUESTIONS = [
+    {scene:'01 / 仕事',q:'明日までの資料。まだ白紙です。最初に浮かぶのは？',a:[
+      ['この方向で作って間違っていたら怖い','failure'],['相手が期待している形を外したくない','approval'],['構成をきれいに決めてから作りたい','perfect'],['ページ数を考えただけで重い。あとでやりたい','avoid'],['どの順番・切り口が最善か決めきれない','overthink']
+    ]},
+    {scene:'02 / 返信',q:'返していないメッセージが1件あります。なぜ開きたくない？',a:[
+      ['どう返せば誤解されないか考え続けてしまう','overthink'],['ちゃんとした返事を書くのが面倒','avoid'],['今さら返したらどう思われるか気になる','approval'],['中途半端な文章では送りたくない','perfect'],['返した結果、話が悪い方向へ進むのが怖い','failure']
+    ]},
+    {scene:'03 / 新しい挑戦',q:'面白そうな企画を思いつきました。でも手が止まります。',a:[
+      ['やるなら最初からちゃんと作り込みたい','perfect'],['失敗して「やっぱり無理だった」になるのが嫌','failure'],['調べること・準備することが多そうで重い','avoid'],['誰かに見せて微妙な反応をされるのが嫌','approval'],['他にももっと良い案がある気がして決められない','overthink']
+    ]},
+    {scene:'04 / SNS・公開',q:'自分の考えを投稿しようとして、送信直前で止まりました。',a:[
+      ['言い方をもっと正確に直したくなる','perfect'],['反論されたときの展開を何通りも考える','overthink'],['滑ったり否定されたりするのが怖い','failure'],['知っている人にどう見られるかが一番気になる','approval'],['文章を整えるのが急に面倒になる','avoid']
+    ]},
+    {scene:'05 / 買い物・決断',q:'どちらを選んでも大差なさそう。でも決められません。',a:[
+      ['あとで「こっちにすれば」と後悔したくない','failure'],['比較表を作るほど条件を増やしてしまう','overthink'],['選ぶ作業自体を先送りしたくなる','avoid'],['一番良い選択をしたと確信してから決めたい','perfect'],['人から「そっち選んだの？」と思われない方がいい','approval']
+    ]},
+    {scene:'06 / 勉強',q:'勉強を始める時間。でも机に向かえません。',a:[
+      ['教材を開くところからもう面倒','avoid'],['理解できなかったら自信をなくしそう','failure'],['どこからやるのが最も効率的か迷う','overthink'],['ノートも環境も整えて集中してやりたい','perfect'],['周りより進んでいないことを意識してしまう','approval']
+    ]},
+    {scene:'07 / 人に頼る',q:'一人では厳しい。誰かに助けを頼む場面です。',a:[
+      ['頼んで断られるのが怖い','failure'],['お願い文を考えるのが億劫で放置する','avoid'],['迷惑な人・できない人と思われたくない','approval'],['誰に何をどこまで頼むのが最善か迷う','overthink'],['状況を整理してきれいに説明できてから頼みたい','perfect']
+    ]},
+    {scene:'08 / 締切',q:'残り1時間。全部は終わりません。あなたは？',a:[
+      ['どこまで削るべきか考えているうちに時間が減る','overthink'],['雑なものを出すくらいなら最後まで直したい','perfect'],['怒られる・失望される場面を想像して固まる','approval'],['失敗が確定する感じがして手が止まる','failure'],['もう大変すぎて別のことをしたくなる','avoid']
+    ]},
+    {scene:'09 / 片付け・事務',q:'ずっと放置している小さな用事。何が一番近い？',a:[
+      ['始めればすぐなのに、着手だけがとにかく重い','avoid'],['やるなら周辺も含めて一気に整えたくなる','perfect'],['やり方を間違えて二度手間になるのが嫌','failure'],['先に確認すべきことが次々浮かぶ','overthink'],['遅れていることを誰かに知られるのが嫌','approval']
+    ]},
+    {scene:'10 / 誘い・予定',q:'本当は断りたい予定。返事ができません。',a:[
+      ['断った後に関係が悪くなるのが怖い','failure'],['角が立たない完璧な断り方を作りたい','perfect'],['断った自分をどう思われるかが気になる','approval'],['行く場合・断る場合の先の展開を考え続ける','overthink'],['返事を考えること自体が面倒で未読に戻したい','avoid']
+    ]},
+    {scene:'11 / 失敗のあと',q:'一度うまくいかなかったことに、もう一度挑むなら？',a:[
+      ['また同じ失敗になる気がして避けたい','failure'],['前回より明確に良くしてからでないと嫌','perfect'],['何が原因だったか考えすぎて再開できない','overthink'],['また周りに失敗を見られるのが嫌','approval'],['やり直す工程を思うと気力が出ない','avoid']
+    ]},
+    {scene:'12 / 自分のプロジェクト',q:'誰にも締切を決められていない「やりたいこと」。止まる理由は？',a:[
+      ['最初の一歩が地味で面倒','avoid'],['せっかくなら納得できる形で始めたい','perfect'],['時間を使って成果が出なかったら怖い','failure'],['選択肢が多く、何から始めるか決められない','overthink'],['人に言って「続かなかった人」になるのが嫌','approval']
+    ]}
+  ];
+
+  const $ = id => document.getElementById(id);
+  const screens = {start:$('startScreen'),quiz:$('quizScreen'),result:$('resultScreen')};
+  let index = 0;
+  let choices = [];
+  let scores = freshScores();
+
+  function freshScores(){return {failure:0,approval:0,perfect:0,avoid:0,overthink:0};}
+  function showScreen(name){Object.values(screens).forEach(s=>s.classList.remove('active'));screens[name].classList.add('active');window.scrollTo({top:0,behavior:'instant'});}
+  function scoreChoices(){scores=freshScores();choices.forEach(t=>{if(t)scores[t]++;});}
+
+  function getRanked(){
+    const secondHalf = freshScores();
+    choices.slice(6).forEach(t=>{if(t)secondHalf[t]++;});
+    const lastPos = t => choices.lastIndexOf(t);
+    return TYPE_ORDER.slice().sort((a,b)=>scores[b]-scores[a] || secondHalf[b]-secondHalf[a] || lastPos(b)-lastPos(a) || TYPE_ORDER.indexOf(a)-TYPE_ORDER.indexOf(b));
+  }
+
+  function renderHiddenMeters(){
+    $('hiddenMeters').innerHTML=TYPE_ORDER.map(t=>`<div class="hidden-meter"><i data-meter="${t}"></i></div>`).join('');
+    updateHiddenMeters();
+  }
+  function updateHiddenMeters(){
+    const answered=Math.max(1,choices.filter(Boolean).length);
+    TYPE_ORDER.forEach(t=>{const el=document.querySelector(`[data-meter="${t}"]`);if(el)el.style.width=`${Math.min(100,(scores[t]/answered)*100)}%`;});
+  }
+
+  function renderQuestion(){
+    const item=QUESTIONS[index];
+    $('progressNum').textContent=`${index+1} / ${QUESTIONS.length}`;
+    $('progressFill').style.width=`${(index/QUESTIONS.length)*100}%`;
+    $('scene').textContent=item.scene;
+    $('question').textContent=item.q;
+    $('answers').innerHTML='';
+    item.a.forEach(([label,type])=>{
+      const b=document.createElement('button');
+      b.className='answer';b.type='button';b.textContent=label;
+      if(choices[index]===type)b.style.borderColor='#171714';
+      b.addEventListener('click',()=>choose(type));
+      $('answers').appendChild(b);
+    });
+    $('backBtn').style.visibility=index===0?'hidden':'visible';
+    $('reveal').classList.remove('show');
+    updateHiddenMeters();
+  }
+
+  function choose(type){
+    choices[index]=type;
+    scoreChoices();
+    $('reveal').classList.add('show');
+    updateHiddenMeters();
+    if(navigator.vibrate)navigator.vibrate(12);
+    setTimeout(()=>{
+      if(index<QUESTIONS.length-1){index++;renderQuestion();window.scrollTo({top:0,behavior:'smooth'});}else{showResult();}
+    },150);
+  }
+
+  function goBack(){
+    if(index===0)return;
+    choices[index]=undefined;
+    index--;
+    scoreChoices();
+    renderQuestion();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function startQuiz(){
+    index=0;choices=[];scores=freshScores();
+    renderHiddenMeters();renderQuestion();showScreen('quiz');
+  }
+
+  function escapeHtml(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+  function showResult(){
+    scoreChoices();
+    const ranked=getRanked();
+    const primary=ranked[0], secondary=ranked[1];
+    const p=TYPES[primary], s=TYPES[secondary];
+    $('progressFill').style.width='100%';
+    $('typeName').textContent=p.name;
+    $('typeLine').textContent=p.line;
+    $('typeBadge').style.color=p.color;
+    $('typeBadgeText').textContent=p.short;
+    $('moments').innerHTML=p.moments.map(m=>`<li>${escapeHtml(m)}</li>`).join('');
+    $('releaseAction').textContent=p.release;
+    $('releaseWhy').textContent=p.why;
+    $('secondaryType').textContent=s.name;
+    $('secondaryDesc').textContent=p.secondary;
+    $('recommendation').href=p.rec.href;
+    $('recTitle').textContent=p.rec.title;
+    $('recDesc').textContent=p.rec.desc;
+    $('shareType').textContent=p.name;
+
+    $('bars').innerHTML=TYPE_ORDER.map(t=>{
+      const x=TYPES[t], value=scores[t], pct=Math.round(value/QUESTIONS.length*100);
+      return `<div class="bar-row"><div class="bar-name">${escapeHtml(x.name)}</div><div class="bar-track"><div class="bar-fill" data-bar="${t}" style="background:${x.color}"></div></div><div class="bar-value">${value}</div></div>`;
+    }).join('');
+
+    const max=Math.max(...TYPE_ORDER.map(t=>scores[t]),1);
+    $('shareBars').innerHTML=TYPE_ORDER.map(t=>`<span class="${scores[t]===max?'on':''}"></span>`).join('');
+    try{localStorage.setItem('levelup-what-stops-you-last',JSON.stringify({type:primary,date:Date.now()}));}catch(e){}
+    showScreen('result');
+    setTimeout(()=>TYPE_ORDER.forEach(t=>{const el=document.querySelector(`[data-bar="${t}"]`);if(el)el.style.width=`${Math.round(scores[t]/max*100)}%`;}),60);
+    window.__whatStopsYouResult={primary,secondary,scores:{...scores}};
+  }
+
+  async function shareResult(){
+    const result=window.__whatStopsYouResult;if(!result)return;
+    const t=TYPES[result.primary];
+    const url=new URL('https://levelup.hitobito.jp/apps/what-stops-you/');
+    url.searchParams.set('from','share');url.searchParams.set('type',result.primary);
+    const text=`私を止めていたのは「${t.name}」でした。\n12問でわかる「あなたを止めているもの診断」\nあなたは？`;
+    $('shareStatus').textContent='';
+    try{
+      if(navigator.share){await navigator.share({title:'あなたを止めているもの診断',text,url:url.toString()});$('shareStatus').textContent='共有しました';}
+      else if(navigator.clipboard){await navigator.clipboard.writeText(`${text}\n${url}`);$('shareStatus').textContent='結果とURLをコピーしました';}
+      else{window.prompt('この結果をコピーしてください',`${text}\n${url}`);}
+    }catch(err){if(err && err.name!=='AbortError')$('shareStatus').textContent='共有できませんでした。もう一度お試しください。';}
+  }
+
+  function loadEntryState(){
+    const params=new URLSearchParams(location.search);
+    const shared=params.get('from')==='share' ? params.get('type') : null;
+    if(shared && TYPES[shared]){
+      $('friendBanner').textContent=`友だちは「${TYPES[shared].name}」。あなたは？`;
+      $('friendBanner').classList.add('show');
+    }
+    try{
+      const saved=JSON.parse(localStorage.getItem('levelup-what-stops-you-last')||'null');
+      if(saved && TYPES[saved.type]){$('lastResult').textContent=`前回の結果：${TYPES[saved.type].name}　— 状況が変わったら、また測れます。`;$('lastResult').classList.add('show');}
+    }catch(e){}
+  }
+
+  $('startBtn').addEventListener('click',startQuiz);
+  $('backBtn').addEventListener('click',goBack);
+  $('retryBtn').addEventListener('click',startQuiz);
+  $('shareBtn').addEventListener('click',shareResult);
+  loadEntryState();
+})();
+</script>
+</body>
+</html>
