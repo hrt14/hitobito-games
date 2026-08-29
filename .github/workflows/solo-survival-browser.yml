@@ -1,0 +1,71 @@
+name: Solo Survival browser audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/solo-survival-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser
+        run: |
+          npm install
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local server
+        run: |
+          npm run dev > /tmp/play-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/solo-survival/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/play-server.log
+          exit 1
+      - name: Real browser playtest
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          async function run(viewport,label,choiceIndex){
+            const page=await browser.newPage({viewport}); const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
+            await page.goto('http://127.0.0.1:4173/apps/solo-survival/',{waitUntil:'networkidle'});
+            if(!(await page.getByRole('heading',{name:/単独行動/}).isVisible())) throw new Error(label+' start title missing');
+            await page.locator('#startBtn').click();
+            const scenes=[]; const verdicts=[];
+            for(let i=0;i<8;i++){
+              if(await page.locator('#resultScreen.active').count()) break;
+              scenes.push((await page.locator('#sceneTitle').textContent())?.trim());
+              const choices=page.locator('#choices .choice'); if(await choices.count()!==3) throw new Error(label+' choice count');
+              await choices.nth(choiceIndex).click();
+              await page.locator('#feedback.show').waitFor();
+              verdicts.push((await page.locator('#verdict').textContent())?.trim());
+              const deltas=await page.locator('#delta span').count(); if(deltas!==3) throw new Error(label+' delta feedback missing');
+              await page.locator('#nextBtn').click();
+            }
+            await page.locator('#resultScreen.active').waitFor();
+            const title=(await page.locator('#resultTitle').textContent())?.trim();
+            const hp=(await page.locator('#finalHp').textContent())?.trim(); const alert=(await page.locator('#finalAlert').textContent())?.trim(); const territory=(await page.locator('#finalTerritory').textContent())?.trim();
+            await page.locator('#againBtn').click();
+            if(!(await page.locator('#gameScreen.active').isVisible())) throw new Error(label+' retry failed');
+            await page.reload({waitUntil:'networkidle'});
+            if(!(await page.locator('#startBtn').isVisible())) throw new Error(label+' reload failed');
+            if(errors.length) throw new Error(label+' page errors '+errors.join('|'));
+            console.log(`SOLO PASS ${label}: choice=${choiceIndex}; scenes=${scenes.length}; goodVerdicts=${verdicts.filter(v=>v==='生存に向いた判断').length}; result=${title}; final=${hp}/${alert}/${territory}; retry/reload OK`);
+            await page.close();
+          }
+          await run({width:390,height:844},'mobile-safe-route',0);
+          await run({width:1280,height:900},'desktop-risk-route',1);
+          await browser.close();
+          console.log('SOLO SURVIVAL REAL BROWSER AUDIT PASS');
+          NODE
