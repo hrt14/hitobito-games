@@ -1,0 +1,42 @@
+name: LEVEL UP feedback -> Codex
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  handoff:
+    if: startsWith(github.event.issue.title, '[改善要望]') || contains(join(github.event.issue.labels.*.name, ','), 'levelup-feedback')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask Codex to implement the feedback
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          marker='<!-- levelup-codex-handoff -->'
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq 'map(select(.body | contains("<!-- levelup-codex-handoff -->"))) | length')
+          if [ "$existing" != "0" ]; then
+            echo "Codex handoff already posted."
+            exit 0
+          fi
+          cat > /tmp/codex.md <<'EOF'
+          <!-- levelup-codex-handoff -->
+          @codex このLEVEL UP改善要望を実装してください。
+
+          要件:
+          - Issue本文の app/slug/path/build と要望を根拠に対象アプリを特定する。
+          - 既存機能を壊さず、要望を満たす最小で実用的な変更を行う。
+          - LEVEL UPはFirebase Hosting。Vercelは使わない。
+          - 対象アプリのSPEC/QUALITY/既存テストを確認し、必要なテストを追加・実行する。
+          - 修正はPRとして提出する。mainへ直接コミットしない。
+          - PR本文にこのIssue番号を記載する。
+          - 本番反映が必要な変更なら、既存Firebaseデプロイ経路で反映できる状態まで整える。
+          - 不明点があっても、Issueとコードから合理的に判断できる範囲は止まらず進める。
+          EOF
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/codex.md
