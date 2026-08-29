@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#0d0f12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="20個の頼まれごとに「引き受ける／断る」で答え、時間・お金・感情・価値観のどこで境界線がすり減りやすいかを可視化する。結果はカード画像でシェアできる。" />
+  <title>頼まれると断れず疲れる人の 境界線マップ | LEVEL UP</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPへ戻る">←</a>
+      <div class="brand">LEVEL UP / 境界線マップ</div>
+    </header>
+
+    <main id="app">
+      <section id="screen-home" class="screen active" data-screen="home">
+        <p class="kicker">MAP YOUR LIMITS</p>
+        <h1>頼まれると断れず、<br>気づけば疲れている。</h1>
+        <p class="lead">
+          20個の頼まれごとに、直感で<strong>「引き受ける」か「断る」</strong>で答える。
+          時間・お金・感情・価値観のどこで境界線がすり減りやすいかを可視化して、結果はカードにしてシェアできる。
+        </p>
+        <p class="session-count" id="sessionCount" hidden></p>
+
+        <div class="axis-legend" id="axisLegend"></div>
+
+        <div class="self-rate-block">
+          <div class="self-rate-head">
+            <span>自分は、頼まれごとを断れないほうだと思う?</span>
+            <strong id="selfRateValue">50</strong>
+          </div>
+          <input class="range" type="range" min="0" max="100" value="50" id="selfRateInput" aria-label="自己申告の断れなさ" />
+          <div class="range-labels"><span>断れる方だ</span><span>かなり流される</span></div>
+        </div>
+
+        <button class="primary-button" type="button" id="startMainBtn">
+          20個の頼まれごとに答える <span>→</span>
+        </button>
+      </section>
+
+      <section id="screen-swipe" class="screen" data-screen="swipe">
+        <div class="swipe-head">
+          <span class="progress-label" id="progressLabel">20 REQUESTS</span>
+          <span class="progress-count" id="progressCount">1 / 20</span>
+        </div>
+        <div class="progress-bar"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+
+        <div class="deck">
+          <div class="card" id="card">
+            <span class="card-hint card-hint-accept" id="cardHintAccept">引き受ける</span>
+            <span class="card-hint card-hint-decline" id="cardHintDecline">断る</span>
+            <span class="card-axis" id="cardAxis"></span>
+            <p class="card-scene" id="cardScene"></p>
+            <div class="card-ask" id="cardAsk"></div>
+          </div>
+        </div>
+
+        <div class="choice-row">
+          <button class="choice-button choice-decline" type="button" id="declineBtn">← 断る</button>
+          <button class="choice-button choice-accept" type="button" id="acceptBtn">引き受ける →</button>
+        </div>
+
+        <div class="insight" id="insight" hidden></div>
+        <button class="next-button" type="button" id="nextBtn" hidden>次へ →</button>
+      </section>
+
+      <section id="screen-result" class="screen" data-screen="result">
+        <p class="kicker">YOUR BOUNDARY MAP</p>
+        <h2>境界線マップができた。</h2>
+
+        <div class="type-card">
+          <span>YOUR TYPE</span>
+          <h3 id="typeTitle"></h3>
+          <p id="typeDesc"></p>
+        </div>
+
+        <div class="axis-bars" id="axisBars"></div>
+        <p class="axis-note">数値は「断って境界線を守れた割合」。低いほど、その領域で引き受けやすい。</p>
+
+        <div class="gap-box" id="gapBox"></div>
+        <div class="compare-box" id="compareBox" hidden></div>
+
+        <div class="rule-box">
+          <span>持ち帰るルール</span>
+          <p id="ruleText"></p>
+        </div>
+
+        <button class="share-button" type="button" id="shareBtn">結果カードをシェアする</button>
+        <p class="share-feedback" id="shareFeedback"></p>
+        <img class="share-preview" id="sharePreview" alt="境界線マップの結果カード" hidden />
+
+        <div class="weak-block" id="weakBlock" hidden>
+          <p id="weakBlockText"></p>
+          <button class="secondary-button" type="button" id="weakRetakeBtn"></button>
+          <div class="mini-result" id="miniResult" hidden>
+            <span>WEAK POINT RESULT</span>
+            <p id="miniResultText"></p>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button type="button" id="restartMainBtn">もう一度、全20問</button>
+          <button type="button" id="backHomeBtn">最初の画面に戻る</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <canvas id="shareCanvas" width="1080" height="1080" hidden></canvas>
+  <script src="./app.js"></script>
+</body>
+</html>

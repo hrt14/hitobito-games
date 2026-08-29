@@ -1,0 +1,10 @@
+{
+  "name": "境界線マップ | LEVEL UP",
+  "short_name": "境界線マップ",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d0f12",
+  "theme_color": "#0d0f12",
+  "description": "20個の頼まれごとに答えて、時間・お金・感情・価値観のどこで境界線がすり減りやすいかを可視化する。",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
