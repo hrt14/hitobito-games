@@ -4,19 +4,23 @@ on:
   pull_request:
     paths:
       - 'apps/life-rpg-status/**'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
+      - 'scripts/verify-levelup-feedback-browser.mjs'
       - '.github/workflows/life-rpg-status-browser.yml'
   push:
     branches:
       - main
     paths:
       - 'apps/life-rpg-status/**'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
+      - 'scripts/verify-levelup-feedback-browser.mjs'
       - '.github/workflows/life-rpg-status-browser.yml'
   workflow_dispatch:
 
 jobs:
   mobile-playtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,6 +40,7 @@ jobs:
           fs.writeFileSync('/tmp/life-rpg-status.js',m[1]);
           NODE
           node --check /tmp/life-rpg-status.js
+          node --check scripts/verify-levelup-feedback-browser.mjs
       - name: Start static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/life-rpg-server.log 2>&1 &
@@ -51,6 +56,13 @@ jobs:
         run: node apps/life-rpg-status/smoke-browser.mjs
       - name: Run LEVEL UP quality gate
         run: node scripts/validate-levelup-quality-gate.mjs --app apps/life-rpg-status
+      - name: Build full Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify 42-question card and production bundle
+        run: |
+          test -f .dist/firebase/apps/life-rpg-status/index.html
+          grep -F '42問で自分の「取扱説明書」をつくる' .dist/firebase/index.html
+          grep -F '42問' .dist/firebase/apps/life-rpg-status/index.html
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
