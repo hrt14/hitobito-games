@@ -11,6 +11,8 @@ const appCopies = {
     forWho: '毎日を無限にあるように使ってしまい、大切な時間を後回しにしがちな人',
     purpose: '春・土曜日・誕生日・大切な人に会う時間を、残り年数ではなく具体的な回数に変える',
     benefit: '今日まだ残っている「1回」の重みが見え、何を雑にしないか1つ決められる',
+    bookTitle: '人生、あと何回？ 大切な時間を「残り回数」で見つめ直す',
+    obi: '春・土曜日・誕生日・大切な人との時間を数えて、今日の1回を雑にしない。',
   },
   'how-seen': {
     forWho: '自分が周囲からどう見られているか気になり、自己イメージと実際の友人評価の差を知りたい人',
@@ -32,6 +34,17 @@ function replaceValue(article, slug, label, value) {
   return article.replace(pattern, (_all, open, _old, close) => `${open}${escapeHtml(value)}${close}`);
 }
 
+function applyBookCopy(article, slug, copy) {
+  if (!copy.bookTitle || !copy.obi) return article;
+  let next = article.replace(/<p class="book-obi">[\s\S]*?<\/p>\s*/g, '');
+  if (!/<h2\b[^>]*>[\s\S]*?<\/h2>/.test(next)) throw new Error(`${slug} LEVEL UP card h2 missing`);
+  next = next.replace(
+    /<h2\b[^>]*>[\s\S]*?<\/h2>/,
+    `<h2>${escapeHtml(copy.bookTitle)}</h2>\n      <p class="book-obi">${escapeHtml(copy.obi)}</p>`,
+  );
+  return next;
+}
+
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
   throw new Error('LEVEL UP card-copy inputs are missing');
 }
@@ -51,13 +64,19 @@ for (const [slug, copy] of Object.entries(appCopies)) {
   article = replaceValue(article, slug, 'こんな人に', copy.forWho);
   article = replaceValue(article, slug, 'なんのため', copy.purpose);
   article = replaceValue(article, slug, 'ベネフィット', copy.benefit);
+  article = applyBookCopy(article, slug, copy);
   home = home.slice(0, articleStart) + article + home.slice(articleEnd);
 
   const game = catalog.games.find((item) => item.slug === slug);
   if (!game) throw new Error(`${slug} missing from LEVEL UP catalog`);
-  Object.assign(game, copy);
+  Object.assign(game, {
+    forWho: copy.forWho,
+    purpose: copy.purpose,
+    benefit: copy.benefit,
+    ...(copy.bookTitle && copy.obi ? { title: copy.bookTitle, description: copy.obi } : {}),
+  });
 }
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai and how-seen specific LEVEL UP card copy injected.');
+console.log('[Firebase] ato-nankai and how-seen specific LEVEL UP card copy injected; ato-nankai book copy ready.');
