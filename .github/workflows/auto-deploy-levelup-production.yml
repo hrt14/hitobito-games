@@ -1,0 +1,33 @@
+name: Auto deploy LEVEL UP production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/**'
+      - 'firebase-overrides/**'
+      - 'functions/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - '.github/workflows/deploy-levelup-production-closed-loop.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: levelup-production-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start verified Firebase production deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-levelup-production-closed-loop.yml --repo "$GITHUB_REPOSITORY" --ref main
