@@ -49,6 +49,8 @@ jobs:
         env:
           LIFE_RPG_URL: http://127.0.0.1:4173/apps/life-rpg-status/
         run: node apps/life-rpg-status/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/life-rpg-status
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
