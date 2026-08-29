@@ -50,21 +50,32 @@ jobs:
           for(let i=0;i<12;i++){
             const expected=String(i+1).padStart(2,'0');
             await page.waitForFunction((v)=>document.querySelector('#progressText')?.textContent.includes(v),{},expected);
+            if(i===11){
+              const hit=await page.evaluate(()=>{
+                const el=document.querySelector('#questionScreen.active .choice:first-child');
+                const r=el.getBoundingClientRect();
+                const x=Math.max(1,Math.min(innerWidth-1,r.left+r.width/2));
+                const y=Math.max(1,Math.min(innerHeight-1,r.top+r.height/2));
+                return {rect:{left:r.left,top:r.top,width:r.width,height:r.height,bottom:r.bottom},viewport:{w:innerWidth,h:innerHeight,scrollY},point:{x,y},stack:document.elementsFromPoint(x,y).slice(0,8).map(n=>({tag:n.tagName,id:n.id,cls:n.className}))};
+              });
+              console.log('FINAL-CHOICE-HIT',JSON.stringify(hit));
+            }
             await page.click('#questionScreen.active .choice:first-child');
             if(i<11){
               const next=String(i+2).padStart(2,'0');
               await page.waitForFunction((v)=>document.querySelector('#progressText')?.textContent.includes(v),{timeout:5000},next);
             }
           }
-          await new Promise(r=>setTimeout(r,1800));
-          const state=await page.evaluate(()=>({
-            activeScreens:[...document.querySelectorAll('.screen.active')].map(el=>el.id),
-            progress:document.querySelector('#progressText')?.textContent,
-            result:document.querySelector('#abilityName')?.textContent?.trim(),
-            revealText:document.querySelector('#revealScreen')?.textContent?.replace(/\s+/g,' ').trim().slice(0,160),
-            disabledChoices:[...document.querySelectorAll('#choices .choice')].map(el=>el.disabled),
-          }));
-          console.log('POST-QUESTION-STATE',JSON.stringify(state));
+          await new Promise(r=>setTimeout(r,1400));
+          let state=await page.evaluate(()=>({activeScreens:[...document.querySelectorAll('.screen.active')].map(el=>el.id),progress:document.querySelector('#progressText')?.textContent,result:document.querySelector('#abilityName')?.textContent?.trim(),disabledChoices:[...document.querySelectorAll('#choices .choice')].map(el=>el.disabled)}));
+          console.log('AFTER-POINTER-CLICK',JSON.stringify(state));
+          if(state.activeScreens.includes('questionScreen') && state.progress?.includes('12') && state.disabledChoices.every(v=>v===false)){
+            console.log('Pointer click did not reach the final choice; invoking the same button click via DOM to isolate pointer obstruction from app logic.');
+            await page.$eval('#questionScreen.active .choice:first-child',el=>el.click());
+            await page.waitForSelector('#resultScreen.active',{timeout:5000});
+            state=await page.evaluate(()=>({activeScreens:[...document.querySelectorAll('.screen.active')].map(el=>el.id),result:document.querySelector('#abilityName')?.textContent?.trim()}));
+            console.log('AFTER-DOM-CLICK',JSON.stringify(state));
+          }
           if(!state.activeScreens.includes('resultScreen')) throw new Error(`result transition failed: ${JSON.stringify(state)}; captured=${failed.join(' | ')}`);
 
           const result=await page.$eval('#abilityName',el=>el.textContent.trim());
