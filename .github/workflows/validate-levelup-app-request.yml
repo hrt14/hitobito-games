@@ -1,0 +1,41 @@
+name: Validate LEVEL UP app request loop
+
+on:
+  pull_request:
+    paths:
+      - 'firebase-overrides/levelup-feedback/**'
+      - 'functions/index.js'
+      - 'functions/sync-feedback-to-github.mjs'
+      - 'scripts/fix-levelup-feedback-session-ids.mjs'
+      - '.github/workflows/validate-levelup-app-request.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check Node syntax
+        run: |
+          node --check functions/index.js
+          node --check functions/sync-feedback-to-github.mjs
+          node --check firebase-overrides/levelup-feedback/app-request.mjs
+          node --check scripts/fix-levelup-feedback-session-ids.mjs
+      - name: Prove app request widget injection
+        run: |
+          rm -rf .dist/firebase
+          mkdir -p .dist/firebase/apps/test-app
+          printf '<!doctype html><html><body><h1>Test</h1></body></html>' > .dist/firebase/index.html
+          printf '<!doctype html><html><body><h1>Test App</h1></body></html>' > .dist/firebase/apps/test-app/index.html
+          node firebase-overrides/levelup-feedback/app-request.mjs
+          grep -F 'data-levelup-app-request-v1' .dist/firebase/index.html
+          grep -F 'requestType:"new_app"' .dist/firebase/index.html
+          grep -F 'アプリ制作を依頼する' .dist/firebase/index.html
+          grep -F '公序良俗に反する依頼は制作しません' .dist/firebase/index.html
+          grep -F 'data-app-slug="test-app"' .dist/firebase/apps/test-app/index.html

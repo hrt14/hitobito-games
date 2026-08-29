@@ -19,6 +19,7 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 const CATEGORIES = ['experience','knowledge','skill','courage','recovery','self_knowledge','relationship','memory','boundary','rest','failure_data','progress','other'];
 const FEEDBACK_TYPES = new Set(['improvement','confusing','bug','idea']);
+const FEEDBACK_REQUEST_TYPES = new Set(['improvement','new_app']);
 
 const schema = {
   type: 'object', additionalProperties: false,
@@ -123,6 +124,7 @@ function cleanText(value, max) {
 }
 
 function validFeedbackPayload(body) {
+  const requestType = cleanText(body?.requestType, 24) || 'improvement';
   const type = cleanText(body?.type, 24);
   const message = cleanText(body?.message, 800);
   const appSlug = cleanText(body?.appSlug, 64);
@@ -132,13 +134,14 @@ function validFeedbackPayload(body) {
   const screenLabel = cleanText(body?.screenLabel, 120);
   const buildSha = cleanText(body?.buildSha, 12);
   const viewport = cleanText(body?.viewport, 24);
+  if (!FEEDBACK_REQUEST_TYPES.has(requestType)) return null;
   if (!FEEDBACK_TYPES.has(type)) return null;
   if (message.length < 2 || message.length > 800) return null;
   if (!/^(home|[a-z0-9-]{1,64})$/.test(appSlug)) return null;
   if (!appTitle || !pageTitle || !pagePath.startsWith('/')) return null;
   if (buildSha && !/^(local|[a-f0-9]{4,12})$/.test(buildSha)) return null;
   if (viewport && !/^\d{2,5}x\d{2,5}$/.test(viewport)) return null;
-  return { type, message, appSlug, appTitle, pageTitle, pagePath, screenLabel, buildSha: buildSha || 'local', viewport };
+  return { requestType, type, message, appSlug, appTitle, pageTitle, pagePath, screenLabel, buildSha: buildSha || 'local', viewport };
 }
 
 function extractText(response) {
@@ -194,7 +197,7 @@ export const submitLevelupFeedback = onRequest(
       await enforceFeedbackQuota(req);
       const ref = db.collection('levelupFeedback').doc();
       await ref.set({
-        schemaVersion: 1,
+        schemaVersion: 2,
         source: 'levelup-feedback-widget',
         ...payload,
         status: 'new',
