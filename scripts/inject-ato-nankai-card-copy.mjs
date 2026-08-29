@@ -14,6 +14,13 @@ const appCopies = {
     bookTitle: '人生、あと何回？ 大切な時間を「残り回数」で見つめ直す',
     obi: '春・土曜日・誕生日・大切な人との時間を数えて、今日の1回を雑にしない。',
   },
+  'jinsei-kieteru': {
+    forWho: '毎日忙しいのに「自分の時間がない」と感じ、何に人生の時間を使っているか見直したい人',
+    purpose: '睡眠・仕事・スマホ・移動・家事の1日平均を、残り人生の「何年」に相当するかへ変換する',
+    benefit: '今の時間配分を続けたとき自由に残る人生が何年あるか見え、削りたい時間を具体的に選べる',
+    bookTitle: 'あなたの人生、何に消えてる？ 24時間を「残り人生の何年」に変える',
+    obi: '睡眠・仕事・スマホ・移動・家事の先に、自由な人生が何年残るかを見る。',
+  },
   'how-seen': {
     forWho: '自分が周囲からどう見られているか気になり、自己イメージと実際の友人評価の差を知りたい人',
     purpose: '8つの二択で自己像を出し、友人の匿名回答と4軸で比べて「自分が思う自分」と「他人から見える自分」のズレを可視化する',
@@ -79,4 +86,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai and how-seen specific LEVEL UP card copy injected; ato-nankai book copy ready.');
+console.log('[Firebase] ato-nankai, jinsei-kieteru, and how-seen specific LEVEL UP card copy injected; book copy ready.');
