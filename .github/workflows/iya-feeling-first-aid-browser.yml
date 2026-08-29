@@ -41,6 +41,8 @@ jobs:
         env:
           IYA_FEELING_URL: http://127.0.0.1:4173/apps/iya-feeling-first-aid/?test=1
         run: node apps/iya-feeling-first-aid/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/iya-feeling-first-aid
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
