@@ -34,6 +34,10 @@ const copies = {
     title: '人生RPGステータス — 12問で今の自分をRPGカードにする',
     obi: 'LV・HP・5能力・職業・二つ名・特殊能力を1枚にして、今の自分を見える化する。',
   },
+  '100nin-rank': {
+    title: '100人いたら何位？ — 12問で行動特性を推定順位にする',
+    obi: '決断力・行動速度・メンタル耐久などを100人中の推定順位で可視化。実測統計ではなく回答パターンから算出。',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -65,4 +69,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual + daily-special-ability + life-rpg-status book titles and obi injected after shared book conversion.');
+console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual + daily-special-ability + life-rpg-status + 100nin-rank book titles and obi injected after shared book conversion.');
