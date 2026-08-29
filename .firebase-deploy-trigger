@@ -18,42 +18,4 @@ Force LEVEL UP production deploy: hard-request app (2026-08-22 23:04 JST).
 Force LEVEL UP production deploy: 24 color modes (2026-08-22 23:54 JST).
 Force LEVEL UP production deploy: visible update dates + last-updated-first order (2026-08-23 00:16 JST).
 Force LEVEL UP production deploy: all-card update-date coverage + newest-first retry (2026-08-23 JST).
-Force LEVEL UP production deploy: playful semantic card icons (2026-08-23 00:28 JST).
-Force LEVEL UP production deploy: career-interest-check app (2026-08-27 16:53 JST).
-Deploy trigger enabled for career-interest-check production (2026-08-27 17:12 JST).
-Retry career-interest-check after app-specific card copy quality fix (2026-08-27 17:15 JST).
-Retry after concurrent five-intelligences shared card-copy gate fix (2026-08-27 17:18 JST).
-Promote career-interest-check to LEVEL UP top (2026-08-27 17:49 JST).
-Deploy LEVEL UP app: 成功マインド診断 (2026-08-27 17:54 JST).
-Deploy LEVEL UP app: 30問でわかる 市場年収診断 (2026-08-27 17:57 JST).
-Recheck LEVEL UP app: 成功マインド診断 production live (2026-08-27 18:00 JST).
-Deploy LEVEL UP top: restore visible モヤモヤアキネーター before search (2026-08-27 18:02 JST).
-Reverify LEVEL UP app: 30問でわかる 市場年収診断 with DOM-ready production smoke (2026-08-27 18:04 JST).
-Deploy LEVEL UP app: 年収アキネーター to Firebase Hosting (2026-08-27 JST).
-Retry LEVEL UP 年収アキネーター after app-specific card copy gate fix (2026-08-27 JST).
-Deploy LEVEL UP app: NEGOTIATOR｜動かす (2026-08-27 18:40 JST).
-Deploy LEVEL UP app: NEGOTIATOR｜寝かせる (2026-08-27 18:46 JST).
-Retry NEGOTIATOR deploy after app-specific card copy fix (2026-08-27 18:58 JST).
-Retry NEGOTIATOR｜動かす after LEVEL UP target registration (2026-08-27 JST).
-Deploy LEVEL UP app: NEGOTIATOR｜休ませる (2026-08-27 19:00 JST).
-Retry NEGOTIATOR｜動かす after app-specific card copy fix (2026-08-27 JST).
-Deploy final NEGOTIATOR｜寝かせる monotonic offers + production browser test (2026-08-27 19:04 JST).
-Deploy LEVEL UP app: 今日やるのは2つだけ (2026-08-27 20:56 JST).
-Deploy LEVEL UP growth: notify IndexNow + WebSub after production publish (2026-08-27 21:15 JST).
-Deploy LEVEL UP apps: 準備はここまで / 明日の自分に渡す / いま決めなくていい / 十分やった (2026-08-27 21:18 JST).
-Deploy LEVEL UP app update: やらないことを決める (suteru-yuki) to Firebase Hosting (2026-08-27 JST).
-Retry suteru-yuki after native-real validator migration to app.js/style.css (2026-08-27 JST).
-Retry suteru-yuki after native-real promoter migration to app.js/style.css (2026-08-27 JST).
-Deploy LEVEL UP acquisition v2: crawlable problem links + descriptive home SEO + public GitHub discovery page (2026-08-29 JST).
-Retry LEVEL UP acquisition v2 after mobile typography gate fix (2026-08-29 JST).
-Deploy LEVEL UP acquisition expansion: 5 new problem LPs + 13-entry hub/home links (2026-08-29 JST).
-Retry LEVEL UP acquisition expansion after mobile typography baseline fix (2026-08-29 JST).
-Deploy LEVEL UP share result v2: actual-result sharing + large social preview image (2026-08-29 JST).
-Deploy LEVEL UP app: 嫌な気持ち、いったん下げる (2026-08-29 JST).
-Retry LEVEL UP app: 嫌な気持ち、いったん下げる after app-specific card copy gate fix (2026-08-29 JST).
-Reverify LEVEL UP app: 嫌な気持ち、いったん下げる with production-scoped browser selector (2026-08-29 JST).
-Deploy LEVEL UP app visual upgrade: 嫌な気持ち、いったん下げる (2026-08-29 18:48 JST).
-Deploy LEVEL UP share graphic v3: approved high-impact 1200x630 social preview (2026-08-29 JST).
-Deploy LEVEL UP app: 24時間、寝かせる。(impulse-cooldown) to Firebase Hosting (2026-08-29 JST).
-Deploy LEVEL UP app: 10年後から戻ってきた (10-years-back) (2026-08-29 JST).
-Retry LEVEL UP app: 10年後から戻ってきた after timer/build fix (2026-08-29 JST).
+Force LEVEL UP production deploy: Google Search Console HTML + meta verification (2026-08-29 JST).
