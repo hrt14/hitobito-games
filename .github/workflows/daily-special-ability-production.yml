@@ -28,11 +28,11 @@ jobs:
           const page = await browser.newPage();
           await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
           const failed=[];
-          page.on('pageerror',e=>failed.push(`pageerror: ${String(e)}`));
+          page.on('pageerror',e=>{const msg=`pageerror: ${String(e)}`; failed.push(msg); console.log(msg)});
           page.on('requestfailed',req=>{
             const u=req.url();
             if(u.endsWith('/favicon.ico') || u.includes('google-analytics.com/g/collect')) return;
-            failed.push(`requestfailed: ${u} ${req.failure()?.errorText||''}`);
+            const msg=`requestfailed: ${u} ${req.failure()?.errorText||''}`; failed.push(msg); console.log(msg);
           });
           const url='https://levelup.hitobito.jp/apps/daily-special-ability/';
           const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
@@ -56,7 +56,17 @@ jobs:
               await page.waitForFunction((v)=>document.querySelector('#progressText')?.textContent.includes(v),{timeout:5000},next);
             }
           }
-          await page.waitForSelector('#resultScreen.active',{timeout:5000});
+          await new Promise(r=>setTimeout(r,1800));
+          const state=await page.evaluate(()=>({
+            activeScreens:[...document.querySelectorAll('.screen.active')].map(el=>el.id),
+            progress:document.querySelector('#progressText')?.textContent,
+            result:document.querySelector('#abilityName')?.textContent?.trim(),
+            revealText:document.querySelector('#revealScreen')?.textContent?.replace(/\s+/g,' ').trim().slice(0,160),
+            disabledChoices:[...document.querySelectorAll('#choices .choice')].map(el=>el.disabled),
+          }));
+          console.log('POST-QUESTION-STATE',JSON.stringify(state));
+          if(!state.activeScreens.includes('resultScreen')) throw new Error(`result transition failed: ${JSON.stringify(state)}; captured=${failed.join(' | ')}`);
+
           const result=await page.$eval('#abilityName',el=>el.textContent.trim());
           const activation=await page.$eval('#activationMoment',el=>el.textContent.trim());
           const sub=await page.$eval('#subAbility',el=>el.textContent.trim());
