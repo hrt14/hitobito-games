@@ -25,6 +25,14 @@ const dedupeScript = `
 (() => {
   const legacyNav = document.getElementById('levelup-nav-fixed');
   if (legacyNav) legacyNav.remove();
+
+  // A few apps have their own top-right exit button. The shared fixed hamburger
+  // occupies that same 46-48px corner, so move the hamburger left instead of
+  // letting its shadow-DOM trigger intercept the app's exit control.
+  const appExit = document.getElementById('exitBtn');
+  const sharedMenuHost = document.getElementById('levelup-app-menu-root');
+  const sharedTrigger = sharedMenuHost?.shadowRoot?.querySelector('.menu-trigger');
+  if (appExit && sharedTrigger) sharedTrigger.style.right = '66px';
 })();
 </script>`;
 
