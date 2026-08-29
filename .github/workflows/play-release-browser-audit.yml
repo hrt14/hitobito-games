@@ -33,33 +33,37 @@ jobs:
           async function envRun(viewport,label){
             const page=await browser.newPage({viewport});
             const url='http://127.0.0.1:4173/apps/environment-policy-sim/';
-            await page.goto(url,{waitUntil:'networkidle'});
-            const intro=await page.locator('#intro').innerText();
+            const response=await page.goto(url,{waitUntil:'networkidle'});
+            const intro=await page.locator('#startScreen').innerText();
             const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
-            await page.getByRole('button',{name:/政策責任者/}).click();
-            await page.locator('#startBtn').click();
+            await page.locator('#quickBtn').click();
+            await page.locator('#gameScreen').waitFor({state:'visible'});
             const years=[];
             for(let y=1;y<=4;y++){
               const event=await page.locator('#eventTitle').innerText();
-              const buttons=page.locator('#actions button:not(:disabled)');
+              const buttons=page.locator('#policyGrid button:not(:disabled)');
+              const count=await buttons.count();
+              if(count<1) throw new Error('No affordable policy at year '+y);
               await buttons.nth(0).click();
-              if(await buttons.count()>1) await buttons.nth(1).click();
+              if(y<=2 && count>1) await buttons.nth(1).click();
               await page.locator('#applyBtn').click();
-              const feedback=await page.locator('#feedbackBody').innerText();
-              years.push({y,event,feedback:feedback.slice(0,180)});
+              await page.locator('#reaction').waitFor({state:'visible'});
+              const feedback=await page.locator('#reactionBody').innerText();
+              const metrics=await page.locator('#metrics').innerText();
+              years.push({y,event,feedback:feedback.slice(0,220),metrics:metrics.slice(0,180)});
               await page.locator('#nextBtn').click();
             }
-            await page.locator('#result').waitFor({state:'visible'});
+            await page.locator('#resultScreen').waitFor({state:'visible'});
             const grade=await page.locator('#grade').innerText();
-            const score=await page.locator('#score').innerText();
+            const title=await page.locator('#resultTitle').innerText();
             const result=await page.locator('#resultText').innerText();
-            console.log('ENV_AUDIT',JSON.stringify({label,intro:intro.slice(0,160),overflow,years,grade,score,result}));
+            console.log('ENV_AUDIT',JSON.stringify({label,status:response?.status(),intro:intro.slice(0,200),overflow,years,grade,title,result}));
             await page.close();
           }
           async function waterRun(viewport,label){
             const page=await browser.newPage({viewport});
             const url='http://127.0.0.1:4173/apps/water-rescue/';
-            await page.goto(url,{waitUntil:'networkidle'});
+            const response=await page.goto(url,{waitUntil:'networkidle'});
             const intro=await page.locator('#intro').innerText();
             const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
             await page.locator('#startBtn').click();
@@ -77,12 +81,12 @@ jobs:
               await page.locator('#result').waitFor({state:'visible'});
               const report=await page.locator('#resultCopy').innerText();
               const after={water:await page.locator('#waterStat').innerText(),budget:await page.locator('#budgetStat').innerText(),trust:await page.locator('#trustStat').innerText()};
-              missions.push({title,before,after,report:report.slice(0,160)});
+              missions.push({title,before,after,report:report.slice(0,180)});
               await page.locator('#nextBtn').click();
             }
             await page.locator('#final').waitFor({state:'visible'});
             const final=await page.locator('#finalScore').innerText();
-            console.log('WATER_AUDIT',JSON.stringify({label,intro:intro.slice(0,160),overflow,missions,final}));
+            console.log('WATER_AUDIT',JSON.stringify({label,status:response?.status(),intro:intro.slice(0,180),overflow,missions,final}));
             await page.close();
           }
           await envRun({width:390,height:844},'mobile');
