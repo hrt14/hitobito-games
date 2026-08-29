@@ -1,0 +1,104 @@
+name: Add Search Console DNS verification
+
+on:
+  push:
+    paths:
+      - ".github/workflows/add-search-console-verification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-domain:
+    name: Add hitobito.jp verification TXT
+    runs-on: ubuntu-latest
+    env:
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Add or confirm Google Search Console TXT record
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RECORD_NAME="hitobito.jp"
+          RECORD_VALUE="google-site-verification=sPBsbYpwHySgc4VntENvvGC4M--IgVcITX__dUozokA"
+          API="https://api.cloudflare.com/client/v4"
+
+          ZONES="$(curl -fsS \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${API}/zones?name=hitobito.jp")"
+
+          ZONE_ID="$(printf '%s' "$ZONES" | node -e '
+            let s="";
+            process.stdin.on("data", d => s += d).on("end", () => {
+              const j = JSON.parse(s);
+              if (!j.success || !j.result || !j.result[0]) process.exit(1);
+              process.stdout.write(j.result[0].id);
+            });
+          ')"
+
+          RECORDS="$(curl -fsS \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${API}/zones/${ZONE_ID}/dns_records?type=TXT&name=${RECORD_NAME}")"
+
+          if RECORD_VALUE="$RECORD_VALUE" printf '%s' "$RECORDS" | node -e '
+            let s="";
+            process.stdin.on("data", d => s += d).on("end", () => {
+              const j = JSON.parse(s);
+              const wanted = process.env.RECORD_VALUE;
+              const exists = Boolean(j.success && j.result && j.result.some(r => r.content === wanted));
+              process.exit(exists ? 0 : 1);
+            });
+          '; then
+            echo "Search Console verification TXT already exists."
+          else
+            PAYLOAD="$(RECORD_VALUE="$RECORD_VALUE" RECORD_NAME="$RECORD_NAME" node -e '
+              process.stdout.write(JSON.stringify({
+                type: "TXT",
+                name: process.env.RECORD_NAME,
+                content: process.env.RECORD_VALUE,
+                ttl: 1,
+                comment: "Google Search Console domain verification"
+              }));
+            ')"
+
+            CREATED="$(curl -fsS -X POST \
+              -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${API}/zones/${ZONE_ID}/dns_records" \
+              --data "$PAYLOAD")"
+
+            printf '%s' "$CREATED" | node -e '
+              let s="";
+              process.stdin.on("data", d => s += d).on("end", () => {
+                const j = JSON.parse(s);
+                if (!j.success) {
+                  console.error(JSON.stringify(j.errors));
+                  process.exit(1);
+                }
+                console.log("Search Console verification TXT created.");
+              });
+            '
+          fi
+
+          FINAL="$(curl -fsS \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${API}/zones/${ZONE_ID}/dns_records?type=TXT&name=${RECORD_NAME}")"
+
+          RECORD_VALUE="$RECORD_VALUE" printf '%s' "$FINAL" | node -e '
+            let s="";
+            process.stdin.on("data", d => s += d).on("end", () => {
+              const j = JSON.parse(s);
+              const wanted = process.env.RECORD_VALUE;
+              const exists = Boolean(j.success && j.result && j.result.some(r => r.content === wanted));
+              if (!exists) {
+                console.error("Verification TXT was not found after the write attempt.");
+                process.exit(1);
+              }
+              console.log("Verified: Cloudflare DNS contains the Search Console TXT record.");
+            });
+          '
