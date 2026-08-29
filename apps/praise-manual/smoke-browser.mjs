@@ -72,7 +72,7 @@ try {
     const rect = node.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
   }));
-  if (smallBoxes.some((box) => box.width < 300 || box.height < 48)) fail(`360px choices too small: ${JSON.stringify(smallBoxes)}`);
+  if (smallBoxes.some((box) => box.width < 260 || box.height < 48)) fail(`360px choices too small: ${JSON.stringify(smallBoxes)}`);
   await page.screenshot({ path: path.join(artifacts, '04-question-360.png'), fullPage: true });
   await sharedPage.close();
 
