@@ -54,3 +54,4 @@ Retry LEVEL UP app: 嫌な気持ち、いったん下げる after app-specific c
 Reverify LEVEL UP app: 嫌な気持ち、いったん下げる with production-scoped browser selector (2026-08-29 JST).
 Deploy LEVEL UP app visual upgrade: 嫌な気持ち、いったん下げる (2026-08-29 18:48 JST).
 Deploy LEVEL UP share graphic v3: approved high-impact 1200x630 social preview (2026-08-29 JST).
+Deploy LEVEL UP app: 24時間、寝かせる。(impulse-cooldown) to Firebase Hosting (2026-08-29 JST).
