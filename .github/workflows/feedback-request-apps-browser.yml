@@ -1,0 +1,67 @@
+name: Feedback-requested LEVEL UP apps browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/sasshi-sugi-stop/**'
+      - 'apps/listening-reflex/**'
+      - '.github/workflows/feedback-request-apps-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/sasshi-sugi-stop/**'
+      - 'apps/listening-reflex/**'
+      - '.github/workflows/feedback-request-apps-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check inline JavaScript syntax
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          for(const slug of ['sasshi-sugi-stop','listening-reflex']){
+            const s=fs.readFileSync(`apps/${slug}/index.html`,'utf8');
+            const m=s.match(/<script>([\s\S]*?)<\/script>/);
+            if(!m) throw new Error(`${slug}: inline script missing`);
+            fs.writeFileSync(`/tmp/${slug}.js`,m[1]);
+          }
+          NODE
+          node --check /tmp/sasshi-sugi-stop.js
+          node --check /tmp/listening-reflex.js
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/feedback-apps-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/sasshi-sugi-stop/' >/dev/null && curl -fsS 'http://127.0.0.1:4173/apps/listening-reflex/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/feedback-apps-server.log
+          exit 1
+      - name: Playtest fact-versus-guess app
+        env:
+          APP_URL: http://127.0.0.1:4173/apps/sasshi-sugi-stop/
+        run: node apps/sasshi-sugi-stop/smoke-browser.mjs
+      - name: Quality gate fact-versus-guess app
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/sasshi-sugi-stop
+      - name: Playtest listening app
+        env:
+          APP_URL: http://127.0.0.1:4173/apps/listening-reflex/
+        run: node apps/listening-reflex/smoke-browser.mjs
+      - name: Quality gate listening app
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/listening-reflex
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/feedback-apps-server.log || true
