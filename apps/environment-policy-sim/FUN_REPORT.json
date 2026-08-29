@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "environment-policy-sim",
+  "funStatement": "限られた予算で2つの政策を組み合わせるたび、農村の大気・水・土・収入・食料・普及のどこかが良くなり別のどこかが揺れ、次の一手を組み直すのが面白い。",
+  "coreLoop": [
+    "今年の農村状況と6指標を見る",
+    "副作用と相乗効果を予測して最大2政策を選ぶ",
+    "政策を実行する",
+    "農村の景色と指標が変わり、因果関係を確認する",
+    "次年度の新しい問題に合わせて戦略を変える"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "大気を早く改善する強い規制と、農家の収入・導入しやすさ・地下水・土壌を同時に守ることを、限られた予算内ではすべて最大化できない。",
+    "consequence": "禁止だけなら農家負担が増える一方、代替手段や所得支援を組み合わせると副作用が軽減される。作物転換・節水・残渣利用など、選択した政策が翌年の弱点とイベント効果を変える。"
+  },
+  "highestMoment": "最終年、悪化しかけた地下水と農家収入を、作物転換＋所得支援や節水＋技術支援の組み合わせで同時に持ち直し、農村の煙が消えて田畑と水路が回復する瞬間。",
+  "oneMoreRunReason": "同じ大気改善でも、規制中心・市場中心・農法転換中心で結果が変わるため、別の役割と政策コンボで全指標70以上を狙いたくなる。",
+  "playtest": {
+    "method": "browser playtest pending after deployment",
+    "first10Seconds": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
+    "first30Seconds": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
+    "threeMinutes": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
+    "tenMinutes": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
+    "retryDesire": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
+    "noReward": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "UNVERIFIED",
+    "coreLoop": "UNVERIFIED",
+    "inputFeel": "UNVERIFIED",
+    "decisionQuality": "UNVERIFIED",
+    "masteryDepth": "UNVERIFIED",
+    "surpriseVariation": "UNVERIFIED",
+    "riskReward": "UNVERIFIED",
+    "pacing": "UNVERIFIED",
+    "retryDesire": "UNVERIFIED",
+    "uniqueness": "UNVERIFIED"
+  },
+  "verifiedAt": ""
+}
