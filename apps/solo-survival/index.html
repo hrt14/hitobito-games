@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#08130f" />
+  <meta name="description" content="群れずに生きる動物の戦略を、8夜の3択サバイバルで体験するゲーム。" />
+  <title>単独行動サバイバル</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;color:#f6f2df;background:#07110d;--bg:#07110d;--panel:#0d1d16;--panel2:#13281f;--ink:#f6f2df;--muted:#9fb0a4;--lime:#cbe86b;--amber:#f7c768;--danger:#ff776d;--line:rgba(246,242,223,.13)}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}body{overflow-x:hidden}button{font:inherit;color:inherit}button:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+    .app{min-height:100dvh;position:relative;overflow:hidden;background:radial-gradient(circle at 72% 8%,rgba(203,232,107,.11),transparent 30%),linear-gradient(#07110d,#09150f 55%,#06100c)}
+    .moon{position:absolute;width:220px;height:220px;border-radius:50%;right:-55px;top:-65px;background:radial-gradient(circle at 38% 36%,#fff7c8 0,#eadf99 28%,#c7bd79 58%,rgba(199,189,121,.1) 70%,transparent 72%);opacity:.85;filter:drop-shadow(0 0 35px rgba(235,224,150,.15));pointer-events:none}
+    .trees{position:absolute;inset:auto 0 0;height:37vh;opacity:.22;background:linear-gradient(140deg,transparent 0 48%,#2f5541 49% 52%,transparent 53%) 0 0/92px 160px,linear-gradient(220deg,transparent 0 48%,#234735 49% 52%,transparent 53%) 20px 30px/110px 190px;mask-image:linear-gradient(transparent,#000 28%);pointer-events:none}
+    .shell{position:relative;z-index:2;width:min(760px,calc(100% - 28px));margin:0 auto;padding:20px 0 34px;min-height:100dvh;display:flex;flex-direction:column}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}.brand{font-size:11px;font-weight:900;letter-spacing:.18em;color:#c7d1c9}.home{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:9px 12px;text-decoration:none;color:#cfd8d1;font-size:11px;font-weight:800}.home:hover{background:rgba(255,255,255,.09)}
+    .screen{flex:1;display:none;animation:in .35s ease}.screen.active{display:flex;flex-direction:column}@keyframes in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+    .start{justify-content:center;padding:34px 0 66px}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.18em;color:var(--lime);margin-bottom:13px}.title{font-size:clamp(44px,13vw,82px);line-height:.88;letter-spacing:-.07em;margin:0;max-width:650px}.title span{display:block;color:var(--lime)}.lead{font-size:15px;line-height:1.9;color:#bdc8bf;max-width:560px;margin:22px 0 0}.rulechips{display:flex;flex-wrap:wrap;gap:7px;margin:22px 0 30px}.chip{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;color:#bcc8be;background:rgba(255,255,255,.025)}
+    .primary{appearance:none;border:0;border-radius:18px;background:var(--lime);color:#102014;padding:17px 20px;font-size:15px;font-weight:950;letter-spacing:.01em;cursor:pointer;box-shadow:0 12px 32px rgba(203,232,107,.13);transition:transform .15s ease,filter .15s ease}.primary:hover{filter:brightness(1.05);transform:translateY(-1px)}.primary:active{transform:scale(.99)}
+    .game{padding-top:18px}.nightline{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:10px 0 14px}.night{font-size:12px;font-weight:950;letter-spacing:.14em;color:#dce3dd}.progress{height:5px;flex:1;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}.progress>i{display:block;height:100%;width:12.5%;background:var(--lime);border-radius:99px;transition:width .4s ease}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.stat{border:1px solid var(--line);background:rgba(15,33,24,.78);border-radius:15px;padding:11px 12px}.stathead{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#afbbb1;font-weight:800}.stat strong{font-size:16px;color:#fff}.meter{height:4px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}.meter i{display:block;height:100%;width:50%;background:var(--lime);border-radius:99px;transition:width .35s ease,background .35s ease}
+    .scene{position:relative;border:1px solid var(--line);background:linear-gradient(150deg,rgba(24,52,38,.94),rgba(10,24,17,.94));border-radius:25px;padding:24px 20px 21px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.2)}.scene:after{content:'';position:absolute;width:150px;height:150px;border:1px solid rgba(203,232,107,.14);border-radius:50%;right:-54px;top:-54px}.sceneicon{font-size:38px;margin-bottom:16px;filter:saturate(.8)}.scene small{display:block;font-size:10px;font-weight:900;letter-spacing:.14em;color:var(--lime);margin-bottom:9px}.scene h2{font-size:clamp(24px,7vw,36px);line-height:1.12;letter-spacing:-.045em;margin:0 0 11px}.scene p{font-size:13px;line-height:1.8;color:#b8c5bb;margin:0;max-width:590px}.choices{display:grid;gap:9px;margin-top:13px}.choice{appearance:none;text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:17px;padding:14px 15px;cursor:pointer;transition:.14s ease}.choice:hover{background:rgba(255,255,255,.075);border-color:rgba(203,232,107,.38);transform:translateY(-1px)}.choice b{display:block;font-size:14px;margin-bottom:4px}.choice span{font-size:11px;color:#9faea2;line-height:1.45}.choice:disabled{opacity:.55;cursor:default;transform:none}
+    .feedback{display:none;margin-top:13px;border-radius:18px;padding:15px 16px;background:#efe9d1;color:#102014}.feedback.show{display:block;animation:in .25s ease}.feedback .verdict{font-size:11px;font-weight:950;letter-spacing:.08em;margin-bottom:5px}.feedback p{font-size:12px;line-height:1.65;margin:0}.feedback .delta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.feedback .delta span{font-size:10px;font-weight:900;border:1px solid rgba(16,32,20,.16);padding:4px 7px;border-radius:99px}.next{width:100%;margin-top:9px;background:#173426;color:#ecf2ed;border:1px solid rgba(203,232,107,.23)}
+    .result{justify-content:center;padding:34px 0 60px}.resultmark{font-size:54px;margin-bottom:12px}.result h1{font-size:clamp(38px,10vw,68px);line-height:.96;letter-spacing:-.06em;margin:0}.result .summary{font-size:14px;line-height:1.8;color:#b9c5bc;margin:17px 0 22px}.scorebox{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.score{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px;text-align:center}.score b{font-size:25px;display:block}.score span{font-size:9px;color:#9dad9f;font-weight:900;letter-spacing:.08em}.lesson{border:1px solid rgba(203,232,107,.2);background:rgba(203,232,107,.06);border-radius:20px;padding:17px;margin:0 0 16px}.lesson h2{font-size:12px;letter-spacing:.1em;color:var(--lime);margin:0 0 8px}.lesson p{font-size:12px;line-height:1.75;color:#c4cfc6;margin:0}.again{display:grid;grid-template-columns:1fr 1fr;gap:9px}.secondary{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:18px;padding:16px;font-weight:900;cursor:pointer}.secondary:hover{background:rgba(255,255,255,.08)}
+    .flash{position:fixed;inset:0;pointer-events:none;z-index:20;opacity:0;background:rgba(255,119,109,.15)}.flash.on{animation:flash .34s ease}@keyframes flash{0%{opacity:0}35%{opacity:1}100%{opacity:0}}
+    @media(max-width:520px){.shell{width:min(100% - 20px,760px);padding-top:10px}.start{padding-bottom:40px}.stats{gap:5px}.stat{padding:9px 8px}.stathead span:first-child{font-size:9px}.scene{padding:20px 16px 17px}.choice{padding:13px}.again{grid-template-columns:1fr}.title{font-size:clamp(46px,17vw,69px)}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="moon" aria-hidden="true"></div><div class="trees" aria-hidden="true"></div><div class="flash" id="flash"></div>
+  <main class="shell">
+    <header class="top"><div class="brand">HITOBITO PLAY / NATURE</div><a class="home" href="/">PLAY一覧</a></header>
+
+    <section class="screen start active" id="startScreen">
+      <div class="eyebrow">8 NIGHTS / 3 CHOICES</div>
+      <h1 class="title">単独行動<span>サバイバル</span></h1>
+      <p class="lead">群れないのは、弱いからじゃない。隠れ、獲物を独占し、争いを避け、必要なら夜に動く。ひとりで生きる動物の判断を、8夜だけ体験する。</p>
+      <div class="rulechips"><span class="chip">外敵から隠れる</span><span class="chip">獲物を独占する</span><span class="chip">無駄な争いを避ける</span><span class="chip">夜を使う</span></div>
+      <button class="primary" id="startBtn">最初の夜へ</button>
+    </section>
+
+    <section class="screen game" id="gameScreen">
+      <div class="nightline"><div class="night" id="nightLabel">NIGHT 1 / 8</div><div class="progress"><i id="progressBar"></i></div></div>
+      <div class="stats" aria-label="現在の状態">
+        <div class="stat"><div class="stathead"><span>体力</span><strong id="hpNum">70</strong></div><div class="meter"><i id="hpBar"></i></div></div>
+        <div class="stat"><div class="stathead"><span>警戒</span><strong id="alertNum">60</strong></div><div class="meter"><i id="alertBar"></i></div></div>
+        <div class="stat"><div class="stathead"><span>縄張り</span><strong id="territoryNum">45</strong></div><div class="meter"><i id="territoryBar"></i></div></div>
+      </div>
+      <article class="scene">
+        <div class="sceneicon" id="sceneIcon">🌘</div><small id="sceneTag">気配</small><h2 id="sceneTitle"></h2><p id="sceneText"></p>
+      </article>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"><div class="verdict" id="verdict"></div><p id="feedbackText"></p><div class="delta" id="delta"></div><button class="primary next" id="nextBtn">次の夜へ</button></div>
+    </section>
+
+    <section class="screen result" id="resultScreen">
+      <div class="resultmark" id="resultMark">🌙</div><h1 id="resultTitle">8夜を生き抜いた。</h1><p class="summary" id="resultSummary"></p>
+      <div class="scorebox"><div class="score"><b id="finalHp">0</b><span>体力</span></div><div class="score"><b id="finalAlert">0</b><span>警戒</span></div><div class="score"><b id="finalTerritory">0</b><span>縄張り</span></div></div>
+      <div class="lesson"><h2>単独行動の戦略</h2><p id="lessonText"></p></div>
+      <div class="again"><button class="primary" id="againBtn">もう一度、生きる</button><a class="secondary" href="/" style="text-align:center;text-decoration:none">別のゲームへ</a></div>
+    </section>
+  </main>
+</div>
+<script>
+(() => {
+  const MAX_NIGHTS = 8;
+  const baseScenes = [
+    {icon:'👁️',tag:'外敵',title:'草むらの向こうで、枝が折れた。',text:'姿は見えない。でも風上から知らない匂いがする。',choices:[
+      {t:'低い茂みに身を伏せる',s:'見つからないことを最優先',d:{hp:-2,alert:9,territory:0},good:true,f:'単独行動では「戦わず、見つからない」が強い。外敵との接触そのものを減らせた。'},
+      {t:'音の正体を確かめに行く',s:'先に見つければ安心できる',d:{hp:-13,alert:-10,territory:2},f:'確認のための接近が、逆に自分の位置を知らせた。ひとりでは負傷を分担できない。'},
+      {t:'大声で威嚇する',s:'こちらの強さを見せつける',d:{hp:-8,alert:-7,territory:5},f:'相手を追い払えることもあるが、居場所まで広く知らせてしまった。'}]},
+    {icon:'🐾',tag:'獲物',title:'新しい獲物の足跡を見つけた。',text:'まだ誰にも見つかっていない。追えば今夜の食料を独占できそうだ。',choices:[
+      {t:'静かにひとりで追う',s:'獲物を分けずに確保する',d:{hp:15,alert:2,territory:7},good:true,f:'成功。群れで分ける必要がないため、獲物の利益を自分で使えるのが単独行動の利点だ。'},
+      {t:'他の個体を呼ぶ',s:'一緒なら捕まえやすそう',d:{hp:5,alert:-3,territory:-10},f:'獲物は取れたが分け前が減り、縄張りにも他個体の匂いが残った。'},
+      {t:'足跡を無視して休む',s:'危険は避けられる',d:{hp:2,alert:4,territory:-2},f:'安全だが、単独生活の「獲物を独占できる」利点を活かせなかった。'}]},
+    {icon:'🐾',tag:'他個体',title:'縄張りの境界に、同種の個体がいる。',text:'こちらを見ている。近づけば食料と場所をめぐる争いになりそうだ。',choices:[
+      {t:'距離を保って迂回する',s:'争いそのものを起こさない',d:{hp:1,alert:5,territory:-3},good:true,f:'無傷で通過。単独行動は、集団内の順位争いや分け前争いを避けやすい。'},
+      {t:'正面から追い払う',s:'縄張りを守るために戦う',d:{hp:-16,alert:-8,territory:13},f:'縄張りは守ったが大きく消耗した。勝っても傷は残る。'},
+      {t:'すぐ縄張りを捨てる',s:'とにかく接触を避ける',d:{hp:3,alert:3,territory:-15},f:'争いは避けたが、食料を得やすい場所まで手放した。距離を取るだけでもよかった。'}]},
+    {icon:'🌕',tag:'昼夜',title:'月が上がり、森が静かになった。',text:'昼に動く動物たちの気配が薄い。今なら見つかりにくい。',choices:[
+      {t:'夜のうちに移動する',s:'暗さを隠れ蓑に使う',d:{hp:-3,alert:10,territory:9},good:true,f:'暗い時間帯を使って、人目ならぬ「動物目」を避けた。活動時間をずらすのも接触を減らす方法だ。'},
+      {t:'朝まで同じ場所で待つ',s:'体力を温存する',d:{hp:8,alert:1,territory:-4},f:'休息は取れたが、移動の好機を逃した。状況によっては休む価値もある。'},
+      {t:'明るい開けた場所へ出る',s:'周囲がよく見える',d:{hp:-9,alert:-9,territory:2},f:'自分からも見えるが、相手からも見える。隠れやすさを失った。'}]},
+    {icon:'🍂',tag:'食料',title:'食料が減ってきた。',text:'近くには小さな獲物、遠くには大きな獲物の気配がある。',choices:[
+      {t:'近くの小さな獲物を狙う',s:'低リスクで確実に食べる',d:{hp:10,alert:3,territory:2},good:true,f:'大当たりではないが、ひとりで必要量を確保できた。無理な勝負をしないことが生存につながる。'},
+      {t:'大きな獲物を追う',s:'一度で満腹を狙う',d:{hp:-11,alert:-5,territory:6},f:'大きな獲物は魅力的だが、単独では失敗や負傷のコストも一人で背負う。'},
+      {t:'何も食べず縄張りを巡回',s:'場所を守ることを優先',d:{hp:-12,alert:4,territory:10},f:'縄張りは安定したが体力が落ちた。場所だけでは生き残れない。'}]},
+    {icon:'🌿',tag:'接触',title:'水場に先客がいる。',text:'喉は渇いているが、同じ場所に長く留まると他個体と接触しやすい。',choices:[
+      {t:'物陰で待ち、去ってから飲む',s:'接触する時間をずらす',d:{hp:6,alert:7,territory:1},good:true,f:'時間をずらして必要な水を確保。単独行動では「会わない工夫」が争いを減らす。'},
+      {t:'そのまま水場へ入る',s:'先に飲んだ者勝ち',d:{hp:-10,alert:-6,territory:3},f:'短時間で済んだが接触が起き、余計な消耗をした。'},
+      {t:'水をあきらめる',s:'接触を完全に避ける',d:{hp:-8,alert:5,territory:0},f:'危険は避けたが、必要な資源まで捨ててしまった。待つという選択肢もある。'}]},
+    {icon:'🗺️',tag:'移動',title:'いつもの道に新しい匂いが増えた。',text:'他の動物が頻繁に使い始めたらしい。慣れた近道だが、遭遇の確率は上がっている。',choices:[
+      {t:'遠回りでも茂みを通る',s:'目立たない経路に変える',d:{hp:-3,alert:9,territory:4},good:true,f:'少し余計に歩いたが、遭遇を避けた。隠れやすいルートは単独生活の安全網になる。'},
+      {t:'いつもの道を全速力で通る',s:'短時間なら大丈夫',d:{hp:-7,alert:-5,territory:2},f:'時間は短いが、見通しの良い道では発見されやすい。'},
+      {t:'匂いの主を探す',s:'誰が来たのか知りたい',d:{hp:-9,alert:-8,territory:5},f:'情報は得たが、相手にもこちらの存在を知らせた。'}]},
+    {icon:'🌒',tag:'縄張り',title:'静かな場所に、自分だけの通り道ができた。',text:'獲物の気配もあり、身を隠す場所も多い。この場所をどう使う？',choices:[
+      {t:'痕跡を残しつつ静かに使う',s:'接触を増やさず縄張りを保つ',d:{hp:8,alert:5,territory:13},good:true,f:'食料と隠れ場所を自分の範囲に保てた。縄張りを持つことは、毎回争うのではなく接触を減らす仕組みにもなる。'},
+      {t:'広い範囲まで一気に広げる',s:'取れる場所は全部取る',d:{hp:-10,alert:-7,territory:14},f:'範囲は広がったが、見回る負担と遭遇の機会も増えた。'},
+      {t:'場所を決めず毎晩移動する',s:'縛られず自由に動く',d:{hp:-5,alert:2,territory:-12},f:'自由だが、安全な隠れ場所や獲物の位置を毎回探し直すことになった。'}]}
+  ];
+
+  const $ = id => document.getElementById(id);
+  let state, scenes, night, answered;
+  const clamp = n => Math.max(0, Math.min(100, n));
+  function shuffle(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
+  function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo({top:0,behavior:'smooth'});}
+  function updateStats(){
+    [['hp','hpNum','hpBar'],['alert','alertNum','alertBar'],['territory','territoryNum','territoryBar']].forEach(([k,n,b])=>{
+      $(n).textContent=state[k]; $(b).style.width=state[k]+'%'; $(b).style.background=state[k]<25?'var(--danger)':state[k]<45?'var(--amber)':'var(--lime)';
+    });
+  }
+  function begin(){state={hp:70,alert:60,territory:45,good:0};scenes=shuffle(baseScenes);night=0;answered=false;show('gameScreen');render();}
+  function render(){
+    answered=false;$('feedback').classList.remove('show');const s=scenes[night];$('nightLabel').textContent=`NIGHT ${night+1} / ${MAX_NIGHTS}`;$('progressBar').style.width=((night+1)/MAX_NIGHTS*100)+'%';
+    $('sceneIcon').textContent=s.icon;$('sceneTag').textContent=s.tag;$('sceneTitle').textContent=s.title;$('sceneText').textContent=s.text;
+    $('choices').innerHTML='';s.choices.forEach((c,i)=>{const b=document.createElement('button');b.className='choice';b.innerHTML=`<b>${c.t}</b><span>${c.s}</span>`;b.addEventListener('click',()=>choose(i));$('choices').appendChild(b);});updateStats();
+  }
+  function choose(i){
+    if(answered)return;answered=true;const c=scenes[night].choices[i];if(c.good)state.good++;
+    const before={...state};Object.entries(c.d).forEach(([k,v])=>state[k]=clamp(state[k]+v));updateStats();document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
+    $('verdict').textContent=c.good?'生存に向いた判断':'代償の大きい判断';$('feedbackText').textContent=c.f;$('delta').innerHTML='';
+    [['hp','体力'],['alert','警戒'],['territory','縄張り']].forEach(([k,label])=>{const diff=state[k]-before[k];const span=document.createElement('span');span.textContent=`${label} ${diff>=0?'+':''}${diff}`;$('delta').appendChild(span);});
+    $('nextBtn').textContent=night===MAX_NIGHTS-1?'8夜の結果を見る':'次の夜へ';$('feedback').classList.add('show');
+    if(state.hp<=0||state.alert<=0){$('flash').classList.remove('on');void $('flash').offsetWidth;$('flash').classList.add('on');}
+  }
+  function next(){
+    if(!answered)return;if(state.hp<=0||state.alert<=0){finish(false);return;}night++;if(night>=MAX_NIGHTS){finish(true);return;}render();
+  }
+  function finish(survived){
+    show('resultScreen');$('finalHp').textContent=state.hp;$('finalAlert').textContent=state.alert;$('finalTerritory').textContent=state.territory;
+    const mastery=state.good;
+    if(!survived){$('resultMark').textContent='🌑';$('resultTitle').textContent='夜を越えられなかった。';$('resultSummary').textContent='ひとりでは、負傷も警戒不足も誰かが補ってくれない。接触を減らし、危険を選ばない判断が必要だった。';}
+    else if(mastery>=6){$('resultMark').textContent='🌕';$('resultTitle').textContent='ひとりを、使いこなした。';$('resultSummary').textContent=`8夜を生存。${mastery}/8回、単独行動の利点を活かす判断ができた。群れないことを「孤立」ではなく、生存戦略として使えている。`;}
+    else{$('resultMark').textContent='🌗';$('resultTitle').textContent='8夜を生き抜いた。';$('resultSummary').textContent=`8夜を生存。単独行動らしい判断は${mastery}/8回。生き残れたが、まだ不要な接触や争いを減らせる。`;}
+    $('lessonText').textContent='単独行動には、外敵から隠れやすい、獲物を独占しやすい、無駄な争いを避けやすいという利点がある。さらに活動時間をずらして夜に動くことも、他の動物との接触を減らす一手になる。このゲームでは、その4つを8夜の判断に置き換えた。';
+  }
+  $('startBtn').addEventListener('click',begin);$('againBtn').addEventListener('click',begin);$('nextBtn').addEventListener('click',next);
+})();
+</script>
+</body>
+</html>
