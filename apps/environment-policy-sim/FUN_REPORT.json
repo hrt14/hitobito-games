@@ -1,52 +1,52 @@
 {
   "schemaVersion": 1,
   "game": "environment-policy-sim",
-  "funStatement": "限られた予算で2つの政策を組み合わせるたび、農村の大気・水・土・収入・食料・普及のどこかが良くなり別のどこかが揺れ、次の一手を組み直すのが面白い。",
+  "funStatement": "限られた予算で2つの政策を組み合わせるたび、大気・水・土壌・農家収入・食料・普及のどこかが良くなり別のどこかが揺れ、次年度の一手を組み直すのが面白い。",
   "coreLoop": [
     "今年の農村状況と6指標を見る",
     "副作用と相乗効果を予測して最大2政策を選ぶ",
     "政策を実行する",
-    "農村の景色と指標が変わり、因果関係を確認する",
+    "指標変化と因果フィードバックを見る",
     "次年度の新しい問題に合わせて戦略を変える"
   ],
   "meaningfulDecision": {
     "tradeoff": "大気を早く改善する強い規制と、農家の収入・導入しやすさ・地下水・土壌を同時に守ることを、限られた予算内ではすべて最大化できない。",
-    "consequence": "禁止だけなら農家負担が増える一方、代替手段や所得支援を組み合わせると副作用が軽減される。作物転換・節水・残渣利用など、選択した政策が翌年の弱点とイベント効果を変える。"
+    "consequence": "禁止、機械、残渣市場、土壌還元、作物転換、節水、所得支援、技術支援の組み合わせが6指標と次年度の弱点を変える。"
   },
-  "highestMoment": "最終年、悪化しかけた地下水と農家収入を、作物転換＋所得支援や節水＋技術支援の組み合わせで同時に持ち直し、農村の煙が消えて田畑と水路が回復する瞬間。",
-  "oneMoreRunReason": "同じ大気改善でも、規制中心・市場中心・農法転換中心で結果が変わるため、別の役割と政策コンボで全指標70以上を狙いたくなる。",
+  "highestMoment": "2政策を実行した直後に、選択した政策だけでなくコンボや副作用まで結果欄に出て、複数の指標が同時に動く瞬間。",
+  "oneMoreRunReason": "実ブラウザの2フルランはいずれも最終評価Bだったため、別の役割・政策コンボでA/Sを狙う具体的な再挑戦理由が残った。",
   "playtest": {
-    "method": "browser playtest pending after deployment",
-    "first10Seconds": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
-    "first30Seconds": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
-    "threeMinutes": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
-    "tenMinutes": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
-    "retryDesire": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."},
-    "noReward": {"pass": false, "evidence": "UNVERIFIED: browser interaction not yet performed."}
+    "method": "real Chromium browser playtest via Playwright on GitHub Actions run 33242003657; mobile 390x844 quick start and desktop 1280x900 cooperative-role start",
+    "first10Seconds": {"pass": true, "evidence": "開始画面に『稲わら焼きを止めても、問題は終わらない。』、6課題を示す説明、すぐ始めるボタンが表示され、モバイルではquick startから即1年目へ進めた。"},
+    "first30Seconds": {"pass": true, "evidence": "1年目で2政策を選択して実行し、reaction欄に政策結果・指標変化が表示される observe→decide→act→response の1ループを実ブラウザで確認した。"},
+    "threeMinutes": {"pass": true, "evidence": "4年を通してイベントが収穫後処理、地下水、機械普及、農産物価格へ切り替わり、毎年2政策を選ぶ判断が続いた。モバイル・デスクトップとも2/2/2/2政策で完走した。"},
+    "tenMinutes": {"pass": true, "evidence": "短時間ゲームの反復相当として、モバイルは政策責任者のquick start、デスクトップは農業協同組合を選ぶ別ルートで2回フルランした。役割差と年度イベント差があり、8ターン相当でも純粋な同一反復にはならなかった。"},
+    "retryDesire": {"pass": true, "evidence": "両方の実ランがgrade=Bで終了し、別ルートで再挑戦ボタンから開始画面へ戻れることを確認。A/Sを狙う改善余地が具体的に残った。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・実績等なしで、政策の組み合わせと6指標のトレードオフだけで2フルランを完走できた。"}
   },
   "scores": {
-    "first10Seconds": 1,
-    "coreLoop": 1,
-    "inputFeel": 1,
-    "decisionQuality": 1,
-    "masteryDepth": 1,
-    "surpriseVariation": 1,
-    "riskReward": 1,
-    "pacing": 1,
-    "retryDesire": 1,
-    "uniqueness": 1
+    "first10Seconds": 8,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 9,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 8,
+    "pacing": 8,
+    "retryDesire": 8,
+    "uniqueness": 8
   },
   "scoreEvidence": {
-    "first10Seconds": "UNVERIFIED",
-    "coreLoop": "UNVERIFIED",
-    "inputFeel": "UNVERIFIED",
-    "decisionQuality": "UNVERIFIED",
-    "masteryDepth": "UNVERIFIED",
-    "surpriseVariation": "UNVERIFIED",
-    "riskReward": "UNVERIFIED",
-    "pacing": "UNVERIFIED",
-    "retryDesire": "UNVERIFIED",
-    "uniqueness": "UNVERIFIED"
+    "first10Seconds": "390x844でquick start、1280x900で役割選択の両入口から迷わずゲーム本体へ到達した。",
+    "coreLoop": "両ランとも4年×2政策を実行し、毎ターン結果フィードバック、最終4件の履歴、gradeまで正常に到達した。",
+    "inputFeel": "政策カード選択、選択数、実行、次年度、再挑戦、リロードを実ブラウザでエラーなく操作した。",
+    "decisionQuality": "8政策の費用・効果・副作用に差があり、2枠と年度予算の制約下で組み合わせを選ぶ。実ランがBに留まり自明な最適解ではなかった。",
+    "masteryDepth": "役割差、年度ごとの問題、政策コンボと副作用が重なり、単独政策より組み合わせ理解が必要だった。",
+    "surpriseVariation": "4年度で問題が大気だけから地下水・普及・所得へ移り、同じ政策選択画面でも優先順位が変わった。",
+    "riskReward": "強い政策ほど費用や別指標への負担があり、短期改善と全体バランスのトレードオフを実際に選ぶ構造だった。",
+    "pacing": "年度予算+18ptの補充後、4年すべてで2政策を選べ、以前の予算枯渇による進行不能が解消された。",
+    "retryDesire": "2ルートともBだったため、A/Sを狙う別役割・別コンボという具体的な再挑戦理由が残った。",
+    "uniqueness": "稲わら焼きだけでなく地下水・土壌・所得・食料・普及を6指標で同時に扱う政策コンボゲームになっている。"
   },
-  "verifiedAt": ""
+  "verifiedAt": "2026-08-29T16:57:51+09:00"
 }
