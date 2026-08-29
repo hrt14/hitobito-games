@@ -1,0 +1,59 @@
+name: Verify impulse-cooldown production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.firebase-deploy-trigger'
+      - 'apps/impulse-cooldown/**'
+      - '.github/workflows/impulse-cooldown-production.yml'
+  workflow_dispatch:
+
+jobs:
+  production-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait for app on both production domains
+        run: |
+          set -euo pipefail
+          for base in https://hitobito-levelup.web.app https://levelup.hitobito.jp; do
+            ok=0
+            for attempt in $(seq 1 36); do
+              out="/tmp/impulse-cooldown-${attempt}.html"
+              if curl -fLsS --max-time 30 "$base/apps/impulse-cooldown/?verify=${GITHUB_SHA}-${attempt}" -o "$out" \
+                && grep -F '24時間、寝かせる。' "$out" >/dev/null; then
+                ok=1
+                echo "impulse-cooldown live on $base"
+                break
+              fi
+              sleep 5
+            done
+            test "$ok" = "1"
+          done
+      - name: Run production mobile playtest on custom domain
+        env:
+          IMPULSE_COOLDOWN_URL: https://levelup.hitobito.jp/apps/impulse-cooldown/?production-smoke=${{ github.sha }}
+        run: node apps/impulse-cooldown/smoke-browser.mjs
+      - name: Run production mobile playtest on Firebase domain
+        env:
+          IMPULSE_COOLDOWN_URL: https://hitobito-levelup.web.app/apps/impulse-cooldown/?production-smoke=${{ github.sha }}
+        run: node apps/impulse-cooldown/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impulse-cooldown-production-playtest
+          path: apps/impulse-cooldown/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
