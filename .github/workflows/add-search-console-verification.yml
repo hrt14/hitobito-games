@@ -21,8 +21,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          RECORD_NAME="hitobito.jp"
-          RECORD_VALUE="google-site-verification=sPBsbYpwHySgc4VntENvvGC4M--IgVcITX__dUozokA"
+          export RECORD_NAME="hitobito.jp"
+          export RECORD_VALUE="google-site-verification=sPBsbYpwHySgc4VntENvvGC4M--IgVcITX__dUozokA"
           API="https://api.cloudflare.com/client/v4"
 
           ZONES="$(curl -fsS \
@@ -34,7 +34,10 @@ jobs:
             let s="";
             process.stdin.on("data", d => s += d).on("end", () => {
               const j = JSON.parse(s);
-              if (!j.success || !j.result || !j.result[0]) process.exit(1);
+              if (!j.success || !j.result || !j.result[0]) {
+                console.error("Cloudflare zone hitobito.jp was not available to the configured token.");
+                process.exit(1);
+              }
               process.stdout.write(j.result[0].id);
             });
           ')"
@@ -44,7 +47,7 @@ jobs:
             -H "Content-Type: application/json" \
             "${API}/zones/${ZONE_ID}/dns_records?type=TXT&name=${RECORD_NAME}")"
 
-          if RECORD_VALUE="$RECORD_VALUE" printf '%s' "$RECORDS" | node -e '
+          if printf '%s' "$RECORDS" | node -e '
             let s="";
             process.stdin.on("data", d => s += d).on("end", () => {
               const j = JSON.parse(s);
@@ -55,7 +58,7 @@ jobs:
           '; then
             echo "Search Console verification TXT already exists."
           else
-            PAYLOAD="$(RECORD_VALUE="$RECORD_VALUE" RECORD_NAME="$RECORD_NAME" node -e '
+            PAYLOAD="$(node -e '
               process.stdout.write(JSON.stringify({
                 type: "TXT",
                 name: process.env.RECORD_NAME,
@@ -89,7 +92,7 @@ jobs:
             -H "Content-Type: application/json" \
             "${API}/zones/${ZONE_ID}/dns_records?type=TXT&name=${RECORD_NAME}")"
 
-          RECORD_VALUE="$RECORD_VALUE" printf '%s' "$FINAL" | node -e '
+          printf '%s' "$FINAL" | node -e '
             let s="";
             process.stdin.on("data", d => s += d).on("end", () => {
               const j = JSON.parse(s);
