@@ -51,11 +51,10 @@ const homePath = path.join(outDir, 'index.html');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) throw new Error('LEVEL UP home/catalog missing.');
 let home = fs.readFileSync(homePath, 'utf8');
-const negotiatorCard = /\s*<article class="card" data-game="negotiator-[^"]+">[\s\S]*?<\/article>/g;
+const negotiatorCard = /\s*<article class="card[^"]*" data-game="negotiator-[^"]+"[\s\S]*?<\/article>/g;
 const beforeHome = home;
 home = home.replace(negotiatorCard, '');
 if (home === beforeHome) throw new Error('No Negotiator cards were found on LEVEL UP home.');
-fs.writeFileSync(homePath, home);
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 if (!Array.isArray(catalog.games)) throw new Error('LEVEL UP catalog is invalid.');
@@ -63,7 +62,11 @@ const beforeCount = catalog.games.length;
 catalog.games = catalog.games.filter((game) => !String(game?.slug || '').startsWith('negotiator-'));
 const removedCount = beforeCount - catalog.games.length;
 if (removedCount < 1) throw new Error('No Negotiator entries were found in LEVEL UP catalog.');
+const visibleCount = catalog.games.length;
+home = home.replace(/<strong>\d+<\/strong><span>TRAINING GAMES<\/span>/, `<strong>${visibleCount}</strong><span>TRAINING GAMES</span>`);
+home = home.replace(/<span>\d+ games<\/span>/, `<span>${visibleCount} games</span>`);
+fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log(`[Firebase] removed ${removedCount} Negotiator cards from LEVEL UP home discovery.`);
+console.log(`[Firebase] removed ${removedCount} Negotiator cards from LEVEL UP home discovery; visible=${visibleCount}.`);
 
 await import('../firebase-overrides/levelup-feedback/app-request.mjs');
