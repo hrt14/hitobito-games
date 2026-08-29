@@ -31,6 +31,11 @@ const appCopies = {
     purpose: '8つの二択で自己像を出し、友人の匿名回答と4軸で比べて「自分が思う自分」と「他人から見える自分」のズレを可視化する',
     benefit: '友人の実回答から、親しみやすさ・押しの強さ・安定感・本音の見えやすさのどこに認識差があるか分かる',
   },
+  'what-stops-you': {
+    forWho: 'やった方がいいと分かっているのに、仕事・返信・挑戦などでなぜか着手できず、自分が止まる理由を知りたい人',
+    purpose: '12の具体場面への反応から、失敗恐怖・他人評価・完璧主義・面倒回避・考えすぎの5つの行動ブレーキを見分ける',
+    benefit: '今出やすい主ブレーキと副ブレーキが分かり、次に止まった瞬間に使う30秒の解除行動と最適なLEVEL UPを1つ持ち帰れる',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -91,4 +96,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, and how-seen specific LEVEL UP card copy injected; book copy ready.');
+console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, and what-stops-you specific LEVEL UP card copy injected; book copy ready.');
