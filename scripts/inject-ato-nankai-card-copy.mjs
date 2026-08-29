@@ -21,6 +21,11 @@ const appCopies = {
     bookTitle: 'あなたの人生、何に消えてる？ 24時間を「残り人生の何年」に変える',
     obi: '睡眠・仕事・スマホ・移動・家事の先に、自由な人生が何年残るかを見る。',
   },
+  'jinsei-fukusen': {
+    forWho: '昔の夢中や遠回りが、今の自分に何を残したのか見つけたい人',
+    purpose: '昔の夢中・遠回り・困ったときのクセ・今の役割を5問で並べ、一見無関係な経験の共通線を見つける',
+    benefit: '過去の出来事をバラバラな点のままにせず、今の強みや価値観につながる「ひとつの読み方」として共有カードにできる',
+  },
   'how-seen': {
     forWho: '自分が周囲からどう見られているか気になり、自己イメージと実際の友人評価の差を知りたい人',
     purpose: '8つの二択で自己像を出し、友人の匿名回答と4軸で比べて「自分が思う自分」と「他人から見える自分」のズレを可視化する',
@@ -91,4 +96,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai, jinsei-kieteru, how-seen, and praise-manual specific LEVEL UP card copy injected; book copy ready.');
+console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, and praise-manual specific LEVEL UP card copy injected; book copy ready.');
