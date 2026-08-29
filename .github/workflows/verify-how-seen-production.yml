@@ -1,0 +1,47 @@
+name: Verify how-seen production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-how-seen-production.yml'
+      - '.firebase-deploy-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-how-seen-production
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify deployed app assets on both LEVEL UP domains
+        shell: bash
+        run: |
+          set -euo pipefail
+          bases=("https://hitobito-levelup.web.app" "https://levelup.hitobito.jp")
+          for attempt in $(seq 1 24); do
+            echo "Attempt $attempt/24"
+            ok=1
+            for base in "${bases[@]}"; do
+              html=$(curl -fLsS --max-time 20 "$base/apps/how-seen/?verify=${GITHUB_SHA}-${attempt}" || true)
+              js=$(curl -fLsS --max-time 20 "$base/apps/how-seen/app.js?verify=${GITHUB_SHA}-${attempt}" || true)
+              if [[ "$html" != *"他人からどう見えてる？診断"* ]] || [[ "$html" != *"id=\"app\""* ]] || [[ "$js" != *"how-seen-responses"* ]] || [[ "$js" != *"友達に「どう見える？」と聞く"* ]]; then
+                echo "Not ready on $base"
+                ok=0
+              else
+                echo "Verified $base"
+              fi
+            done
+            if [[ "$ok" == "1" ]]; then
+              echo "HOW-SEEN PRODUCTION VERIFIED ON BOTH DOMAINS"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production app did not match expected content."
+          exit 1
