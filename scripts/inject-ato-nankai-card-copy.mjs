@@ -42,11 +42,11 @@ const appCopies = {
     benefit: '仕事・パートナーでそのまま使える例文とNG例まで入った取説を相手に送り、次に褒めてもらう瞬間から使える',
   },
   'life-rpg-status': {
-    forWho: '今の自分の特徴を、長い診断文ではなく一目で分かるキャラクターとして見てみたい人',
-    purpose: '12問から行動力・知力・社交力・回復力・運・残りHPを出し、職業・二つ名・特殊能力までRPG化する',
-    benefit: 'LVと能力値が入った1枚のRPGカードで「自分っぽさ」を見つけ、そのまま画像で友人やSNSに共有できる',
-    bookTitle: '人生RPGステータス｜12問でLV・HP・特殊能力をカード化',
-    obi: '行動力・知力・社交力・回復力・運をRPG化。あなたの職業と特殊能力まで1枚に。',
+    forWho: 'タイプ名だけでなく、どんな環境で力が出てどこで消耗しやすいかまで自分を具体的に理解したい人',
+    purpose: '30の具体場面からENERGY・STRUCTURE・OPENNESS・RELATION・DRIVE・STABILITYの6軸を出し、今の自分の戦い方をRPGビルドとして読む',
+    benefit: '強く出た傾向だけでなく、力が出やすい環境・消耗しやすい罠・次の1週間で試すことまで持ち帰れる',
+    bookTitle: '人生RPGステータス｜30問で自分の「戦い方」を6軸にする',
+    obi: 'タイプを決めつけず、30の場面から力が出る環境・消耗の罠・次の実験まで読む。',
   },
   'daily-special-ability': {
     forWho: '自分では普通にやっている行動の中に、どんな強みがあるのか言葉にしにくい人',
@@ -61,6 +61,20 @@ const appCopies = {
     benefit: '自分の強く出ている行動特性を一目で把握し、実測統計ではない推定だと分かったうえで結果を共有できる',
     bookTitle: '100人いたら何位？｜12問で行動特性を推定順位にする',
     obi: '決断力・行動速度・メンタル耐久などを100人中の推定順位で可視化。実測統計ではなく回答パターンから算出。',
+  },
+  'mind-reading-off': {
+    forWho: '短い返信・表情・沈黙から相手の悪い気持ちを読みすぎ、確認できないことを何度も考えて疲れる人',
+    purpose: '対人シーンの文を「見えた事実」と「推測・ストーリー」へ仕分け、別の可能性と必要な確認へ戻す',
+    benefit: '相手の気持ちを推測しても事実扱いせず、取り越し苦労を小さくして次の行動を選びやすくなる',
+    bookTitle: '考えすぎストップ。｜相手の気持ちを「事実」と「推測」に分ける',
+    obi: '返信・表情・沈黙を悪く読みすぎた時、見えた事実と頭の中のストーリーを仕分け直す。',
+  },
+  'kiku-chikara': {
+    forWho: '相手が悩みを話すと、すぐ助言・自分語り・質問攻めへ飛び、もっと自然に話を聴けるようになりたい人',
+    purpose: '6つの実戦会話で、要約→気持ちを決めつけず確認→開いた質問の3手を連続して選ぶ',
+    benefit: '話の直後に「何を返すか」で焦らず、相手が続きを話しやすい最初の一言を出しやすくなる',
+    bookTitle: '聴く力。｜要約・気持ち確認・質問を18手で反射化する',
+    obi: '助言より先に受け取る。6会話×3手で、相手が続きを話しやすい返しを練習する。',
   },
 };
 
@@ -122,4 +136,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] app-specific LEVEL UP card copy injected for ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, praise-manual, life-rpg-status, daily-special-ability, and 100nin-rank; book copy ready.');
+console.log(`[Firebase] app-specific LEVEL UP card copy injected: ${Object.keys(appCopies).join(', ')}; book copy ready.`);
