@@ -1,0 +1,31 @@
+name: Environment policy live verification
+
+on:
+  push:
+    paths:
+      - '.environment-policy-live-trigger'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production game
+        run: |
+          set -euo pipefail
+          URL='https://play.hitobito.jp/apps/environment-policy-sim/'
+          for ATTEMPT in $(seq 1 12); do
+            BODY="$(curl -fsSL --max-time 20 "${URL}?_verify=${GITHUB_SHA}-${ATTEMPT}" || true)"
+            if [[ "$BODY" == *'稲わら焼きを止めても、問題は終わらない。'* ]] \
+              && [[ "$BODY" == *'環境政策シミュレーション'* ]] \
+              && [[ "$BODY" == *'id="quickBtn"'* ]]; then
+              echo "LIVE PASS ${URL} attempt=${ATTEMPT} bytes=${#BODY}"
+              exit 0
+            fi
+            echo "attempt=${ATTEMPT} bytes=${#BODY} not ready"
+            sleep 5
+          done
+          echo 'Production game content not verified' >&2
+          exit 1
