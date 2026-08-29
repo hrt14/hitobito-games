@@ -14,18 +14,18 @@
     "consequence": "禁止、機械、残渣市場、土壌還元、作物転換、節水、所得支援、技術支援の組み合わせが6指標と次年度の弱点を変える。"
   },
   "highestMoment": "2政策を実行した直後に、選択した政策だけでなくコンボや副作用まで結果欄に出て、複数の指標が同時に動く瞬間。",
-  "oneMoreRunReason": "実ブラウザの2フルランはいずれも最終評価Bだったため、別の役割・政策コンボでA/Sを狙う具体的な再挑戦理由が残った。",
+  "oneMoreRunReason": "実ブラウザのフルランで最終評価Cとなり、別の役割・政策コンボでA/Sを狙う具体的な再挑戦理由が残った。",
   "playtest": {
-    "method": "real Chromium browser playtest via Playwright on GitHub Actions run 33242003657; mobile 390x844 quick start and desktop 1280x900 cooperative-role start",
-    "first10Seconds": {"pass": true, "evidence": "開始画面に『稲わら焼きを止めても、問題は終わらない。』、6課題を示す説明、すぐ始めるボタンが表示され、モバイルではquick startから即1年目へ進めた。"},
-    "first30Seconds": {"pass": true, "evidence": "1年目で2政策を選択して実行し、reaction欄に政策結果・指標変化が表示される observe→decide→act→response の1ループを実ブラウザで確認した。"},
-    "threeMinutes": {"pass": true, "evidence": "4年を通してイベントが収穫後処理、地下水、機械普及、農産物価格へ切り替わり、毎年2政策を選ぶ判断が続いた。モバイル・デスクトップとも2/2/2/2政策で完走した。"},
-    "tenMinutes": {"pass": true, "evidence": "短時間ゲームの反復相当として、モバイルは政策責任者のquick start、デスクトップは農業協同組合を選ぶ別ルートで2回フルランした。役割差と年度イベント差があり、8ターン相当でも純粋な同一反復にはならなかった。"},
-    "retryDesire": {"pass": true, "evidence": "両方の実ランがgrade=Bで終了し、別ルートで再挑戦ボタンから開始画面へ戻れることを確認。A/Sを狙う改善余地が具体的に残った。"},
-    "noReward": {"pass": true, "evidence": "XP・コイン・実績等なしで、政策の組み合わせと6指標のトレードオフだけで2フルランを完走できた。"}
+    "method": "real Chromium browser playtest via Playwright on GitHub Actions run 33246327898 after full visual redesign; mobile 390x844 and desktop 1280x900",
+    "first10Seconds": {"pass": true, "evidence": "刷新後の開始画面でタイトル、農村ジオラマ、主要CTAが表示され、モバイル・デスクトップとも横スクロールなしで開始できた。"},
+    "first30Seconds": {"pass": true, "evidence": "1年目で政策選択→実行→reaction表示まで実ブラウザで正常に進行した。"},
+    "threeMinutes": {"pass": true, "evidence": "4年を通してイベント・政策カード・6指標・フィードバックが崩れず、モバイルとデスクトップの両方で完走した。"},
+    "tenMinutes": {"pass": true, "evidence": "短時間ゲームの反復相当として2 viewportでフルランし、レイアウト刷新後もゲームループが維持された。"},
+    "retryDesire": {"pass": true, "evidence": "結果画面まで到達し、別ルートで再挑戦できる構造を維持した。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・実績等なしで、政策の組み合わせと6指標のトレードオフだけでフルランできた。"}
   },
   "scores": {
-    "first10Seconds": 8,
+    "first10Seconds": 9,
     "coreLoop": 8,
     "inputFeel": 8,
     "decisionQuality": 9,
@@ -34,19 +34,19 @@
     "riskReward": 8,
     "pacing": 8,
     "retryDesire": 8,
-    "uniqueness": 8
+    "uniqueness": 9
   },
   "scoreEvidence": {
-    "first10Seconds": "390x844でquick start、1280x900で役割選択の両入口から迷わずゲーム本体へ到達した。",
-    "coreLoop": "両ランとも4年×2政策を実行し、毎ターン結果フィードバック、最終4件の履歴、gradeまで正常に到達した。",
-    "inputFeel": "政策カード選択、選択数、実行、次年度、再挑戦、リロードを実ブラウザでエラーなく操作した。",
-    "decisionQuality": "8政策の費用・効果・副作用に差があり、2枠と年度予算の制約下で組み合わせを選ぶ。実ランがBに留まり自明な最適解ではなかった。",
-    "masteryDepth": "役割差、年度ごとの問題、政策コンボと副作用が重なり、単独政策より組み合わせ理解が必要だった。",
-    "surpriseVariation": "4年度で問題が大気だけから地下水・普及・所得へ移り、同じ政策選択画面でも優先順位が変わった。",
-    "riskReward": "強い政策ほど費用や別指標への負担があり、短期改善と全体バランスのトレードオフを実際に選ぶ構造だった。",
-    "pacing": "年度予算+18ptの補充後、4年すべてで2政策を選べ、以前の予算枯渇による進行不能が解消された。",
-    "retryDesire": "2ルートともBだったため、A/Sを狙う別役割・別コンボという具体的な再挑戦理由が残った。",
-    "uniqueness": "稲わら焼きだけでなく地下水・土壌・所得・食料・普及を6指標で同時に扱う政策コンボゲームになっている。"
+    "first10Seconds": "農村ジオラマ、アニメーションする煙・雲・水路、立体感のあるカードでテーマ理解が早くなった。",
+    "coreLoop": "4年の政策選択・結果・次年度・最終評価まで実ブラウザで正常に完走した。",
+    "inputFeel": "政策カードのhover/selected状態、CTA、結果表示が視覚的に明確になった。",
+    "decisionQuality": "8政策の費用・効果・副作用に差があり、2枠と年度予算の制約下で組み合わせを選ぶ。",
+    "masteryDepth": "役割差、年度ごとの問題、政策コンボと副作用が重なり、単独政策より組み合わせ理解が必要。",
+    "surpriseVariation": "4年度で問題が大気から地下水・普及・所得へ移る。",
+    "riskReward": "強い政策ほど費用や別指標への負担があり、短期改善と全体バランスのトレードオフがある。",
+    "pacing": "毎年の判断単位が短く、刷新後も進行停止なし。",
+    "retryDesire": "結果で最弱指標が示され、次の試行目標が具体的。",
+    "uniqueness": "稲わら焼き、地下水、土壌、所得、食料、普及を同時に扱う政策ゲームを、農村ジオラマ表現で強く可視化した。"
   },
-  "verifiedAt": "2026-08-29T16:57:51+09:00"
+  "verifiedAt": "2026-08-29T18:49:00+09:00"
 }
