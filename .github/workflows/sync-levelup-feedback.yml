@@ -36,6 +36,20 @@ jobs:
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Ensure Firestore access for feedback sync
+        id: firestore_iam
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gcloud projects add-iam-policy-binding hitobito-levelup \
+            --member='serviceAccount:github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com' \
+            --role='roles/datastore.user' \
+            --condition=None \
+            --quiet 2>&1 | tee /tmp/levelup-feedback-iam.log
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -58,17 +72,25 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SYNC_OUTCOME: ${{ steps.sync_feedback.outcome }}
+          IAM_OUTCOME: ${{ steps.firestore_iam.outcome }}
         run: |
           set -euo pipefail
           title='LEVEL UP feedback sync status'
           issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
           {
             echo "Status: **$SYNC_OUTCOME**"
+            echo "Firestore IAM repair step: **$IAM_OUTCOME**"
             echo
             echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo "Ref: \`$GITHUB_REF_NAME\`"
             echo "Commit: \`$GITHUB_SHA\`"
             echo
+            echo '### Firestore IAM repair log'
+            echo '```text'
+            if [ -f /tmp/levelup-feedback-iam.log ]; then tail -n 120 /tmp/levelup-feedback-iam.log; else echo '(IAM log unavailable)'; fi
+            echo '```'
+            echo
+            echo '### Feedback sync log'
             echo '```text'
             if [ -f /tmp/levelup-feedback-sync.log ]; then tail -n 120 /tmp/levelup-feedback-sync.log; else echo '(sync log unavailable)'; fi
             echo '```'
