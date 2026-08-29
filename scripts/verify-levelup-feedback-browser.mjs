@@ -63,7 +63,6 @@ async function verifyMindReading() {
     if (!correct.includes('観察と解釈')) throw new Error(`mind-reading-off correct feedback missing: ${correct}`);
     await page.click('#next');
 
-    // Each scene is fact -> story -> story. Finish the remaining 13 statements.
     const answers = ['story','fact','story','story','fact','story','story','fact','story','story','fact','story','story'];
     for (const answer of answers) {
       await page.click(`[data-bin="${answer}"]`);
@@ -125,7 +124,6 @@ async function verifyListening() {
     const wrong = await page.$eval('#feedback', (el) => el.textContent);
     if (!wrong.includes('先回りしすぎ')) throw new Error(`kiku-chikara wrong feedback missing: ${wrong}`);
 
-    // Restart, then complete all 18 interactions with the intended listening responses.
     await page.goto(`${base}/apps/kiku-chikara/?quality-restart=${Date.now()}`, { waitUntil: 'networkidle2', timeout: 60000 });
     await page.click('#start');
     for (let i = 0; i < LISTEN_CORRECT.length; i += 1) {
@@ -160,16 +158,17 @@ async function verifyLifeRpg() {
   try {
     await page.waitForSelector('#start', { visible: true });
     const homeText = await page.$eval('#home', (el) => el.textContent.replace(/\s+/g, ' '));
-    if (!homeText.includes('30問') || !homeText.includes('6軸')) throw new Error(`life-rpg-status new copy missing: ${homeText.slice(0, 240)}`);
+    if (!homeText.includes('42問') || !homeText.includes('6軸')) throw new Error(`life-rpg-status new copy missing: ${homeText.slice(0, 240)}`);
     await page.click('#start');
-    for (let i = 0; i < 30; i += 1) {
+    for (let i = 0; i < 42; i += 1) {
       await page.waitForSelector('#quiz:not(.hidden) .scale button:nth-child(3)');
       await page.click('#quiz .scale button:nth-child(3)');
     }
     await page.waitForSelector('#result:not(.hidden)');
     const statCount = await page.$$eval('#stats .stat', (els) => els.length);
     const axisCount = await page.$$eval('#axes .axis', (els) => els.length);
-    if (statCount !== 6 || axisCount !== 6) throw new Error(`life-rpg-status result counts wrong: stats=${statCount}, axes=${axisCount}`);
+    const styleCount = await page.$$eval('#styles .style-card', (els) => els.length);
+    if (statCount !== 6 || axisCount !== 6 || styleCount !== 3) throw new Error(`life-rpg-status result counts wrong: stats=${statCount}, axes=${axisCount}, styles=${styleCount}`);
     for (const id of ['environment','risk','experiment']) {
       const text = await page.$eval(`#${id}`, (el) => el.textContent.trim());
       if (!text) throw new Error(`life-rpg-status ${id} empty`);
@@ -183,7 +182,7 @@ async function verifyLifeRpg() {
     if (!history.includes('保存日')) throw new Error(`life-rpg-status revisit history missing: ${history}`);
     const homeHref = await page.$eval('.top a', (el) => el.getAttribute('href'));
     if (homeHref !== '/') throw new Error(`life-rpg-status exit link mismatch: ${homeHref}`);
-    console.log('QUALITY 301 VERIFIED: first visit, mobile, 30-question completion, 6-axis results, environment/risk/experiment, reload and previous-result revisit, exit link.');
+    console.log('QUALITY 301 VERIFIED: first visit, mobile, 42-question completion, 6-axis results, 3 style combinations, environment/risk/experiment, reload and previous-result revisit, exit link.');
   } finally {
     await page.close();
   }
