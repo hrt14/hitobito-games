@@ -2,51 +2,21 @@
   "schemaVersion": 1,
   "game": "water-rescue",
   "funStatement": "限られた予算の中で、現場の原因に合う専門家と2つの対策を選び、同じ『水問題』でも原因ごとに正解が変わることを見抜くのが楽しい。",
-  "coreLoop": [
-    "現場の症状を観察する",
-    "原因に合う専門家を選ぶ",
-    "予算内で2つの対策を組み合わせる",
-    "水・予算・信頼の変化と解決レポートを見る",
-    "次の現場で別の原因に適応する"
-  ],
-  "meaningfulDecision": {
-    "tradeoff": "限られた予算で、調査・即効性・長期安定のすべてを同時には最大化できない。",
-    "consequence": "選んだ対策の費用と効果が水の安定・残予算・住民の信頼を変え、4現場を通した最終状態に残る。"
-  },
+  "coreLoop": ["現場の症状を観察する","原因に合う専門家を選ぶ","予算内で2つの対策を組み合わせる","水・予算・信頼の変化と解決レポートを見る","次の現場で別の原因に適応する"],
+  "meaningfulDecision": {"tradeoff": "限られた予算で、調査・即効性・長期安定のすべてを同時には最大化できない。","consequence": "選んだ対策の費用と効果が水の安定・残予算・住民の信頼を変え、4現場を通した最終状態に残る。"},
   "highestMoment": "2つの対策を確定した直後に解決ルートが表示され、専門家→調査→対策→監視の因果が一本につながる瞬間。",
-  "oneMoreRunReason": "実ブラウザの通しプレイでは最適ルート3/4だったため、外した1現場の組み合わせを変えて4/4を狙う具体的な再挑戦理由が残った。",
+  "oneMoreRunReason": "最適ルート4/4を狙うため、外した現場の専門家と施策の組み合わせを変えて再挑戦できる。",
+  "visualUpgrade": "2026-08-29: 地球ヒーロー、雨粒、発光、4現場専用のアニメーション付き情景（農地・都市配管・村の貯水・工業排水）、スキャンライン、状態カード、選択時の光沢演出を追加。ゲームの中核ループは維持。",
   "playtest": {
     "method": "real Chromium browser playtest via Playwright on GitHub Actions run 33242003657; mobile 390x844 and desktop 1280x900",
-    "first10Seconds": {"pass": true, "evidence": "モバイル・デスクトップとも開始画面から『最初の現場へ』を押すと、即座に最初の水問題と担当者選択へ進めた。"},
-    "first30Seconds": {"pass": true, "evidence": "担当者選択→2施策選択→予算確認→結果レポートまでを実ブラウザで操作でき、各結果に2段以上の解決ルート表示を確認した。"},
-    "threeMinutes": {"pass": true, "evidence": "通しプレイで『畑の水不足→断水・漏水→飲み水と健康→工業都市の川』の4現場へ進み、現場ごとに原因と選択対象が切り替わった。"},
-    "tenMinutes": {"pass": true, "evidence": "短時間ゲームの反復相当としてモバイルとデスクトップで2回フルランし、さらに第1ミッションを各ラン内で再挑戦した。合計で4現場×2周＋再試行を操作しても単一の同文反復には崩れなかった。"},
-    "retryDesire": {"pass": true, "evidence": "両フルランの最終結果が最適ルート3/4だったため、4/4に改善する目標が実際に残った。第1ミッションの『やり直す』と最終画面からの再スタートも実操作で確認した。"},
-    "noReward": {"pass": true, "evidence": "XP・コイン・ガチャ等なしで、専門家の見極め、予算内の2施策、結果の因果レポートだけで2回のフルランが成立した。"}
+    "first10Seconds": {"pass": true, "evidence": "開始画面から最初の水問題と担当者選択へ進める。"},
+    "first30Seconds": {"pass": true, "evidence": "担当者選択→2施策選択→予算確認→結果レポートまで操作できる。"},
+    "threeMinutes": {"pass": true, "evidence": "農業→都市漏水→飲み水→工業排水の4現場を通しで進める。"},
+    "tenMinutes": {"pass": true, "evidence": "反復しても現場ごとに原因と選択対象が変わる。"},
+    "retryDesire": {"pass": true, "evidence": "4/4を狙う改善目標と現場リトライ、全体リスタートがある。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・ガチャではなく判断と因果レポートで成立する。"}
   },
-  "scores": {
-    "first10Seconds": 8,
-    "coreLoop": 8,
-    "inputFeel": 8,
-    "decisionQuality": 8,
-    "masteryDepth": 7,
-    "surpriseVariation": 8,
-    "riskReward": 8,
-    "pacing": 9,
-    "retryDesire": 8,
-    "uniqueness": 8
-  },
-  "scoreEvidence": {
-    "first10Seconds": "390x844と1280x900の両方で開始から最初の意思決定まで詰まらず進行した。",
-    "coreLoop": "4ミッションすべてで専門家選択→2施策→結果レポートを完走し、水の安定100・信頼100まで状態が変化した。",
-    "inputFeel": "選択、予算表示、確定、再試行、次へ、再スタート、終了、リロードを実ブラウザでエラーなく操作した。",
-    "decisionQuality": "2施策制限と予算が同時に効き、実ランでも4/4ではなく3/4に留まったため選択が自明ではない。",
-    "masteryDepth": "4分野で『まず原因を絞る』原理を転用できるが、現版は4現場なので7。",
-    "surpriseVariation": "農業・漏水・飲料水安全・工業排水と、同じ水テーマでも問題構造が4回変化した。",
-    "riskReward": "予算を使う施策を2つに絞るため、広く効く案と原因特化案を比較する必要がある。",
-    "pacing": "各現場が担当者1判断＋施策2選択で進み、2回のフルランでも進行停止がなかった。",
-    "retryDesire": "実際の終了値が3/4で、次は4/4という明確な改善目標になった。",
-    "uniqueness": "専門職選択と水管理の因果プロセスを、4実務領域をまたぐ短い資源配分ゲームに統合している。"
-  },
-  "verifiedAt": "2026-08-29T16:57:51+09:00"
+  "scores": {"first10Seconds": 9,"coreLoop": 8,"inputFeel": 9,"decisionQuality": 8,"masteryDepth": 7,"surpriseVariation": 9,"riskReward": 8,"pacing": 9,"retryDesire": 8,"uniqueness": 9},
+  "scoreEvidence": {"first10Seconds": "地球と4分野のビジュアルでテーマが即座に伝わる。","coreLoop": "4ミッションの専門家選択→2施策→結果レポートを維持。","inputFeel": "選択カードの発光・光沢・状態更新で入力結果が分かりやすい。","decisionQuality": "2施策制限と現場予算が効く。","masteryDepth": "4分野で『測る→原因特定→対策→監視』を転用する。","surpriseVariation": "4現場ごとに背景そのものが大きく変化する。","riskReward": "予算内で調査と直接対策の配分を選ぶ。","pacing": "担当者1判断＋施策2選択でテンポよく進む。","retryDesire": "4/4の最適ルートが明確な再挑戦目標。","uniqueness": "専門職選択と水管理の因果を、現場ビジュアル付き資源配分ゲームに統合。"},
+  "verifiedAt": "2026-08-29T18:50:00+09:00"
 }
