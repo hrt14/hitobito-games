@@ -1,0 +1,81 @@
+name: Verify daily-special-ability production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily-special-ability-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Verify live LEVEL UP app
+        run: |
+          cat > .daily-special-ability-production-test.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          const browser = await puppeteer.launch({headless:true, executablePath:'/usr/bin/google-chrome', args:['--no-sandbox']});
+          const page = await browser.newPage();
+          await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          const failed=[];
+          page.on('pageerror',e=>failed.push(`pageerror: ${String(e)}`));
+          page.on('requestfailed',req=>{
+            const u=req.url();
+            if(u.endsWith('/favicon.ico') || u.includes('google-analytics.com/g/collect')) return;
+            failed.push(`requestfailed: ${u} ${req.failure()?.errorText||''}`);
+          });
+          const url='https://levelup.hitobito.jp/apps/daily-special-ability/';
+          const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
+          if(!response || response.status()!==200) throw new Error(`production HTTP status ${response?.status()}`);
+          await page.waitForSelector('#startBtn',{timeout:10000});
+          const title=await page.title();
+          if(!title.includes('あなたの日常特殊能力診断')) throw new Error(`production title mismatch: ${title}`);
+          const hero=await page.$eval('#startTitle',el=>el.textContent.replace(/\s+/g,'').trim());
+          if(!hero.includes('あなたの日常特殊能力診断')) throw new Error(`production hero mismatch: ${hero}`);
+          const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+          if(overflow>2) throw new Error(`mobile horizontal overflow: ${overflow}px`);
+
+          await page.click('#startBtn');
+          await page.waitForSelector('#questionScreen.active .choice',{timeout:5000});
+          for(let i=0;i<12;i++){
+            const expected=String(i+1).padStart(2,'0');
+            await page.waitForFunction((v)=>document.querySelector('#progressText')?.textContent.includes(v),{},expected);
+            await page.click('#questionScreen.active .choice:first-child');
+            if(i<11){
+              const next=String(i+2).padStart(2,'0');
+              await page.waitForFunction((v)=>document.querySelector('#progressText')?.textContent.includes(v),{timeout:5000},next);
+            }
+          }
+          await page.waitForSelector('#resultScreen.active',{timeout:5000});
+          const result=await page.$eval('#abilityName',el=>el.textContent.trim());
+          const activation=await page.$eval('#activationMoment',el=>el.textContent.trim());
+          const sub=await page.$eval('#subAbility',el=>el.textContent.trim());
+          const meterCount=await page.$$eval('#meters .meter',els=>els.length);
+          const disclaimer=await page.$eval('.disclaimer',el=>el.textContent);
+          if(!result || !activation || !sub) throw new Error('production result fields missing');
+          if(meterCount!==6) throw new Error(`production meter count ${meterCount}`);
+          if(!disclaimer.includes('心理検査') || !disclaimer.includes('客観的な能力測定')) throw new Error('production disclaimer missing');
+
+          await page.reload({waitUntil:'domcontentloaded',timeout:30000});
+          await page.waitForSelector('#lastResultBtn:not([hidden])',{timeout:5000});
+          await page.click('#lastResultBtn');
+          await page.waitForSelector('#resultScreen.active',{timeout:5000});
+          const restored=await page.$eval('#abilityName',el=>el.textContent.trim());
+          if(restored!==result) throw new Error(`revisit result mismatch: ${result} -> ${restored}`);
+
+          if(failed.length) throw new Error(`production browser errors: ${failed.join(' | ')}`);
+          console.log(`DAILY-SPECIAL-ABILITY PRODUCTION PASS: ${url} HTTP 200; 390x844; 12-question completion; result=${result}; 6 meters; reload/revisit verified.`);
+          await browser.close();
+          NODE
+          node .daily-special-ability-production-test.mjs
+          rm .daily-special-ability-production-test.mjs
