@@ -1,0 +1,68 @@
+name: how-seen browser
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/how-seen/**'
+      - '.github/workflows/how-seen-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/how-seen-server.log 2>&1 &
+          sleep 2
+      - name: Browser test
+        run: |
+          cat > /tmp/test-how-seen.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          const browser = await puppeteer.launch({headless:true, executablePath:'/usr/bin/google-chrome', args:['--no-sandbox']});
+          const page = await browser.newPage();
+          await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          const base='http://127.0.0.1:4173/apps/how-seen/';
+          await page.goto(base,{waitUntil:'networkidle0'});
+          const title=await page.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim());
+          if(!title.includes('他人から')) throw new Error('first view title missing');
+          const start=await page.$('#start'); if(!start) throw new Error('start missing');
+          const box=await start.boundingBox(); if(!box || box.height<48) throw new Error('start tap target too small');
+          await start.click();
+          for(let i=0;i<8;i++){await page.waitForSelector('.choice'); const choices=await page.$$('.choice'); if(choices.length!==2) throw new Error('expected 2 choices'); await choices[i%2].click();}
+          await page.waitForSelector('.result-card');
+          const bars=await page.$$('.bar-row'); if(bars.length<4) throw new Error('result bars missing');
+          const last=await page.evaluate(()=>JSON.parse(localStorage.getItem('how-seen-last')));
+          if(!last?.id || !last?.self) throw new Error('self result not persisted');
+          const ask=await page.evaluate((token)=>{const s=btoa(unescape(encodeURIComponent(JSON.stringify(token)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return location.origin+location.pathname+'?ask='+encodeURIComponent(s)},last);
+          const friend=await browser.newPage(); await friend.setViewport({width:390,height:844,isMobile:true,hasTouch:true}); await friend.goto(ask,{waitUntil:'networkidle0'});
+          const friendTitle=await friend.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim()); if(!friendTitle.includes('実際どう見える')) throw new Error('friend intro missing');
+          await friend.click('#peerStart');
+          for(let i=0;i<8;i++){await friend.waitForSelector('.choice');const choices=await friend.$$('.choice');await choices[(i+1)%2].click();}
+          await friend.waitForSelector('#sendBack');
+          const returnUrl=await friend.evaluate((token)=>{
+            const labels={'親しみやすさ':'warm','押しの強さ':'drive','安定感':'steady','本音の見えやすさ':'open'};
+            const scores={};document.querySelectorAll('.bar-row').forEach(row=>scores[labels[row.querySelector('b').textContent]]=Number(row.querySelector('span').textContent));
+            const obj={id:token.id,self:token.self,peer:scores};const s=btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return location.origin+location.pathname+'?back='+encodeURIComponent(s)
+          },last);
+          await page.goto(returnUrl,{waitUntil:'networkidle0'});
+          await page.waitForSelector('.gap-number');
+          const imported=await page.$eval('.notice',el=>el.textContent); if(!imported.includes('追加')) throw new Error('return response not imported');
+          const responses=await page.evaluate((id)=>JSON.parse(localStorage.getItem('how-seen-responses:'+id)||'[]'),last.id); if(responses.length!==1) throw new Error('response not saved');
+          await page.reload({waitUntil:'networkidle0'}); await page.waitForSelector('.gap-number');
+          const persistedCount=await page.$eval('.friend-badge',el=>el.textContent); if(!persistedCount.includes('1人')) throw new Error('revisit average missing');
+          await page.setViewport({width:1280,height:900}); await page.reload({waitUntil:'networkidle0'}); if(!(await page.$('.shell'))) throw new Error('desktop shell missing');
+          console.log('HOW-SEEN BROWSER PASS: first view, 8 self choices, result, friend flow, return import, reload/revisit, mobile and desktop verified.');
+          await browser.close();
+          NODE
+          node /tmp/test-how-seen.mjs
