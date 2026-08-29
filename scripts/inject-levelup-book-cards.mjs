@@ -15,6 +15,10 @@ if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
 // The obi is deliberately one short benefit line. Detailed metadata stays in the
 // hidden DOM/catalog so diagnosis and keyword search keep working.
 const BOOK_COPY = {
+  'boundary-map': {
+    title: '頼まれると断れず疲れる人の 境界線マップ',
+    obi: '20個の頼まれごとに答えて、すり減りやすい場所を見つけ、結果をカードでシェアする。',
+  },
   '10-years-back': {
     title: '「やった方がいい」と分かっているのに動けない人の 10年後から戻ってきた',
     obi: '2036年のカプセルを今日までドラッグして、3分で一手を決める。',
