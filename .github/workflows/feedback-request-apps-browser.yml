@@ -5,6 +5,9 @@ on:
     paths:
       - 'apps/sasshi-sugi-stop/**'
       - 'apps/listening-reflex/**'
+      - 'scripts/register-feedback-apps-meta.mjs'
+      - 'scripts/inject-feedback-app-cards.mjs'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
       - '.github/workflows/feedback-request-apps-browser.yml'
   push:
     branches:
@@ -12,13 +15,16 @@ on:
     paths:
       - 'apps/sasshi-sugi-stop/**'
       - 'apps/listening-reflex/**'
+      - 'scripts/register-feedback-apps-meta.mjs'
+      - 'scripts/inject-feedback-app-cards.mjs'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
       - '.github/workflows/feedback-request-apps-browser.yml'
   workflow_dispatch:
 
 jobs:
   mobile-playtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,6 +68,14 @@ jobs:
         run: node apps/listening-reflex/smoke-browser.mjs
       - name: Quality gate listening app
         run: node scripts/validate-levelup-quality-gate.mjs --app apps/listening-reflex
+      - name: Build complete Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify new apps are discoverable in Firebase catalog
+        run: |
+          grep -F 'sasshi-sugi-stop' .dist/firebase/levelup-catalog.json
+          grep -F 'listening-reflex' .dist/firebase/levelup-catalog.json
+          test -f .dist/firebase/apps/sasshi-sugi-stop/index.html
+          test -f .dist/firebase/apps/listening-reflex/index.html
       - name: Server log on failure
         if: failure()
         run: cat /tmp/feedback-apps-server.log || true
