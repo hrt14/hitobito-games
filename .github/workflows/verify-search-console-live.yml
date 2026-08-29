@@ -1,0 +1,28 @@
+name: Verify Search Console markers live
+
+on:
+  push:
+    paths:
+      - ".github/workflows/verify-search-console-live.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify HTML verification file is live
+        run: |
+          set -euo pipefail
+          BODY="$(curl -fsSL --retry 4 --retry-delay 2 https://levelup.hitobito.jp/google4a20d374a163ef3d.html)"
+          test "$BODY" = 'google-site-verification: google4a20d374a163ef3d.html'
+          echo "HTML verification file OK"
+
+      - name: Verify meta verification tag is live
+        run: |
+          set -euo pipefail
+          BODY="$(curl -fsSL --retry 4 --retry-delay 2 https://levelup.hitobito.jp/)"
+          printf '%s' "$BODY" | grep -F '<meta name="google-site-verification" content="sPBsbYpwHySgc4VntENvvGC4M--IgVcITX__dUozokA"'
+          echo "Meta verification tag OK"
