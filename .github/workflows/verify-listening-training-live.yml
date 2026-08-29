@@ -1,0 +1,37 @@
+name: Verify listening training live
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-listening-training-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify exact listening route on production
+        run: |
+          set -euo pipefail
+          url='https://levelup.hitobito.jp/apps/jinshin-shoaku/listening.html'
+          for attempt in $(seq 1 18); do
+            echo "Attempt $attempt: $url"
+            if curl -fLsS --max-time 30 "$url?verify=$GITHUB_RUN_ID-$attempt" -o /tmp/listening.html; then
+              if grep -F 'LISTEN / 8 SCENES' /tmp/listening.html >/dev/null \
+                && grep -F '聴く力' /tmp/listening.html >/dev/null \
+                && grep -F '要約' /tmp/listening.html >/dev/null \
+                && grep -F '感情' /tmp/listening.html >/dev/null \
+                && grep -F '質問' /tmp/listening.html >/dev/null \
+                && grep -F '確認' /tmp/listening.html >/dev/null; then
+                echo 'LISTENING TRAINING LIVE VERIFIED'
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo 'Listening training route did not verify.'
+          exit 1
