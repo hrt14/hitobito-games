@@ -1,0 +1,24 @@
+name: how-seen quality gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/how-seen/**'
+      - '.github/workflows/how-seen-quality-gate.yml'
+      - 'scripts/validate-levelup-quality-gate.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate LEVEL UP quality evidence
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/how-seen
