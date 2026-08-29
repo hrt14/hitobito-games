@@ -59,6 +59,7 @@ try {
   await page.waitForSelector('#startScreen.active');
 
   if (!(await active('startScreen'))) fail('First visit is not usable.');
+  if (!(await page.locator('#lastSession').isHidden())) fail('First visit shows an empty previous-session panel.');
   const h1 = await page.locator('#startTitle').innerText();
   if (!h1.includes('嫌な気持ち') || !h1.includes('いったん下げる')) fail(`Promise is unclear: ${h1}`);
   const lead = await page.locator('.lead').innerText();
@@ -95,6 +96,8 @@ try {
   await chooseIntensity('after', 3);
   const resultTitle = (await page.locator('#resultTitle').innerText()).trim();
   if (!resultTitle.includes('2段階')) fail(`Successful before/after result missing: ${resultTitle}`);
+  const resultTitleBox = await page.locator('#resultTitle').boundingBox();
+  if (!resultTitleBox || resultTitleBox.height > 96) fail(`Result headline wraps too awkwardly: ${resultTitleBox?.height}px`);
   if (!(await page.locator('#beforeAfter').innerText()).includes('5 → 3')) fail('Before/after change is not visible.');
   if (!(await page.locator('#resultEmotion').innerText()).includes('不安が来てる')) fail('Result does not preserve affect label.');
   await page.screenshot({ path: path.join(artifacts, '03-result-success-390.png'), fullPage: true });
@@ -144,13 +147,14 @@ try {
     url,
     viewports: ['390x844', '360x800'],
     tested: [
-      'first visit and one-tap baseline',
+      'first visit without empty revisit chrome',
+      'one-tap baseline',
       '8-second hold metaphor in accelerated test mode',
       'affect labeling carried into the next screen',
       'back path from source to label',
       'source-specific four-anchor choice',
       'concrete action execution',
-      'before/after success result',
+      'before/after success result and readable result headline',
       'reload and revisit history',
       'raised-intensity failure path',
       'repeat run and observed personal anchor insight',
