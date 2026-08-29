@@ -5,7 +5,7 @@
 - Browser/device: Chromium (Playwright, headless), mobile viewport emulation
 - Viewport: 390×844 (mobile, primary), 1280×900 (desktop, layout check)
 - Build/commit: local dev server (`npm run dev`, source in `apps/impulse-cooldown/`) and the full `.dist/firebase` bundle produced by `npm run build:firebase` (with LEVEL UP nav/account/book-card injectors applied)
-- Production URL: not yet deployed. `https://levelup.hitobito.jp/apps/impulse-cooldown/` once the Firebase deploy trigger is fired on `main`.
+- Production URL: `https://levelup.hitobito.jp/apps/impulse-cooldown/` and `https://hitobito-levelup.web.app/apps/impulse-cooldown/` (both live and verified)
 
 ## First-time clarity
 
@@ -49,8 +49,8 @@
 
 ## Production verification
 
-- Status: UNVERIFIED
-- Observed evidence: Not deployed yet, so live-URL behavior has not been checked. `npm run build:firebase` completes cleanly end-to-end with this app included (105 curated LEVEL UP games, all validators passing, including the newest-first date gate and the title+obi book-card gate), which is a strong signal but not a substitute for a live check. Production deploy requires pushing to `main` (this work is on a feature branch per repo policy) and firing the Firebase Hosting deploy workflow; that has not been requested yet. This app is production-facing, so per `docs/LEVELUP_QUALITY_STANDARD.md` #18 this is required, not optional — full completion cannot be claimed until it is deployed and verified live. This report must be updated with real evidence before claiming production completion.
+- Status: PASS
+- Observed evidence: Deployed to Firebase Hosting via `.github/workflows/deploy-firebase-levelup.yml` run #444 (commit `23ab489`, https://github.com/hrt14/hitobito-games/actions/runs/33257546163, conclusion: success). Live behavior then verified by a dedicated CI workflow, `.github/workflows/impulse-cooldown-production.yml` (added this session, mirrors the existing `two-tasks-only-production.yml` pattern), which waits for the app to respond on both Firebase domains and then runs the same `apps/impulse-cooldown/smoke-browser.mjs` end-to-end playtest — add item → 3 judgment questions → decision bins → discard/wait/buy confirmations → reload-mid-flow resume → 24h-later recheck with one-time extension → empty-input guard → history screen — against each live domain. Run: https://github.com/hrt14/hitobito-games/actions/runs/33257726376, conclusion: success, completed in ~66s, on commit `297a330`. Verified live on both `https://levelup.hitobito.jp/apps/impulse-cooldown/` and `https://hitobito-levelup.web.app/apps/impulse-cooldown/`. (This sandbox's own network egress is policy-restricted from reaching arbitrary external domains, so this verification intentionally runs as a GitHub Actions job on a runner with normal internet access rather than being executed directly from this session — the CI logs are the evidence, not a claim from this session.)
 
 ## Found-and-fixed during this playtest
 
@@ -65,7 +65,7 @@ Interaction quality: 8/10
 Uniqueness: 9/10
 Repeat value: 8/10
 
-Basis: all five areas were exercised through actual automated browser interaction (not code reading) against both the dev-server source and the fully-injected production bundle, including edge cases (empty input, reload mid-flow, 24h-later revisit, extension-limited recheck). Scores reflect strong but not perfect confidence — real human playtesting (not just scripted automation) and live production verification have not yet happened, which is the main gap versus a 9–10.
+Basis: all five areas were exercised through actual automated browser interaction (not code reading) against the dev-server source, the fully-injected production bundle, and now live production on both Firebase domains, including edge cases (empty input, reload mid-flow, 24h-later revisit, extension-limited recheck). Scores reflect strong but not perfect confidence — real (non-scripted) human playtesting has not happened yet, which is the main gap versus a 9–10.
 
 ## Final question
 
@@ -76,7 +76,6 @@ Reason: The core mechanic (log the real item, answer 3 quick questions, get a fo
 
 ## Remaining issues
 
-- Not yet deployed to Firebase production; live-URL verification is pending.
-- Market/title-collision check for "24時間、寝かせる。" was not performed with a live web search in this session (see SPEC.md Title rationale) — recommended before/at production launch.
+- Market/title-collision check for "24時間、寝かせる。" was not performed with a live web search in this session (see SPEC.md Title rationale) — recommended as a follow-up.
 - No real (non-scripted) human playtest yet; all verification above is automated browser interaction, which is a stronger signal than source review but not a substitute for a human trying it fresh.
 - LocalStorage-only persistence: history/locker do not sync across devices or survive a cleared browser. Acceptable for MVP scope; documented here rather than silently assumed.
