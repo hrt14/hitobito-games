@@ -1,0 +1,88 @@
+name: ato-nankai browser
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/ato-nankai/**'
+      - '.github/workflows/ato-nankai-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/ato-nankai-server.log 2>&1 &
+          sleep 2
+      - name: Browser test
+        run: |
+          cat > .ato-nankai-browser-test.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          const browser = await puppeteer.launch({headless:true, executablePath:'/usr/bin/google-chrome', args:['--no-sandbox']});
+          const page = await browser.newPage();
+          await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          const errors=[];
+          page.on('pageerror',e=>errors.push(String(e)));
+          page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
+          const base='http://127.0.0.1:4173/apps/ato-nankai/';
+          await page.goto(base,{waitUntil:'networkidle0'});
+
+          const title=await page.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim());
+          if(!title.includes('人生')||!title.includes('あと何回')) throw new Error('first-view title missing');
+          const note=await page.$eval('.hero-copy',el=>el.textContent);
+          if(!note.includes('寿命の予測ではありません')) throw new Error('assumption disclaimer missing');
+          const initialSpring=await page.$eval('#springCount',el=>el.textContent.trim());
+          if(initialSpring!=='50') throw new Error(`initial spring expected 50, got ${initialSpring}`);
+
+          await page.$eval('#ageRange',el=>{el.value='50';el.dispatchEvent(new Event('input',{bubbles:true}))});
+          const spring40=await page.$eval('#springCount',el=>el.textContent.trim());
+          if(spring40!=='40') throw new Error(`age slider did not recalculate, got ${spring40}`);
+          await page.click('#endAgeButtons button[data-end="100"]');
+          const spring50=await page.$eval('#springCount',el=>el.textContent.trim());
+          if(spring50!=='50') throw new Error(`end-age switch did not recalculate, got ${spring50}`);
+
+          const parentMonthly=await page.$eval('#parentCount',el=>el.textContent.replace(/,/g,'').trim());
+          if(parentMonthly!=='600') throw new Error(`monthly important-person count expected 600, got ${parentMonthly}`);
+          await page.click('#parentFrequency button[data-per-year="4"]');
+          const parentQuarterly=await page.$eval('#parentCount',el=>el.textContent.replace(/,/g,'').trim());
+          if(parentQuarterly!=='200') throw new Error(`frequency switch expected 200, got ${parentQuarterly}`);
+
+          const choice=await page.$('#choiceGrid button[data-source="saturday"]');
+          const box=await choice.boundingBox();
+          if(!box || box.height<48) throw new Error('choice tap target too small');
+          await choice.click();
+          await page.waitForSelector('#resultSection:not([hidden])');
+          const resultChoice=await page.$eval('#resultChoice',el=>el.textContent.trim());
+          if(resultChoice!=='土曜日') throw new Error('selected result not reflected');
+          const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('ato-nankai-last')||'null'));
+          if(stored?.choice!=='土曜日') throw new Error('result choice not persisted');
+
+          await page.click('#backBtn');
+          const resultHidden=await page.$eval('#resultSection',el=>el.hidden);
+          if(!resultHidden) throw new Error('back/select-again path failed');
+          await page.reload({waitUntil:'networkidle0'});
+          const revisitVisible=await page.$eval('#revisitBox',el=>!el.hidden);
+          if(!revisitVisible) throw new Error('revisit state missing after reload');
+          const previous=await page.$eval('#previousChoice',el=>el.textContent.trim());
+          if(previous!=='土曜日') throw new Error('revisit choice mismatch');
+
+          await page.setViewport({width:1280,height:900});
+          await page.reload({waitUntil:'networkidle0'});
+          if(!(await page.$('.app'))) throw new Error('desktop app shell missing');
+          if(errors.length) throw new Error(`browser console errors: ${errors.join(' | ')}`);
+          console.log('ATO-NANKAI BROWSER PASS: first view, disclaimer, age/end-age recalculation, meeting frequency, selection/result, persistence/revisit, back path, mobile and desktop verified.');
+          await browser.close();
+          NODE
+          node .ato-nankai-browser-test.mjs
+          rm .ato-nankai-browser-test.mjs
