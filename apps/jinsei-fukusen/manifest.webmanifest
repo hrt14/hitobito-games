@@ -1,0 +1,9 @@
+{
+  "name": "あなたの人生の伏線",
+  "short_name": "人生の伏線",
+  "lang": "ja",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4efe5",
+  "theme_color": "#f4efe5"
+}
