@@ -57,11 +57,11 @@ a {
 }
 
 .session-count {
+  margin: 10px 0 0;
   color: #8f98a6;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: .1em;
-  flex: 0 0 auto;
+  letter-spacing: .06em;
 }
 
 #app {

@@ -300,7 +300,12 @@
   }
 
   function updateSessionCount() {
-    sessionCountEl.textContent = `${totalSessions} SESSIONS`;
+    if (totalSessions > 0) {
+      sessionCountEl.textContent = `これまで ${totalSessions} 回挑戦`;
+      sessionCountEl.hidden = false;
+    } else {
+      sessionCountEl.hidden = true;
+    }
   }
 
   function startMain() {
