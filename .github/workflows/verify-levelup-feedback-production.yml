@@ -60,7 +60,7 @@ jobs:
 
           needles = (
               'data-levelup-feedback-v1',
-              'id="lu-fb-fab"',
+              'lu-fb-fab',
               'id="levelup-feedback-menu-bridge"',
               '改善要望を送る',
           )
