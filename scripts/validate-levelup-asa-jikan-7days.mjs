@@ -40,3 +40,7 @@ if (errors.length) {
   process.exit(1);
 }
 console.log('[validate-levelup-asa-jikan-7days] OK');
+
+// Final user-feedback patches run here so the normal Firebase bundle validator
+// validates exactly what will be deployed.
+await import('./patch-levelup-feedback-279-292.mjs');
