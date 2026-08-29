@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>稲わら焼きを止めても終わらない｜環境政策シミュレーター</title>
+<meta name="description" content="稲わら焼き、大気汚染、地下水、土壌、農家収入、食料生産を同時に考える環境課題シミュレーションゲーム。">
+<style>
+:root{--bg:#f6f2e7;--ink:#20231f;--muted:#667066;--line:#c9c6b9;--card:#fffdf6;--green:#1d6b4b;--green2:#65a36d;--blue:#4c86b5;--brown:#8c633e;--orange:#d47a2a;--red:#b84b43;--gold:#c59a27;--shadow:0 12px 28px rgba(29,38,31,.10)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#edf4ef 0 31%,#e2d2a7 31% 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;min-height:100vh}button{font:inherit}.app{max-width:980px;margin:0 auto;padding:16px 14px 48px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.brand{font-weight:900;letter-spacing:.08em;font-size:12px}.help{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px}.hero{position:relative;overflow:hidden;border:2px solid #2b322c;background:#eaf3ea;border-radius:24px;box-shadow:var(--shadow);padding:20px 18px 18px}.hero:after{content:"";position:absolute;inset:auto 0 0;height:32%;background:#d7bd83;z-index:0}.hero>*{position:relative;z-index:1}.eyebrow{font-size:12px;font-weight:900;color:#405d49;letter-spacing:.08em}.hero h1{font-size:clamp(28px,7vw,52px);line-height:1.06;margin:8px 0 10px;max-width:780px}.hero p{margin:0;max-width:700px;line-height:1.7;font-weight:650}.village{margin-top:18px;height:180px;position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(#bcd8e8 0 42%,#b7c97f 42% 67%,#d8b56e 67%);border:1px solid rgba(0,0,0,.12)}.sun{position:absolute;right:28px;top:18px;width:48px;height:48px;border-radius:50%;background:#f0ca54}.smoke{position:absolute;left:10%;bottom:70px;width:80px;height:70px;filter:blur(3px);opacity:.78}.smoke:before,.smoke:after{content:"";position:absolute;border-radius:50%;background:#6c706e}.smoke:before{width:58px;height:38px;left:8px;bottom:0}.smoke:after{width:45px;height:45px;left:30px;top:0}.field{position:absolute;left:0;right:0;bottom:0;height:62px;background:repeating-linear-gradient(100deg,#b78941 0 13px,#d8b56e 13px 27px)}.waterway{position:absolute;right:12%;bottom:-8px;width:40%;height:55px;background:linear-gradient(135deg,transparent 18%,#74abd0 19% 63%,transparent 64%);transform:skewX(-18deg)}.tractor{position:absolute;left:59%;bottom:42px;font-size:42px;filter:drop-shadow(0 3px 1px rgba(0,0,0,.18))}.farmer{position:absolute;left:42%;bottom:44px;font-size:38px}.wheat{position:absolute;left:73%;bottom:42px;font-size:48px}.ctaRow{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.primary,.secondary{min-height:50px;border-radius:14px;padding:0 18px;font-weight:900;border:2px solid #203329}.primary{background:#203329;color:#fff}.secondary{background:#fff;color:#203329}.screen{display:none}.screen.active{display:block}.panel{margin-top:14px;background:rgba(255,253,246,.96);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}.panel h2,.panel h3{margin:0 0 8px}.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.role{min-height:132px;text-align:left;padding:14px;border:2px solid var(--line);border-radius:16px;background:#fff}.role strong{display:block;font-size:18px;margin:7px 0 5px}.role span{color:var(--muted);font-size:13px;line-height:1.45}.role.sel{border-color:var(--green);background:#eef8f1}.hud{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}.year{font-weight:900;font-size:13px;color:var(--muted)}.turnTitle{font-size:28px;font-weight:950}.budget{text-align:right}.budget strong{font-size:28px}.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}.metric{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}.metricLabel{font-size:11px;font-weight:800;color:var(--muted)}.metricValue{font-size:23px;font-weight:950;margin:2px 0 6px}.track{height:7px;background:#e6e4da;border-radius:999px;overflow:hidden}.fill{height:100%;border-radius:999px;transition:width .35s}.event{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:center}.eventIcon{width:54px;height:54px;display:grid;place-items:center;border-radius:16px;background:#eef2e9;font-size:30px}.event p{margin:4px 0 0;color:#4f5b52;line-height:1.55}.policyHead{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:10px}.policyGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.policy{position:relative;text-align:left;border:2px solid var(--line);border-radius:17px;background:#fff;padding:14px;min-height:148px}.policy:disabled{opacity:.42}.policy.sel{border-color:#1d6b4b;background:#eff8f1}.policyTop{display:flex;justify-content:space-between;gap:8px}.policyName{font-weight:950;font-size:16px}.cost{white-space:nowrap;font-size:12px;font-weight:900;background:#eee9da;border-radius:999px;padding:5px 8px;height:max-content}.policyDesc{margin-top:7px;font-size:13px;line-height:1.45;color:#59635b}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.chip{font-size:10px;font-weight:800;border:1px solid #d7d4c8;border-radius:999px;padding:3px 6px;background:#faf8ef}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.hint{font-size:12px;color:var(--muted);line-height:1.5}.reaction{display:none;margin-top:12px;border:2px solid #203329;background:#fff;border-radius:18px;padding:15px}.reaction.show{display:block}.reaction h3{margin-bottom:8px}.effectLine{padding:8px 0;border-top:1px dashed #d7d3c5;font-size:13px;line-height:1.45}.effectLine:first-of-type{border-top:0}.delta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.delta span{border:1px solid var(--line);border-radius:999px;padding:4px 7px;font-size:11px;font-weight:850}.goal{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:center}.grade{height:90px;border-radius:20px;background:#203329;color:#fff;display:grid;place-items:center;font-size:52px;font-weight:1000}.history{margin:8px 0 0;padding-left:20px}.history li{margin:7px 0;line-height:1.45}.source{font-size:11px;line-height:1.55;color:#687168;margin-top:14px}.toast{position:sticky;bottom:12px;margin:12px auto 0;max-width:520px;background:#20231f;color:#fff;padding:10px 14px;border-radius:12px;text-align:center;font-weight:800;display:none}.toast.show{display:block}.flash{animation:flash .35s ease}@keyframes flash{0%{transform:scale(.98)}60%{transform:scale(1.015)}100%{transform:scale(1)}}
+@media(max-width:720px){.roles{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.policyGrid{grid-template-columns:1fr}.village{height:150px}.goal{grid-template-columns:72px 1fr}.grade{height:72px;font-size:42px}.app{padding-left:10px;padding-right:10px}.hero{border-radius:20px;padding:17px 14px}.metric{padding:8px}.metricValue{font-size:20px}}
+</style>
+</head>
+<body>
+<main class="app">
+<div class="top"><div class="brand">HITOBITO PLAY · ENVIRONMENT</div><button class="help" id="helpBtn">遊び方</button></div>
+<section class="screen active" id="startScreen">
+<div class="hero">
+<div class="eyebrow">環境課題シミュレーション</div>
+<h1>稲わら焼きを止めても、問題は終わらない。</h1>
+<p>煙を減らす。地下水も守る。農家の収入も落とさない。限られた予算で、つながった問題をまとめて解け。</p>
+<div class="village" aria-label="農村の風景"><div class="sun"></div><div class="smoke"></div><div class="field"></div><div class="waterway"></div><div class="tractor">🚜</div><div class="farmer">🧑🏽‍🌾</div><div class="wheat">🌾</div></div>
+<div class="ctaRow"><button class="primary" id="beginBtn">政策チームを選ぶ</button><button class="secondary" id="quickBtn">すぐ始める</button></div>
+</div>
+<p class="source">このゲームは、ユーザー提供の展示写真に示されたインドの稲わら焼きと大気汚染、地下水、土壌、農家収入、農業機械導入などの関係を題材にした学習用シミュレーションです。ゲーム内の数値は実測値ではなく、因果関係を遊びながら理解するための簡略モデルです。</p>
+</section>
+
+<section class="screen" id="roleScreen">
+<div class="panel"><h2>あなたは、どの立場から解く？</h2><p class="hint">同じ政策でも、立場によって得意な進め方が変わります。</p>
+<div class="roles">
+<button class="role" data-role="policy">🏛️<strong>政策責任者</strong><span>予算が多い。規制とインフラを組み合わせやすい。</span></button>
+<button class="role" data-role="science">🔬<strong>環境研究者</strong><span>大気・水・土壌への政策効果を少し高める。</span></button>
+<button class="role" data-role="coop">🤝<strong>農業協同組合</strong><span>農家収入と普及を守りながら移行しやすい。</span></button>
+</div><div class="actions"><button class="primary" id="roleStart" disabled>この仕事で開始</button></div></div>
+</section>
+
+<section class="screen" id="gameScreen">
+<div class="panel hud"><div><div class="year" id="yearLabel"></div><div class="turnTitle" id="turnTitle"></div></div><div class="budget"><div class="year">残り予算</div><strong><span id="budget">0</span> pt</strong></div></div>
+<div class="metrics" id="metrics"></div>
+<div class="panel event"><div class="eventIcon" id="eventIcon">🌫️</div><div><h3 id="eventTitle"></h3><p id="eventText"></p></div></div>
+<div class="panel"><div class="policyHead"><div><h2>政策を2つまで選ぶ</h2><div class="hint">「単独の正解」より、組み合わせを探すゲームです。</div></div><strong id="count">0 / 2</strong></div><div class="policyGrid" id="policyGrid"></div><div class="actions"><button class="primary" id="applyBtn" disabled>政策を実行</button><span class="hint" id="msg"></span></div><div class="reaction" id="reaction"><h3>村で何が起きた？</h3><div id="reactionBody"></div><div class="actions"><button class="primary" id="nextBtn">次の年へ</button></div></div></div>
+</section>
+
+<section class="screen" id="resultScreen">
+<div class="panel goal"><div class="grade" id="grade">A</div><div><div class="eyebrow">4年間の結果</div><h2 id="resultTitle"></h2><p id="resultText"></p></div></div>
+<div class="metrics" id="finalMetrics"></div>
+<div class="panel"><h3>あなたの解決ルート</h3><ol class="history" id="history"></ol></div>
+<div class="panel"><h3>このゲームの核心</h3><p>環境問題は、原因を1つ禁止すれば終わるとは限りません。大気をきれいにする施策が農家の負担を増やしたり、水を守る施策が短期の生産に影響したりします。技術・市場・所得・資源管理を組み合わせるほど、全体として持続しやすくなります。</p><div class="actions"><button class="primary" id="restartBtn">別ルートで再挑戦</button></div></div>
+</section>
+<div class="toast" id="toast" role="status"></div>
+</main>
+<script>
+(()=>{
+const screens={start:document.getElementById('startScreen'),role:document.getElementById('roleScreen'),game:document.getElementById('gameScreen'),result:document.getElementById('resultScreen')};
+const roles={policy:{name:'政策責任者',budget:112},science:{name:'環境研究者',budget:100},coop:{name:'農業協同組合',budget:102}};
+const meta={air:['大気','🌫️'],water:['地下水','💧'],soil:['土壌','🌱'],income:['農家収入','💰'],food:['食料','🍚'],access:['普及','🛠️']};
+const events=[
+{icon:'🔥',title:'収穫後、次の作付けまで時間がない',text:'稲わらを早く処理しないと次の作付けに間に合わない。焼却は農家にとって「速い処理」でもある。',fx:{income:-2}},
+{icon:'💧',title:'地下水位が下がり続ける',text:'大気対策だけでは足りない。水を多く使う作付け構造が、別の環境問題を大きくしている。',fx:{water:-7}},
+{icon:'🚜',title:'小規模農家に機械が届かない',text:'良い技術があっても、高価で使い方が分からなければ広がらない。',fx:{access:-7}},
+{icon:'📉',title:'農産物価格が下落',text:'環境対策を続けるには「守るほど農家が損をする」状態を避けなければならない。',fx:{income:-6,food:-2}}
+];
+const policies=[
+{id:'ban',name:'稲わら焼き禁止・監視',icon:'🚫',cost:22,desc:'焼却を直接減らす。代替策がないと反発と負担が出る。',fx:{air:16,income:-8,access:-3},chips:['大気↑↑','収入↓']},
+{id:'machine',name:'残渣処理機械を共同導入',icon:'🚜',cost:28,desc:'粉砕・播種機械を共同利用できるようにする。',fx:{air:10,soil:3,income:3,access:17},chips:['大気↑','普及↑↑']},
+{id:'bio',name:'稲わらを買い取る市場',icon:'🏭',cost:25,desc:'燃料・資材として買い取り、捨てる物から収入源へ変える。',fx:{air:8,income:11,access:4,soil:-3},chips:['収入↑↑','土壌↓']},
+{id:'incorp',name:'稲わらを土へ戻す',icon:'🌱',cost:20,desc:'すき込み・堆肥化で焼かずに有機物として使う。',fx:{air:9,soil:14,access:5,income:-2},chips:['土壌↑↑','大気↑']},
+{id:'crop',name:'作物を多様化する',icon:'🌾',cost:30,desc:'米・小麦への集中を緩め、水使用と単一栽培リスクを下げる。',fx:{water:18,soil:6,income:-4,food:-5},chips:['地下水↑↑','短期食料↓']},
+{id:'irrigation',name:'節水型かんがい',icon:'💧',cost:24,desc:'同じ生産でも地下水への負担を減らす。',fx:{water:15,income:2,food:2,access:6},chips:['地下水↑↑','食料↑']},
+{id:'support',name:'移行期の所得支援',icon:'💰',cost:18,desc:'新しい農法へ移る間の損失を補い、挑戦できる余裕を作る。',fx:{income:14,access:8,food:3},chips:['収入↑↑','普及↑']},
+{id:'advice',name:'地域の技術支援チーム',icon:'🧑🏽‍🌾',cost:14,desc:'農家ごとに使える方法を伝え、政策を現場で使える形にする。',fx:{air:4,soil:3,income:3,access:12},chips:['普及↑↑','全体補助']}
+];
+let st,chosen,locked,selectedRole=null;
+const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
+const show=k=>Object.entries(screens).forEach(([n,e])=>e.classList.toggle('active',n===k));
+const toast=t=>{const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1700)};
+function reset(){st={role:null,year:1,budget:100,m:{air:41,water:39,soil:48,income:55,food:71,access:31},history:[]};chosen=new Set;locked=false;selectedRole=null;document.querySelectorAll('.role').forEach(b=>b.classList.remove('sel'));document.getElementById('roleStart').disabled=true;show('start')}
+function fx(obj,m=1){Object.entries(obj||{}).forEach(([k,v])=>st.m[k]=clamp(st.m[k]+v*m))}
+function color(v){return v>=70?'#3c8d5a':v>=45?'#c49a33':'#bd5148'}
+function metricHtml(k,v){return `<div class="metric"><div class="metricLabel">${meta[k][1]} ${meta[k][0]}</div><div class="metricValue">${v}</div><div class="track"><div class="fill" style="width:${v}%;background:${color(v)}"></div></div></div>`}
+function renderMetrics(id='metrics'){document.getElementById(id).innerHTML=Object.entries(st.m).map(([k,v])=>metricHtml(k,v)).join('')}
+function totalCost(extra){return [...chosen,...(extra?[extra]:[])].reduce((s,id)=>s+policies.find(p=>p.id===id).cost,0)}
+function renderPolicies(){const g=document.getElementById('policyGrid');g.innerHTML='';policies.forEach(p=>{const b=document.createElement('button');const sel=chosen.has(p.id);b.className='policy'+(sel?' sel':'');b.disabled=locked||(!sel&&p.cost>st.budget)||(!sel&&chosen.size>=2);b.innerHTML=`<div class="policyTop"><div class="policyName">${p.icon} ${p.name}</div><div class="cost">${p.cost}pt</div></div><div class="policyDesc">${p.desc}</div><div class="chips">${p.chips.map(x=>`<span class="chip">${x}</span>`).join('')}</div>`;b.addEventListener('click',()=>toggle(p.id));g.appendChild(b)});document.getElementById('count').textContent=`${chosen.size} / 2`;document.getElementById('applyBtn').disabled=locked||chosen.size===0}
+function toggle(id){if(locked)return;if(chosen.has(id))chosen.delete(id);else{if(chosen.size>=2)return toast('1年に選べるのは2政策まで');if(totalCost(id)>st.budget)return toast('予算が足りない');chosen.add(id)};renderPolicies();document.getElementById('msg').textContent=chosen.size===2?'この組み合わせで副作用まで抑えられる？':''}
+function renderTurn(){locked=false;chosen.clear();document.getElementById('yearLabel').textContent=`${roles[st.role].name} · ${st.year}年目 / 4年`;document.getElementById('turnTitle').textContent=st.year===1?'最初の一手':st.year===4?'最後の政策':'新しい問題が出た';document.getElementById('budget').textContent=st.budget;const ev=events[st.year-1];document.getElementById('eventIcon').textContent=ev.icon;document.getElementById('eventTitle').textContent=ev.title;document.getElementById('eventText').textContent=ev.text;document.getElementById('reaction').classList.remove('show');document.getElementById('applyBtn').style.display='inline-block';renderMetrics();renderPolicies()}
+function start(){st.role=selectedRole||'policy';st.budget=roles[st.role].budget;show('game');renderTurn()}
+function execute(){if(!chosen.size||locked)return;locked=true;const picks=[...chosen].map(id=>policies.find(p=>p.id===id));const before={...st.m};const lines=[];st.budget-=picks.reduce((s,p)=>s+p.cost,0);fx(events[st.year-1].fx);picks.forEach(p=>fx(p.fx));if(st.role==='science'){st.m.air=clamp(st.m.air+2);st.m.water=clamp(st.m.water+2);st.m.soil=clamp(st.m.soil+2);lines.push('🔬 研究チームの分析で、大気・水・土壌への効果を少し高めた。')}if(st.role==='coop'){st.m.income=clamp(st.m.income+3);st.m.access=clamp(st.m.access+4);lines.push('🤝 協同組合のネットワークで、農家負担と普及の壁を少し下げた。')}
+const ids=new Set([...chosen]);if(ids.has('ban')&&(ids.has('machine')||ids.has('incorp')||ids.has('bio'))){st.m.air=clamp(st.m.air+8);st.m.income=clamp(st.m.income+5);lines.push('✅ コンボ成功：「禁止」だけで終わらず代替手段も用意したため、反発を抑えながら煙を減らせた。')}else if(ids.has('ban')){st.m.income=clamp(st.m.income-6);st.m.access=clamp(st.m.access-4);lines.push('⚠️ 副作用：禁止だけでは処理方法がなく、農家の負担が増えた。')}
+if(ids.has('crop')&&ids.has('support')){st.m.water=clamp(st.m.water+5);st.m.income=clamp(st.m.income+8);st.m.food=clamp(st.m.food+4);lines.push('✅ コンボ成功：作物転換の短期損失を支援で補い、水を守りながら移行できた。')}if(ids.has('crop')&&ids.has('irrigation')){st.m.water=clamp(st.m.water+6);st.m.soil=clamp(st.m.soil+2);lines.push('💧 水資源コンボ：「何を作るか」と「どう水を使うか」を同時に変えた。')}if(ids.has('machine')&&ids.has('advice')){st.m.access=clamp(st.m.access+9);lines.push('🛠️ 普及コンボ：機械だけでなく使い方も届き、小規模農家にも広がった。')}if(ids.has('bio')&&ids.has('incorp')){st.m.soil=clamp(st.m.soil+5);st.m.income=clamp(st.m.income+3);lines.push('♻️ 循環コンボ：売る分と土へ戻す分を分け、収入と土壌を両立した。')}
+if(!ids.has('crop')&&!ids.has('irrigation'))st.m.water=clamp(st.m.water-2);if(!ids.has('incorp')&&!ids.has('crop'))st.m.soil=clamp(st.m.soil-1);if(st.year>=3&&st.m.access<40){st.m.income=clamp(st.m.income-3);lines.push('⚠️ 普及不足：制度があっても現場で使われず、農家収入にしわ寄せが出た。')}
+const delta=Object.keys(st.m).map(k=>[k,st.m[k]-before[k]]).filter(x=>x[1]);const body=document.getElementById('reactionBody');body.innerHTML=picks.map(p=>`<div class="effectLine"><strong>${p.icon} ${p.name}</strong>を実行した。</div>`).join('')+lines.map(x=>`<div class="effectLine">${x}</div>`).join('')+`<div class="delta">${delta.sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).map(([k,d])=>`<span>${meta[k][0]} ${d>0?'+':''}${d}</span>`).join('')}</div>`;st.history.push(`${st.year}年目：${picks.map(p=>p.name).join(' ＋ ')}`);document.getElementById('budget').textContent=st.budget;renderMetrics();renderPolicies();document.getElementById('applyBtn').style.display='none';document.getElementById('reaction').classList.add('show');document.getElementById('reaction').classList.add('flash');setTimeout(()=>document.getElementById('reaction').classList.remove('flash'),400);document.getElementById('nextBtn').textContent=st.year===4?'最終結果を見る':'次の年へ'}
+function next(){if(st.year===4)return finish();st.year++;renderTurn()}
+function finish(){show('result');const vals=Object.values(st.m),avg=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length),low=Math.min(...vals);let grade='C',title='ひとつの問題を、別の場所へ動かしてしまった。';if(avg>=72&&low>=55){grade='S';title='つながった問題を、つながったまま解けた。'}else if(avg>=65&&low>=48){grade='A';title='かなりバランスの良い移行に成功。'}else if(avg>=56){grade='B';title='改善した。ただし取り残された課題がある。'}const weak=Object.entries(st.m).sort((a,b)=>a[1]-b[1])[0];document.getElementById('grade').textContent=grade;document.getElementById('resultTitle').textContent=title;document.getElementById('resultText').textContent=`総合バランス ${avg}/100。最も弱く残ったのは「${meta[weak[0]][0]}」でした。次はそこを犠牲にしない組み合わせを探せます。`;renderMetrics('finalMetrics');document.getElementById('history').innerHTML=st.history.map(x=>`<li>${x}</li>`).join('')}
+document.getElementById('beginBtn').addEventListener('click',()=>show('role'));document.getElementById('quickBtn').addEventListener('click',()=>{selectedRole='policy';start()});document.getElementById('helpBtn').addEventListener('click',()=>toast('毎年2政策まで選択。4年後、6指標をバランス良く残せば勝ち。'));document.querySelectorAll('.role').forEach(b=>b.addEventListener('click',()=>{selectedRole=b.dataset.role;document.querySelectorAll('.role').forEach(x=>x.classList.toggle('sel',x===b));document.getElementById('roleStart').disabled=false}));document.getElementById('roleStart').addEventListener('click',start);document.getElementById('applyBtn').addEventListener('click',execute);document.getElementById('nextBtn').addEventListener('click',next);document.getElementById('restartBtn').addEventListener('click',reset);reset();
+})();
+</script>
+</body>
+</html>
