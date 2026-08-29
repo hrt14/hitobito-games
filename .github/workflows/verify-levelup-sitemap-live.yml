@@ -1,0 +1,35 @@
+name: Verify LEVEL UP sitemap live
+
+on:
+  push:
+    paths:
+      - ".github/workflows/verify-levelup-sitemap-live.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify sitemap and robots in production
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITEMAP_URL="https://levelup.hitobito.jp/sitemap.xml"
+          ROBOTS_URL="https://levelup.hitobito.jp/robots.txt"
+
+          curl -fsS -D /tmp/sitemap.headers -o /tmp/sitemap.xml "$SITEMAP_URL"
+          grep -qi '^content-type: .*xml' /tmp/sitemap.headers
+          grep -F '<?xml version="1.0" encoding="UTF-8"?>' /tmp/sitemap.xml
+          grep -F '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' /tmp/sitemap.xml
+          grep -F '<loc>https://levelup.hitobito.jp/</loc>' /tmp/sitemap.xml
+          COUNT="$(grep -o '<url>' /tmp/sitemap.xml | wc -l | tr -d ' ')"
+          test "$COUNT" -gt 1
+
+          curl -fsS -o /tmp/robots.txt "$ROBOTS_URL"
+          grep -Fx 'Sitemap: https://levelup.hitobito.jp/sitemap.xml' /tmp/robots.txt
+
+          echo "sitemap_url_count=$COUNT"
+          echo "SITEMAP_LIVE_OK"
