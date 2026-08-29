@@ -1,0 +1,35 @@
+name: Verify NEGOTIATOR procrastination production interaction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.verify-negotiator-procrastination-interaction'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run production interaction smoke
+        env:
+          NEGOTIATOR_URL: https://levelup.hitobito.jp/apps/negotiator-procrastination/?test=1
+        run: node apps/negotiator-procrastination/smoke-browser.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: negotiator-procrastination-production-interaction
+          path: apps/negotiator-procrastination/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
