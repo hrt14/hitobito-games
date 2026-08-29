@@ -1,6 +1,7 @@
 import './register-success-mind-meta.mjs';
 import './register-negotiator-procrastination-meta.mjs';
 import './register-what-stops-you-meta.mjs';
+import './register-daily-special-ability-meta.mjs';
 import { GAME_META } from './playtest-catalog.mjs';
 
 GAME_META['10x-thinking'] = [
