@@ -3,6 +3,7 @@ import './register-negotiator-move-meta.mjs';
 import './register-two-tasks-only-meta.mjs';
 import './register-personal-workflow-meta.mjs';
 import './register-jinsei-fukusen-meta.mjs';
+import './register-life-rpg-status-meta.mjs';
 import { GAME_META } from './playtest-catalog.mjs';
 
 GAME_META['income-akinator'] = [
