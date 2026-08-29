@@ -1,6 +1,6 @@
 name: PLAY release browser audit
 
-# release-audit-v2
+# release-audit-v3
 on:
   push:
     branches: [main]
@@ -43,7 +43,7 @@ jobs:
             await page.goto('http://127.0.0.1:4173/apps/water-rescue/',{waitUntil:'networkidle'});
             if(!(await page.getByRole('heading',{name:'水問題レスキュー'}).isVisible())) throw new Error(label+' intro missing');
             await page.getByRole('button',{name:'最初の現場へ'}).click();
-            let missions=[];
+            const missions=[];
             for(let m=0;m<4;m++){
               await page.locator('#missionTitle').waitFor({state:'visible'});
               missions.push((await page.locator('#missionTitle').textContent())?.trim());
@@ -83,14 +83,18 @@ jobs:
             if(!(await page.getByRole('heading',{name:/稲わら焼きを止めても/}).isVisible())) throw new Error(label+' intro missing');
             if(quick){ await page.locator('#quickBtn').click(); }
             else { await page.locator('#beginBtn').click(); await page.locator('.role').nth(2).click(); await page.locator('#roleStart').click(); }
-            let turns=[];
+            const turns=[]; const choiceCounts=[];
             for(let y=0;y<4;y++){
               await page.locator('#gameScreen.active').waitFor();
               turns.push((await page.locator('#turnTitle').textContent())?.trim());
-              const policies=page.locator('#policyGrid .policy:not([disabled])'); const n=await policies.count(); if(n<2) throw new Error(label+' policies <2');
-              await policies.nth(y%Math.min(n,3)).click();
-              const policies2=page.locator('#policyGrid .policy:not([disabled])');
-              for(let i=0;i<await policies2.count();i++){ if(!(await policies2.nth(i).getAttribute('class')).includes('sel')){ await policies2.nth(i).click(); break; } }
+              const policies=page.locator('#policyGrid .policy:not([disabled])'); const n=await policies.count(); if(n<1) throw new Error(label+' no affordable policy');
+              let chosen=0;
+              for(let i=0;i<n && chosen<2;i++){
+                const p=policies.nth((i+y)%n);
+                if(await p.isEnabled()){ await p.click(); chosen++; }
+              }
+              choiceCounts.push(chosen);
+              if(!(await page.locator('#applyBtn').isEnabled())) throw new Error(label+' apply disabled after '+chosen+' choices');
               await page.locator('#applyBtn').click();
               await page.locator('#reaction.show').waitFor();
               const effects=await page.locator('#reactionBody .effectLine').count(); if(effects<1) throw new Error(label+' effect feedback missing');
@@ -104,7 +108,7 @@ jobs:
             await page.reload({waitUntil:'networkidle'});
             if(!(await page.locator('#quickBtn').isVisible())) throw new Error(label+' reload failed');
             if(errors.length) throw new Error(label+' page errors '+errors.join('|'));
-            console.log(`ENV PASS ${label}: turns=${turns.join(' > ')}; grade=${grade}; four policy consequences/history entries; restart/reload OK`);
+            console.log(`ENV PASS ${label}: turns=${turns.join(' > ')}; policies-per-year=${choiceCounts.join('/')}; grade=${grade}; consequence feedback and 4 history entries; restart/reload OK`);
             await page.close();
           }
           await water({width:390,height:844},'mobile-390x844');
