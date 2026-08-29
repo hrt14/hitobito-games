@@ -16,6 +16,11 @@ for (const file of [homePath, catalogPath]) {
 // Keep card copy explicit per app so the card itself explains who it is for,
 // what it trains, and the concrete benefit before the user opens it.
 const COPY = {
+  '10-years-back': {
+    forWho: '「やった方がいい」と分かっているのに、今日も先延ばしにしている人',
+    purpose: '10年後の自分という視点を借りて、大きな人生相談にせず今日の一手へ戻す',
+    benefit: '2036年のカプセルを今日までドラッグする操作で、3分以内に着手できる具体的な一手が1つに絞れる',
+  },
   'anger-first-aid': {
     forWho: '怒った勢いで言い返したり、送信して後悔しやすい人',
     purpose: '怒りのピークで一度止まり、反射的な言動を選び直す',

@@ -15,6 +15,10 @@ if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
 // The obi is deliberately one short benefit line. Detailed metadata stays in the
 // hidden DOM/catalog so diagnosis and keyword search keep working.
 const BOOK_COPY = {
+  '10-years-back': {
+    title: '「やった方がいい」と分かっているのに動けない人の 10年後から戻ってきた',
+    obi: '2036年のカプセルを今日までドラッグして、3分で一手を決める。',
+  },
   'impulse-cooldown': {
     title: 'カートに入れた瞬間、指が「購入」に伸びる人の 24時間だけ寝かせる練習',
     obi: '衝動のまま買わず、今すぐ買う・待つ・やめるを自分で選べるようになる。',
