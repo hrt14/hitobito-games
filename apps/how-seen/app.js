@@ -1,58 +1,509 @@
 (() => {
   const app = document.getElementById('app');
   const resetBtn = document.getElementById('resetBtn');
+  const API = 'https://asia-northeast1-hitobito-levelup.cloudfunctions.net/howSeenApi';
   const AXES = [
-    { key:'warm', label:'親しみやすさ' },
-    { key:'drive', label:'押しの強さ' },
-    { key:'steady', label:'安定感' },
-    { key:'open', label:'本音の見えやすさ' }
+    { key:'calm', label:'冷静さ', short:'冷静' },
+    { key:'warm', label:'親しみやすさ', short:'親しみ' },
+    { key:'drive', label:'自己主張', short:'主張' },
+    { key:'reliable', label:'信頼感', short:'信頼' },
+    { key:'considerate', label:'気づかい', short:'配慮' },
   ];
-  const SELF_Q = [
-    { q:'意見が割れたとき、あなたはどっち？', a:['まず相手の話を最後まで聞く','自分の結論を先に出す'], v:[{warm:2,drive:-1},{drive:2,warm:-1}] },
-    { q:'初対面の集まりでは？', a:['自分から話しかける','様子を見てから入る'], v:[{warm:2,open:1},{steady:1,open:-1}] },
-    { q:'頼まれごとが重なったら？', a:['できる範囲をすぐ伝える','なんとか全部引き受ける'], v:[{drive:1,steady:2},{warm:1,steady:-2}] },
-    { q:'失敗した直後のあなたは？', a:['原因を切り分けて次へ行く','しばらく頭の中で反省する'], v:[{steady:2,drive:1},{steady:-2,open:1}] },
-    { q:'仲のいい人に悩みを話す？', a:['かなり話す','解決してから話す'], v:[{open:2,warm:1},{open:-2,steady:1}] },
-    { q:'誰かが遅刻してきたら？', a:['理由を聞く前にまず受け入れる','次からどうするかをすぐ決める'], v:[{warm:2},{drive:2,steady:1}] },
-    { q:'「それ違うと思う」と感じたら？', a:['角が立っても言う','関係性を見て言い方を変える'], v:[{drive:2,open:1},{warm:2,steady:1}] },
-    { q:'疲れている日に誘われたら？', a:['今日は無理、と断る','相手が楽しみにしていたら行く'], v:[{drive:1,steady:2},{warm:2,steady:-1}] }
+  const QUESTIONS = [
+    { axis:'calm', self:'予定外のトラブルが起きても、わりと冷静でいられる', peer:'予定外のトラブルが起きても、この人はわりと冷静でいる' },
+    { axis:'warm', self:'初対面でも、話しかけやすい空気を出している', peer:'初対面でも、この人は話しかけやすい空気がある' },
+    { axis:'drive', self:'意見が割れたとき、自分の考えをはっきり言える', peer:'意見が割れたとき、この人は自分の考えをはっきり言う' },
+    { axis:'reliable', self:'頼まれたことは、期限や約束をかなり守る方だ', peer:'この人は、頼まれたことの期限や約束をかなり守る' },
+    { axis:'considerate', self:'相手の表情や言い方の変化によく気づく', peer:'この人は、相手の表情や言い方の変化によく気づく' },
+    { axis:'calm', self:'ミスした直後でも、引きずりすぎず次の対応に移れる', peer:'ミスした直後でも、この人は引きずりすぎず次の対応に移る' },
+    { axis:'warm', self:'人から相談や雑談を持ちかけられやすい', peer:'この人には、相談や雑談を持ちかけやすい' },
+    { axis:'drive', self:'必要なら、相手にNOと言ったり断ったりできる', peer:'この人は、必要ならNOと言ったり断ったりする' },
+    { axis:'reliable', self:'周りから「任せて大丈夫」と思われる方だ', peer:'この人には「任せて大丈夫」と感じる' },
+    { axis:'considerate', self:'自分が話すより、相手が話しやすいように調整することがある', peer:'この人は、相手が話しやすいように会話を調整している' },
   ];
-  const PEER_Q = [
-    { q:'この人に相談すると、最初に返ってくるのは？', a:['「それは大変だったね」','「じゃあこうしよう」'], v:[{warm:2,open:1},{drive:2,steady:1}] },
-    { q:'初対面の人からはどう見られそう？', a:['話しかけやすい','ちょっと近寄りがたい'], v:[{warm:2,open:1},{drive:1,open:-1}] },
-    { q:'予定外のトラブルが起きたときは？', a:['かなり慌てる','意外と落ち着いている'], v:[{steady:-2,open:1},{steady:2}] },
-    { q:'本音はわかりやすい？', a:['顔や言葉に出る','仲良くても読めないときがある'], v:[{open:2},{open:-2,steady:1}] },
-    { q:'お願いを断るのは？', a:['必要ならちゃんと断る','結局引き受けがち'], v:[{drive:2,steady:1},{warm:1,drive:-1}] },
-    { q:'人がミスしたときは？', a:['まず事情を聞く','改善点をすぐ言う'], v:[{warm:2},{drive:2}] },
-    { q:'この人が場にいると？', a:['空気がやわらかくなる','話が前に進む'], v:[{warm:2},{drive:2,steady:1}] },
-    { q:'弱いところを見せるタイプ？', a:['わりと見せる','かなり見せない'], v:[{open:2,warm:1},{open:-2,steady:1}] }
+  const SCALE = [
+    { label:'かなり違う', score:15 },
+    { label:'やや違う', score:38 },
+    { label:'ややそう', score:62 },
+    { label:'かなりそう', score:85 },
   ];
-  let state = { mode:'self', i:0, answers:[], token:null, selfScores:null };
-  const params = new URLSearchParams(location.search);
-  function b64e(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-  function b64d(s){ try { const pad='='.repeat((4-s.length%4)%4); return JSON.parse(decodeURIComponent(escape(atob((s+pad).replace(/-/g,'+').replace(/_/g,'/'))))); } catch(e){ return null; } }
-  function clamp(n,min=0,max=100){ return Math.max(min,Math.min(max,n)); }
-  function uid(){ return Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-5); }
-  function calc(answers, qs){ const raw={warm:0,drive:0,steady:0,open:0}; answers.forEach((ans,i)=>{ const v=qs[i].v[ans]; Object.keys(v).forEach(k=>raw[k]+=v[k]); }); const scores={}; Object.keys(raw).forEach(k=>scores[k]=clamp(Math.round(50+raw[k]*7))); return scores; }
-  function archetype(s){ const sorted=AXES.map(a=>({k:a.key,l:a.label,v:s[a.key]})).sort((a,b)=>b.v-a.v); const hi=sorted[0], lo=sorted[3]; const names={warm:'人の温度を上げる人',drive:'前に進める人',steady:'落ち着きを持ち込む人',open:'本音が伝わる人'}; return {title:names[hi.k], text:`いちばん強く出ているのは「${hi.l}」。一方で「${lo.l}」は控えめ。強みと見え方のクセが、同時に出るタイプです。`}; }
-  function gap(a,b){ return Math.round(AXES.reduce((sum,x)=>sum+Math.abs(a[x.key]-b[x.key]),0)/4); }
-  function avg(list){ const out={warm:0,drive:0,steady:0,open:0}; if(!list.length)return out; AXES.forEach(a=>out[a.key]=Math.round(list.reduce((s,r)=>s+r.scores[a.key],0)/list.length)); return out; }
-  function savedKey(id){return `how-seen-responses:${id}`}
-  function getResponses(id){ try{return JSON.parse(localStorage.getItem(savedKey(id))||'[]')}catch(e){return[]} }
-  function addResponse(id, scores){ const list=getResponses(id); const sig=JSON.stringify(scores); if(!list.some(x=>JSON.stringify(x.scores)===sig)){list.push({scores,at:Date.now()});localStorage.setItem(savedKey(id),JSON.stringify(list));} return list; }
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function bars(scores){return AXES.map(a=>`<div class="bar-row"><b>${a.label}</b><div class="bar-track"><div class="bar-fill" style="width:${scores[a.key]}%"></div></div><span>${scores[a.key]}</span></div>`).join('')}
-  function compareBars(self,peer){return AXES.map(a=>`<div class="compare-row"><strong>${a.label}</strong><div class="duo"><div class="duo-line"><span>自分</span><div class="duo-track"><div class="duo-fill" style="width:${self[a.key]}%"></div></div><b>${self[a.key]}</b></div><div class="duo-line peer"><span>他人</span><div class="duo-track"><div class="duo-fill" style="width:${peer[a.key]}%"></div></div><b>${peer[a.key]}</b></div></div></div>`).join('')}
-  function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
-  async function share(title,text,url){ if(navigator.share){try{await navigator.share({title,text,url});return}catch(e){if(e.name==='AbortError')return}} try{await navigator.clipboard.writeText(`${text}\n${url}`);toast('リンクをコピーしました')}catch(e){prompt('このリンクをコピーしてください',url)} }
-  function base(){ return `${location.origin}${location.pathname}`; }
-  function renderHome(){ resetBtn.hidden=true; app.innerHTML=`<section class="hero"><div class="eyebrow">SELF × OTHERS</div><h1>他人から<br>どう見えてる？</h1><p class="lead">自分が思う自分と、他人から見える自分。<br><strong>いちばんズレているのはどこ？</strong></p><div class="stack"><button class="primary" id="start">8つの二択で診断する</button><p class="micro">約60秒。入力なし。診断後に友達へ送ると、本当の「見え方のズレ」を測れます。</p></div></section>`; document.getElementById('start').onclick=()=>{state={mode:'self',i:0,answers:[]};renderQuestion()}; }
-  function renderQuestion(){ resetBtn.hidden=false; const qs=state.mode==='peer'?PEER_Q:SELF_Q; const item=qs[state.i]; app.innerHTML=`<div class="progress"><i style="width:${((state.i)/qs.length)*100}%"></i></div><section class="question-card"><div class="q-num">${state.mode==='peer'?'FRIEND VIEW':'YOUR VIEW'} · ${state.i+1}/${qs.length}</div><h2 class="question">${escapeHtml(item.q)}</h2><div class="choices">${item.a.map((x,n)=>`<button class="choice" data-a="${n}">${escapeHtml(x)}</button>`).join('')}</div></section>`; app.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>{state.answers.push(Number(btn.dataset.a));state.i++; if(state.i<qs.length){renderQuestion()}else{const s=calc(state.answers,qs); state.mode==='peer'?renderPeerResult(s):renderSelfResult(s)}}); }
-  function renderSelfResult(scores){ const id=uid(); state.selfScores=scores; state.token={id,self:scores}; localStorage.setItem('how-seen-last',JSON.stringify(state.token)); renderDashboard(state.token); }
-  function renderDashboard(token, imported=false){ resetBtn.hidden=false; const s=token.self; const arc=archetype(s); const responses=getResponses(token.id); const peer=responses.length?avg(responses):null; const invite=`${base()}?ask=${encodeURIComponent(b64e(token))}`; let peerHtml=''; if(peer){const g=gap(s,peer); peerHtml=`<section class="gap-card"><div class="friend-badge">友達 ${responses.length}人の平均</div><h2 class="section-title">自分と他人のズレ</h2><div class="gap-number">${g}<small> / 100</small></div><div class="gap-label">数字が大きいほど「自分が思う自分」と「人から見える自分」が違います。</div><div class="compare">${compareBars(s,peer)}</div><div class="callout">${gapMessage(s,peer,g)}</div></section>`} else peerHtml=`<section class="plain-card"><h2 class="section-title" style="margin-top:0">ここからが本番。</h2><p class="lead" style="font-size:15px">今出たのは「自分が思う自分」。友達に見てもらうと、初めて<strong>本当のズレ</strong>が出ます。</p><div class="notice">友達は名前入力なしで8問に答えます。回答はサーバー保存されず、返却リンクをあなたが開いたときだけこの端末に追加されます。</div></section>`; app.innerHTML=`${imported?'<div class="notice">友達の回答をこの端末に追加しました。</div><div class="spacer"></div>':''}<section class="result-card"><div class="result-tag">あなたが思う、あなた</div><h1 class="result-title">${arc.title}</h1><p class="result-sub">${arc.text}</p><div class="bars">${bars(s)}</div></section>${peerHtml}<section class="share-box"><button class="primary" id="askFriend">友達に「どう見える？」と聞く</button><button class="secondary" id="shareResult">今の結果をシェア</button></section><h2 class="section-title">共有するときの一言</h2><div class="plain-card" style="margin-top:0"><strong>「これ、私に当たってる？ 8問だけ答えてみて」</strong><p class="micro">“診断を見て”ではなく“あなたの目で判定して”なので、相手も参加しやすい設計です。</p></div>`; document.getElementById('askFriend').onclick=()=>share('他人からどう見えてる？診断','私って実際どう見えてる？ 8問だけで終わるので判定して。',invite); document.getElementById('shareResult').onclick=()=>share('他人からどう見えてる？診断',`私の自己イメージは「${arc.title}」だった。あなたはどう思う？`,invite); }
-  function gapMessage(self,peer,g){ const diffs=AXES.map(a=>({label:a.label,d:peer[a.key]-self[a.key]})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)); const d=diffs[0]; if(Math.abs(d.d)<8)return 'かなり自己認識が一致しています。自分の見え方を、かなり正確につかめているタイプです。'; return d.d>0?`最大の発見は「${d.label}」。自分で思っているより、周りには強く見えています。`:`最大の発見は「${d.label}」。自分で思っているほど、周りには強く見えていません。`; }
-  function renderPeerIntro(token){ resetBtn.hidden=true; state={mode:'peer',i:0,answers:[],token,selfScores:token.self}; app.innerHTML=`<section class="hero"><div class="friend-badge">友達から判定依頼が届いています</div><h1>この人、<br>実際どう見える？</h1><p class="lead">本人の自己評価は見せません。あなたの印象だけで8問答えてください。</p><div class="stack"><button class="primary" id="peerStart">匿名で8問に答える</button><p class="micro">名前・メール・文章入力なし。約60秒。</p></div></section>`; document.getElementById('peerStart').onclick=renderQuestion; }
-  function renderPeerResult(scores){ const self=state.selfScores; const g=gap(self,scores); const returnPayload={id:state.token.id,self,peer:scores}; const ret=`${base()}?back=${encodeURIComponent(b64e(returnPayload))}`; const arc=archetype(scores); app.innerHTML=`<section class="result-card"><div class="result-tag">あなたから見た、この人</div><h1 class="result-title">${arc.title}</h1><p class="result-sub">あなたの回答だけで出した見え方です。</p><div class="bars">${bars(scores)}</div></section><section class="gap-card"><h2 class="section-title" style="margin-top:0">本人の自己像とのズレ</h2><div class="gap-number">${g}<small> / 100</small></div><div class="gap-label">本人が自分をどう見ているかとの差です。</div><div class="compare">${compareBars(self,scores)}</div></section><div class="share-box"><button class="primary" id="sendBack">本人に結果を返す</button><button class="secondary" id="meToo">私も診断する</button></div>`; document.getElementById('sendBack').onclick=()=>share('見え方診断の結果','答えたよ。結果を追加して見てみて。',ret); document.getElementById('meToo').onclick=()=>{history.replaceState({},'',base());renderHome()}; }
-  function boot(){ resetBtn.onclick=()=>{history.replaceState({},'',base());renderHome()}; const ask=b64d(params.get('ask')||''); const back=b64d(params.get('back')||''); if(back&&back.id&&back.self&&back.peer){ const token={id:back.id,self:back.self}; addResponse(back.id,back.peer); localStorage.setItem('how-seen-last',JSON.stringify(token)); history.replaceState({},'',base()); renderDashboard(token,true); return; } if(ask&&ask.id&&ask.self){renderPeerIntro(ask);return} const last=(()=>{try{return JSON.parse(localStorage.getItem('how-seen-last'))}catch(e){return null}})(); if(last&&last.id&&last.self){renderDashboard(last);return} renderHome(); }
-  boot();
+
+  let state = { mode:'home', index:0, answers:[], sid:'', ownerToken:'', selfScores:null, friendScores:null, friendCount:-1 };
+  let pollTimer = null;
+
+  function esc(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function clamp(n, min=0, max=100) { return Math.max(min, Math.min(max, n)); }
+  function baseUrl() { return `${location.origin}${location.pathname}`; }
+  function friendUrl(sid) { return `${baseUrl()}?friend=${encodeURIComponent(sid)}`; }
+  function ownerUrl(sid, token) { return `${baseUrl()}?owner=${encodeURIComponent(sid)}#key=${encodeURIComponent(token)}`; }
+  function clearPoll() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
+  function randomId() {
+    if (globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,'');
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+  }
+  function safeGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+  function safeSet(key, value) { try { localStorage.setItem(key, value); } catch {} }
+  function safeRemove(key) { try { localStorage.removeItem(key); } catch {} }
+  function ownerStorageKey(sid) { return `how-seen-owner:${sid}`; }
+  function responseStorageKey(sid) { return `how-seen-response:${sid}`; }
+  function sentStorageKey(sid) { return `how-seen-sent:${sid}`; }
+
+  function calcScores(answers) {
+    const grouped = Object.fromEntries(AXES.map(a => [a.key, []]));
+    answers.forEach((answerIndex, i) => grouped[QUESTIONS[i].axis].push(SCALE[answerIndex].score));
+    return Object.fromEntries(AXES.map(axis => {
+      const values = grouped[axis.key];
+      const avg = values.reduce((sum, n) => sum + n, 0) / values.length;
+      return [axis.key, clamp(Math.round(avg))];
+    }));
+  }
+
+  function axisByKey(key) { return AXES.find(axis => axis.key === key); }
+  function sortedGaps(self, peers) {
+    return AXES.map(axis => ({
+      ...axis,
+      self:self[axis.key],
+      peer:peers[axis.key],
+      delta:peers[axis.key] - self[axis.key],
+      abs:Math.abs(peers[axis.key] - self[axis.key]),
+    })).sort((a,b) => b.abs - a.abs);
+  }
+  function overallGap(self, peers) {
+    return Math.round(AXES.reduce((sum, axis) => sum + Math.abs(self[axis.key] - peers[axis.key]), 0) / AXES.length);
+  }
+  function strongest(scores) {
+    return AXES.map(axis => ({...axis, value:scores[axis.key]})).sort((a,b) => b.value - a.value)[0];
+  }
+
+  function toast(message) {
+    const old = document.querySelector('.toast');
+    if (old) old.remove();
+    const node = document.createElement('div');
+    node.className = 'toast';
+    node.textContent = message;
+    document.body.appendChild(node);
+    setTimeout(() => node.remove(), 1900);
+  }
+
+  async function copyText(text, success='コピーしました') {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(success);
+    } catch {
+      const input = document.createElement('textarea');
+      input.value = text;
+      input.style.position = 'fixed'; input.style.opacity = '0';
+      document.body.appendChild(input); input.select();
+      try { document.execCommand('copy'); toast(success); } catch { prompt('この内容をコピーしてください', text); }
+      input.remove();
+    }
+  }
+
+  async function shareInvite(sid) {
+    const url = friendUrl(sid);
+    const title = '友達から見たあなた';
+    const text = '私って実際どう見えてる？ 10問だけ、あなたから見た印象で答えてほしい。';
+    if (navigator.share) {
+      try { await navigator.share({ title, text, url }); return; }
+      catch (error) { if (error?.name === 'AbortError') return; }
+    }
+    await copyText(`${text}\n${url}`, '友達用リンクをコピーしました');
+  }
+
+  async function api(path, options={}) {
+    const response = await fetch(`${API}${path}`, {
+      method:options.method || 'GET',
+      headers:{
+        ...(options.body ? {'Content-Type':'application/json'} : {}),
+        ...(options.token ? {'Authorization':`Bearer ${options.token}`} : {}),
+      },
+      body:options.body ? JSON.stringify(options.body) : undefined,
+      cache:'no-store',
+    });
+    let data = null;
+    try { data = await response.json(); } catch { data = {}; }
+    if (!response.ok) {
+      const error = new Error(data?.error || `HTTP_${response.status}`);
+      error.status = response.status;
+      error.code = data?.error || '';
+      throw error;
+    }
+    return data;
+  }
+
+  function renderHome() {
+    clearPoll();
+    state = { mode:'home', index:0, answers:[], sid:'', ownerToken:'', selfScores:null, friendScores:null, friendCount:-1 };
+    resetBtn.hidden = true;
+    app.innerHTML = `
+      <section class="hero home-hero">
+        <div class="eyebrow">SELF × 3 FRIENDS</div>
+        <h1>友達から見た<br>あなた</h1>
+        <p class="lead">自分ではこう思っている。<br>でも、周りからはどう見えている？</p>
+        <div class="example-gap" aria-label="結果イメージ">
+          <span>冷静さ</span><b>自分 81</b><i>→</i><b>友達 46</b>
+        </div>
+        <button class="primary" id="startSelf" type="button">まず自分で10問に答える</button>
+        <p class="micro centered">約1分。入力なし。友達3人の回答が揃うと比較結果が開きます。</p>
+      </section>
+      <section class="plain-card how-it-works">
+        <div><b>1</b><span>自分で10問</span></div><i>→</i><div><b>2</b><span>友達3人へURL</span></div><i>→</i><div><b>3</b><span>差分を見る</span></div>
+      </section>`;
+    document.getElementById('startSelf').onclick = () => startQuestions('self');
+  }
+
+  function startQuestions(mode) {
+    clearPoll();
+    state.mode = mode;
+    state.index = 0;
+    state.answers = [];
+    resetBtn.hidden = false;
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const isFriend = state.mode === 'friend';
+    const item = QUESTIONS[state.index];
+    const text = isFriend ? item.peer : item.self;
+    const progress = ((state.index + 1) / QUESTIONS.length) * 100;
+    app.innerHTML = `
+      <section class="quiz-head">
+        <div class="quiz-kicker">${isFriend ? 'あなたから見た印象' : '自分が思う自分'} <b>${state.index + 1}/${QUESTIONS.length}</b></div>
+        <div class="progress"><i style="width:${progress}%"></i></div>
+      </section>
+      <section class="question-card">
+        <div class="axis-chip">${esc(axisByKey(item.axis).label)}</div>
+        <h2 class="question">${esc(text)}</h2>
+        <p class="question-hint">どのくらい当てはまる？</p>
+        <div class="choices scale-choices">
+          ${SCALE.map((choice, index) => `<button class="choice" type="button" data-answer="${index}"><span>${esc(choice.label)}</span></button>`).join('')}
+        </div>
+      </section>`;
+    app.querySelectorAll('[data-answer]').forEach(button => {
+      button.onclick = () => {
+        state.answers.push(Number(button.dataset.answer));
+        state.index += 1;
+        if (state.index < QUESTIONS.length) {
+          renderQuestion();
+        } else {
+          const scores = calcScores(state.answers);
+          if (isFriend) submitFriend(scores);
+          else createOwnerSession(scores);
+        }
+      };
+    });
+  }
+
+  function renderSaving(label='結果を準備しています') {
+    app.innerHTML = `<section class="loading-card"><div class="spinner" aria-hidden="true"></div><h2>${esc(label)}</h2><p>数秒で次の画面に進みます。</p></section>`;
+  }
+
+  async function createOwnerSession(scores) {
+    state.selfScores = scores;
+    renderSaving('友達に送るURLを作っています');
+    try {
+      const data = await api('/session', { method:'POST', body:{ selfScores:scores } });
+      state.sid = data.sid;
+      state.ownerToken = data.ownerToken;
+      safeSet(ownerStorageKey(data.sid), data.ownerToken);
+      history.replaceState(null, '', ownerUrl(data.sid, data.ownerToken));
+      renderWaiting(0);
+      startOwnerPolling();
+    } catch (error) {
+      renderCreateError(scores, error);
+    }
+  }
+
+  function renderCreateError(scores, error) {
+    const rate = error?.code === 'RATE_LIMIT';
+    app.innerHTML = `
+      <section class="plain-card error-card">
+        <div class="status-icon">!</div>
+        <h1>${rate ? '今日は作成上限に達しました' : 'URLを作れませんでした'}</h1>
+        <p>${rate ? '同じ端末・回線からの作成回数が多いため、今日は新しい比較を作れません。' : '通信状態を確認して、もう一度試してください。'}</p>
+        ${rate ? '' : '<button class="primary" id="retryCreate" type="button">もう一度試す</button>'}
+        <button class="secondary" id="backHome" type="button">最初に戻る</button>
+      </section>`;
+    if (!rate) document.getElementById('retryCreate').onclick = () => createOwnerSession(scores);
+    document.getElementById('backHome').onclick = resetAll;
+  }
+
+  function friendDots(count) {
+    return `<div class="friend-dots" aria-label="${count}人回答済み">${[0,1,2].map(i => `<div class="friend-dot ${i < count ? 'done' : ''}"><span>${i < count ? '✓' : i+1}</span><small>${i < count ? '回答済み' : '待ち'}</small></div>`).join('')}</div>`;
+  }
+
+  function renderWaiting(count) {
+    if (state.mode === 'owner' && state.friendCount === count && document.getElementById('inviteFriend')) return;
+    state.mode = 'owner';
+    state.friendCount = count;
+    resetBtn.hidden = false;
+    const remaining = 3 - count;
+    app.innerHTML = `
+      <section class="unlock-card">
+        <div class="eyebrow">RESULT LOCKED</div>
+        <div class="lock-orbit"><div class="lock">${count}/3</div></div>
+        <h1>${count === 0 ? '友達3人に聞くと結果が開く' : `あと${remaining}人で結果が開く`}</h1>
+        <p>あなた自身の10問は完了しました。<br>同じURLを3人に送るだけです。</p>
+        ${friendDots(count)}
+      </section>
+      <section class="plain-card invite-card">
+        <h2>友達にこれを送る</h2>
+        <div class="invite-preview">「私って実際どう見えてる？ 10問だけ答えてほしい」</div>
+        <button class="primary" id="inviteFriend" type="button">友達にURLを送る</button>
+        <button class="secondary" id="copyFriend" type="button">友達用URLをコピー</button>
+        <p class="micro">友達にはあなたの自己評価は見えません。個別の回答もあなたには表示されず、3人平均だけが結果になります。</p>
+      </section>
+      <section class="refresh-line"><span>回答数は自動更新されます</span><button id="manualRefresh" type="button">今すぐ確認</button></section>`;
+    document.getElementById('inviteFriend').onclick = () => shareInvite(state.sid);
+    document.getElementById('copyFriend').onclick = () => copyText(friendUrl(state.sid), '友達用URLをコピーしました');
+    document.getElementById('manualRefresh').onclick = async event => {
+      event.currentTarget.disabled = true;
+      await loadOwner(true);
+      if (event.currentTarget?.isConnected) event.currentTarget.disabled = false;
+    };
+  }
+
+  function startOwnerPolling() {
+    clearPoll();
+    loadOwner(false);
+    pollTimer = setInterval(() => { if (!document.hidden) loadOwner(false); }, 7000);
+  }
+
+  async function loadOwner(showToast=false) {
+    if (!state.sid || !state.ownerToken) return;
+    try {
+      const data = await api(`/session/${encodeURIComponent(state.sid)}`, { token:state.ownerToken });
+      state.selfScores = data.selfScores;
+      if (data.complete && data.friendAverage) {
+        clearPoll();
+        state.friendScores = data.friendAverage;
+        renderComparison(data.selfScores, data.friendAverage);
+      } else {
+        const changed = state.friendCount !== data.friendCount;
+        renderWaiting(data.friendCount);
+        if (showToast && !changed) toast(`現在 ${data.friendCount}/3 人です`);
+      }
+    } catch (error) {
+      if (showToast) toast('回答数を確認できませんでした');
+      if (error?.code === 'FORBIDDEN' || error?.code === 'OWNER_TOKEN_REQUIRED' || error?.code === 'SESSION_NOT_FOUND') renderOwnerLinkError();
+    }
+  }
+
+  function renderOwnerLinkError() {
+    clearPoll();
+    app.innerHTML = `
+      <section class="plain-card error-card">
+        <div class="status-icon">?</div>
+        <h1>この結果ページを開けません</h1>
+        <p>本人用の非公開キーが見つからないか、比較データが存在しません。</p>
+        <button class="primary" id="newStart" type="button">新しく始める</button>
+      </section>`;
+    document.getElementById('newStart').onclick = resetAll;
+  }
+
+  async function renderFriendIntro(sid) {
+    clearPoll();
+    state = { mode:'friend-intro', index:0, answers:[], sid, ownerToken:'', selfScores:null, friendScores:null, friendCount:-1 };
+    resetBtn.hidden = true;
+    const alreadySent = safeGet(sentStorageKey(sid)) === '1';
+    if (alreadySent) return renderAlreadyAnswered();
+    app.innerHTML = `
+      <section class="hero friend-hero">
+        <div class="friend-badge">友達から判定依頼が届いています</div>
+        <h1>この人、<br>実際どう見える？</h1>
+        <p class="lead">本人の自己評価は見せません。<br>あなたの普段の印象だけで10問答えてください。</p>
+        <button class="primary" id="friendStart" type="button">匿名で10問に答える</button>
+        <p class="micro centered">約1分。名前・メール・文章入力なし。個別回答は本人には表示されません。</p>
+      </section>`;
+    document.getElementById('friendStart').onclick = () => startQuestions('friend');
+    try {
+      const info = await api(`/session/${encodeURIComponent(sid)}/public`);
+      if (!info.open) renderFriendClosed();
+    } catch (error) {
+      if (error?.code === 'SESSION_NOT_FOUND') renderFriendMissing();
+    }
+  }
+
+  async function submitFriend(scores) {
+    renderSaving('回答を届けています');
+    let responseId = safeGet(responseStorageKey(state.sid));
+    if (!responseId) {
+      responseId = randomId();
+      safeSet(responseStorageKey(state.sid), responseId);
+    }
+    try {
+      const data = await api(`/session/${encodeURIComponent(state.sid)}/response`, {
+        method:'POST',
+        body:{ scores, responseId },
+      });
+      safeSet(sentStorageKey(state.sid), '1');
+      renderFriendThanks(data.friendCount, scores, data.duplicate);
+    } catch (error) {
+      if (error?.code === 'SESSION_FULL') return renderFriendClosed();
+      if (error?.code === 'SESSION_NOT_FOUND') return renderFriendMissing();
+      app.innerHTML = `
+        <section class="plain-card error-card">
+          <div class="status-icon">!</div><h1>送信できませんでした</h1>
+          <p>回答はこの端末に残っています。通信状態を確認して、もう一度送ってください。</p>
+          <button class="primary" id="retryFriend" type="button">もう一度送る</button>
+        </section>`;
+      document.getElementById('retryFriend').onclick = () => submitFriend(scores);
+    }
+  }
+
+  function renderFriendThanks(count, scores, duplicate=false) {
+    const top = strongest(scores);
+    resetBtn.hidden = true;
+    app.innerHTML = `
+      <section class="thanks-card">
+        <div class="check-burst">✓</div>
+        <div class="eyebrow">ANSWER SENT</div>
+        <h1>${duplicate ? '回答済みです' : '回答を届けました'}</h1>
+        <p>これで <strong>${count}/3人</strong>。${count >= 3 ? '本人の比較結果が開きます。' : `あと${3-count}人で本人の結果が開きます。`}</p>
+      </section>
+      <section class="plain-card mini-result">
+        <span>あなたから見たこの人</span>
+        <h2>いちばん強く見えたのは<br>「${esc(top.label)}」</h2>
+        <div class="mini-meter"><i style="width:${top.value}%"></i></div>
+      </section>
+      <section class="loop-card">
+        <div><span>今度はあなたの番</span><h2>自分も3人に聞いてみる？</h2></div>
+        <button class="primary" id="startMine" type="button">自分もやってみる</button>
+      </section>`;
+    document.getElementById('startMine').onclick = () => {
+      history.replaceState(null, '', baseUrl());
+      renderHome();
+    };
+  }
+
+  function renderAlreadyAnswered() {
+    app.innerHTML = `
+      <section class="thanks-card compact">
+        <div class="check-burst">✓</div><h1>この依頼には回答済みです</h1>
+        <p>同じ人への回答は1回だけ集計されます。</p>
+      </section>
+      <section class="loop-card"><div><span>あなたも比べてみる</span><h2>友達3人からどう見える？</h2></div><button class="primary" id="startMine" type="button">自分も始める</button></section>`;
+    document.getElementById('startMine').onclick = () => { history.replaceState(null,'',baseUrl()); renderHome(); };
+  }
+
+  function renderFriendClosed() {
+    safeSet(sentStorageKey(state.sid), safeGet(sentStorageKey(state.sid)) || 'closed');
+    app.innerHTML = `
+      <section class="plain-card error-card">
+        <div class="status-icon done-icon">3</div><h1>3人の回答が揃いました</h1>
+        <p>この依頼の受付は終了しています。本人にはすでに比較結果が開いています。</p>
+        <button class="primary" id="startMine" type="button">自分も3人に聞いてみる</button>
+      </section>`;
+    document.getElementById('startMine').onclick = () => { history.replaceState(null,'',baseUrl()); renderHome(); };
+  }
+
+  function renderFriendMissing() {
+    app.innerHTML = `
+      <section class="plain-card error-card">
+        <div class="status-icon">?</div><h1>この依頼は見つかりません</h1>
+        <p>URLが途中で切れているか、依頼が無効です。</p>
+        <button class="primary" id="startMine" type="button">自分の比較を始める</button>
+      </section>`;
+    document.getElementById('startMine').onclick = () => { history.replaceState(null,'',baseUrl()); renderHome(); };
+  }
+
+  function comparisonRows(self, peer) {
+    return AXES.map(axis => {
+      const s = self[axis.key];
+      const p = peer[axis.key];
+      const delta = p - s;
+      const note = Math.abs(delta) < 8 ? 'ほぼ一致' : delta > 0 ? `友達の方が +${Math.abs(delta)}` : `自分の方が +${Math.abs(delta)}`;
+      return `<article class="compare-row">
+        <div class="compare-title"><strong>${esc(axis.label)}</strong><span>${note}</span></div>
+        <div class="score-line self"><label>自分では</label><div class="score-track"><i style="width:${s}%"></i></div><b>${s}</b></div>
+        <div class="score-line peer"><label>友達3人</label><div class="score-track"><i style="width:${p}%"></i></div><b>${p}</b></div>
+      </article>`;
+    }).join('');
+  }
+
+  function gapCopy(top) {
+    if (top.abs < 8) return `「${top.label}」まで含め、自己評価と友達の印象はかなり近い結果でした。`;
+    if (top.delta > 0) return `あなたが思っているより、友達はあなたの「${top.label}」を強く感じています。`;
+    return `自分では「${top.label}」が高いと思っている一方、友達3人からはそこまで強く見えていません。`;
+  }
+
+  function renderComparison(self, peer) {
+    clearPoll();
+    state.mode = 'result';
+    state.selfScores = self;
+    state.friendScores = peer;
+    state.friendCount = 3;
+    resetBtn.hidden = false;
+    const gaps = sortedGaps(self, peer);
+    const top = gaps[0];
+    const gap = overallGap(self, peer);
+    app.innerHTML = `
+      <section class="result-hero">
+        <div class="result-tag">3 FRIENDS COMPLETED</div>
+        <p class="result-overline">いちばん見え方が違ったのは</p>
+        <h1>${esc(top.label)}</h1>
+        <div class="hero-score-pair"><div><span>自分では</span><b>${top.self}</b></div><i>VS</i><div><span>友達3人</span><b>${top.peer}</b></div></div>
+        <p class="result-copy">${esc(gapCopy(top))}</p>
+      </section>
+      <section class="gap-summary">
+        <div><span>5項目の平均ズレ</span><b>${gap}<small>/100</small></b></div>
+        <p>高い・低いの優劣ではなく、自己認識と3人の印象の距離です。</p>
+      </section>
+      <section class="comparison-card">
+        <div class="section-head"><span>SELF × FRIENDS</span><h2>5つの見え方を比較</h2></div>
+        <div class="compare-list">${comparisonRows(self, peer)}</div>
+      </section>
+      <section class="plain-card interpretation">
+        <h2>この結果の見方</h2>
+        <p>これは性格の正解を決める診断ではありません。<strong>「自分が自分をどう見ているか」と「この3人が普段どう感じているか」</strong>の差です。相手や関係性が変われば結果も変わります。</p>
+      </section>
+      <section class="share-box">
+        <button class="primary" id="shareComparison" type="button">この差をシェアする</button>
+        <button class="secondary" id="newRound" type="button">別の3人でもう一度</button>
+      </section>`;
+    document.getElementById('shareComparison').onclick = async () => {
+      const text = `友達3人から見た自分、いちばんズレたのは「${top.label}」。自分 ${top.self} / 友達 ${top.peer} だった。`;
+      if (navigator.share) {
+        try { await navigator.share({ title:'友達から見たあなた', text, url:baseUrl() }); return; }
+        catch (error) { if (error?.name === 'AbortError') return; }
+      }
+      await copyText(`${text}\n${baseUrl()}`, '結果をコピーしました');
+    };
+    document.getElementById('newRound').onclick = resetAll;
+  }
+
+  function resetAll() {
+    clearPoll();
+    const oldSid = state.sid;
+    if (oldSid) safeRemove(ownerStorageKey(oldSid));
+    history.replaceState(null, '', baseUrl());
+    renderHome();
+  }
+
+  async function init() {
+    resetBtn.onclick = resetAll;
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && state.mode === 'owner') loadOwner(false);
+    });
+    const params = new URLSearchParams(location.search);
+    const friendSid = params.get('friend');
+    const ownerSid = params.get('owner');
+    if (friendSid) return renderFriendIntro(friendSid);
+    if (ownerSid) {
+      const hash = new URLSearchParams(location.hash.replace(/^#/,''));
+      const token = hash.get('key') || safeGet(ownerStorageKey(ownerSid)) || '';
+      state = { mode:'owner', index:0, answers:[], sid:ownerSid, ownerToken:token, selfScores:null, friendScores:null, friendCount:-1 };
+      if (!token) return renderOwnerLinkError();
+      safeSet(ownerStorageKey(ownerSid), token);
+      renderSaving('回答数を確認しています');
+      await loadOwner(false);
+      if (state.mode === 'owner') startOwnerPolling();
+      return;
+    }
+    renderHome();
+  }
+
+  init();
 })();

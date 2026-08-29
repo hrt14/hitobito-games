@@ -235,3 +235,185 @@ export const analyzeLifePlusOne = onRequest(
     }
   }
 );
+
+const HOW_SEEN_AXES = ['calm','warm','drive','reliable','considerate'];
+const HOW_SEEN_CREATE_DAILY_LIMIT = 30;
+
+function setHowSeenCors(req, res) {
+  const origin = String(req.headers.origin || '');
+  if (ALLOWED_ORIGINS.has(origin)) res.set('Access-Control-Allow-Origin', origin);
+  res.set('Vary', 'Origin');
+  res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+}
+
+function validHowSeenScores(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const out = {};
+  for (const key of HOW_SEEN_AXES) {
+    const n = Number(value[key]);
+    if (!Number.isFinite(n) || n < 0 || n > 100) return null;
+    out[key] = Math.round(n);
+  }
+  if (Object.keys(value).some(key => !HOW_SEEN_AXES.includes(key))) return null;
+  return out;
+}
+
+function requestFingerprint(req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || req.ip || 'unknown').split(',')[0].trim();
+  return createHash('sha256')
+    .update(`${forwarded}|${String(req.headers['user-agent'] || '').slice(0,120)}`)
+    .digest('hex')
+    .slice(0,32);
+}
+
+async function enforceHowSeenCreateQuota(req) {
+  const fingerprint = requestFingerprint(req);
+  const date = japanDateKey();
+  const ref = db.collection('howSeenRate').doc(`${date}_${fingerprint}`);
+  await db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    const count = snap.exists ? Number(snap.data()?.count || 0) : 0;
+    if (count >= HOW_SEEN_CREATE_DAILY_LIMIT) throw Object.assign(new Error('RATE_LIMIT'), { status:429 });
+    tx.set(ref, { date, fingerprint, count:count + 1, lastCreatedAt:FieldValue.serverTimestamp() }, { merge:true });
+  });
+}
+
+function makeHowSeenOwnerToken() {
+  return `${globalThis.crypto.randomUUID().replace(/-/g,'')}${globalThis.crypto.randomUUID().replace(/-/g,'')}`;
+}
+
+function hashHowSeenToken(value) {
+  return createHash('sha256').update(String(value || '')).digest('hex');
+}
+
+function howSeenOwnerToken(req) {
+  const header = String(req.headers.authorization || '');
+  return header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+}
+
+function emptyHowSeenTotals() {
+  return Object.fromEntries(HOW_SEEN_AXES.map(key => [key, 0]));
+}
+
+function howSeenAverage(totals, count) {
+  return Object.fromEntries(HOW_SEEN_AXES.map(key => [key, Math.round(Number(totals?.[key] || 0) / count)]));
+}
+
+function howSeenErrorCode(status, message) {
+  if (message === 'SESSION_FULL') return 'SESSION_FULL';
+  if (message === 'SESSION_NOT_FOUND') return 'SESSION_NOT_FOUND';
+  if (message === 'OWNER_TOKEN_REQUIRED') return 'OWNER_TOKEN_REQUIRED';
+  if (message === 'FORBIDDEN') return 'FORBIDDEN';
+  if (message === 'INVALID_INPUT') return 'INVALID_INPUT';
+  if (status === 429) return 'RATE_LIMIT';
+  return 'SERVER_ERROR';
+}
+
+export const howSeenApi = onRequest(
+  { region:REGION, timeoutSeconds:15, memory:'256MiB', maxInstances:20 },
+  async (req, res) => {
+    setHowSeenCors(req, res);
+    if (req.method === 'OPTIONS') return res.status(204).send('');
+    const origin = String(req.headers.origin || '');
+    if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok:false, error:'ORIGIN_NOT_ALLOWED' });
+    res.set('Cache-Control','no-store');
+
+    const parts = String(req.path || '/')
+      .split('/')
+      .map(part => part.trim())
+      .filter(Boolean);
+
+    try {
+      if (req.method === 'POST' && parts.length === 1 && parts[0] === 'session') {
+        const selfScores = validHowSeenScores(req.body?.selfScores);
+        if (!selfScores) throw Object.assign(new Error('INVALID_INPUT'), { status:400 });
+        await enforceHowSeenCreateQuota(req);
+        const ref = db.collection('howSeenSessions').doc();
+        const ownerToken = makeHowSeenOwnerToken();
+        await ref.create({
+          schemaVersion:1,
+          selfScores,
+          ownerTokenHash:hashHowSeenToken(ownerToken),
+          friendCount:0,
+          friendTotals:emptyHowSeenTotals(),
+          responseHashes:[],
+          status:'open',
+          createdAt:FieldValue.serverTimestamp(),
+          updatedAt:FieldValue.serverTimestamp(),
+        });
+        return res.status(201).json({ ok:true, sid:ref.id, ownerToken, friendCount:0, complete:false });
+      }
+
+      if (parts.length >= 2 && parts[0] === 'session') {
+        const sid = parts[1];
+        if (!/^[A-Za-z0-9_-]{12,32}$/.test(sid)) throw Object.assign(new Error('SESSION_NOT_FOUND'), { status:404 });
+        const ref = db.collection('howSeenSessions').doc(sid);
+
+        if (req.method === 'GET' && parts.length === 3 && parts[2] === 'public') {
+          const snap = await ref.get();
+          if (!snap.exists) throw Object.assign(new Error('SESSION_NOT_FOUND'), { status:404 });
+          const data = snap.data() || {};
+          const friendCount = Math.min(3, Number(data.friendCount || 0));
+          return res.status(200).json({ ok:true, friendCount, open:friendCount < 3 });
+        }
+
+        if (req.method === 'GET' && parts.length === 2) {
+          const token = howSeenOwnerToken(req);
+          if (!token) throw Object.assign(new Error('OWNER_TOKEN_REQUIRED'), { status:401 });
+          const snap = await ref.get();
+          if (!snap.exists) throw Object.assign(new Error('SESSION_NOT_FOUND'), { status:404 });
+          const data = snap.data() || {};
+          if (hashHowSeenToken(token) !== String(data.ownerTokenHash || '')) throw Object.assign(new Error('FORBIDDEN'), { status:403 });
+          const friendCount = Math.min(3, Number(data.friendCount || 0));
+          const complete = friendCount >= 3;
+          return res.status(200).json({
+            ok:true,
+            selfScores:data.selfScores,
+            friendCount,
+            complete,
+            friendAverage:complete ? howSeenAverage(data.friendTotals, friendCount) : null,
+          });
+        }
+
+        if (req.method === 'POST' && parts.length === 3 && parts[2] === 'response') {
+          const scores = validHowSeenScores(req.body?.scores);
+          const responseId = cleanText(req.body?.responseId, 96);
+          if (!scores || !/^[A-Za-z0-9_-]{12,96}$/.test(responseId)) throw Object.assign(new Error('INVALID_INPUT'), { status:400 });
+          const responseHash = createHash('sha256').update(`${sid}|${responseId}`).digest('hex').slice(0,40);
+          let result = null;
+          await db.runTransaction(async tx => {
+            const snap = await tx.get(ref);
+            if (!snap.exists) throw Object.assign(new Error('SESSION_NOT_FOUND'), { status:404 });
+            const data = snap.data() || {};
+            const hashes = Array.isArray(data.responseHashes) ? data.responseHashes : [];
+            const friendCount = Math.min(3, Number(data.friendCount || 0));
+            if (hashes.includes(responseHash)) {
+              result = { friendCount, complete:friendCount >= 3, duplicate:true };
+              return;
+            }
+            if (friendCount >= 3) throw Object.assign(new Error('SESSION_FULL'), { status:409 });
+            const totals = { ...emptyHowSeenTotals(), ...(data.friendTotals || {}) };
+            for (const key of HOW_SEEN_AXES) totals[key] = Number(totals[key] || 0) + scores[key];
+            const nextCount = friendCount + 1;
+            tx.update(ref, {
+              friendCount:nextCount,
+              friendTotals:totals,
+              responseHashes:[...hashes, responseHash],
+              status:nextCount >= 3 ? 'complete' : 'open',
+              updatedAt:FieldValue.serverTimestamp(),
+            });
+            result = { friendCount:nextCount, complete:nextCount >= 3, duplicate:false };
+          });
+          return res.status(200).json({ ok:true, ...result });
+        }
+      }
+
+      return res.status(404).json({ ok:false, error:'NOT_FOUND' });
+    } catch (error) {
+      const status = Number(error?.status) || 500;
+      if (status >= 500) console.error('[HOW SEEN] endpoint failed', error);
+      return res.status(status).json({ ok:false, error:howSeenErrorCode(status, error?.message) });
+    }
+  }
+);

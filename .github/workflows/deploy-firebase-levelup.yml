@@ -81,8 +81,8 @@ jobs:
           node scripts/audit-firebase-mobile.mjs
           echo "Mobile loader, Firebase 12 same-origin redirect auth, desktop popup auth, explicit diagnostics, inline style, and task-separation checks OK"
 
-      - name: Deploy to Firebase Hosting
-        run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
+      - name: Deploy to Firebase Hosting and how-seen API
+        run: npx --yes firebase-tools@latest deploy --only hosting,functions:howSeenApi --project hitobito-levelup --non-interactive
 
       - name: Notify search engines and feed hubs
         run: node scripts/notify-levelup-discovery.mjs
