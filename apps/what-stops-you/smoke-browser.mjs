@@ -17,9 +17,13 @@ await page.addInitScript(() => {
   navigator.share = async (payload) => { window.__sharePayload = payload; };
 });
 
+async function openReady(target) {
+  await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('h1').waitFor({ state: 'visible', timeout: 15000 });
+}
+
 try {
-  await page.goto(url, { waitUntil: 'networkidle' });
-  await page.locator('h1').waitFor();
+  await openReady(url);
   if (!(await page.locator('h1').innerText()).includes('あなたを')) throw new Error('start title missing');
   if (!(await page.locator('.note').innerText()).includes('医療・心理検査ではありません')) throw new Error('disclaimer missing');
 
@@ -53,7 +57,7 @@ try {
   await page.screenshot({ path: path.join(artifacts, 'result-mobile.png'), fullPage: true });
 
   const sharedUrl = `${url}?from=share&type=failure`;
-  await page.goto(sharedUrl, { waitUntil: 'networkidle' });
+  await openReady(sharedUrl);
   const banner = (await page.locator('#friendBanner').innerText()).trim();
   if (!banner.includes('友だちは「失敗恐怖型」')) throw new Error(`shared-entry banner missing: ${banner}`);
   if (!(await page.locator('#friendBanner').isVisible())) throw new Error('shared-entry banner is not visible');
@@ -61,6 +65,7 @@ try {
   if (errors.length) throw new Error(errors.join('\n'));
   fs.writeFileSync(path.join(artifacts, 'playtest.txt'), [
     'PASS',
+    `url=${url}`,
     'viewport=390x844 mobile touch',
     '12 questions completed',
     'deterministic failure result verified',
