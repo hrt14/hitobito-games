@@ -10,6 +10,8 @@ const canonicalBase = 'https://levelup.hitobito.jp';
 const feedUrl = `${canonicalBase}/feed.xml`;
 const webSubHub = 'https://pubsubhubbub.appspot.com/';
 const indexNowKey = '52d7d66fce9d4e7aa902bc5842a66d74';
+const googleVerificationToken = 'sPBsbYpwHySgc4VntENvvGC4M--IgVcITX__dUozokA';
+const googleVerificationFile = 'google4a20d374a163ef3d.html';
 
 if (!fs.existsSync(catalogPath)) {
   throw new Error('LEVEL UP catalog not found. Run this after the Firebase LEVEL UP build.');
@@ -56,6 +58,11 @@ function ensureFeedAlternate(html) {
   return html.replace('</head>', `  <link rel="alternate" type="application/atom+xml" title="LEVEL UP updates" href="${feedUrl}" />\n</head>`);
 }
 
+function ensureGoogleVerification(html) {
+  if (html.includes(`name="google-site-verification"`) && html.includes(googleVerificationToken)) return html;
+  return html.replace('</head>', `  <meta name="google-site-verification" content="${googleVerificationToken}" />\n</head>`);
+}
+
 function ensureSoftwareApplication(html, game) {
   let next = html.replaceAll('"@type":"WebApplication"', '"@type":"SoftwareApplication"');
   if (next.includes('"@type":"SoftwareApplication"')) return next;
@@ -88,8 +95,15 @@ for (const game of catalog) {
 const homePath = path.join(outDir, 'index.html');
 if (fs.existsSync(homePath)) {
   const before = fs.readFileSync(homePath, 'utf8');
-  fs.writeFileSync(homePath, ensureFeedAlternate(before));
+  let after = ensureFeedAlternate(before);
+  after = ensureGoogleVerification(after);
+  fs.writeFileSync(homePath, after);
 }
+
+fs.writeFileSync(
+  path.join(outDir, googleVerificationFile),
+  `google-site-verification: ${googleVerificationFile}\n`,
+);
 
 const generatedAt = new Date().toISOString();
 const entries = catalog.map((game) => {
@@ -123,5 +137,11 @@ if (structuredPages < Math.max(1, Math.floor(catalog.length * 0.9))) {
 if (fs.readFileSync(path.join(outDir, `${indexNowKey}.txt`), 'utf8').trim() !== indexNowKey) {
   throw new Error('IndexNow verification key file is invalid.');
 }
+if (fs.readFileSync(path.join(outDir, googleVerificationFile), 'utf8').trim() !== `google-site-verification: ${googleVerificationFile}`) {
+  throw new Error('Google Search Console verification file is invalid.');
+}
+if (!fs.readFileSync(homePath, 'utf8').includes(googleVerificationToken)) {
+  throw new Error('Google Search Console meta verification is missing from LEVEL UP home.');
+}
 
-console.log(`[Firebase] LEVEL UP organic discovery ready: ${structuredPages} SoftwareApplication pages + Atom/WebSub feed + IndexNow key.`);
+console.log(`[Firebase] LEVEL UP organic discovery ready: ${structuredPages} SoftwareApplication pages + Atom/WebSub feed + IndexNow + Google Search Console verification.`);
