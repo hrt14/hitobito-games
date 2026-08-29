@@ -7,6 +7,7 @@ const root = path.resolve(scriptDir, '..', '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const catalogPath = path.join(outDir, 'levelup-catalog.json');
 const canonicalBase = 'https://levelup.hitobito.jp';
+const sitemapUrl = `${canonicalBase}/sitemap.xml`;
 const feedUrl = `${canonicalBase}/feed.xml`;
 const webSubHub = 'https://pubsubhubbub.appspot.com/';
 const indexNowKey = '52d7d66fce9d4e7aa902bc5842a66d74';
@@ -27,15 +28,6 @@ function escapeXml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
-}
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
 }
 
 function canonicalFor(game) {
@@ -59,7 +51,7 @@ function ensureFeedAlternate(html) {
 }
 
 function ensureGoogleVerification(html) {
-  if (html.includes(`name="google-site-verification"`) && html.includes(googleVerificationToken)) return html;
+  if (html.includes('name="google-site-verification"') && html.includes(googleVerificationToken)) return html;
   return html.replace('</head>', `  <meta name="google-site-verification" content="${googleVerificationToken}" />\n</head>`);
 }
 
@@ -106,6 +98,17 @@ fs.writeFileSync(
 );
 
 const generatedAt = new Date().toISOString();
+
+const sitemapUrls = [
+  `${canonicalBase}/`,
+  ...catalog.map(canonicalFor),
+];
+const uniqueSitemapUrls = [...new Set(sitemapUrls)];
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${uniqueSitemapUrls
+  .map((url) => `  <url>\n    <loc>${escapeXml(url)}</loc>\n    <lastmod>${generatedAt}</lastmod>\n  </url>`)
+  .join('\n')}\n</urlset>\n`;
+fs.writeFileSync(path.join(outDir, 'sitemap.xml'), sitemap);
+
 const entries = catalog.map((game) => {
   const url = canonicalFor(game);
   const title = game.title || game.slug;
@@ -122,11 +125,24 @@ const robotsPath = path.join(outDir, 'robots.txt');
 let robots = fs.existsSync(robotsPath)
   ? fs.readFileSync(robotsPath, 'utf8')
   : `User-agent: *\nAllow: /\n`;
-if (!robots.includes(`Sitemap: ${feedUrl}`)) {
-  if (!robots.endsWith('\n')) robots += '\n';
-  robots += `Sitemap: ${feedUrl}\n`;
-}
+robots = robots
+  .split(/\r?\n/)
+  .filter((line) => !/^Sitemap:\s*/i.test(line))
+  .join('\n')
+  .replace(/\n+$/, '');
+robots += `\nSitemap: ${sitemapUrl}\n`;
 fs.writeFileSync(robotsPath, robots);
+
+const builtSitemap = fs.readFileSync(path.join(outDir, 'sitemap.xml'), 'utf8');
+if (!builtSitemap.includes('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')) {
+  throw new Error('Sitemap is missing the standard URL set namespace.');
+}
+if (!builtSitemap.includes(`<loc>${canonicalBase}/</loc>`)) {
+  throw new Error('Sitemap is missing the LEVEL UP home URL.');
+}
+if ((builtSitemap.match(/<url>/g) || []).length !== uniqueSitemapUrls.length) {
+  throw new Error('Sitemap URL count does not match the generated catalog URL count.');
+}
 
 const feed = fs.readFileSync(path.join(outDir, 'feed.xml'), 'utf8');
 if (!feed.includes(`<link rel="hub" href="${webSubHub}" />`)) throw new Error('Atom feed is missing WebSub hub discovery.');
@@ -144,4 +160,4 @@ if (!fs.readFileSync(homePath, 'utf8').includes(googleVerificationToken)) {
   throw new Error('Google Search Console meta verification is missing from LEVEL UP home.');
 }
 
-console.log(`[Firebase] LEVEL UP organic discovery ready: ${structuredPages} SoftwareApplication pages + Atom/WebSub feed + IndexNow + Google Search Console verification.`);
+console.log(`[Firebase] LEVEL UP organic discovery ready: ${structuredPages} SoftwareApplication pages + ${uniqueSitemapUrls.length} sitemap URLs + Atom/WebSub feed + IndexNow + Google Search Console verification.`);
