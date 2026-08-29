@@ -18,13 +18,15 @@ jobs:
           URL='https://play.hitobito.jp/apps/environment-policy-sim/'
           for ATTEMPT in $(seq 1 12); do
             BODY="$(curl -fsSL --max-time 20 "${URL}?_verify=${GITHUB_SHA}-${ATTEMPT}" || true)"
-            if [[ "$BODY" == *'稲わら焼きを止めても、問題は終わらない。'* ]] \
-              && [[ "$BODY" == *'環境政策シミュレーション'* ]] \
-              && [[ "$BODY" == *'id="quickBtn"'* ]]; then
-              echo "LIVE PASS ${URL} attempt=${ATTEMPT} bytes=${#BODY}"
+            HAS_TITLE=no; HAS_BUTTON=no; HAS_ENV=no
+            [[ "$BODY" == *'<title>稲わら焼きを止めても終わらない｜環境政策シミュレーター</title>'* ]] && HAS_TITLE=yes
+            [[ "$BODY" == *'id="quickBtn"'* ]] && HAS_BUTTON=yes
+            [[ "$BODY" == *'環境課題シミュレーション'* ]] && HAS_ENV=yes
+            echo "attempt=${ATTEMPT} bytes=${#BODY} title=${HAS_TITLE} button=${HAS_BUTTON} env=${HAS_ENV}"
+            if [[ "$HAS_TITLE" == yes && "$HAS_BUTTON" == yes && "$HAS_ENV" == yes ]]; then
+              echo "LIVE PASS ${URL}"
               exit 0
             fi
-            echo "attempt=${ATTEMPT} bytes=${#BODY} not ready"
             sleep 5
           done
           echo 'Production game content not verified' >&2
