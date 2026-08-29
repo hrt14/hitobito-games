@@ -1,2 +1,2 @@
-Production deploy trigger: WATER-RESCUE-20260829-1649
-Reason: publish the new water-rescue PLAY game and refresh play.hitobito.jp after fixing dispatch
+Production deploy trigger: ENVIRONMENT-POLICY-SIM-20260829-1653
+Reason: publish apps/environment-policy-sim to play.hitobito.jp via Cloudflare Pages
