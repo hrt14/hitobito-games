@@ -19,29 +19,68 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify deployed app assets on both LEVEL UP domains
+      - name: Verify deployed app assets and live 3-friend API
         shell: bash
         run: |
           set -euo pipefail
           bases=("https://hitobito-levelup.web.app" "https://levelup.hitobito.jp")
-          for attempt in $(seq 1 24); do
-            echo "Attempt $attempt/24"
+          api="https://asia-northeast1-hitobito-levelup.cloudfunctions.net/howSeenApi"
+          ready=0
+          for attempt in $(seq 1 30); do
+            echo "Attempt $attempt/30"
             ok=1
             for base in "${bases[@]}"; do
               html=$(curl -fLsS --max-time 20 "$base/apps/how-seen/?verify=${GITHUB_SHA}-${attempt}" || true)
               js=$(curl -fLsS --max-time 20 "$base/apps/how-seen/app.js?verify=${GITHUB_SHA}-${attempt}" || true)
-              if [[ "$html" != *"他人からどう見えてる？診断"* ]] || [[ "$html" != *"id=\"app\""* ]] || [[ "$js" != *"how-seen-responses"* ]] || [[ "$js" != *"友達に「どう見える？」と聞く"* ]]; then
-                echo "Not ready on $base"
+              if [[ "$html" != *"友達から見たあなた"* ]] || [[ "$html" != *"id=\"app\""* ]] || [[ "$js" != *"howSeenApi"* ]] || [[ "$js" != *"友達3人"* ]] || [[ "$js" != *"RESULT LOCKED"* ]]; then
+                echo "App not ready on $base"
                 ok=0
               else
-                echo "Verified $base"
+                echo "App assets ready on $base"
               fi
             done
-            if [[ "$ok" == "1" ]]; then
-              echo "HOW-SEEN PRODUCTION VERIFIED ON BOTH DOMAINS"
-              exit 0
+            preflight=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$api/session/not-a-session/public" || true)
+            if [[ "$preflight" != "404" ]]; then
+              echo "API not ready (status=$preflight)"
+              ok=0
             fi
+            if [[ "$ok" == "1" ]]; then ready=1; break; fi
             sleep 5
           done
-          echo "Production app did not match expected content."
-          exit 1
+          if [[ "$ready" != "1" ]]; then
+            echo "Production app/API did not become ready."
+            exit 1
+          fi
+
+          self='{"calm":62,"warm":74,"drive":50,"reliable":85,"considerate":62}'
+          created=$(curl -fLsS --max-time 20 -X POST "$api/session" -H 'Content-Type: application/json' --data "{\"selfScores\":$self}")
+          sid=$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);if(!j.sid)process.exit(2);process.stdout.write(j.sid)})' <<<"$created")
+          token=$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);if(!j.ownerToken)process.exit(2);process.stdout.write(j.ownerToken)})' <<<"$created")
+          echo "Created verification session $sid"
+
+          for n in 1 2 3; do
+            scores='{"calm":38,"warm":74,"drive":62,"reliable":74,"considerate":85}'
+            response_id="productionverify${GITHUB_RUN_ID}${n}"
+            submitted=$(curl -fLsS --max-time 20 -X POST "$api/session/$sid/response" -H 'Content-Type: application/json' --data "{\"scores\":$scores,\"responseId\":\"$response_id\"}")
+            count=$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(String(JSON.parse(s).friendCount)))' <<<"$submitted")
+            if [[ "$count" != "$n" ]]; then echo "Expected friendCount=$n, got $count"; exit 1; fi
+          done
+
+          owner=$(curl -fLsS --max-time 20 "$api/session/$sid" -H "Authorization: Bearer $token")
+          node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const j=JSON.parse(s);
+              if(!j.complete || j.friendCount!==3) throw new Error("comparison did not unlock at 3/3");
+              if(j.friendAverage?.calm!==38 || j.friendAverage?.considerate!==85) throw new Error("friend aggregate mismatch");
+              if(j.selfScores?.calm!==62 || j.selfScores?.reliable!==85) throw new Error("self scores mismatch");
+              console.log("HOW-SEEN LIVE API VERIFIED: create → 1/3 → 2/3 → 3/3 → private owner aggregate");
+            })
+          ' <<<"$owner"
+
+          fourth_status=$(curl -sS -o /tmp/how-seen-fourth.json -w '%{http_code}' --max-time 20 -X POST "$api/session/$sid/response" -H 'Content-Type: application/json' --data "{\"scores\":$self,\"responseId\":\"productionverify${GITHUB_RUN_ID}4\"}")
+          if [[ "$fourth_status" != "409" ]] || ! grep -F 'SESSION_FULL' /tmp/how-seen-fourth.json >/dev/null; then
+            echo "Fourth response was not blocked as expected: status=$fourth_status"
+            cat /tmp/how-seen-fourth.json
+            exit 1
+          fi
+          echo "HOW-SEEN PRODUCTION VERIFIED ON BOTH DOMAINS + LIVE API"
