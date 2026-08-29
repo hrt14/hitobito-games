@@ -1,0 +1,11 @@
+{
+  "name": "10年後から戻ってきた",
+  "short_name": "10年後から",
+  "description": "10年後の自分の視点を借りて、今日の一手を1つに絞り、3分だけ動くLEVEL UPアプリ。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080b0b",
+  "theme_color": "#080b0b"
+}
