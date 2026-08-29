@@ -1,0 +1,94 @@
+name: Verify LEVEL UP feedback production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'firebase-overrides/levelup-feedback/**'
+      - 'scripts/dedupe-levelup-app-menus.mjs'
+      - 'scripts/inject-levelup-app-menu.mjs'
+      - '.firebase-deploy-trigger'
+      - '.github/workflows/verify-levelup-feedback-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: levelup-feedback-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify improvement links on every public LEVEL UP app
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import concurrent.futures
+          import os
+          import sys
+          import urllib.parse
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          custom_base = 'https://levelup.hitobito.jp'
+          firebase_base = 'https://hitobito-levelup.web.app'
+          sha = os.environ.get('GITHUB_SHA', '')[:12]
+
+          req = urllib.request.Request(
+              f'{custom_base}/sitemap.xml?verify-feedback={sha}',
+              headers={'User-Agent': 'LEVEL-UP-feedback-production-verifier/1.0'},
+          )
+          with urllib.request.urlopen(req, timeout=30) as response:
+              root = ET.fromstring(response.read())
+
+          paths = []
+          for elem in root.iter():
+              if not elem.tag.endswith('loc') or not elem.text:
+                  continue
+              parsed = urllib.parse.urlparse(elem.text.strip())
+              if parsed.path.startswith('/apps/'):
+                  paths.append(parsed.path)
+          paths = sorted(set(paths))
+
+          if len(paths) < 100:
+              raise SystemExit(f'Expected at least 100 public LEVEL UP app URLs; got {len(paths)}')
+
+          needles = (
+              'data-levelup-feedback-v1',
+              'id="lu-fb-fab"',
+              'id="levelup-feedback-menu-bridge"',
+              '改善要望を送る',
+          )
+
+          targets = [(base, path) for base in (custom_base, firebase_base) for path in paths]
+
+          def check(target):
+              base, path = target
+              url = f'{base}{path}?verify-feedback={sha}'
+              req = urllib.request.Request(url, headers={'User-Agent': 'LEVEL-UP-feedback-production-verifier/1.0'})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      html = response.read().decode('utf-8', errors='replace')
+              except Exception as exc:
+                  return url, [f'fetch-error:{exc}']
+              return url, [needle for needle in needles if needle not in html]
+
+          failures = []
+          with concurrent.futures.ThreadPoolExecutor(max_workers=20) as pool:
+              for url, missing in pool.map(check, targets):
+                  if missing:
+                      failures.append((url, missing))
+
+          if failures:
+              print(f'LEVEL UP FEEDBACK PRODUCTION FAILED: {len(failures)}/{len(targets)} URLs', file=sys.stderr)
+              for url, missing in failures[:50]:
+                  print(f'- {url}: {", ".join(missing)}', file=sys.stderr)
+              raise SystemExit(1)
+
+          print(f'LEVEL UP FEEDBACK PRODUCTION VERIFIED: {len(paths)} apps x 2 domains = {len(targets)} URLs')
+          PY
