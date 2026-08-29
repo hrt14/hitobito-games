@@ -46,6 +46,11 @@ const appCopies = {
     purpose: '12問から行動力・知力・社交力・回復力・運・残りHPを出し、職業・二つ名・特殊能力までRPG化する',
     benefit: 'LVと能力値が入った1枚のRPGカードで「自分っぽさ」を見つけ、そのまま画像で友人やSNSに共有できる',
   },
+  'daily-special-ability': {
+    forWho: '自分では普通にやっている行動の中に、どんな強みがあるのか言葉にしにくい人',
+    purpose: '12の日常場面の二択から行動傾向を見つけ、普段の強みを覚えやすい「日常特殊能力名」に変える',
+    benefit: '自分の強みを能力名・発動条件・副能力として持ち帰り、結果カードで友人やSNSに見せたり比べたりできる',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -106,4 +111,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, praise-manual, and life-rpg-status specific LEVEL UP card copy injected; book copy ready.');
+console.log('[Firebase] app-specific LEVEL UP card copy injected for ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, praise-manual, life-rpg-status, and daily-special-ability; book copy ready.');
