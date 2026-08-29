@@ -48,6 +48,16 @@ const APPS = {
     purpose: '怒りを否定せず、送信だけ数秒〜数十分保留して返信の目的を言葉にする',
     benefit: '即レスの反射から離れ、訂正・主導権・感情放出の目的に合う行動を選び直しやすくなる',
   },
+  'how-seen': {
+    title: '他人からどう見えてる？診断',
+    kicker: 'SELF IMAGE / OUTSIDE VIEW',
+    skill: '自己イメージ / 他者評価',
+    obi: '8つの二択で自分像を出し、友達の匿名評価と比べてズレを見る。',
+    description: '自分が思う自分と、他人から見える自分のズレを、8つの二択と友達の匿名評価で比べる診断。',
+    forWho: '自分が周囲からどう見えているのか気になり、自己イメージとの違いを確かめたい人',
+    purpose: 'まず自分の自己イメージを8つの二択で出し、友達から受けた匿名評価と同じ軸で比較する',
+    benefit: '自分の見立てと他人から見える印象の一致・ズレを具体的に捉えやすくなる',
+  },
 };
 
 if (!fs.existsSync(catalogPath) || !fs.existsSync(homePath)) {
@@ -85,4 +95,4 @@ for (const [slug, copy] of Object.entries(APPS)) {
 
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 fs.writeFileSync(homePath, html);
-console.log('[LEVEL UP card] iya-feeling-first-aid + NEGOTIATOR card copy injected');
+console.log('[LEVEL UP card] iya-feeling-first-aid + NEGOTIATOR + how-seen card copy injected');
