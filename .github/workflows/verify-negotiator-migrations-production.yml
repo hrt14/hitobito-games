@@ -1,0 +1,42 @@
+name: Verify migrated NEGOTIATOR production routes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.verify-negotiator-migrations'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify live routes and titles
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_route() {
+            local path="$1"
+            local needle="$2"
+            local ok=0
+            for host in 'https://levelup.hitobito.jp' 'https://hitobito-levelup.web.app'; do
+              ok=0
+              for i in $(seq 1 24); do
+                body="$(curl -fLsS --max-time 20 -H 'Cache-Control: no-cache' "$host$path?verify=$GITHUB_SHA" || true)"
+                if printf '%s' "$body" | grep -Fq "$needle"; then
+                  echo "PASS $host$path :: $needle"
+                  ok=1
+                  break
+                fi
+                sleep 5
+              done
+              if [ "$ok" -ne 1 ]; then
+                echo "FAIL $host$path :: expected $needle"
+                exit 1
+              fi
+            done
+          }
+          check_route '/apps/negotiator-procrastination/' 'NEGOTIATOR / PROCRASTINATION'
+          check_route '/apps/negotiator-stop-short-videos/' 'NEGOTIATOR / SHORT VIDEO'
+          check_route '/apps/negotiator-anger-reply/' 'NEGOTIATOR / ANGER REPLY'
