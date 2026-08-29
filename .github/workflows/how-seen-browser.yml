@@ -62,17 +62,20 @@ jobs:
             const obj={id:token.id,self:token.self,peer:scores};const s=btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return location.origin+location.pathname+'?back='+encodeURIComponent(s)
           },last);
           console.log('stage:return-import');
-          await nav(page,returnUrl);
-          await page.waitForSelector('.gap-number');
-          const imported=await page.$eval('.notice',el=>el.textContent); if(!imported.includes('追加')) throw new Error('return response not imported');
-          const responses=await page.evaluate((id)=>JSON.parse(localStorage.getItem('how-seen-responses:'+id)||'[]'),last.id); if(responses.length!==1) throw new Error('response not saved');
-          await page.reload({waitUntil:'domcontentloaded',timeout:10000}); await page.waitForSelector('.gap-number');
-          const persistedCount=await page.$eval('.friend-badge',el=>el.textContent); if(!persistedCount.includes('1人')) throw new Error('revisit average missing');
-          await page.click('#resetBtn'); await page.waitForSelector('#start');
-          const resetTitle=await page.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim()); if(!resetTitle.includes('他人から')) throw new Error('reset/back path failed');
+          const returned=await browser.newPage(); returned.setDefaultTimeout(10000); await returned.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          await nav(returned,base);
+          await returned.evaluate((token)=>localStorage.setItem('how-seen-last',JSON.stringify(token)),last);
+          await nav(returned,returnUrl);
+          await returned.waitForSelector('.gap-number');
+          const imported=await returned.$eval('.notice',el=>el.textContent); if(!imported.includes('追加')) throw new Error('return response not imported');
+          const responses=await returned.evaluate((id)=>JSON.parse(localStorage.getItem('how-seen-responses:'+id)||'[]'),last.id); if(responses.length!==1) throw new Error('response not saved');
+          await returned.reload({waitUntil:'domcontentloaded',timeout:10000}); await returned.waitForSelector('.gap-number');
+          const persistedCount=await returned.$eval('.friend-badge',el=>el.textContent); if(!persistedCount.includes('1人')) throw new Error('revisit average missing');
+          await returned.click('#resetBtn'); await returned.waitForSelector('#start');
+          const resetTitle=await returned.$eval('h1',el=>el.textContent.replace(/\s+/g,' ').trim()); if(!resetTitle.includes('他人から')) throw new Error('reset/back path failed');
           console.log('stage:desktop');
-          await page.setViewport({width:1280,height:900});
-          if(!(await page.$('.shell'))) throw new Error('desktop shell missing');
+          await returned.setViewport({width:1280,height:900});
+          if(!(await returned.$('.shell'))) throw new Error('desktop shell missing');
           console.log('HOW-SEEN BROWSER PASS: first view, 8 self choices, result, friend flow, return import, reload/revisit, reset/back, mobile and desktop verified.');
           await browser.close();
           NODE
