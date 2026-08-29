@@ -62,7 +62,7 @@ try {
   if (!(await page.locator('#lastSession').isHidden())) fail('First visit shows an empty previous-session panel.');
   const h1 = await page.locator('#startTitle').innerText();
   if (!h1.includes('嫌な気持ち') || !h1.includes('いったん下げる')) fail(`Promise is unclear: ${h1}`);
-  const lead = await page.locator('.lead').innerText();
+  const lead = await page.locator('#startScreen .lead').innerText();
   if (!lead.includes('理由はあとでいい') || !lead.includes('波の勢い')) fail('First-screen instruction is not immediate enough.');
   if ((await page.locator('[data-role="before-scale"] [data-intensity]').count()) !== 5) fail('Baseline intensity must be one-tap 1-5.');
   const firstTap = await page.locator('[data-role="before-scale"] [data-intensity="3"]').boundingBox();
