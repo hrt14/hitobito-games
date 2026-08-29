@@ -41,6 +41,11 @@ const appCopies = {
     purpose: '10問で、人前/1対1・結果/努力・短い一言/具体的・言葉/行動など7軸の「褒められ方の好み」を言語化する',
     benefit: '仕事・パートナーでそのまま使える例文とNG例まで入った取説を相手に送り、次に褒めてもらう瞬間から使える',
   },
+  'life-rpg-status': {
+    forWho: '今の自分の特徴を、長い診断文ではなく一目で分かるキャラクターとして見てみたい人',
+    purpose: '12問から行動力・知力・社交力・回復力・運・残りHPを出し、職業・二つ名・特殊能力までRPG化する',
+    benefit: 'LVと能力値が入った1枚のRPGカードで「自分っぽさ」を見つけ、そのまま画像で友人やSNSに共有できる',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -101,4 +106,4 @@ for (const [slug, copy] of Object.entries(appCopies)) {
 
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, and praise-manual specific LEVEL UP card copy injected; book copy ready.');
+console.log('[Firebase] ato-nankai, jinsei-kieteru, jinsei-fukusen, how-seen, what-stops-you, praise-manual, and life-rpg-status specific LEVEL UP card copy injected; book copy ready.');
