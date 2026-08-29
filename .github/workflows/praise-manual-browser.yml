@@ -1,0 +1,80 @@
+name: Praise manual LEVEL UP browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/praise-manual/**'
+      - 'scripts/register-career-interest-check-meta.mjs'
+      - 'scripts/inject-ato-nankai-card-copy.mjs'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
+      - '.github/workflows/praise-manual-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/praise-manual/**'
+      - 'scripts/register-career-interest-check-meta.mjs'
+      - 'scripts/inject-ato-nankai-card-copy.mjs'
+      - 'scripts/inject-ato-nankai-book-card.mjs'
+      - '.github/workflows/praise-manual-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript and LEVEL UP classification
+        run: |
+          node --check apps/praise-manual/app.js
+          node --import ./scripts/register-career-interest-check-meta.mjs -e "import('./scripts/playtest-catalog.mjs').then(({GAME_META})=>{if(GAME_META['praise-manual']?.[0]!=='levelup')throw new Error('praise-manual is not classified as levelup')})"
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/praise-manual-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/praise-manual/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/praise-manual-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          PRAISE_MANUAL_URL: http://127.0.0.1:4173/apps/praise-manual/
+        run: node apps/praise-manual/smoke-browser.mjs
+      - name: Verify Firebase bundle includes the app
+        run: |
+          npm run build:firebase
+          test -s .dist/firebase/apps/praise-manual/index.html
+          node - <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('.dist/firebase/manifest.json','utf8'));
+          const game = manifest.games.find((item) => item.slug === 'praise-manual');
+          if (!game) throw new Error('praise-manual missing from Firebase manifest');
+          if (game.category !== 'levelup') throw new Error(`unexpected category: ${game.category}`);
+          const catalog = JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json','utf8'));
+          const card = catalog.games.find((item) => item.slug === 'praise-manual');
+          if (!card?.title?.includes('褒め方') || !card?.obi) throw new Error('praise-manual title/obi missing from LEVEL UP catalog');
+          console.log({ manifest: game, catalog: card });
+          NODE
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/praise-manual
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: praise-manual-browser-playtest
+          path: apps/praise-manual/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/praise-manual-server.log || true
