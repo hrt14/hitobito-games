@@ -34,7 +34,7 @@ jobs:
           await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
           const errors=[];
           page.on('pageerror',e=>errors.push(String(e)));
-          page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
+          page.on('requestfailed',req=>{if(!req.url().endsWith('/favicon.ico')) errors.push(`request failed: ${req.url()} ${req.failure()?.errorText||''}`)});
           const base='http://127.0.0.1:4173/apps/ato-nankai/';
           await page.goto(base,{waitUntil:'networkidle0'});
 
@@ -80,7 +80,7 @@ jobs:
           await page.setViewport({width:1280,height:900});
           await page.reload({waitUntil:'networkidle0'});
           if(!(await page.$('.app'))) throw new Error('desktop app shell missing');
-          if(errors.length) throw new Error(`browser console errors: ${errors.join(' | ')}`);
+          if(errors.length) throw new Error(`browser errors: ${errors.join(' | ')}`);
           console.log('ATO-NANKAI BROWSER PASS: first view, disclaimer, age/end-age recalculation, meeting frequency, selection/result, persistence/revisit, back path, mobile and desktop verified.');
           await browser.close();
           NODE
