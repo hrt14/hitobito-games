@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "game": "solo-survival",
+  "funStatement": "8夜の危機ごとに『接触を避ける・獲物を独占する・争わない・夜を使う』のどれを優先するかを選び、同じ3択でも体力・警戒・縄張りの残り方が大きく変わるのが面白い。",
+  "coreLoop": [
+    "夜の危機と3つの状態を見る",
+    "3択から生存戦略を選ぶ",
+    "体力・警戒・縄張りの変化と理由を見る",
+    "次の夜で残った状態に合わせて判断する"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "安全・探索・縄張り拡大を同時には最大化できず、接触を増やす選択は短期の利点と引き換えに体力や警戒を削る。",
+    "consequence": "各夜の判断が3つの状態値に累積し、8夜後の生存余力と『単独行動らしい判断』の回数を変える。"
+  },
+  "highestMoment": "危険な選択を重ねた状態で最終夜を越え、ほとんど余力がない数値とともに『8夜を生き抜いた。』が出る瞬間。安全ルートとの差が一目で分かる。",
+  "oneMoreRunReason": "実ブラウザでは安全寄りルートとリスク寄りルートで結果が大きく分岐し、別の選択順でどこまで余力を残せるか試したくなる。",
+  "playtest": {
+    "method": "real Chromium browser playtest via GitHub Actions run 33246443411; mobile 390x844 and desktop 1280x900 against current main",
+    "first10Seconds": {"pass": true, "evidence": "モバイル・デスクトップとも開始画面から最初の3択へ進めた。"},
+    "first30Seconds": {"pass": true, "evidence": "各夜で3択を選ぶと体力・警戒・縄張りの差分と判断フィードバックが表示された。"},
+    "threeMinutes": {"pass": true, "evidence": "安全寄りとリスク寄りの2ルートをそれぞれ8シーン完走した。"},
+    "tenMinutes": {"pass": true, "evidence": "390x844と1280x900の2ルート、合計16夜を別方針で実プレイした。"},
+    "retryDesire": {"pass": true, "evidence": "結果画面から再挑戦し、開始状態へ戻れることを実操作で確認した。"},
+    "noReward": {"pass": true, "evidence": "XP・コイン・ガチャ等なしで2フルランが成立した。"}
+  },
+  "scores": {
+    "first10Seconds": 8,
+    "coreLoop": 8,
+    "inputFeel": 8,
+    "decisionQuality": 8,
+    "masteryDepth": 8,
+    "surpriseVariation": 8,
+    "riskReward": 9,
+    "pacing": 8,
+    "retryDesire": 8,
+    "uniqueness": 8
+  },
+  "scoreEvidence": {
+    "first10Seconds": "開始→NIGHT 1→3択まで両viewportで詰まりなく到達した。",
+    "coreLoop": "16夜すべてで選択→3差分→フィードバック→次夜が正常に動き、2ルートとも結果画面まで完走した。",
+    "inputFeel": "選択後の無効化、即時差分、次夜、再挑戦、リロードを実ブラウザでエラーなく操作した。",
+    "decisionQuality": "安全ルートとリスクルートで最終資源が大きく分岐し、選択が状態に明確な意味を持った。",
+    "masteryDepth": "安全・警戒・縄張りの3軸と、各場面で接触を減らす原理を転用する余地がある。",
+    "surpriseVariation": "シーンは毎ランシャッフルされ、8夜それぞれ別状況が出る。",
+    "riskReward": "危険選択の代償が最終資源に強く反映される。",
+    "pacing": "各夜は3択1回と短いフィードバックで進み、8夜×2ランでも停滞なく完走した。",
+    "retryDesire": "結果差が大きく、別の選択順を試す理由が明確。",
+    "uniqueness": "単独生活動物の生存戦略を、体力・警戒・縄張りの3資源を守る8夜の判断ゲームに落としている。"
+  },
+  "verifiedAt": "2026-08-29T18:52:00+09:00"
+}

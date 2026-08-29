@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f0">
+  <meta name="description" content="急に嫌な気持ちが湧いたとき、原因探しより先に約1分だけ波を下げるLEVEL UP。待つ→名前をつける→今へ戻す。">
+  <title>嫌な気持ち、いったん下げる｜LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="LEVEL UP トップへ">LEVEL UP</a>
+      <button class="quiet-btn" id="resetBtn" type="button" hidden>最初に戻る</button>
+    </header>
+
+    <main id="app" aria-live="polite">
+      <section class="screen active" id="startScreen" aria-labelledby="startTitle">
+        <div class="eyebrow">急に来たとき用 · 約1分</div>
+        <h1 id="startTitle">嫌な気持ち、<br>いったん下げる</h1>
+        <p class="lead">理由はあとでいい。まず波の勢いだけ下げる。</p>
+
+        <div class="intensity-card">
+          <p class="question">いまの強さは？</p>
+          <div class="intensity-scale" data-role="before-scale" aria-label="いまの嫌な気持ちの強さ">
+            <button type="button" data-intensity="1"><span>1</span><small>うっすら</small></button>
+            <button type="button" data-intensity="2"><span>2</span><small>少し</small></button>
+            <button type="button" data-intensity="3"><span>3</span><small>強い</small></button>
+            <button type="button" data-intensity="4"><span>4</span><small>かなり</small></button>
+            <button type="button" data-intensity="5"><span>5</span><small>いっぱい</small></button>
+          </div>
+        </div>
+
+        <div class="last-session" id="lastSession" hidden>
+          <span class="mini-label">前回</span>
+          <strong id="lastSessionText"></strong>
+        </div>
+        <div class="personal-insight" id="personalInsight" hidden></div>
+      </section>
+
+      <section class="screen" id="waveScreen" aria-labelledby="waveTitle">
+        <button class="back-btn" type="button" data-back="start">← 強さを選び直す</button>
+        <div class="step-mark">1 / 4</div>
+        <h2 id="waveTitle">波を止めない。<br>通り過ぎるのを待つ。</h2>
+        <p class="subcopy">下の波に指を置いたまま。離しても、続きからで大丈夫。</p>
+
+        <div class="wave-stage" id="waveStage">
+          <div class="wave-shadow"></div>
+          <button class="wave-hold" id="waveHold" type="button" aria-label="押したまま波をやり過ごす">
+            <span class="wave-core" id="waveCore"></span>
+            <span class="hold-copy" id="holdCopy">ここを押したまま</span>
+            <span class="hold-time" id="holdTime">8秒</span>
+          </button>
+        </div>
+        <p class="microcopy">感情を消す操作ではありません。反応する前に少し間をつくります。</p>
+      </section>
+
+      <section class="screen" id="labelScreen" aria-labelledby="labelTitle">
+        <button class="back-btn" type="button" data-back="wave">← 波へ戻る</button>
+        <div class="step-mark">2 / 4</div>
+        <h2 id="labelTitle">一番近い名前を<br>1個だけつける。</h2>
+        <p class="subcopy">正確じゃなくていい。近いものをタップ。</p>
+        <div class="choice-grid emotion-grid" id="emotionChoices">
+          <button type="button" data-emotion="不安">不安</button>
+          <button type="button" data-emotion="イライラ">イライラ</button>
+          <button type="button" data-emotion="恥ずかしさ">恥ずかしさ</button>
+          <button type="button" data-emotion="悲しさ">悲しさ</button>
+          <button type="button" data-emotion="嫌悪感">嫌悪感</button>
+          <button type="button" data-emotion="わからない">何かわからない</button>
+        </div>
+        <div class="named-feeling" id="namedFeeling" hidden></div>
+      </section>
+
+      <section class="screen" id="sourceScreen" aria-labelledby="sourceTitle">
+        <button class="back-btn" type="button" data-back="label">← 名前を選び直す</button>
+        <div class="step-mark">3 / 4</div>
+        <h2 id="sourceTitle">その感じ、<br>いまどこに近い？</h2>
+        <p class="subcopy">原因を解くのではなく、戻り方だけ選びます。</p>
+        <div class="choice-list" id="sourceChoices">
+          <button type="button" data-source="body"><strong>体</strong><span>胸・お腹・肩・ざわざわ</span></button>
+          <button type="button" data-source="memory"><strong>思い出</strong><span>さっき・昔の場面が戻ってくる</span></button>
+          <button type="button" data-source="future"><strong>先の想像</strong><span>まだ起きていないことが膨らむ</span></button>
+          <button type="button" data-source="person"><strong>相手</strong><span>返信・表情・言葉が気になる</span></button>
+          <button type="button" data-source="unknown"><strong>理由不明</strong><span>うまく説明できない</span></button>
+        </div>
+      </section>
+
+      <section class="screen" id="anchorScreen" aria-labelledby="anchorTitle">
+        <button class="back-btn" type="button" data-back="source">← 戻り方を選び直す</button>
+        <div class="step-mark">4 / 4</div>
+        <h2 id="anchorTitle">今に戻る動きを<br>1個だけ。</h2>
+        <p class="subcopy" id="anchorLead"></p>
+        <div class="choice-list anchor-list" id="anchorChoices"></div>
+      </section>
+
+      <section class="screen" id="doScreen" aria-labelledby="doTitle">
+        <div class="action-orbit" aria-hidden="true"><span></span></div>
+        <div class="step-mark">いま実行</div>
+        <h2 id="doTitle"></h2>
+        <p class="action-detail" id="actionDetail"></p>
+        <button class="primary-btn" id="doneActionBtn" type="button">やった</button>
+        <button class="text-btn" id="skipActionBtn" type="button">今は別のにする</button>
+      </section>
+
+      <section class="screen" id="afterScreen" aria-labelledby="afterTitle">
+        <div class="step-mark">最後</div>
+        <h2 id="afterTitle">いまの強さは？</h2>
+        <p class="subcopy">最初と同じ1〜5で。</p>
+        <div class="intensity-scale" data-role="after-scale" aria-label="いまの嫌な気持ちの強さ">
+          <button type="button" data-intensity="1"><span>1</span><small>うっすら</small></button>
+          <button type="button" data-intensity="2"><span>2</span><small>少し</small></button>
+          <button type="button" data-intensity="3"><span>3</span><small>強い</small></button>
+          <button type="button" data-intensity="4"><span>4</span><small>かなり</small></button>
+          <button type="button" data-intensity="5"><span>5</span><small>いっぱい</small></button>
+        </div>
+      </section>
+
+      <section class="screen" id="resultScreen" aria-labelledby="resultTitle">
+        <div class="result-kicker">今回の1分</div>
+        <h2 id="resultTitle"></h2>
+        <div class="before-after" id="beforeAfter"></div>
+        <p class="result-copy" id="resultCopy"></p>
+
+        <div class="result-facts">
+          <div><span>名前</span><strong id="resultEmotion"></strong></div>
+          <div><span>戻し方</span><strong id="resultAnchor"></strong></div>
+        </div>
+
+        <div class="next-minute">
+          <p>次の1分、どうする？</p>
+          <div class="next-actions" id="nextActions">
+            <button type="button" data-next="return">今していたことに戻る</button>
+            <button type="button" data-next="move">場所を少し変える</button>
+            <button type="button" data-next="again">もう1回だけやる</button>
+          </div>
+        </div>
+
+        <div class="personal-insight result-insight" id="resultInsight" hidden></div>
+        <a class="home-link" href="/">LEVEL UPへ戻る</a>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

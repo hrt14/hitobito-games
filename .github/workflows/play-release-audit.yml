@@ -1,0 +1,120 @@
+name: PLAY release browser audit
+
+# release-audit-v4
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/play-release-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser
+        run: |
+          npm install
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local server
+        run: |
+          npm run dev > /tmp/play-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/apps/water-rescue/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/play-server.log
+          exit 1
+      - name: Real browser audit
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          async function water(viewport,label){
+            const page=await browser.newPage({viewport}); const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
+            await page.goto('http://127.0.0.1:4173/apps/water-rescue/',{waitUntil:'networkidle'});
+            if(!(await page.getByRole('heading',{name:'水問題レスキュー'}).isVisible())) throw new Error(label+' intro missing');
+            await page.getByRole('button',{name:'最初の現場へ'}).click();
+            const missions=[];
+            for(let m=0;m<4;m++){
+              await page.locator('#missionTitle').waitFor({state:'visible'});
+              missions.push((await page.locator('#missionTitle').textContent())?.trim());
+              const jobs=page.locator('#jobChoices .choice'); if(await jobs.count()<3) throw new Error(label+' jobs missing');
+              await jobs.nth(0).click();
+              await page.locator('#actionPhase:not(.hidden)').waitFor();
+              const tools=page.locator('#toolChoices .tool'); if(await tools.count()<4) throw new Error(label+' tools missing');
+              await tools.nth(0).click(); await tools.nth(2).click();
+              const remain=Number((await page.locator('#remainingBudget').textContent())||'-1'); if(remain<0) throw new Error(label+' negative budget');
+              await page.locator('#resolveBtn').click();
+              await page.locator('#result:not(.hidden)').waitFor();
+              const routeCount=await page.locator('#route .route-step').count(); if(routeCount<2) throw new Error(label+' route feedback missing');
+              if(m===0){
+                await page.locator('#retryBtn').click();
+                await page.locator('#stage:not(.hidden)').waitFor();
+                const jobs2=page.locator('#jobChoices .choice'); await jobs2.nth(0).click();
+                const tools2=page.locator('#toolChoices .tool'); await tools2.nth(0).click(); await tools2.nth(2).click();
+                await page.locator('#resolveBtn').click(); await page.locator('#result:not(.hidden)').waitFor();
+              }
+              await page.locator('#nextBtn').click();
+            }
+            await page.locator('#final:not(.hidden)').waitFor();
+            const score=(await page.locator('#finalScore').textContent())?.trim();
+            await page.locator('#restartBtn').click();
+            if(!(await page.locator('#stage:not(.hidden)').isVisible())) throw new Error(label+' restart failed');
+            await page.locator('#exitBtn').click();
+            if(!(await page.locator('#intro').isVisible())) throw new Error(label+' exit failed');
+            await page.reload({waitUntil:'networkidle'});
+            if(!(await page.locator('#startBtn').isVisible())) throw new Error(label+' reload failed');
+            if(errors.length) throw new Error(label+' page errors '+errors.join('|'));
+            console.log(`WATER PASS ${label}: missions=${missions.join(' > ')}; retry route shown; final=${score}; restart/exit/reload OK`);
+            await page.close();
+          }
+          async function environment(viewport,label,quick=true){
+            const page=await browser.newPage({viewport}); const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
+            await page.goto('http://127.0.0.1:4173/apps/environment-policy-sim/',{waitUntil:'networkidle'});
+            if(!(await page.getByRole('heading',{name:/稲わら焼きを止めても/}).isVisible())) throw new Error(label+' intro missing');
+            if(quick){ await page.locator('#quickBtn').click(); }
+            else { await page.locator('#beginBtn').click(); await page.locator('.role').nth(2).click(); await page.locator('#roleStart').click(); }
+            const turns=[]; const choiceCounts=[];
+            for(let y=0;y<4;y++){
+              await page.locator('#gameScreen.active').waitFor();
+              turns.push((await page.locator('#turnTitle').textContent())?.trim());
+              const policies=page.locator('#policyGrid .policy:not([disabled])'); const n=await policies.count(); if(n<1) throw new Error(label+' no affordable policy');
+              let chosen=0;
+              for(let i=0;i<n && chosen<2;i++){
+                const p=policies.nth((i+y)%n);
+                if(await p.isEnabled()){ await p.click(); chosen++; }
+              }
+              choiceCounts.push(chosen);
+              if(!(await page.locator('#applyBtn').isEnabled())) throw new Error(label+' apply disabled after '+chosen+' choices');
+              await page.locator('#applyBtn').click();
+              await page.locator('#reaction.show').waitFor();
+              const effects=await page.locator('#reactionBody .effectLine').count(); if(effects<1) throw new Error(label+' effect feedback missing');
+              await page.locator('#nextBtn').click();
+            }
+            await page.locator('#resultScreen.active').waitFor();
+            const grade=(await page.locator('#grade').textContent())?.trim();
+            const hist=await page.locator('#history li').count(); if(hist!==4) throw new Error(label+' history '+hist);
+            await page.locator('#restartBtn').click();
+            if(!(await page.locator('#startScreen.active').isVisible())) throw new Error(label+' restart did not return to start');
+            await page.reload({waitUntil:'networkidle'});
+            if(!(await page.locator('#quickBtn').isVisible())) throw new Error(label+' reload failed');
+            if(errors.length) throw new Error(label+' page errors '+errors.join('|'));
+            console.log(`ENV PASS ${label}: turns=${turns.join(' > ')}; policies-per-year=${choiceCounts.join('/')}; grade=${grade}; consequence feedback and 4 history entries; restart/reload OK`);
+            await page.close();
+          }
+          await water({width:390,height:844},'mobile-390x844');
+          await water({width:1280,height:900},'desktop-1280x900');
+          await environment({width:390,height:844},'mobile-390x844',true);
+          await environment({width:1280,height:900},'desktop-1280x900',false);
+          await browser.close();
+          console.log('PLAY RELEASE REAL BROWSER AUDIT PASS');
+          NODE

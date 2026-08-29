@@ -1,0 +1,57 @@
+name: 嫌な気持ち、いったん下げる browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/iya-feeling-first-aid/**'
+      - '.github/workflows/iya-feeling-first-aid-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/iya-feeling-first-aid/**'
+      - '.github/workflows/iya-feeling-first-aid-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: node --check apps/iya-feeling-first-aid/app.js
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/iya-feeling-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/iya-feeling-first-aid/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/iya-feeling-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          IYA_FEELING_URL: http://127.0.0.1:4173/apps/iya-feeling-first-aid/?test=1
+        run: node apps/iya-feeling-first-aid/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/iya-feeling-first-aid
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iya-feeling-first-aid-browser-playtest
+          path: apps/iya-feeling-first-aid/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/iya-feeling-server.log || true

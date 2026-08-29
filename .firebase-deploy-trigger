@@ -44,3 +44,13 @@ Deploy LEVEL UP apps: 準備はここまで / 明日の自分に渡す / いま�
 Deploy LEVEL UP app update: やらないことを決める (suteru-yuki) to Firebase Hosting (2026-08-27 JST).
 Retry suteru-yuki after native-real validator migration to app.js/style.css (2026-08-27 JST).
 Retry suteru-yuki after native-real promoter migration to app.js/style.css (2026-08-27 JST).
+Deploy LEVEL UP acquisition v2: crawlable problem links + descriptive home SEO + public GitHub discovery page (2026-08-29 JST).
+Retry LEVEL UP acquisition v2 after mobile typography gate fix (2026-08-29 JST).
+Deploy LEVEL UP acquisition expansion: 5 new problem LPs + 13-entry hub/home links (2026-08-29 JST).
+Retry LEVEL UP acquisition expansion after mobile typography baseline fix (2026-08-29 JST).
+Deploy LEVEL UP share result v2: actual-result sharing + large social preview image (2026-08-29 JST).
+Deploy LEVEL UP app: 嫌な気持ち、いったん下げる (2026-08-29 JST).
+Retry LEVEL UP app: 嫌な気持ち、いったん下げる after app-specific card copy gate fix (2026-08-29 JST).
+Reverify LEVEL UP app: 嫌な気持ち、いったん下げる with production-scoped browser selector (2026-08-29 JST).
+Deploy LEVEL UP app visual upgrade: 嫌な気持ち、いったん下げる (2026-08-29 18:48 JST).
+Deploy LEVEL UP share graphic v3: approved high-impact 1200x630 social preview (2026-08-29 JST).

@@ -1,0 +1,38 @@
+name: 嫌な気持ち、いったん下げる production verification
+
+on:
+  workflow_run:
+    workflows:
+      - 'Deploy LEVEL UP to Firebase Hosting'
+    types:
+      - completed
+
+jobs:
+  production-mobile:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run production mobile verification
+        env:
+          IYA_FEELING_URL: https://levelup.hitobito.jp/apps/iya-feeling-first-aid/?test=1
+        run: node apps/iya-feeling-first-aid/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iya-feeling-first-aid-production-verification
+          path: apps/iya-feeling-first-aid/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
