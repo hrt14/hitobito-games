@@ -26,6 +26,14 @@ const copies = {
     title: '私の褒め方 取説 — どう褒めると刺さる？',
     obi: '人前か1対1か、結果か努力か、言葉か行動か。10問で「私に刺さる褒め方」を相手に渡す。',
   },
+  'daily-special-ability': {
+    title: 'あなたの日常特殊能力診断 — 普通の強みを12問で能力名にする',
+    obi: '違和感早期検知・締切直前超加速など、日常の行動傾向を発動条件つきの能力名に変える。',
+  },
+  'life-rpg-status': {
+    title: '人生RPGステータス — 12問で今の自分をRPGカードにする',
+    obi: 'LV・HP・5能力・職業・二つ名・特殊能力を1枚にして、今の自分を見える化する。',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -57,4 +65,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual book titles and obi injected after shared book conversion.');
+console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual + daily-special-ability + life-rpg-status book titles and obi injected after shared book conversion.');
