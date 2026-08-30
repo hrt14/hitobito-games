@@ -2,14 +2,25 @@ import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'hitobito-levelup';
-const repo = process.env.GITHUB_REPOSITORY || '';
+const repo = process.env.REQUEST_QUEUE_REPOSITORY || '';
 const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
 const issueNumber = Number(process.env.ISSUE_NUMBER || 0);
-if (!repo.includes('/') || !token || !issueNumber) throw new Error('GITHUB_REPOSITORY, GH_TOKEN and ISSUE_NUMBER are required');
+if (!repo.includes('/') || !token || !issueNumber) throw new Error('REQUEST_QUEUE_REPOSITORY, GH_TOKEN and ISSUE_NUMBER are required');
 
 initializeApp({ credential: applicationDefault(), projectId });
 const db = getFirestore();
 const [owner, name] = repo.split('/');
+
+const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${name}`, {
+  headers: {
+    accept: 'application/vnd.github+json',
+    authorization: `Bearer ${token}`,
+    'x-github-api-version': '2022-11-28'
+  }
+});
+if (!repoResponse.ok) throw new Error(`Unable to verify request queue: ${repoResponse.status}`);
+const targetRepo = await repoResponse.json();
+if (targetRepo?.private !== true) throw new Error('Refusing to read OneShotGames requests from a non-private repository');
 
 const response = await fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}`, {
   headers: {
@@ -44,7 +55,7 @@ await db.runTransaction(async (tx) => {
   if (!snap.exists) return;
   const list = Array.isArray(snap.data()?.osgRequests) ? snap.data().osgRequests : [];
   const next = list.map((item) => item?.id === requestId
-    ? { ...item, status, resultUrl, completedAt: new Date().toISOString() }
+    ? { ...item, status, resultUrl, githubIssueUrl: null, completedAt: new Date().toISOString() }
     : item);
   tx.set(userRef, { osgRequests: next }, { merge: true });
 });
