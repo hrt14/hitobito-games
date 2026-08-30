@@ -40,3 +40,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
         run: node functions/sync-osg-requests-to-github.mjs
+
+# Keep this workflow on main so queued creator requests can be retried immediately via a safe workflow-file push.
