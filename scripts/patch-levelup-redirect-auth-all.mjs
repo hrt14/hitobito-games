@@ -10,59 +10,21 @@ if (!fs.existsSync(accountPath)) {
   throw new Error('LEVEL UP account bundle not found. Run patch-levelup-popup-auth.mjs first.');
 }
 
-let source = fs.readFileSync(accountPath, 'utf8');
+const source = fs.readFileSync(accountPath, 'utf8');
 
-const hybridDesktopPopup = [
-  "      const isMobileAuth = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)",
-  "        || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);",
-  "      if (isMobileAuth) {",
-  "        try { sessionStorage.setItem('levelup-auth-redirect-pending-v5', String(Date.now())); } catch {}",
-  "        const returnUrl = new URL(location.href);",
-  "        returnUrl.searchParams.set('_lu_auth_return', '1');",
-  "        history.replaceState(null, '', returnUrl.pathname + returnUrl.search + returnUrl.hash);",
-  "        await state.auth.signInWithRedirect(provider);",
-  "        return;",
-  "      }",
-  "      const result = await state.auth.signInWithPopup(provider);",
-  "      if (result?.user) {",
-  "        state.user = result.user;",
-  "        state.busy = false;",
-  "        state.message = state.db ? 'Googleログインが完了しました。' : 'Googleログインが完了しました。クラウド同期は現在利用できません。';",
-  "        state.messageKind = state.db ? 'success' : 'error';",
-  "        render();",
-  "      }",
-].join('\n');
-
-const redirectForAllBrowsers = [
-  "      // Use the Firebase Hosting custom domain for every browser.",
-  "      // Desktop popup auth was the only platform-specific path and could be blocked",
-  "      // or lose state in PC browsers. A single same-origin redirect flow keeps",
-  "      // desktop and mobile behavior consistent.",
-  "      try { sessionStorage.setItem('levelup-auth-redirect-pending-v5', String(Date.now())); } catch {}",
-  "      const returnUrl = new URL(location.href);",
-  "      returnUrl.searchParams.set('_lu_auth_return', '1');",
-  "      history.replaceState(null, '', returnUrl.pathname + returnUrl.search + returnUrl.hash);",
-  "      await state.auth.signInWithRedirect(provider);",
-  "      return;",
-  "      // Legacy deployment assertion marker only: signInWithPopup(provider)",
-].join('\n');
-
-if (source.includes('const result = await state.auth.signInWithPopup(provider);')) {
-  if (!source.includes(hybridDesktopPopup)) {
-    throw new Error('LEVEL UP desktop popup auth block changed unexpectedly; refusing a partial auth rewrite.');
-  }
-  source = source.replace(hybridDesktopPopup, redirectForAllBrowsers);
+// iPhone was reaching Google with a custom-domain redirect URI that is not
+// registered on the OAuth client, causing Google error 400 redirect_uri_mismatch.
+// Keep the already-provisioned Firebase *.firebaseapp.com authDomain and use
+// Firebase popup auth on every browser until the custom callback is explicitly
+// registered in Google Auth Platform.
+if (!source.includes('const result = await state.auth.signInWithPopup(provider);')) {
+  throw new Error('LEVEL UP executable popup auth is missing.');
+}
+if (source.includes('signInWithRedirect(provider)') || source.includes('getRedirectResult()')) {
+  throw new Error('LEVEL UP redirect auth must remain disabled while the custom OAuth redirect URI is unregistered.');
+}
+if (source.includes("config.authDomain = location.hostname")) {
+  throw new Error('LEVEL UP custom authDomain override must remain disabled for popup auth.');
 }
 
-if (source.includes('const result = await state.auth.signInWithPopup(provider);')) {
-  throw new Error('LEVEL UP desktop popup auth is still executable after redirect normalization.');
-}
-if (!source.includes("await state.auth.signInWithRedirect(provider);")) {
-  throw new Error('LEVEL UP redirect auth call missing after normalization.');
-}
-if (!source.includes('Legacy deployment assertion marker only: signInWithPopup(provider)')) {
-  throw new Error('LEVEL UP legacy deployment assertion marker missing.');
-}
-
-fs.writeFileSync(accountPath, source);
-console.log('[Firebase] LEVEL UP Google login normalized to same-origin redirect on desktop and mobile');
+console.log('[Firebase] LEVEL UP Google login kept on Firebase popup auth for desktop and mobile');
