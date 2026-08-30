@@ -1,0 +1,322 @@
+/*
+ * Explicit light/dark theme layer for thick-self.
+ * Loaded last so LEVEL UP host styles and the older readability locks cannot
+ * produce mixed palettes (for example dark page + dark text or light card + light text).
+ */
+:root{
+  color-scheme:light;
+  --ts-bg:#f6f3ed;
+  --ts-panel:#fffdfa;
+  --ts-panel-2:#eee9e0;
+  --ts-ink:#0d1a2b;
+  --ts-muted:#59616b;
+  --ts-line:rgba(13,26,43,.18);
+  --ts-accent:#91bd1d;
+  --ts-accent-text:#476509;
+  --ts-accent-soft:#edf6d8;
+  --ts-danger:#963d35;
+  --ts-danger-soft:#f7e8e5;
+  --ts-good:#286441;
+  --ts-good-soft:#e1efe5;
+  --ts-shadow:0 16px 42px rgba(21,27,34,.08);
+}
+
+html[data-thick-theme="dark"]{
+  color-scheme:dark;
+  --ts-bg:#07111d;
+  --ts-panel:#0e1b29;
+  --ts-panel-2:#172635;
+  --ts-ink:#f7f9fc;
+  --ts-muted:#bec8d4;
+  --ts-line:rgba(255,255,255,.16);
+  --ts-accent:#b9ef3c;
+  --ts-accent-text:#d5ff70;
+  --ts-accent-soft:rgba(185,239,60,.14);
+  --ts-danger:#ff9387;
+  --ts-danger-soft:rgba(255,147,135,.12);
+  --ts-good:#91d8a7;
+  --ts-good-soft:rgba(145,216,167,.13);
+  --ts-shadow:0 18px 52px rgba(0,0,0,.28);
+}
+
+html[data-thick-theme],
+html[data-thick-theme] body,
+html[data-thick-theme] #app,
+html[data-thick-theme] .shell,
+html[data-thick-theme] .hero,
+html[data-thick-theme] .summary{
+  background:var(--ts-bg)!important;
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+}
+
+html[data-thick-theme] body{
+  min-height:100svh!important;
+}
+
+html[data-thick-theme] .topbar{
+  background:color-mix(in srgb,var(--ts-bg) 94%,transparent)!important;
+  color:var(--ts-ink)!important;
+  border-bottom-color:var(--ts-line)!important;
+  box-shadow:0 1px 0 var(--ts-line)!important;
+}
+html[data-thick-theme] .brand,
+html[data-thick-theme] .topbar .brand{
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+}
+
+/* Every reading surface owns both its background and text color. */
+html[data-thick-theme] .scenario-card,
+html[data-thick-theme] .drill,
+html[data-thick-theme] .thickness-card,
+html[data-thick-theme] .daily-return,
+html[data-thick-theme] .skill-result,
+html[data-thick-theme] .field-card,
+html[data-thick-theme] .science-dialog,
+html[data-thick-theme] .dialog-head,
+html[data-thick-theme] .science-item,
+html[data-thick-theme] .reward-pop,
+html[data-thick-theme] .feedback-explain>div{
+  background:var(--ts-panel)!important;
+  color:var(--ts-ink)!important;
+  border-color:var(--ts-line)!important;
+  box-shadow:var(--ts-shadow)!important;
+}
+
+html[data-thick-theme] .sort-row,
+html[data-thick-theme] .secondary,
+html[data-thick-theme] .choice-btn,
+html[data-thick-theme] .unknown-btn,
+html[data-thick-theme] .depth-card,
+html[data-thick-theme] .recovery-step,
+html[data-thick-theme] .accept-actions button,
+html[data-thick-theme] .mini-choices button,
+html[data-thick-theme] .sort-controls button,
+html[data-thick-theme] .ifthen,
+html[data-thick-theme] .pause-orb{
+  background:var(--ts-panel-2)!important;
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+  border-color:var(--ts-line)!important;
+}
+
+/* Core copy: never inherit host text colors. */
+html[data-thick-theme] .hero h1,
+html[data-thick-theme] .hero h1 span,
+html[data-thick-theme] .hero .lead strong,
+html[data-thick-theme] .scenario-card h2,
+html[data-thick-theme] .instruction strong,
+html[data-thick-theme] .choice-btn,
+html[data-thick-theme] .unknown-btn,
+html[data-thick-theme] .depth-card,
+html[data-thick-theme] .recovery-step,
+html[data-thick-theme] .sort-row,
+html[data-thick-theme] .sort-row p,
+html[data-thick-theme] .sort-controls button,
+html[data-thick-theme] .accept-actions button,
+html[data-thick-theme] .mini-choices button,
+html[data-thick-theme] .grip-readout,
+html[data-thick-theme] .feedback-title,
+html[data-thick-theme] .feedback-explain b,
+html[data-thick-theme] .feedback-explain p,
+html[data-thick-theme] .ifthen,
+html[data-thick-theme] .skill-result b,
+html[data-thick-theme] .field-card h2,
+html[data-thick-theme] .science-item b,
+html[data-thick-theme] .dialog-head h2,
+html[data-thick-theme] .thickness-number{
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+}
+
+html[data-thick-theme] .hero h1 span{
+  color:var(--ts-accent-text)!important;
+  -webkit-text-fill-color:var(--ts-accent-text)!important;
+}
+
+html[data-thick-theme] .hero .lead,
+html[data-thick-theme] .hero .micro,
+html[data-thick-theme] .hero .eyebrow,
+html[data-thick-theme] .thickness-card .eyebrow,
+html[data-thick-theme] .thickness-card .micro,
+html[data-thick-theme] .thickness-number small,
+html[data-thick-theme] .instruction,
+html[data-thick-theme] .scenario-card p,
+html[data-thick-theme] .micro,
+html[data-thick-theme] .progress-text,
+html[data-thick-theme] .scenario-context,
+html[data-thick-theme] .grip-labels,
+html[data-thick-theme] .grip-hint,
+html[data-thick-theme] .feedback p,
+html[data-thick-theme] .reward-pop span,
+html[data-thick-theme] .summary-hero p,
+html[data-thick-theme] .summary-hero .big small,
+html[data-thick-theme] .skill-result span,
+html[data-thick-theme] .field-card p,
+html[data-thick-theme] .dialog-note,
+html[data-thick-theme] .science-item span,
+html[data-thick-theme] .layer-labels span,
+html[data-thick-theme] .daily-return p{
+  color:var(--ts-muted)!important;
+  -webkit-text-fill-color:var(--ts-muted)!important;
+}
+
+html[data-thick-theme] .primary,
+html[data-thick-theme] .continue-btn,
+html[data-thick-theme] .sort-controls button.active,
+html[data-thick-theme] #startBtn{
+  background:var(--ts-ink)!important;
+  color:var(--ts-bg)!important;
+  -webkit-text-fill-color:var(--ts-bg)!important;
+  border-color:var(--ts-ink)!important;
+  box-shadow:none!important;
+}
+html[data-thick-theme="dark"] .primary,
+html[data-thick-theme="dark"] .continue-btn,
+html[data-thick-theme="dark"] .sort-controls button.active,
+html[data-thick-theme="dark"] #startBtn{
+  background:var(--ts-accent)!important;
+  color:#07111d!important;
+  -webkit-text-fill-color:#07111d!important;
+  border-color:var(--ts-accent)!important;
+}
+
+html[data-thick-theme] .ghost-btn,
+html[data-thick-theme] .close-btn,
+html[data-thick-theme] #themeBtn{
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+  border-color:var(--ts-line)!important;
+  background:var(--ts-panel)!important;
+}
+html[data-thick-theme="dark"] .ghost-btn,
+html[data-thick-theme="dark"] .close-btn,
+html[data-thick-theme="dark"] #themeBtn{
+  background:#122131!important;
+}
+
+#themeBtn{
+  width:42px!important;
+  min-width:42px!important;
+  height:42px!important;
+  min-height:42px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:999px!important;
+  font-size:20px!important;
+  line-height:1!important;
+}
+
+html[data-thick-theme] .skill-pill{
+  background:var(--ts-accent-soft)!important;
+  color:var(--ts-accent-text)!important;
+  -webkit-text-fill-color:var(--ts-accent-text)!important;
+  border:1px solid color-mix(in srgb,var(--ts-accent) 38%,transparent)!important;
+}
+
+html[data-thick-theme] .progress-track,
+html[data-thick-theme] .layer,
+html[data-thick-theme] .reward-layer,
+html[data-thick-theme] .skill-result i{
+  background:var(--ts-panel-2)!important;
+}
+html[data-thick-theme] .progress-track i,
+html[data-thick-theme] .layer>i,
+html[data-thick-theme] .reward-layer i,
+html[data-thick-theme] .skill-result i::after{
+  background:var(--ts-accent)!important;
+}
+
+html[data-thick-theme] .feedback{
+  background:var(--ts-good-soft)!important;
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+  border-color:color-mix(in srgb,var(--ts-good) 48%,var(--ts-line))!important;
+}
+html[data-thick-theme] .feedback.bad,
+html[data-thick-theme] .choice-btn.wrong{
+  background:var(--ts-danger-soft)!important;
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+  border-color:var(--ts-danger)!important;
+}
+html[data-thick-theme] .choice-btn.correct,
+html[data-thick-theme] .unknown-btn.marked,
+html[data-thick-theme] .depth-card.kept,
+html[data-thick-theme] .emotion-chip.placed{
+  background:var(--ts-good-soft)!important;
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+  border-color:var(--ts-good)!important;
+}
+html[data-thick-theme] .feedback .theory,
+html[data-thick-theme] .science-item a{
+  color:var(--ts-accent-text)!important;
+  -webkit-text-fill-color:var(--ts-accent-text)!important;
+}
+
+html[data-thick-theme] .emotion-chip{
+  color:var(--ts-ink)!important;
+  -webkit-text-fill-color:var(--ts-ink)!important;
+  background:var(--ts-danger-soft)!important;
+  border-color:color-mix(in srgb,var(--ts-danger) 52%,var(--ts-line))!important;
+}
+html[data-thick-theme] .tempt-btn{
+  color:var(--ts-danger)!important;
+  -webkit-text-fill-color:var(--ts-danger)!important;
+  background:var(--ts-panel)!important;
+  border-color:color-mix(in srgb,var(--ts-danger) 52%,var(--ts-line))!important;
+}
+
+html[data-thick-theme] button:disabled,
+html[data-thick-theme] .tempt-btn[disabled]{
+  opacity:1!important;
+  color:var(--ts-muted)!important;
+  -webkit-text-fill-color:var(--ts-muted)!important;
+  background:var(--ts-panel-2)!important;
+  border-color:var(--ts-line)!important;
+}
+
+html[data-thick-theme] .pause-orb.safe{
+  box-shadow:inset 0 0 0 60px var(--ts-accent-soft)!important;
+}
+html[data-thick-theme] .science-dialog::backdrop{
+  background:rgba(0,0,0,.62)!important;
+}
+
+/* Reserve the production hamburger hit-area at the page level, not by squeezing the action group. */
+html[data-thick-theme] .topbar{
+  padding-right:104px!important;
+}
+html[data-thick-theme] .top-actions{
+  margin-right:0!important;
+  gap:7px!important;
+}
+
+@media(max-width:560px){
+  html[data-thick-theme] .topbar{
+    padding-left:12px!important;
+    padding-right:88px!important;
+    gap:8px!important;
+  }
+  html[data-thick-theme] .brand{
+    font-size:13px!important;
+  }
+  html[data-thick-theme] .top-actions{
+    gap:5px!important;
+  }
+  html[data-thick-theme] .ghost-btn{
+    padding-left:8px!important;
+    padding-right:8px!important;
+    font-size:11px!important;
+  }
+  #themeBtn{
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+    font-size:18px!important;
+  }
+}
