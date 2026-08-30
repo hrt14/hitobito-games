@@ -79,8 +79,8 @@ const homeLayout = `
     overflow:hidden!important;
     text-overflow:ellipsis!important;
     white-space:nowrap!important;
-    font-size:11px!important;
-    letter-spacing:.14em!important;
+    font-size:12px!important;
+    letter-spacing:.12em!important;
   }
   body .levelup-top-actions{
     min-width:0!important;
@@ -114,7 +114,7 @@ const homeLayout = `
       padding:6px 0 12px 56px!important;
       gap:8px!important;
     }
-    body .brand{font-size:10px!important;letter-spacing:.11em!important}
+    body .brand{font-size:12px!important;letter-spacing:.07em!important;transform:scale(.92);transform-origin:left center}
     body #levelup-nav-fixed{top:max(8px,env(safe-area-inset-top))!important;left:max(8px,env(safe-area-inset-left))!important}
     body #levelup-nav-toggle{width:44px!important;height:44px!important;border-radius:14px!important}
     body #levelup-account-chip{max-width:104px!important;min-height:36px!important;padding-right:8px!important}
@@ -128,13 +128,13 @@ const homeLayout = `
     body .lu-home-hero .hero-copy{margin-top:18px!important;font-size:14px!important;line-height:1.7!important}
     body .lu-home-stats{gap:26px!important;margin-top:22px!important}
     body .lu-home-stats strong{font-size:36px!important}
-    body .lu-home-stats span{font-size:9px!important}
+    body .lu-home-stats span{font-size:12px!important;transform:scale(.82);transform-origin:left top}
     body .lu-home-note{display:none!important}
   }
 
   @media(max-width:390px){
     body .top{padding-left:54px!important}
-    body .brand{font-size:9px!important;letter-spacing:.08em!important}
+    body .brand{font-size:12px!important;letter-spacing:.05em!important;transform:scale(.84);transform-origin:left center}
     body #levelup-account-chip{max-width:94px!important}
     body #levelup-account-chip .account-name{max-width:50px!important}
   }
