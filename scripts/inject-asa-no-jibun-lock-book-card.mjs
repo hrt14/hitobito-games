@@ -49,3 +49,4 @@ if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class=
 }
 
 console.log('[Firebase] 朝の自分に決めさせない title + obi book card injected.');
+await import('./inject-bedtime-best-case-book-card.mjs');
