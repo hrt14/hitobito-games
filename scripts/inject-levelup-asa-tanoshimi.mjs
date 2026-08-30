@@ -25,6 +25,36 @@ for (const required of [homePath, catalogPath, manifestPath, appPath]) {
   if (!fs.existsSync(required)) throw new Error(`Morning reward injection prerequisite missing: ${required}`);
 }
 
+// Feedback #311/#312: harden the reward flip for WebKit and make displayed dates
+// deterministic for the Japan-targeted LEVEL UP experience.
+let appHtml = fs.readFileSync(appPath, 'utf8');
+const faceRule = '.face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;border-radius:30px;backface-visibility:hidden;';
+if (!appHtml.includes(faceRule)) throw new Error('asa-tanoshimi face rule not found.');
+appHtml = appHtml.replace(
+  faceRule,
+  '.face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;border-radius:30px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(0);-webkit-transform:translateZ(0);',
+);
+appHtml = appHtml.replace(
+  '.front{background:linear-gradient(155deg,#252b4e,#11162f)}',
+  '.front{transform:rotateY(0deg) translateZ(1px);-webkit-transform:rotateY(0deg) translateZ(1px);background:linear-gradient(155deg,#252b4e,#11162f)}',
+);
+appHtml = appHtml.replace(
+  '.back{transform:rotateY(180deg);background:',
+  '.back{transform:rotateY(180deg) translateZ(1px);-webkit-transform:rotateY(180deg) translateZ(1px);background:',
+);
+appHtml = appHtml.replace(
+  "return new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'}).format(date);",
+  "return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'}).format(date);",
+);
+appHtml = appHtml.replace(
+  "return new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(date);",
+  "return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'long',day:'numeric',weekday:'short'}).format(date);",
+);
+if (!appHtml.includes('-webkit-backface-visibility:hidden')) throw new Error('asa-tanoshimi WebKit flip fix failed.');
+if (!appHtml.includes("timeZone:'Asia/Tokyo'")) throw new Error('asa-tanoshimi date timezone fix failed.');
+fs.writeFileSync(appPath, appHtml);
+console.log('[Firebase] asa-tanoshimi flip/date fixes applied for #311/#312.');
+
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 if (!Array.isArray(manifest.games)) throw new Error('Firebase manifest is invalid.');
 if (!manifest.games.some((item) => item.slug === game.slug && item.category === 'levelup')) {
