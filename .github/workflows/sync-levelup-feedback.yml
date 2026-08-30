@@ -1,4 +1,4 @@
-name: Sync LEVEL UP feedback to GitHub Issues
+name: Sync LEVEL UP feedback to private queue
 
 on:
   workflow_dispatch:
@@ -15,7 +15,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
   id-token: write
 
 concurrency:
@@ -26,10 +25,32 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify private request queue
+        id: queue
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
+            echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo 'Private request queue is not configured. Leaving feedback in Firestore; nothing is published to GitHub.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
+          if [ "$visibility" != 'true' ]; then
+            echo "Refusing to sync user text: $QUEUE_REPO is not private." >&2
+            exit 1
+          fi
+          echo 'configured=true' >> "$GITHUB_OUTPUT"
+          echo "Private request queue verified: $QUEUE_REPO" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Checkout
+        if: steps.queue.outputs.configured == 'true'
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
+        if: steps.queue.outputs.configured == 'true'
         uses: google-github-actions/auth@v3
         with:
           project_id: hitobito-levelup
@@ -37,66 +58,46 @@ jobs:
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
       - name: Setup Google Cloud SDK
+        if: steps.queue.outputs.configured == 'true'
         uses: google-github-actions/setup-gcloud@v3
 
       - name: Ensure Firestore access for feedback sync
-        id: firestore_iam
+        if: steps.queue.outputs.configured == 'true'
         continue-on-error: true
         run: |
-          set -o pipefail
           gcloud projects add-iam-policy-binding hitobito-levelup \
             --member='serviceAccount:github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com' \
             --role='roles/datastore.user' \
             --condition=None \
-            --quiet 2>&1 | tee /tmp/levelup-feedback-iam.log
+            --quiet >/dev/null 2>&1 || true
 
       - name: Setup Node
+        if: steps.queue.outputs.configured == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install function dependencies
+        if: steps.queue.outputs.configured == 'true'
         run: npm install --prefix functions
 
-      - name: Sync feedback into issues
-        id: sync_feedback
+      - name: Sync feedback into private issues
+        if: steps.queue.outputs.configured == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
         run: |
           set -o pipefail
-          node functions/sync-feedback-to-github.mjs 2>&1 | tee /tmp/levelup-feedback-sync.log
+          node functions/sync-feedback-to-github.mjs 2>&1 \
+            | sed -E \
+              -e 's/(Recovered session feedback [^:]+):.*/\1: [message redacted]/' \
+              -e 's/(\[dry-run\] [^:]+):.*/\1: [message redacted]/'
 
-      - name: Record feedback sync status
+      - name: Record privacy-safe result
         if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SYNC_OUTCOME: ${{ steps.sync_feedback.outcome }}
-          IAM_OUTCOME: ${{ steps.firestore_iam.outcome }}
         run: |
-          set -euo pipefail
-          title='LEVEL UP feedback sync status'
-          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
-          {
-            echo "Status: **$SYNC_OUTCOME**"
-            echo "Firestore IAM repair step: **$IAM_OUTCOME**"
-            echo
-            echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            echo "Ref: \`$GITHUB_REF_NAME\`"
-            echo "Commit: \`$GITHUB_SHA\`"
-            echo
-            echo '### Firestore IAM repair log'
-            echo '```text'
-            if [ -f /tmp/levelup-feedback-iam.log ]; then tail -n 120 /tmp/levelup-feedback-iam.log; else echo '(IAM log unavailable)'; fi
-            echo '```'
-            echo
-            echo '### Feedback sync log'
-            echo '```text'
-            if [ -f /tmp/levelup-feedback-sync.log ]; then tail -n 120 /tmp/levelup-feedback-sync.log; else echo '(sync log unavailable)'; fi
-            echo '```'
-          } > /tmp/feedback-sync-status.md
-          if [ -n "$issue" ]; then
-            gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file /tmp/feedback-sync-status.md
-          else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file /tmp/feedback-sync-status.md
-          fi
+          echo 'LEVEL UP feedback sync finished. Raw feedback text is never copied into the public repository or public status issues.' >> "$GITHUB_STEP_SUMMARY"
+
+# Privacy rule: free-text feedback is allowed only in the dedicated private request repository.
+# If that private queue is not configured, the data stays in Firestore and the workflow safely skips.
