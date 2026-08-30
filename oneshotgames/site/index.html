@@ -54,6 +54,18 @@
         <label class="main-theme-label" for="gamePrompt"><span>MAIN THEME</span> これだけでも送れます</label>
         <textarea id="gamePrompt" maxlength="600" placeholder="例：30秒以内に上司にバレずに居眠りするゲーム。／この写真の場所を舞台に逃げゲーム。"></textarea>
 
+        <div class="quick-submit-box">
+          <label class="rights-consent quick-rights">
+            <input id="rightsConsent" type="checkbox">
+            <span>投稿内容の権利ルールに同意します。アイデア・ルール・概要だけを根拠に類似ゲームへの独占的な権利主張をせず、著作物に当たる表現を含む場合はゲーム制作・改善・公開・共有に必要な利用を許諾し、その利用について著作者人格権を行使しません。 <a href="/terms.html" target="_blank" rel="noopener">詳しく見る</a></span>
+          </label>
+          <div class="quick-submit-actions">
+            <span id="promptCount">0 / 600</span>
+            <button id="quickSubmitBtn" class="primary-btn quick-submit-btn" type="button" onclick="document.getElementById('submitQuestBtn').click()">これだけでゲームを作る <span>→</span></button>
+          </div>
+          <div id="creatorMessage" class="creator-message" aria-live="polite"></div>
+        </div>
+
         <div class="guided-head">
           <div><span>OPTIONAL 4</span><b>答えるとゲームが具体的になります</b></div>
           <small>全部空欄＝おまかせ</small>
@@ -70,16 +82,10 @@
           <span>顔・住所・個人情報・機密情報・他人の著作物が写った写真は送らないでください。</span>
         </div>
 
-        <label class="rights-consent">
-          <input id="rightsConsent" type="checkbox">
-          <span>投稿内容の権利ルールに同意します。アイデア・ルール・概要だけを根拠に類似ゲームへの独占的な権利主張をせず、著作物に当たる表現を含む場合はゲーム制作・改善・公開・共有に必要な利用を許諾し、その利用について著作者人格権を行使しません。 <a href="/terms.html" target="_blank" rel="noopener">詳しく見る</a></span>
-        </label>
-
-        <div class="prompt-foot">
-          <span id="promptCount">0 / 600</span>
-          <button id="submitQuestBtn" class="primary-btn" type="button">制作クエストを送る <span>→</span></button>
+        <div class="prompt-foot optional-submit-foot">
+          <span>4項目を入力した場合も、ここからそのまま送れます</span>
+          <button id="submitQuestBtn" class="primary-btn" type="button">この内容でゲームを作る <span>→</span></button>
         </div>
-        <div id="creatorMessage" class="creator-message" aria-live="polite"></div>
       </div>
 
       <div class="how-grid">
