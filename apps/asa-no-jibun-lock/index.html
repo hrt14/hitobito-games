@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d0f">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="目覚ましの次に開く朝のオートパイロット。前夜に朝の行動をロックし、起きたら考えず1個ずつ実行する。">
+<title>朝の自分に決めさせない｜LEVEL UP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <div class="brand">LEVEL UP / MORNING LOCK</div>
+    <a class="home" href="/">← ホーム</a>
+  </header>
+
+  <section id="setupScreen">
+    <div class="hero">
+      <div class="eyebrow">NIGHT DECIDES. MORNING EXECUTES.</div>
+      <h1>朝の自分に<br><span>決めさせない。</span></h1>
+      <p class="lead">目覚ましの次に開く、朝のオートパイロット。今夜の自分が順番を決めて、朝の自分は1個ずつやるだけ。</p>
+      <div class="truth"><b>アラームはスマホ標準で。</b> このWebアプリは、アラームが鳴った「その後」を設計します。</div>
+    </div>
+
+    <section class="panel" id="planPanel">
+      <h2>明日の朝を、今ロックする</h2>
+      <p class="sub">朝に「何する？」を考えないよう、行動を先に5個だけ固定します。</p>
+      <div class="wake-row">
+        <div><strong>起きる時刻</strong><span>標準アラームも同じ時刻に設定</span></div>
+        <input id="wakeTime" type="time" value="07:00" aria-label="起きる時刻">
+      </div>
+      <div id="timeline" class="timeline"></div>
+      <button id="editToggle" class="edit-toggle" type="button">行動だけ変える</button>
+      <div id="editor" class="editor"></div>
+      <button id="lockBtn" class="lock-btn" type="button">朝の編集権をロック</button>
+      <p class="lock-note">ロック後も、朝になる前なら解除できます。朝モードでは選択肢を出しません。</p>
+    </section>
+
+    <section id="historyPanel" class="panel hidden">
+      <h2>朝の差分</h2>
+      <p class="sub">予定時刻から、最後のステップまで何分ずれたか。責めずに差だけ見ます。</p>
+      <div id="history" class="history"></div>
+    </section>
+  </section>
+
+  <section id="lockedScreen" class="hidden">
+    <div class="hero">
+      <div class="eyebrow">COMMANDS LOCKED</div>
+      <h1>朝の判断は、<br><span>もう終わった。</span></h1>
+      <p class="lead">明日は画面に出た1個だけやる。起きるかどうかを朝に会議しない。</p>
+    </div>
+    <div class="locked-card">
+      <div class="lock-icon">⌁</div>
+      <h2 id="lockedTitle">07:00 開始</h2>
+      <p id="lockedCopy"></p>
+      <div class="countdown">
+        <div><b id="countHours">—</b><span>HOURS</span></div>
+        <div><b id="countMinutes">—</b><span>MINUTES</span></div>
+        <div><b id="countSteps">5</b><span>STEPS</span></div>
+      </div>
+      <div class="locked-actions">
+        <button id="previewBtn" class="secondary" type="button">朝モードを試す</button>
+        <button id="unlockBtn" class="secondary danger" type="button">ロックを解除</button>
+      </div>
+      <p class="tiny">実際の朝は、設定時刻の10分前〜4時間後にこのページを開くと朝モードで始まります。</p>
+    </div>
+  </section>
+
+  <section id="morningScreen" class="morning hidden">
+    <div class="morning-top"><span id="modeLabel">MORNING AUTOPILOT</span><button id="morningExit" type="button">終了</button></div>
+    <div class="progress"><i id="progressBar" style="--progress:0%"></i></div>
+    <div class="command">
+      <div class="pulse" id="stepBadge">1</div>
+      <small id="stepLabel">STEP 1 / 5</small>
+      <h1 id="commandTitle">上半身を起こす</h1>
+      <p id="commandHelp">考えなくていい。これだけ。</p>
+      <div class="command-time" id="commandTime">予定 07:00</div>
+      <button id="doneBtn" class="done-btn" type="button">やった</button>
+      <button id="breakBtn" class="break-btn" type="button">命令を破る</button>
+    </div>
+  </section>
+
+  <section id="resultScreen" class="hidden">
+    <div class="result-hero">
+      <small id="resultKicker">MORNING COMPLETE</small>
+      <h1 id="resultTitle">朝の自分、<br>実行だけした。</h1>
+      <p id="resultCopy"></p>
+    </div>
+    <section class="panel">
+      <div class="delta">
+        <div><b id="plannedAt">07:00</b><span>予定</span></div>
+        <div><b id="actualAt">07:06</b><span>最後の実行</span></div>
+      </div>
+      <div id="compare" class="compare hidden"></div>
+      <button id="samePlanBtn" class="primary" type="button">明日も同じ計画でロック</button>
+      <button id="editPlanBtn" class="share" type="button">計画を編集する</button>
+      <button id="shareBtn" class="share" type="button">結果を共有</button>
+      <p class="tiny">目標はアプリ依存ではなく、同じ順番をそのうち体だけで再生できるようになること。</p>
+    </section>
+  </section>
+</main>
+
+<dialog id="breakDialog">
+  <div class="dialog-body">
+    <h2>今日はここで終わる？</h2>
+    <p>失敗扱いにはしません。「どこまで実行できたか」だけ残します。まだ戻れるなら、そのまま続けられます。</p>
+    <div class="dialog-actions">
+      <button id="keepGoing" class="secondary" type="button">戻って続ける</button>
+      <button id="confirmBreak" class="secondary danger" type="button">今日は終了</button>
+    </div>
+  </div>
+</dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="./app.js"></script>
+</body>
+</html>

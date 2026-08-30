@@ -1,0 +1,155 @@
+name: asa-no-jibun-lock browser
+
+on:
+  push:
+    branches: [main, feat/asa-no-jibun-lock]
+    paths:
+      - 'apps/asa-no-jibun-lock/**'
+      - '.github/workflows/asa-no-jibun-lock-browser.yml'
+  pull_request:
+    paths:
+      - 'apps/asa-no-jibun-lock/**'
+      - '.github/workflows/asa-no-jibun-lock-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    timeout-minutes: 4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/asa-no-jibun-lock-server.log 2>&1 &
+          sleep 2
+      - name: Browser test
+        run: |
+          cat > .asa-no-jibun-lock-browser-test.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          const browser=await puppeteer.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+          const page=await browser.newPage();
+          page.setDefaultTimeout(10000);
+          await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'dark'}]);
+          const base='http://127.0.0.1:4173/apps/asa-no-jibun-lock/';
+          const key='asa-no-jibun-lock:v2';
+          await page.goto(base,{waitUntil:'domcontentloaded'});
+
+          const title=await page.$eval('h1',e=>e.textContent.replace(/\s+/g,' ').trim());
+          if(!title.includes('朝の自分に')||!title.includes('決めさせない'))throw new Error('first view title missing');
+          const lockBox=await page.$eval('#lockBtn',e=>{const r=e.getBoundingClientRect();return{h:r.height,w:r.width}});
+          if(lockBox.h<56||lockBox.w<250)throw new Error('lock CTA tap target too small');
+          const bodyColor=await page.$eval('body',e=>getComputedStyle(e).color);
+          if(bodyColor!=='rgb(244, 241, 233)')throw new Error(`dark-mode text regression: ${bodyColor}`);
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('mobile horizontal overflow on setup');
+
+          // Night setup: edit one command and lock tomorrow's plan.
+          await page.click('#editToggle');
+          await page.$eval('#editor input[data-step="4"]',e=>{e.value='カーテンを開ける';e.dispatchEvent(new Event('input',{bubbles:true}));});
+          await page.click('#lockBtn');
+          await page.waitForSelector('#lockedScreen:not(.hidden)');
+          const lockedCopy=await page.$eval('#lockedCopy',e=>e.textContent);
+          if(!lockedCopy.includes('カーテンを開ける'))throw new Error('edited command not persisted into lock');
+          const savedLocked=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
+          if(!savedLocked?.locked?.targetAt||savedLocked.steps[4].label!=='カーテンを開ける')throw new Error('locked plan not saved');
+
+          // Preview: a rapid double tap must advance only one command.
+          await page.click('#previewBtn');
+          await page.waitForSelector('#morningScreen:not(.hidden)');
+          if(!(await page.$eval('#modeLabel',e=>e.textContent)).includes('PREVIEW'))throw new Error('preview label missing');
+          await page.evaluate(()=>{const b=document.querySelector('#doneBtn');b.click();b.click();});
+          await new Promise(r=>setTimeout(r,220));
+          let step=await page.$eval('#stepLabel',e=>e.textContent);
+          if(!step.includes('2 / 5'))throw new Error(`rapid tap skipped a command: ${step}`);
+          for(let i=1;i<5;i++){
+            step=await page.$eval('#stepLabel',e=>e.textContent);
+            if(!step.includes(`${i+1} / 5`))throw new Error(`preview step mismatch ${step}`);
+            await page.click('#doneBtn');
+            if(i<4)await new Promise(r=>setTimeout(r,180));
+          }
+          await page.waitForSelector('#lockedScreen:not(.hidden)');
+          const afterPreview=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
+          if(afterPreview.history.length!==0)throw new Error('preview must not create history');
+
+          // Reload keeps the locked night plan.
+          await page.reload({waitUntil:'domcontentloaded'});
+          await page.waitForSelector('#lockedScreen:not(.hidden)');
+          const reloadTitle=await page.$eval('#lockedTitle',e=>e.textContent);
+          if(!reloadTitle.includes('開始'))throw new Error('locked state not restored after reload');
+
+          // Force the saved target into the real morning window and enter the actual run.
+          await page.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));s.locked.targetAt=Date.now()-2*60*1000;localStorage.setItem(k,JSON.stringify(s));},key);
+          await page.reload({waitUntil:'domcontentloaded'});
+          await page.waitForSelector('#morningScreen:not(.hidden)');
+          if((await page.$eval('#modeLabel',e=>e.textContent)).includes('PREVIEW'))throw new Error('real morning incorrectly in preview mode');
+
+          // Complete two commands, then reload mid-morning: STEP 3 must survive the reload.
+          await page.click('#doneBtn');await new Promise(r=>setTimeout(r,180));
+          await page.click('#doneBtn');await new Promise(r=>setTimeout(r,180));
+          const beforeReload=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
+          if(beforeReload.activeMorning?.index!==2)throw new Error('active morning progress not persisted before reload');
+          await page.reload({waitUntil:'domcontentloaded'});
+          await page.waitForSelector('#morningScreen:not(.hidden)');
+          step=await page.$eval('#stepLabel',e=>e.textContent);
+          if(!step.includes('3 / 5'))throw new Error(`mid-morning reload returned to wrong step: ${step}`);
+          for(let i=2;i<5;i++){
+            await page.click('#doneBtn');
+            if(i<4)await new Promise(r=>setTimeout(r,180));
+          }
+          await page.waitForSelector('#resultScreen:not(.hidden)');
+          const result=await page.$eval('#resultCopy',e=>e.textContent);
+          if(!result.includes('予定との差'))throw new Error('result delta missing');
+          const completed=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
+          if(completed.history.length!==1||completed.history[0].status!=='complete'||completed.history[0].completedSteps!==5)throw new Error('complete run not persisted');
+          if(completed.locked!==null||completed.activeMorning!==null)throw new Error('lock/session should clear after completion');
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('mobile horizontal overflow on result');
+
+          // Revisit: edit plan from result, prior history remains visible.
+          await page.click('#editPlanBtn');
+          await page.waitForSelector('#setupScreen:not(.hidden)');
+          if(await page.$eval('#historyPanel',e=>e.classList.contains('hidden')))throw new Error('history missing on revisit');
+
+          // Failure path: lock again, force morning, complete one step, then deliberately stop.
+          await page.click('#lockBtn');
+          await page.waitForSelector('#lockedScreen:not(.hidden)');
+          await page.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));s.locked.targetAt=Date.now()-60*1000;s.activeMorning=null;localStorage.setItem(k,JSON.stringify(s));},key);
+          await page.reload({waitUntil:'domcontentloaded'});
+          await page.waitForSelector('#morningScreen:not(.hidden)');
+          await page.click('#doneBtn');
+          await new Promise(r=>setTimeout(r,180));
+          await page.click('#breakBtn');
+          await page.waitForSelector('#breakDialog[open]');
+          await page.click('#confirmBreak');
+          await page.waitForSelector('#resultScreen:not(.hidden)');
+          const broken=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
+          const last=broken.history.at(-1);
+          if(last.status!=='broken'||last.completedSteps!==1)throw new Error('failure path not recorded correctly');
+          const stoppedTitle=await page.$eval('#resultTitle',e=>e.textContent.replace(/\s+/g,' ').trim());
+          if(!stoppedTitle.includes('ここまで'))throw new Error('non-shaming stopped result missing');
+
+          // Back/exit path from app header resolves to LEVEL UP root.
+          await page.goto(base,{waitUntil:'domcontentloaded'});
+          const homeHref=await page.$eval('.home',e=>e.getAttribute('href'));
+          if(homeHref!=='/')throw new Error('home exit path incorrect');
+
+          // Desktop layout remains usable and overflow-free.
+          await page.setViewport({width:1280,height:900});
+          await page.goto(base,{waitUntil:'domcontentloaded'});
+          if(!(await page.$('.shell')))throw new Error('desktop shell missing');
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('desktop horizontal overflow');
+
+          console.log('ASA-NO-JIBUN-LOCK BROWSER PASS: dark first view, night edit+lock, double-tap guard, preview without side effects, locked reload, mid-morning progress reload, full completion, delta result, revisit history, deliberate break path, exit route, mobile and desktop verified.');
+          await browser.close();
+          NODE
+          timeout 120s node .asa-no-jibun-lock-browser-test.mjs
+          rm .asa-no-jibun-lock-browser-test.mjs
+      - name: LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/asa-no-jibun-lock
