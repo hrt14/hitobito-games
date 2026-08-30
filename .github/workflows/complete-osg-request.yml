@@ -1,33 +1,81 @@
-name: Complete OneShotGames request
+name: Complete OneShotGames requests from private queue
 
 on:
-  issues:
-    types: [closed]
+  workflow_dispatch:
+  schedule:
+    - cron: '37 * * * *'
 
 permissions:
   contents: read
-  issues: read
   id-token: write
+
+concurrency:
+  group: osg-request-completion-sync
+  cancel-in-progress: false
 
 jobs:
   complete:
-    if: contains(github.event.issue.body || '', '<!-- osg-request-id:')
     runs-on: ubuntu-latest
     steps:
+      - name: Verify private request queue
+        id: queue
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
+            echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo 'Private request queue is not configured; completion sync skipped.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
+          if [ "$visibility" != 'true' ]; then
+            echo "Refusing to read user requests: $QUEUE_REPO is not private." >&2
+            exit 1
+          fi
+          echo 'configured=true' >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        if: steps.queue.outputs.configured == 'true'
+
       - name: Authenticate to Google Cloud
+        if: steps.queue.outputs.configured == 'true'
         uses: google-github-actions/auth@v3
         with:
           project_id: hitobito-levelup
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
       - uses: actions/setup-node@v4
+        if: steps.queue.outputs.configured == 'true'
         with:
           node-version: 22
-      - run: npm install --prefix functions
-      - name: Mark request complete in Firebase
+
+      - name: Install function dependencies
+        if: steps.queue.outputs.configured == 'true'
+        run: npm install --prefix functions
+
+      - name: Mark recently closed private requests complete in Firebase
+        if: steps.queue.outputs.configured == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: node functions/complete-osg-request-from-issue.mjs
+        run: |
+          set -euo pipefail
+          {
+            gh issue list --repo "$QUEUE_REPO" --state closed --label osg-game-request --limit 100 --json number --jq '.[].number'
+            gh issue list --repo "$QUEUE_REPO" --state closed --label osg-improvement --limit 100 --json number --jq '.[].number'
+          } | sort -nu > /tmp/osg-closed-issues.txt
+
+          count=0
+          while read -r issue; do
+            [ -n "$issue" ] || continue
+            GITHUB_REPOSITORY="$QUEUE_REPO" ISSUE_NUMBER="$issue" \
+              node functions/complete-osg-request-from-issue.mjs
+            count=$((count + 1))
+          done < /tmp/osg-closed-issues.txt
+          echo "Checked $count closed OSG request issue(s) from the private queue." >> "$GITHUB_STEP_SUMMARY"
+
+# Private queue issue closures are polled from this public code repository so the private queue itself needs no Actions workflow.
