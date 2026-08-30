@@ -3,8 +3,8 @@
 ## Test environment
 - Browser/device: GitHub Actions Ubuntu 24.04 / Google Chrome headless / Puppeteer Core 24.16.0
 - Viewport: 390x844 mobile touch, then 1280x900 desktop
-- Browser-tested commit: cc6238506a16f76c897f22c1b960d15e220f66f7
-- Browser test run: https://github.com/hrt14/hitobito-games/actions/runs/33318665710
+- Browser-tested commit: 609715a55080a4ffff76c0967b51f91e3e813256
+- Browser test run: https://github.com/hrt14/hitobito-games/actions/runs/33319065121
 - Production URL: https://levelup.hitobito.jp/apps/asa-no-jibun-lock/
 
 ## First-time clarity
@@ -13,7 +13,7 @@
 
 ## Main interaction
 - Status: PASS
-- Observed evidence: The browser edited the fifth night command to「カーテンを開ける」, locked the next morning plan, verified the edited five-command sequence was persisted, ran all five commands in preview without creating history, then forced the saved plan into its real morning time window and completed the same five-step one-command-at-a-time flow.
+- Observed evidence: The browser edited the fifth night command to「カーテンを開ける」, locked the next morning plan, verified persistence, and ran all five commands in preview without creating history. It also fired two synchronous clicks on「やった」and verified that only one command advanced, preventing rapid taps from skipping steps. A real morning run then completed the same five-step one-command-at-a-time flow.
 
 ## Wrong / failure path
 - Status: PASS
@@ -21,7 +21,7 @@
 
 ## Correct / success path
 - Status: PASS
-- Observed evidence: Completing all five morning commands produced the result screen with planned-versus-actual delta copy, persisted exactly one `complete` history record with five completed steps, and cleared the active lock so the old plan would not replay accidentally.
+- Observed evidence: Completing all five morning commands produced the result screen with planned-versus-actual delta copy, persisted exactly one `complete` history record with five completed steps, and cleared both the active lock and active morning session so the old plan would not replay accidentally.
 
 ## Back / exit
 - Status: PASS
@@ -29,7 +29,7 @@
 
 ## Reload
 - Status: PASS
-- Observed evidence: After the night plan was locked, a full document reload restored the locked screen and saved plan. The next browser test also verifies that an already-started morning resumes at the next unfinished command rather than returning to STEP 1.
+- Observed evidence: A full document reload restored the locked night plan. During a real morning the browser then completed STEP 1 and STEP 2, verified `activeMorning.index === 2`, reloaded the entire page, and observed `STEP 3 / 5` instead of returning to STEP 1.
 
 ## Revisit
 - Status: PASS
@@ -57,7 +57,7 @@ Answer: YES
 Reason: The setup is reusable, the actual morning removes choice rather than adding another coaching conversation, the run produces a concrete planned-versus-actual delta, and revisit preserves prior history while allowing the same plan to be relocked.
 
 ## Remaining issues
-- Re-run the browser test after the reload-persistence and double-tap hardening changes.
+- Confirm the full Firebase LEVEL UP bundle passes with the app-specific title/obi card copy.
 - Merge the tested implementation to `main`.
 - Deploy the merged commit through the existing Firebase Hosting LEVEL UP path.
 - Exercise the live production URL on mobile-sized and desktop-sized browser sessions.
