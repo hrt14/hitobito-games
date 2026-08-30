@@ -10,27 +10,21 @@ if (!fs.existsSync(accountPath)) {
   throw new Error('LEVEL UP account bundle not found. Run the auth patches first.');
 }
 
-let source = fs.readFileSync(accountPath, 'utf8');
+const source = fs.readFileSync(accountPath, 'utf8');
 
-const oldCondition = "        if (location.hostname === 'levelup.hitobito.jp') config.authDomain = location.hostname;";
-const newCondition = "        if (['levelup.hitobito.jp', 'hitobito-levelup.web.app', 'hitobito-levelup.firebaseapp.com'].includes(location.hostname)) config.authDomain = location.hostname;";
-
-if (!source.includes(newCondition)) {
-  if (!source.includes(oldCondition)) {
-    throw new Error('LEVEL UP authDomain condition changed unexpectedly; refusing a partial Hosting-domain patch.');
-  }
-  source = source.replace(oldCondition, newCondition);
+// Do not override authDomain to levelup.hitobito.jp here. Google rejects that
+// callback with redirect_uri_mismatch until
+// https://levelup.hitobito.jp/__/auth/handler is explicitly registered on the
+// OAuth client. The Firebase Hosting init config already supplies the project's
+// default *.firebaseapp.com authDomain used by popup auth.
+if (source.includes("config.authDomain = location.hostname")) {
+  throw new Error('LEVEL UP custom authDomain override unexpectedly remains.');
+}
+if (source.includes('signInWithRedirect(provider)') || source.includes('getRedirectResult()')) {
+  throw new Error('LEVEL UP redirect auth unexpectedly remains.');
+}
+if (!source.includes('signInWithPopup(provider)')) {
+  throw new Error('LEVEL UP popup auth marker is missing.');
 }
 
-if (source.includes(oldCondition)) {
-  throw new Error('LEVEL UP custom-domain-only authDomain condition still remains.');
-}
-for (const host of ['levelup.hitobito.jp', 'hitobito-levelup.web.app', 'hitobito-levelup.firebaseapp.com']) {
-  if (!source.includes(host)) throw new Error(`LEVEL UP same-origin auth host missing: ${host}`);
-}
-if (!source.includes('await state.auth.signInWithRedirect(provider);')) {
-  throw new Error('LEVEL UP redirect auth call missing after Hosting-domain patch.');
-}
-
-fs.writeFileSync(accountPath, source);
-console.log('[Firebase] LEVEL UP same-origin authDomain enabled for custom, web.app, and firebaseapp.com Hosting domains');
+console.log('[Firebase] LEVEL UP keeps Firebase Hosting default authDomain for popup auth');
