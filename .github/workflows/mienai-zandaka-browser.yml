@@ -41,6 +41,8 @@ jobs:
         env:
           MIENAI_ZANDAKA_URL: http://127.0.0.1:4173/apps/mienai-zandaka/?test=1
         run: node apps/mienai-zandaka/smoke-browser.mjs
+      - name: Enforce LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/mienai-zandaka
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
