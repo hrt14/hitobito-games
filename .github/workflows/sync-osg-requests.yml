@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
   id-token: write
 
 concurrency:
@@ -24,21 +23,53 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify private request queue
+        id: queue
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
+            echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo 'Private request queue is not configured. Leaving requests queued in Firestore; nothing is published to GitHub.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
+          if [ "$visibility" != 'true' ]; then
+            echo "Refusing to sync user text: $QUEUE_REPO is not private." >&2
+            exit 1
+          fi
+          echo 'configured=true' >> "$GITHUB_OUTPUT"
+          echo "Private request queue verified: $QUEUE_REPO" >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/checkout@v4
+        if: steps.queue.outputs.configured == 'true'
+
       - name: Authenticate to Google Cloud
+        if: steps.queue.outputs.configured == 'true'
         uses: google-github-actions/auth@v3
         with:
           project_id: hitobito-levelup
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
       - uses: actions/setup-node@v4
+        if: steps.queue.outputs.configured == 'true'
         with:
           node-version: 22
-      - run: npm install --prefix functions
-      - name: Sync queued OneShotGames quests to GitHub Issues
+
+      - name: Install function dependencies
+        if: steps.queue.outputs.configured == 'true'
+        run: npm install --prefix functions
+
+      - name: Sync queued OneShotGames quests to private GitHub Issues
+        if: steps.queue.outputs.configured == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
         run: node functions/sync-osg-requests-to-github.mjs
 
-# Keep this workflow on main so queued creator requests can be retried immediately via workflow_dispatch or a safe workflow-file push.
+# Privacy rule: raw creator prompts must never be written to the public code repository.
+# If the dedicated private queue is missing or inaccessible, requests remain queued in Firestore.
