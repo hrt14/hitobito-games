@@ -15,6 +15,7 @@ const copies = {
   'life-rpg-status': { title: '人生RPGステータス — 42問で自分の「取扱説明書」をつくる', obi: '6軸に加え、回復・判断・実行スタイルと前回からの変化まで見える化する。' },
   '100nin-rank': { title: '100人いたら何位？ — 12問で行動特性を推定順位にする', obi: '決断力・行動速度・メンタル耐久などを100人中の推定順位で可視化。実測統計ではなく回答パターンから算出。' },
   'thick-self': { title: '分厚い自分をつくる — 揺さぶられても戻れる7つの反応を3分で反復する', obi: '余白・受容・距離・曖昧さ・奥行き・軽やかさ・復元。知識ではなく毎日の操作で、反応の型を身につける。' },
+  'mienai-zandaka': { title: '見えない残高 — 親切・感謝・手助けを10秒で積み上げる', obi: '成果やお金では見えない「渡したもの」を記録して、日常に積み上がっている価値へ気づく。' },
 };
 const escapeHtml = (value) => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) throw new Error('LEVEL UP home/catalog missing');
@@ -36,4 +37,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 }
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] app-specific book titles and obi injected after shared book conversion, including thick-self.');
+console.log('[Firebase] app-specific book titles and obi injected after shared book conversion, including thick-self and mienai-zandaka.');
