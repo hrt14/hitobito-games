@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" role="img" aria-labelledby="title desc">
+  <title id="title">OneShotGames</title>
+  <desc id="desc">Game controller, target and play icon with the OneShotGames wordmark.</desc>
+  <defs>
+    <linearGradient id="motion" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b7cff"/><stop offset="1" stop-color="#6f2cff"/></linearGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff5a1f"/><stop offset="1" stop-color="#ffbf00"/></linearGradient>
+    <linearGradient id="games" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#0b7cff"/><stop offset=".52" stop-color="#6f2cff"/><stop offset="1" stop-color="#e326b5"/></linearGradient>
+  </defs>
+  <g transform="translate(4 18)">
+    <circle cx="12" cy="66" r="6" fill="#3769ff"/><rect x="28" y="50" width="56" height="11" rx="6" fill="url(#motion)"/><rect x="42" y="72" width="48" height="11" rx="6" fill="url(#motion)"/><rect x="64" y="28" width="34" height="11" rx="6" fill="#0b7cff"/>
+    <path d="M91 36c20-19 47-23 73-23h46c26 0 53 4 73 23 19 18 31 48 26 72-3 17-14 28-30 28-17 0-28-9-42-28l-8-11h-84l-8 11c-14 19-25 28-42 28-16 0-27-11-30-28-5-24 7-54 26-72Z" fill="#07133b"/>
+    <circle cx="160" cy="73" r="37" fill="none" stroke="#fff" stroke-width="8"/><path d="M160 31v13M160 102v13M118 73h13M189 73h13" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+    <path d="M151 54 177 73 151 92Z" fill="url(#play)"/>
+    <circle cx="244" cy="58" r="7" fill="#0b7cff"/><circle cx="266" cy="74" r="7" fill="#15d6c5"/><circle cx="244" cy="90" r="7" fill="#ff5a1f"/><circle cx="266" cy="106" r="7" fill="#8f2cff"/>
+    <path d="M240 5l4 13 13 4-13 4-4 13-4-13-13-4 13-4Z" fill="#ff9a00"/>
+  </g>
+  <text x="330" y="88" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="67" font-weight="850" letter-spacing="-3.5" fill="#07133b">OneShot</text>
+  <text x="598" y="88" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="67" font-weight="850" letter-spacing="-3.5" fill="url(#games)">Games</text>
+  <text x="595" y="122" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700" letter-spacing="2.4" fill="#71809a">osg.hitobito.jp</text>
+</svg>

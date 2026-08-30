@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="思いついたゲームを一発で制作依頼。遊んで、直して、シェアするユーザー生成ゲームサイト。">
+  <title>OneShotGames — 思いついたら、ゲームになる。</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="OneShotGames home"><img src="/logo.svg" alt="OneShotGames"></a>
+    <nav class="header-actions">
+      <button id="myQuestsBtn" class="ghost-btn" type="button">MY QUESTS</button>
+      <button id="authBtn" class="auth-btn" type="button">Googleでログイン</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">CREATE → PLAY → SHARE</div>
+        <h1>思いついたら、<br><span>ゲームになる。</span></h1>
+        <p>コードもゲームエンジンもいらない。作りたいゲームを一発で依頼して、完成したらそのまま遊んでシェア。</p>
+      </div>
+
+      <div class="creator-card" id="creatorCard">
+        <div class="creator-head">
+          <div>
+            <div class="quest-label">NEW GAME QUEST</div>
+            <h2>どんなゲームを作る？</h2>
+          </div>
+          <div class="shot-badge">ONE SHOT</div>
+        </div>
+        <textarea id="gamePrompt" maxlength="600" placeholder="例：30秒以内に上司にバレずに居眠りするゲーム。見つかったら即ゲームオーバー。"></textarea>
+        <div class="prompt-foot">
+          <span id="promptCount">0 / 600</span>
+          <button id="submitQuestBtn" class="primary-btn" type="button">制作クエストを送る <span>→</span></button>
+        </div>
+        <div id="creatorMessage" class="creator-message" aria-live="polite"></div>
+      </div>
+
+      <div class="how-grid">
+        <div class="how-card"><strong>01</strong><span>一発で依頼</span><p>作りたいゲームを普通の言葉で書くだけ。</p></div>
+        <div class="how-card"><strong>02</strong><span>制作クエスト</span><p>受付 → 制作 → テスト → 公開まで状態が進む。</p></div>
+        <div class="how-card"><strong>03</strong><span>遊んで改善</span><p>完成後は同じゲームへ改善クエストを送れる。</p></div>
+        <div class="how-card"><strong>04</strong><span>すぐシェア</span><p>固定URLで友達に送れる。作者名も表示。</p></div>
+      </div>
+    </section>
+
+    <section class="gallery-section">
+      <div class="section-head">
+        <div><div class="eyebrow">PLAY NOW</div><h2>新着ゲーム</h2></div>
+        <div class="live-pill"><i></i> LIVE GAMES</div>
+      </div>
+      <div id="gamesGrid" class="games-grid"><div class="loading-card">ゲームを読み込み中…</div></div>
+    </section>
+  </main>
+
+  <aside id="questsPanel" class="panel" aria-hidden="true">
+    <div class="panel-backdrop" data-close-panel></div>
+    <div class="panel-sheet">
+      <div class="panel-head">
+        <div><div class="eyebrow">YOUR CREATOR LOG</div><h2>MY QUESTS</h2></div>
+        <button class="icon-btn" data-close-panel type="button" aria-label="閉じる">×</button>
+      </div>
+      <div id="profileBox"></div>
+      <div id="questsList" class="quests-list"></div>
+    </div>
+  </aside>
+
+  <div id="nicknameModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="quest-label">CREATOR NAME</div>
+      <h2>作者名を決める</h2>
+      <p>ゲームに表示するニックネームです。Googleアカウントの本名は自動公開しません。</p>
+      <input id="nicknameInput" maxlength="24" autocomplete="nickname" placeholder="例：hirata-games">
+      <div id="nicknameError" class="form-error"></div>
+      <button id="saveNicknameBtn" class="primary-btn wide" type="button">この名前で始める</button>
+    </div>
+  </div>
+
+  <footer><img src="/logo.svg" alt=""><p>OneShotGames · osg.hitobito.jp</p></footer>
+
+  <script src="/__/firebase/8.10.1/firebase-app.js"></script>
+  <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
+  <script src="/__/firebase/8.10.1/firebase-firestore.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+name: Deploy OneShotGames production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'oneshotgames/**'
+      - 'scripts/build-osg.mjs'
+      - 'firebase.osg.json'
+      - '.firebaserc'
+      - '.github/workflows/deploy-osg-production.yml'
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+concurrency:
+  group: osg-firebase-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ensure secondary Hosting site exists
+        run: |
+          set +e
+          npx --yes firebase-tools@latest hosting:sites:create hitobito-osg --project hitobito-levelup --non-interactive
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ]; then
+            echo "Site create returned $code. Continuing because the site may already exist; deploy will verify it."
+          fi
+      - name: Build OneShotGames
+        run: node scripts/build-osg.mjs
+      - name: Stamp production commit
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          fs.writeFileSync('.dist/osg/deploy-meta.json', JSON.stringify({
+            sha: process.env.GITHUB_SHA,
+            runId: process.env.GITHUB_RUN_ID,
+            deployedAt: new Date().toISOString()
+          }, null, 2) + '\n');
+          NODE
+      - name: Deploy OneShotGames to Firebase Hosting
+        run: npx --yes firebase-tools@latest deploy --only hosting:osg --project hitobito-levelup --config firebase.osg.json --non-interactive
+      - name: Verify production
+        run: |
+          set -euo pipefail
+          sleep 5
+          base=https://hitobito-osg.web.app
+          curl -fLsS --max-time 30 "$base/?sha=$GITHUB_SHA" -o /tmp/osg-home.html
+          grep -F 'OneShotGames' /tmp/osg-home.html >/dev/null
+          grep -F 'どんなゲームを作る？' /tmp/osg-home.html >/dev/null
+          curl -fLsS --max-time 30 "$base/g/first-shot/?sha=$GITHUB_SHA" -o /tmp/osg-first-shot.html
+          grep -F 'FIRST SHOT' /tmp/osg-first-shot.html >/dev/null
+          curl -fLsS --max-time 30 "$base/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-meta.json
+          node - "$GITHUB_SHA" <<'NODE'
+          const fs = require('fs');
+          const expected = process.argv[2];
+          const meta = JSON.parse(fs.readFileSync('/tmp/osg-meta.json', 'utf8'));
+          if (meta.sha !== expected) throw new Error(`OSG SHA mismatch: ${meta.sha} != ${expected}`);
+          console.log(`OneShotGames production verified: ${expected}`);
+          NODE

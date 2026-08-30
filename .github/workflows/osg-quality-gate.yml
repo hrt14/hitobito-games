@@ -1,0 +1,40 @@
+name: OneShotGames quality gate
+
+on:
+  pull_request:
+    paths:
+      - 'oneshotgames/**'
+      - 'scripts/build-osg.mjs'
+      - 'functions/*osg*'
+      - 'firebase.osg.json'
+      - '.firebaserc'
+      - '.github/workflows/*osg*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check browser scripts
+        run: |
+          node --check oneshotgames/site/app.js
+          node --check oneshotgames/site/osg-runtime.js
+          node --check functions/sync-osg-requests-to-github.mjs
+          node --check functions/complete-osg-request-from-issue.mjs
+      - name: Build OneShotGames bundle
+        run: node scripts/build-osg.mjs
+      - name: Verify required output
+        run: |
+          test -f .dist/osg/index.html
+          test -f .dist/osg/g/first-shot/index.html
+          test -f .dist/osg/games.json
+          grep -F 'OneShotGames' .dist/osg/index.html >/dev/null
+          grep -F 'data-osg-runtime' .dist/osg/g/first-shot/index.html >/dev/null
+          grep -F 'FIRST SHOT' .dist/osg/g/first-shot/index.html >/dev/null
