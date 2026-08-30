@@ -36,7 +36,7 @@ const injection = `
       textarea.insertAdjacentElement('afterend',note);
       const style=document.createElement('style');
       style.id='lu-fb-rights-note-style';
-      style.textContent='#lu-fb-rights-note{display:none;margin:10px 0 2px;padding:10px 11px;border:1px solid rgba(216,255,91,.22);border-radius:12px;background:rgba(216,255,91,.06);font-size:11px;line-height:1.55}#lu-fb-rights-note.on{display:block}#lu-fb-rights-note strong{display:block;margin-bottom:3px;color:#d8ff5b;font-size:11px}#lu-fb-rights-note span{display:block;color:#c4cbbf}';
+      style.textContent='#lu-fb-rights-note{display:none;margin:10px 0 2px;padding:10px 11px;border:1px solid rgba(216,255,91,.22);border-radius:12px;background:rgba(216,255,91,.06);font-size:12px;line-height:1.55}#lu-fb-rights-note.on{display:block}#lu-fb-rights-note strong{display:block;margin-bottom:3px;color:#d8ff5b;font-size:12px}#lu-fb-rights-note span{display:block;color:#c4cbbf}';
       document.head.appendChild(style);
     }
     const sync=()=>{const idea=types.querySelector('[data-type="idea"]');note.classList.toggle('on',Boolean(idea?.classList.contains('on')))};
