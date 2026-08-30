@@ -1,4 +1,5 @@
 import { GAME_META } from './playtest-catalog.mjs';
+import './register-time-energy-triage-meta.mjs';
 
 GAME_META['sound-clinic'] = [
   'horror',
