@@ -83,9 +83,9 @@ try {
   await page.keyboard.press('Escape');
   console.log('PASS reversible path: awareness selection can be cancelled/escaped without mutation');
 
-  const pageText = await page.locator('body').innerText();
-  assert(pageText.includes('残高が半分になる仕組みは、このアプリ独自の気づきルールです'), 'source/independence note must be present');
-  assert(pageText.includes('特定の人物・宗教・団体の公式アプリでもありません'), 'official-affiliation disclaimer must be present');
+  const provenanceText = (await page.locator('details.info').textContent()) || '';
+  assert(provenanceText.includes('残高が半分になる仕組みは、このアプリ独自の気づきルールです'), 'source/independence note must be present');
+  assert(provenanceText.includes('特定の人物・宗教・団体の公式アプリでもありません'), 'official-affiliation disclaimer must be present');
   console.log('PASS provenance copy: app-original halving rule and non-official status are explicit');
 
   await page.screenshot({ path: path.join(artifactDir, 'mobile-final.png'), fullPage: true });
