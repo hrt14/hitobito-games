@@ -70,3 +70,4 @@ fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 console.log(`[Firebase] removed ${removedCount} Negotiator cards from LEVEL UP home discovery; visible=${visibleCount}.`);
 
 await import('../firebase-overrides/levelup-feedback/app-request.mjs');
+await import('./apply-levelup-queue-improvements.mjs');
