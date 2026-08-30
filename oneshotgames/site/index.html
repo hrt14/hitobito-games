@@ -8,6 +8,7 @@
   <title>OneShotGames — 思いついたら、ゲームになる。</title>
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/creator-v2.css">
 </head>
 <body>
   <header class="site-header">
@@ -23,7 +24,7 @@
       <div class="hero-copy">
         <div class="eyebrow">CREATE → PLAY → SHARE</div>
         <h1>思いついたら、<br><span>ゲームになる。</span></h1>
-        <p>コードもゲームエンジンもいらない。作りたいゲームを一発で依頼して、完成したらそのまま遊んでシェア。</p>
+        <p>コードもゲームエンジンもいらない。テーマを1つ書くだけでも、写真を1枚撮るだけでもOK。答えたい人だけ4つの質問でゲームを具体化できます。</p>
       </div>
 
       <div class="creator-card" id="creatorCard">
@@ -34,7 +35,46 @@
           </div>
           <div class="shot-badge">ONE SHOT</div>
         </div>
-        <textarea id="gamePrompt" maxlength="600" placeholder="例：30秒以内に上司にバレずに居眠りするゲーム。見つかったら即ゲームオーバー。"></textarea>
+
+        <div class="start-modes" aria-label="ゲーム制作の始め方">
+          <button class="start-mode is-active" type="button" data-focus-theme>✦ テーマから始める</button>
+          <button class="start-mode camera" id="photoStartBtn" type="button">📷 写真から始める</button>
+          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
+        </div>
+
+        <div id="photoPreview" class="photo-preview" hidden>
+          <img id="photoPreviewImg" alt="ゲーム制作に使う写真のプレビュー">
+          <div class="photo-preview-copy">
+            <b>この写真をゲームの起点にします</b>
+            <span>舞台・キャラクター・物・雰囲気など、使い方は制作側におまかせでもOK。</span>
+            <button id="removePhotoBtn" type="button">写真を外す</button>
+          </div>
+        </div>
+
+        <label class="main-theme-label" for="gamePrompt"><span>MAIN THEME</span> これだけでも送れます</label>
+        <textarea id="gamePrompt" maxlength="600" placeholder="例：30秒以内に上司にバレずに居眠りするゲーム。／この写真の場所を舞台に逃げゲーム。"></textarea>
+
+        <div class="guided-head">
+          <div><span>OPTIONAL 4</span><b>答えるとゲームが具体的になります</b></div>
+          <small>全部空欄＝おまかせ</small>
+        </div>
+        <div class="guided-grid">
+          <label class="guide-field"><i>01</i><span>ゲームの目的</span><input id="briefGoal" maxlength="80" placeholder="例：30秒生き残る／全部集める"></label>
+          <label class="guide-field"><i>02</i><span>操作・遊び方</span><input id="briefControl" maxlength="80" placeholder="例：タップ／スワイプ／選択"></label>
+          <label class="guide-field"><i>03</i><span>スコア・結果</span><input id="briefResult" maxlength="80" placeholder="例：点数／タイム／ランク／結末"></label>
+          <label class="guide-field"><i>04</i><span>舞台・雰囲気</span><input id="briefMood" maxlength="80" placeholder="例：夜の学校／ゆるい／怖い"></label>
+        </div>
+
+        <div class="photo-caution" id="photoCaution" hidden>
+          <b>写真はゲーム素材として公開される可能性があります。</b>
+          <span>顔・住所・個人情報・機密情報・他人の著作物が写った写真は送らないでください。</span>
+        </div>
+
+        <label class="rights-consent">
+          <input id="rightsConsent" type="checkbox">
+          <span>投稿内容の権利ルールに同意します。アイデア・ルール・概要だけを根拠に類似ゲームへの独占的な権利主張をせず、著作物に当たる表現を含む場合はゲーム制作・改善・公開・共有に必要な利用を許諾し、その利用について著作者人格権を行使しません。 <a href="/terms.html" target="_blank" rel="noopener">詳しく見る</a></span>
+        </label>
+
         <div class="prompt-foot">
           <span id="promptCount">0 / 600</span>
           <button id="submitQuestBtn" class="primary-btn" type="button">制作クエストを送る <span>→</span></button>
@@ -43,8 +83,8 @@
       </div>
 
       <div class="how-grid">
-        <div class="how-card"><strong>01</strong><span>一発で依頼</span><p>作りたいゲームを普通の言葉で書くだけ。</p></div>
-        <div class="how-card"><strong>02</strong><span>制作クエスト</span><p>受付 → 制作 → テスト → 公開まで状態が進む。</p></div>
+        <div class="how-card"><strong>01</strong><span>一発で依頼</span><p>テーマ1つ、または写真1枚だけでも制作開始。</p></div>
+        <div class="how-card"><strong>02</strong><span>必要なら4問</span><p>目的・操作・結果・雰囲気を足すと狙いが伝わる。</p></div>
         <div class="how-card"><strong>03</strong><span>遊んで改善</span><p>完成後は同じゲームへ改善クエストを送れる。</p></div>
         <div class="how-card"><strong>04</strong><span>すぐシェア</span><p>固定URLで友達に送れる。作者名も表示。</p></div>
       </div>
@@ -83,12 +123,14 @@
     </div>
   </div>
 
-  <footer><img src="/logo.svg" alt=""><p>OneShotGames · osg.hitobito.jp</p></footer>
+  <footer><img src="/logo.svg" alt=""><p>OneShotGames · osg.hitobito.jp · <a href="/terms.html">投稿・権利ルール</a></p></footer>
 
   <script src="/__/firebase/8.10.1/firebase-app.js"></script>
   <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
   <script src="/__/firebase/8.10.1/firebase-firestore.js"></script>
+  <script src="/__/firebase/8.10.1/firebase-storage.js"></script>
   <script src="/__/firebase/init.js"></script>
+  <script src="/creator-v2.js" defer></script>
   <script src="/app.js" defer></script>
 </body>
 </html>
