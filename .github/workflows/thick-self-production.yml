@@ -74,13 +74,21 @@ jobs:
           await page.click('#scienceClose');
           await page.click('#startBtn');
           await page.waitForSelector('.scenario-card h2');
-          const contrast=await page.$eval('.scenario-card',card=>({
+          const readable=await page.$eval('.scenario-card',card=>({
             bg:getComputedStyle(card).backgroundColor,
             text:getComputedStyle(card.querySelector('h2')).color,
-            instruction:getComputedStyle(document.querySelector('.instruction')).color
+            muted:getComputedStyle(document.querySelector('.instruction')).color,
+            bodySize:parseFloat(getComputedStyle(document.body).fontSize),
+            scenarioSize:parseFloat(getComputedStyle(card.querySelector('h2')).fontSize),
+            scenarioLine:parseFloat(getComputedStyle(card.querySelector('h2')).lineHeight),
+            instructionSize:parseFloat(getComputedStyle(document.querySelector('.instruction')).fontSize),
+            instructionLine:parseFloat(getComputedStyle(document.querySelector('.instruction')).lineHeight)
           }));
-          if(contrast.bg!=='rgb(255, 253, 248)'||contrast.text!=='rgb(23, 24, 23)'||contrast.instruction!=='rgb(95, 91, 84)') {
-            throw new Error(`production iPhone dark-mode contrast regression: ${JSON.stringify(contrast)}`);
+          if(readable.bg!=='rgb(255, 253, 248)'||readable.text!=='rgb(23, 24, 23)'||readable.muted!=='rgb(80, 77, 71)') {
+            throw new Error(`production iPhone dark-mode contrast regression: ${JSON.stringify(readable)}`);
+          }
+          if(readable.bodySize<16||readable.scenarioSize<28||readable.scenarioLine<38||readable.instructionSize<16||readable.instructionLine<28) {
+            throw new Error(`production iPhone typography too small/tight: ${JSON.stringify(readable)}`);
           }
           await page.waitForSelector('#tempt');
           await page.click('#tempt');
@@ -88,6 +96,8 @@ jobs:
           if(!early.includes('まだ戻れる')) throw new Error('production impulsive recovery feedback missing');
           await new Promise(r=>setTimeout(r,3300));
           const pauseChoices=await page.$$('.choice-btn');
+          const choiceType=await pauseChoices[0].evaluate(e=>({size:parseFloat(getComputedStyle(e).fontSize),line:parseFloat(getComputedStyle(e).lineHeight),height:e.getBoundingClientRect().height,color:getComputedStyle(e).color}));
+          if(choiceType.size<16||choiceType.line<26||choiceType.height<64||choiceType.color!=='rgb(23, 24, 23)') throw new Error(`production choice typography regression: ${JSON.stringify(choiceType)}`);
           await pauseChoices[1].click();
           await page.waitForSelector('.feedback .continue-btn');
           await page.click('.feedback .continue-btn');
@@ -148,7 +158,7 @@ jobs:
           await page.click('#exitBtn');
           await page.waitForFunction(()=>location.pathname==='/');
           if(failures.length) throw new Error(failures.join(' | '));
-          console.log(`THICK-SELF PRODUCTION PASS: ${url} returned 200; exact deployment, iPhone dark-mode high contrast, evidence, both top controls, impulsive recovery, seven drills, completion, real-world transfer, persistence/reload verified.`);
+          console.log(`THICK-SELF PRODUCTION PASS: ${url} returned 200; exact deployment, iPhone dark-mode contrast, readable mobile typography, evidence, both top controls, seven drills, completion, real-world transfer, persistence/reload verified.`);
           await browser.close();
           NODE
           node .thick-self-production-test.mjs
