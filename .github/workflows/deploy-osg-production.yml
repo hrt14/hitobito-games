@@ -76,13 +76,21 @@ jobs:
           fi
           curl -fLsS --max-time 30 "$base/terms.html?sha=$GITHUB_SHA" -o /tmp/osg-terms.html
           grep -F '投稿・権利ルール' /tmp/osg-terms.html >/dev/null
-          curl -fLsS --max-time 30 "$base/g/first-shot/?sha=$GITHUB_SHA" -o /tmp/osg-first-shot.html
-          grep -F 'FIRST SHOT' /tmp/osg-first-shot.html >/dev/null
           curl -fLsS --max-time 30 "$base/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-meta.json
           node - "$GITHUB_SHA" <<'NODE'
           const fs = require('fs');
           const expected = process.argv[2];
           const meta = JSON.parse(fs.readFileSync('/tmp/osg-meta.json', 'utf8'));
           if (meta.sha !== expected) throw new Error(`OSG SHA mismatch: ${meta.sha} != ${expected}`);
-          console.log(`OneShotGames production verified: ${expected}`);
+          const manifest = JSON.parse(fs.readFileSync('.dist/osg/games.json', 'utf8'));
+          if (!Array.isArray(manifest.games) || !manifest.games.length) throw new Error('No built games to verify');
+          fs.writeFileSync('/tmp/osg-game-ids.txt', manifest.games.map((game) => game.id).join('\n') + '\n');
+          console.log(`OneShotGames production commit verified: ${expected}`);
           NODE
+          while IFS= read -r game_id; do
+            [ -n "$game_id" ] || continue
+            out="/tmp/osg-game-${game_id}.html"
+            curl -fLsS --max-time 30 "$base/g/$game_id/?sha=$GITHUB_SHA" -o "$out"
+            grep -F 'data-osg-runtime' "$out" >/dev/null
+            echo "Verified production game: $base/g/$game_id/"
+          done < /tmp/osg-game-ids.txt
