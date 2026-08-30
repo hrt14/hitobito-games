@@ -1,0 +1,116 @@
+/*
+ * Full-screen readability lock.
+ * LEVEL UP host-level dark theme can be injected after the app loads, so the
+ * thick-self app owns its entire visual canvas explicitly and never relies on
+ * inherited theme variables for core reading surfaces.
+ */
+html,
+body,
+#app,
+.shell,
+.hero,
+.summary{
+  background:#f3efe7!important;
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+}
+
+body{
+  min-height:100svh!important;
+}
+
+.topbar{
+  background:#f3efe7!important;
+  color:#171817!important;
+  border-bottom-color:rgba(23,24,23,.18)!important;
+}
+.brand,
+.topbar .brand{
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+}
+
+/* Home screen: never allow dark-on-dark inherited host colors. */
+.hero .eyebrow,
+.hero h1,
+.hero h1 span,
+.hero .lead,
+.hero .lead strong,
+.hero .micro,
+.thickness-card .eyebrow,
+.thickness-card .micro,
+.thickness-number,
+.thickness-number small{
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+}
+.hero h1 span{
+  color:#24563b!important;
+  -webkit-text-fill-color:#24563b!important;
+}
+.hero .lead,
+.hero .micro,
+.thickness-card .micro,
+.thickness-number small{
+  color:#504d47!important;
+  -webkit-text-fill-color:#504d47!important;
+}
+.hero .eyebrow,
+.thickness-card .eyebrow{
+  color:#3f443f!important;
+  -webkit-text-fill-color:#3f443f!important;
+}
+
+/* Home primary CTA stays visually obvious on the light canvas. */
+.hero .primary,
+#startBtn{
+  background:#171817!important;
+  color:#fffdf8!important;
+  -webkit-text-fill-color:#fffdf8!important;
+  border:1px solid #171817!important;
+  box-shadow:none!important;
+}
+
+/* Prevent host dark-theme surfaces from leaking into practice chrome. */
+.session-top,
+.progress-wrap{
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+}
+.progress-track{
+  background:#d8d1c7!important;
+}
+.progress-track i{
+  background:#24563b!important;
+}
+.progress-text{
+  color:#504d47!important;
+  -webkit-text-fill-color:#504d47!important;
+}
+
+/* Mobile readability is more important than compactness. */
+@media(max-width:560px){
+  .hero{
+    padding-top:22px!important;
+    padding-bottom:18px!important;
+  }
+  .hero h1{
+    font-size:clamp(46px,13vw,62px)!important;
+    line-height:1.03!important;
+    letter-spacing:-.045em!important;
+  }
+  .hero .lead{
+    font-size:18px!important;
+    line-height:1.9!important;
+    font-weight:700!important;
+  }
+  .hero .micro{
+    font-size:14px!important;
+    line-height:1.7!important;
+  }
+  .hero .eyebrow{
+    font-size:12px!important;
+    line-height:1.4!important;
+    letter-spacing:.12em!important;
+  }
+}

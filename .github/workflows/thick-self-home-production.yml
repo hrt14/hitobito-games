@@ -1,0 +1,70 @@
+name: Verify thick-self home production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/thick-self/**'
+      - '.github/workflows/thick-self-home-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-home:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Wait for exact commit to reach Firebase production
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 72); do
+            if curl -fsS --max-time 20 "https://levelup.hitobito.jp/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/thick-home-deploy-meta.json; then
+              live_sha=$(node -e "const fs=require('fs');try{process.stdout.write(JSON.parse(fs.readFileSync('/tmp/thick-home-deploy-meta.json','utf8')).sha||'')}catch{}")
+              echo "attempt=$attempt expected=$GITHUB_SHA live=$live_sha"
+              [ "$live_sha" = "$GITHUB_SHA" ] && exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+      - name: Install browser dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Verify live iPhone dark-mode home contrast
+        run: |
+          cat > .thick-home-production.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          const browser=await puppeteer.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+          const page=await browser.newPage();
+          page.setDefaultTimeout(12000);
+          await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'dark'}]);
+          const response=await page.goto('https://levelup.hitobito.jp/apps/thick-self/',{waitUntil:'domcontentloaded',timeout:30000});
+          if(!response||response.status()!==200) throw new Error(`HTTP ${response?.status()}`);
+          await page.waitForSelector('#startBtn');
+          const v=await page.evaluate(()=>({
+            bodyBg:getComputedStyle(document.body).backgroundColor,
+            appBg:getComputedStyle(document.getElementById('app')).backgroundColor,
+            heroBg:getComputedStyle(document.querySelector('.hero')).backgroundColor,
+            title:getComputedStyle(document.querySelector('.hero h1')).color,
+            lead:getComputedStyle(document.querySelector('.hero .lead')).color,
+            micro:getComputedStyle(document.querySelector('.hero .micro')).color,
+            ctaBg:getComputedStyle(document.getElementById('startBtn')).backgroundColor,
+            ctaText:getComputedStyle(document.getElementById('startBtn')).color,
+            titleSize:parseFloat(getComputedStyle(document.querySelector('.hero h1')).fontSize),
+            leadSize:parseFloat(getComputedStyle(document.querySelector('.hero .lead')).fontSize)
+          }));
+          const light='rgb(243, 239, 231)',dark='rgb(23, 24, 23)',muted='rgb(80, 77, 71)',white='rgb(255, 253, 248)';
+          if(v.bodyBg!==light||v.appBg!==light||v.heroBg!==light) throw new Error(`production home canvas unreadable ${JSON.stringify(v)}`);
+          if(v.title!==dark||v.lead!==muted||v.micro!==muted) throw new Error(`production home text unreadable ${JSON.stringify(v)}`);
+          if(v.ctaBg!==dark||v.ctaText!==white) throw new Error(`production CTA unreadable ${JSON.stringify(v)}`);
+          if(v.titleSize<46||v.leadSize<18) throw new Error(`production home type too small ${JSON.stringify(v)}`);
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1)) throw new Error('production horizontal overflow');
+          console.log('THICK-SELF LIVE HOME PASS',JSON.stringify(v));
+          await browser.close();
+          NODE
+          node .thick-home-production.mjs
