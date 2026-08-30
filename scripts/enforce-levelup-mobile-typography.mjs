@@ -75,6 +75,43 @@ function injectReactionPatternReadability(html) {
   return /<\/head>/i.test(html) ? html.replace(/<\/head>/i, `${style}\n</head>`) : `${style}\n${html}`;
 }
 
+function injectMienaiZandakaReadability(html) {
+  if (!html.includes('levelup-mienai-zandaka-v1') || html.includes('id="mienai-zandaka-mobile-readable"')) return html;
+  const style = `
+<style id="mienai-zandaka-mobile-readable">
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  :root { --muted:#55594f; }
+  @media (max-width: 768px) {
+    .brand,.day-chip,.eyebrow { font-size:14px !important; }
+    .lead { font-size:17px !important; line-height:1.75 !important; color:#41453d !important; }
+    .field-head { font-size:14px !important; line-height:1.45 !important; color:rgba(255,255,255,.86) !important; }
+    .balance-label { font-size:15px !important; color:rgba(255,255,255,.92) !important; }
+    .balance-unit { font-size:14px !important; line-height:1.5 !important; color:rgba(255,255,255,.86) !important; }
+    .stat span { font-size:14px !important; line-height:1.35 !important; color:rgba(255,255,255,.84) !important; }
+    .secondary { font-size:16px !important; color:#373b34 !important; }
+    .hint { font-size:15px !important; line-height:1.65 !important; color:#4d5148 !important; }
+    .section h2 { font-size:18px !important; }
+    .section-note { font-size:14px !important; line-height:1.45 !important; color:#55594f !important; }
+    .history-empty { font-size:15px !important; }
+    .history-main b { font-size:16px !important; line-height:1.45 !important; }
+    .history-main span { font-size:14px !important; line-height:1.5 !important; color:#55594f !important; }
+    .history-delta { font-size:14px !important; }
+    details.info summary { font-size:16px !important; color:#3f433b !important; }
+    .info-body { font-size:15px !important; line-height:1.75 !important; color:#4b4f47 !important; }
+    .reset-btn { min-height:44px; font-size:15px !important; color:#55594f !important; }
+    .sheet-copy { font-size:16px !important; line-height:1.7 !important; color:#4c5047 !important; }
+    .choice { min-height:76px; padding:14px; }
+    .choice b { font-size:17px !important; line-height:1.4 !important; }
+    .choice span { font-size:14px !important; line-height:1.55 !important; color:#55594f !important; }
+    .sheet-close { font-size:16px !important; min-height:52px; color:#4c5047 !important; }
+    .confirm-panel p { font-size:15px !important; line-height:1.7 !important; color:#454940 !important; }
+    .confirm-actions button { min-height:52px; font-size:16px !important; }
+    .toast { font-size:15px !important; line-height:1.55 !important; }
+  }
+</style>`;
+  return /<\/head>/i.test(html) ? html.replace(/<\/head>/i, `${style}\n</head>`) : `${style}\n${html}`;
+}
+
 let filesChanged = 0;
 let declarationsRaised = 0;
 let viewportNormalized = 0;
@@ -88,6 +125,7 @@ for (const file of walk(firebaseRoot)) {
     if (next !== beforeViewport) viewportNormalized += 1;
     next = injectMobileBaseline(next);
     next = injectReactionPatternReadability(next);
+    next = injectMienaiZandakaReadability(next);
   }
   if (next !== original) {
     fs.writeFileSync(file, next);
