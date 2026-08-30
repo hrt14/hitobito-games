@@ -2,9 +2,9 @@ import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'hitobito-levelup';
-const repo = process.env.GITHUB_REPOSITORY || '';
+const repo = process.env.REQUEST_QUEUE_REPOSITORY || '';
 const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
-if (!repo.includes('/')) throw new Error('GITHUB_REPOSITORY is required');
+if (!repo.includes('/')) throw new Error('REQUEST_QUEUE_REPOSITORY is required');
 if (!token) throw new Error('GH_TOKEN is required');
 
 initializeApp({ credential: applicationDefault(), projectId });
@@ -23,6 +23,11 @@ async function github(apiPath, options = {}) {
   if (!response.ok) throw new Error(`GitHub ${options.method || 'GET'} ${apiPath} -> ${response.status}: ${(await response.text()).slice(0, 500)}`);
   if (response.status === 204) return null;
   return response.json();
+}
+
+async function assertPrivateQueue() {
+  const target = await github(`/repos/${owner}/${name}`);
+  if (target?.private !== true) throw new Error('Refusing to sync OneShotGames requests to a non-private repository');
 }
 
 async function ensureLabel(label, color, description) {
@@ -89,6 +94,7 @@ async function updateUserRequest(userRef, requestId, patch) {
   });
 }
 
+await assertPrivateQueue();
 await ensureLabel('osg-game-request', '6f2cff', 'OneShotGames new game request');
 await ensureLabel('osg-improvement', '0b7cff', 'OneShotGames improvement request');
 await ensureLabel('osg-rejected', 'd73a4a', 'OneShotGames request rejected for safety or feasibility');
@@ -102,7 +108,7 @@ for (const userDoc of users.docs) {
     const indexed = await indexRef.get();
     if (indexed.exists) {
       const data = indexed.data();
-      await updateUserRequest(userDoc.ref, request.id, { status: data.status || 'synced', githubIssueNumber: data.githubIssueNumber || null, githubIssueUrl: data.githubIssueUrl || null });
+      await updateUserRequest(userDoc.ref, request.id, { status: data.status || 'synced', githubIssueNumber: data.githubIssueNumber || null, githubIssueUrl: null });
       continue;
     }
     let issue = await findExistingIssue(request.id);
@@ -117,8 +123,8 @@ for (const userDoc of users.docs) {
       });
     }
     await indexRef.set({ userId: userDoc.id, requestId: request.id, gameId: request.gameId, type: request.type, status: 'synced', githubIssueNumber: issue.number, githubIssueUrl: issue.html_url, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
-    await updateUserRequest(userDoc.ref, request.id, { status: 'synced', githubIssueNumber: issue.number, githubIssueUrl: issue.html_url });
+    await updateUserRequest(userDoc.ref, request.id, { status: 'synced', githubIssueNumber: issue.number, githubIssueUrl: null });
     synced += 1;
   }
 }
-console.log(`[OSG] synced ${synced} queued request(s) to GitHub Issues`);
+console.log(`[OSG] synced ${synced} queued request(s) to private request queue`);
