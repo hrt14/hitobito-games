@@ -87,7 +87,6 @@
         <div class="quest-actions">
           ${live && req.resultUrl ? `<a class="mini-btn" href="${escapeHtml(req.resultUrl)}">PLAY</a>` : ''}
           ${live && !improve ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
-          ${req.githubIssueUrl ? `<a class="mini-btn" href="${escapeHtml(req.githubIssueUrl)}" target="_blank" rel="noopener">進行を見る</a>` : ''}
         </div>
       </article>`;
     }).join('');
