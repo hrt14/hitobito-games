@@ -48,3 +48,4 @@ if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class=
   throw new Error(`${slug} book card injection failed.`);
 }
 console.log('[Firebase] bedtime-best-case title + obi book card injected.');
+await import('./inject-time-energy-triage-book-card.mjs');
