@@ -10,12 +10,21 @@ For any file under `apps/`, also obey `apps/AGENTS.md`.
 
 Authoritative project docs:
 
+- `docs/PUBLIC_REPO_PRIVACY.md` — mandatory privacy rules for this public repository
 - `docs/PLAY_FUN_FIRST.md` — mandatory FUN-FIRST rules for PLAY games
 - `docs/LEVELUP_QUALITY_STANDARD.md` — mandatory product-quality rules for LEVEL UP apps
 - `docs/LEVELUP_APP_QUALITY_TEMPLATE.md` — SPEC / QUALITY report format for LEVEL UP apps
 - `GAME_QUALITY.md` — shared gameplay/UX quality rules
 - `HOSTING_POLICY.md` — production/deployment rules
 - `deploy-targets.json` — canonical hosting split
+
+## Mandatory privacy rule
+
+Before creating or editing any Issue, pull request, commit message, branch name, Actions workflow/log/status output, or checked-in file, read and obey `docs/PUBLIC_REPO_PRIVACY.md`.
+
+Never copy raw user free text, personal episodes, private conversations, family/school/health details, employer/client internal details, or other user-specific context into this public repository unless that exact text is intentionally public product content. Use opaque request IDs and non-sensitive metadata in public operational records.
+
+LEVEL UP feedback and OneShotGames creator requests containing free text must go only to the dedicated private request queue. If the private queue is unavailable or cannot be verified as private, fail closed and leave the request in Firestore; never fall back to a public Issue.
 
 ## Mandatory rule for PLAY work
 
