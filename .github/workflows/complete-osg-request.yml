@@ -1,0 +1,33 @@
+name: Complete OneShotGames request
+
+on:
+  issues:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: read
+  id-token: write
+
+jobs:
+  complete:
+    if: contains(github.event.issue.body || '', '<!-- osg-request-id:')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --prefix functions
+      - name: Mark request complete in Firebase
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node functions/complete-osg-request-from-issue.mjs
