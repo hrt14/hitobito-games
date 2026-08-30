@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-30T00:01:58.314Z",
+  "timezone": "Asia/Tokyo",
+  "current": {
+    "date": "20260829",
+    "available": true,
+    "metrics": {
+      "searches": 1,
+      "gameDurationSec": 0,
+      "lastUpdatedAt": "2026-08-29T14:59:58.867Z",
+      "gameSessions": 189,
+      "homeSessions": 16,
+      "completedGames": 0,
+      "sessions": 205,
+      "visitorUu": 132,
+      "loginUu": 1,
+      "date": "20260829",
+      "leftGames": 0,
+      "completionRate": 0,
+      "avgGameDurationSec": 0
+    },
+    "games": [
+      {
+        "slug": "nenshu-shindan",
+        "sessions": 46,
+        "left": 0,
+        "title": "30問でわかる市場年収診断",
+        "completed": 0,
+        "lastUpdatedAt": "2026-08-29T14:54:26.206Z",
+        "date": "20260829",
+        "durationSec": 0,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "left": 0,
+        "completed": 0,
+        "title": "24時間、寝かせる。",
+        "slug": "impulse-cooldown",
+        "sessions": 34,
+        "lastUpdatedAt": "2026-08-29T14:54:34.076Z",
+        "date": "20260829",
+        "durationSec": 0,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "slug": "negotiator-sleep",
+        "title": "寝る気ゼロのあなたを、寝かせる。",
+        "sessions": 25,
+        "lastUpdatedAt": "2026-08-29T14:54:14.462Z",
+        "left": 0,
+        "completed": 0,
+        "date": "20260829",
+        "durationSec": 0,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "slug": "negotiator-rest",
+        "durationSec": 0,
+        "left": 0,
+        "date": "20260829",
+        "title": "あなたを休ませます。",
+        "completed": 0,
+        "sessions": 14,
+        "lastUpdatedAt": "2026-08-29T14:55:28.544Z",
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "left": 0,
+        "lastUpdatedAt": "2026-08-29T14:59:20.865Z",
+        "title": "先延ばしをやめろ。",
+        "durationSec": 0,
+        "slug": "negotiator-procrastination",
+        "sessions": 13,
+        "completed": 0,
+        "date": "20260829",
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "durationSec": 0,
+        "left": 0,
+        "completed": 0,
+        "lastUpdatedAt": "2026-08-29T14:42:29.098Z",
+        "slug": "10-years-back",
+        "sessions": 3,
+        "title": "今日の分岐を1つだけ変える。",
+        "date": "20260829",
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "sessions": 3,
+        "completed": 0,
+        "slug": "iya-feeling-first-aid",
+        "lastUpdatedAt": "2026-08-29T09:33:20.554Z",
+        "left": 0,
+        "date": "20260829",
+        "title": "嫌な気持ち、いったん下げる",
+        "durationSec": 0,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "slug": "ato-nankai",
+        "title": "人生、あと何回？",
+        "left": 0,
+        "completed": 0,
+        "date": "20260829",
+        "sessions": 2,
+        "durationSec": 0,
+        "lastUpdatedAt": "2026-08-29T14:59:59Z",
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "completed": 0,
+        "durationSec": 0,
+        "date": "20260829",
+        "title": "十分やった",
+        "slug": "enough-done",
+        "lastUpdatedAt": "2026-08-29T14:43:14.605Z",
+        "sessions": 1,
+        "left": 0,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "left": 0,
+        "durationSec": 0,
+        "title": "今日はもう、ショート動画やめない？",
+        "sessions": 1,
+        "slug": "negotiator-stop-short-videos",
+        "lastUpdatedAt": "2026-08-29T14:51:55.022Z",
+        "date": "20260829",
+        "completed": 0,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      }
+    ],
+    "needs": [],
+    "blockedReason": null
+  },
+  "previous": {
+    "date": "20260828",
+    "available": true,
+    "metrics": {
+      "loginUu": 1,
+      "leftGames": 0,
+      "lastUpdatedAt": "2026-08-28T10:55:22.958Z",
+      "searches": 0,
+      "gameDurationSec": 0,
+      "visitorUu": 3,
+      "completedGames": 0,
+      "homeSessions": 6,
+      "sessions": 6,
+      "gameSessions": 0,
+      "date": "20260828",
+      "completionRate": null,
+      "avgGameDurationSec": null
+    },
+    "games": [],
+    "needs": [],
+    "blockedReason": null
+  },
+  "blockedReason": null,
+  "privacy": "Aggregates only. No UID, raw search term, profile field, or visitor ID."
+}
