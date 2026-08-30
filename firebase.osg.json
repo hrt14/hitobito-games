@@ -1,4 +1,7 @@
 {
+  "storage": {
+    "rules": "storage.osg.rules"
+  },
   "hosting": {
     "target": "osg",
     "public": ".dist/osg",
