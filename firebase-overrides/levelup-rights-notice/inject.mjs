@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(dir, '..', '..');
 const outDir = path.join(root, '.dist', 'firebase');
+const homePath = path.join(outDir, 'index.html');
 const MARKER = 'id="levelup-rights-notice-v1"';
+const HOME_LAYOUT_MARKER = 'id="levelup-home-header-cleanup-v1"';
 
 if (!fs.existsSync(outDir)) throw new Error('LEVEL UP Firebase bundle missing for rights notice injection.');
 
@@ -59,4 +61,96 @@ for (const filePath of walk(outDir)) {
 }
 
 if (!injected) throw new Error('LEVEL UP rights notice was not injected into any feedback-enabled page.');
-console.log(`[Firebase] LEVEL UP app-idea rights notice injected into ${injected} pages.`);
+
+const homeLayout = `
+<style id="levelup-home-header-cleanup-v1">
+  /* Keep the first screen calm: menu, brand and account only. */
+  body .top{
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    gap:10px!important;
+    min-height:58px!important;
+    padding:8px 0 14px 60px!important;
+  }
+  body .brand{
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    font-size:11px!important;
+    letter-spacing:.14em!important;
+  }
+  body .levelup-top-actions{
+    min-width:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:0!important;
+  }
+  body .levelup-top-actions>a[href*="games.hitobito.jp"]{display:none!important}
+  body #levelup-account-chip{
+    width:auto!important;
+    max-width:164px!important;
+    min-height:38px!important;
+    padding:4px 10px 4px 4px!important;
+  }
+  body #levelup-account-chip .account-name{max-width:112px!important}
+  body #levelup-nav-fixed{
+    top:max(10px,env(safe-area-inset-top))!important;
+    left:max(12px,env(safe-area-inset-left))!important;
+  }
+  body .lu-home-hero{padding-top:38px!important}
+  body .lu-home-eyebrow{margin-bottom:16px!important}
+  body .lu-home-hero .hero-copy{margin-top:24px!important}
+  body .lu-home-stats{margin-top:28px!important}
+  body .lu-home-note{margin-top:18px!important}
+
+  @media(max-width:650px){
+    body .shell{width:min(100% - 22px,1120px)!important;padding-top:8px!important}
+    body .top{
+      min-height:56px!important;
+      padding:6px 0 12px 56px!important;
+      gap:8px!important;
+    }
+    body .brand{font-size:10px!important;letter-spacing:.11em!important}
+    body #levelup-nav-fixed{top:max(8px,env(safe-area-inset-top))!important;left:max(8px,env(safe-area-inset-left))!important}
+    body #levelup-nav-toggle{width:44px!important;height:44px!important;border-radius:14px!important}
+    body #levelup-account-chip{max-width:104px!important;min-height:36px!important;padding-right:8px!important}
+    body #levelup-account-chip .account-name{max-width:60px!important}
+    body #levelup-account-chip .account-avatar,
+    body #levelup-account-chip .account-avatar-fallback{width:26px!important;height:26px!important;flex-basis:26px!important}
+
+    body .lu-home-hero{padding:30px 0 32px!important}
+    body .lu-home-eyebrow{display:none!important}
+    body .lu-home-hero h1{font-size:clamp(52px,15vw,72px)!important;line-height:.92!important}
+    body .lu-home-hero .hero-copy{margin-top:18px!important;font-size:14px!important;line-height:1.7!important}
+    body .lu-home-stats{gap:26px!important;margin-top:22px!important}
+    body .lu-home-stats strong{font-size:36px!important}
+    body .lu-home-stats span{font-size:9px!important}
+    body .lu-home-note{display:none!important}
+  }
+
+  @media(max-width:390px){
+    body .top{padding-left:54px!important}
+    body .brand{font-size:9px!important;letter-spacing:.08em!important}
+    body #levelup-account-chip{max-width:94px!important}
+    body #levelup-account-chip .account-name{max-width:50px!important}
+  }
+</style>`;
+
+if (!fs.existsSync(homePath)) throw new Error('LEVEL UP home missing for header cleanup.');
+let home = fs.readFileSync(homePath, 'utf8');
+if (!home.includes(HOME_LAYOUT_MARKER)) {
+  if (!home.includes('</head>')) throw new Error('LEVEL UP home head missing for header cleanup.');
+  home = home.replace('</head>', `${homeLayout}\n</head>`);
+  fs.writeFileSync(homePath, home);
+}
+
+const finalHome = fs.readFileSync(homePath, 'utf8');
+for (const token of [HOME_LAYOUT_MARKER, '.levelup-top-actions>a[href*="games.hitobito.jp"]', '.lu-home-eyebrow{display:none', 'padding:6px 0 12px 56px']) {
+  if (!finalHome.includes(token)) throw new Error(`LEVEL UP home header cleanup missing ${token}`);
+}
+
+console.log(`[Firebase] LEVEL UP app-idea rights notice injected into ${injected} pages; home first-screen layout simplified.`);
