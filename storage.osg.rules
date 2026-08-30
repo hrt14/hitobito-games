@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /osg-inputs/{userId}/{fileName} {
+      allow read, create, update, delete: if request.auth != null
+        && request.auth.uid == userId
+        && fileName.matches('^[a-zA-Z0-9._-]{1,120}$')
+        && (
+          request.method == 'delete'
+          || (
+            request.resource != null
+            && request.resource.size < 8 * 1024 * 1024
+            && request.resource.contentType.matches('image/.*')
+          )
+        );
+    }
+  }
+}
