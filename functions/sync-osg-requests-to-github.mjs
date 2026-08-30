@@ -79,7 +79,7 @@ function issueBody(request) {
 }
 
 async function findExistingIssue(id) {
-  const q = encodeURIComponent(`repo:${repo} "osg-request-id:${id}" in:body`);
+  const q = encodeURIComponent(`repo:${repo} is:issue "osg-request-id:${id}" in:body`);
   const result = await github(`/search/issues?q=${q}&per_page=5`);
   return result.items?.[0] || null;
 }
