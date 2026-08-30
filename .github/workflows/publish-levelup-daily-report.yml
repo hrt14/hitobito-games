@@ -83,8 +83,21 @@ jobs:
           };
           fs.writeFileSync('/tmp/report-status.json', JSON.stringify(status, null, 2) + '\n');
           NODE
-          content=$(base64 -w0 /tmp/report-status.json)
-          sha=$(gh api "repos/${GITHUB_REPOSITORY}/contents/.levelup-daily-report-status.json" --jq '.sha' 2>/dev/null || true)
-          args=(--method PUT "repos/${GITHUB_REPOSITORY}/contents/.levelup-daily-report-status.json" -f message='Record LEVEL UP daily report publish' -f content="$content" -f branch=main)
-          if [ -n "$sha" ]; then args+=(-f sha="$sha"); fi
-          gh api "${args[@]}" >/dev/null
+
+          publish_file() {
+            local source="$1"
+            local target="$2"
+            local message="$3"
+            local content sha
+            content=$(base64 -w0 "$source")
+            sha=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${target}" --jq '.sha' 2>/dev/null || true)
+            args=(--method PUT "repos/${GITHUB_REPOSITORY}/contents/${target}" -f message="$message" -f content="$content" -f branch=main)
+            if [ -n "$sha" ]; then args+=(-f sha="$sha"); fi
+            gh api "${args[@]}" >/dev/null
+          }
+
+          # Mirror the same sanitized aggregate payload to GitHub so the morning
+          # report task can read it through the connected GitHub integration even
+          # when direct JSON fetching is unavailable in the chat runtime.
+          publish_file /tmp/report.json .levelup-daily-report-latest.json 'Mirror LEVEL UP daily report aggregates'
+          publish_file /tmp/report-status.json .levelup-daily-report-status.json 'Record LEVEL UP daily report publish'
