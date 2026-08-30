@@ -1,0 +1,188 @@
+/*
+ * Readability lock for iPhone/Safari and host-level theme injection.
+ * The app intentionally keeps a single high-contrast light content palette
+ * so system dark mode cannot turn text light while cards remain light.
+ */
+:root{
+  color-scheme:light;
+  --bg:#f3efe7;
+  --panel:#fffdf8;
+  --panel2:#e7e1d7;
+  --ink:#171817;
+  --muted:#5f5b54;
+  --line:rgba(23,24,23,.22);
+  --accent:#24563b;
+  --accent2:#dce9dc;
+  --danger:#8b342c;
+  --good:#245f3b;
+}
+
+html,body{
+  color:var(--ink)!important;
+  -webkit-text-fill-color:currentColor;
+}
+
+/* Surfaces: explicit values prevent mixed dark/light host themes. */
+.scenario-card,
+.drill,
+.thickness-card,
+.daily-return,
+.skill-result,
+.field-card,
+.science-dialog,
+.dialog-head,
+.science-item,
+.reward-pop{
+  background:#fffdf8!important;
+  color:#171817!important;
+}
+
+/* Anything the user must read gets a hard, dark text color. */
+.scenario-card h2,
+.scenario-context,
+.instruction,
+.instruction strong,
+.choice-btn,
+.unknown-btn,
+.depth-card,
+.recovery-step,
+.sort-row,
+.sort-row p,
+.sort-controls button,
+.accept-actions button,
+.mini-choices button,
+.grip-readout,
+.feedback-title,
+.ifthen,
+.skill-result b,
+.field-card h2,
+.science-item b,
+.dialog-head h2,
+.thickness-number,
+.hero h1,
+.lead strong{
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+}
+
+/* Secondary copy is still clearly readable. */
+.instruction,
+.scenario-card p,
+.lead,
+.micro,
+.progress-text,
+.scenario-context,
+.grip-labels,
+.grip-hint,
+.feedback p,
+.reward-pop span,
+.summary-hero p,
+.summary-hero .big small,
+.skill-result span,
+.field-card p,
+.dialog-note,
+.science-item span,
+.layer-labels span,
+.daily-return p{
+  color:#5f5b54!important;
+  -webkit-text-fill-color:#5f5b54!important;
+}
+
+/* Primary actions have guaranteed contrast. */
+.primary,
+.continue-btn,
+.sort-controls button.active{
+  background:#171817!important;
+  color:#fffdf8!important;
+  -webkit-text-fill-color:#fffdf8!important;
+  border-color:#171817!important;
+}
+
+/* Normal choices: no pale-on-pale text. */
+.secondary,
+.choice-btn,
+.unknown-btn,
+.depth-card,
+.recovery-step,
+.sort-row,
+.accept-actions button,
+.mini-choices button,
+.sort-controls button{
+  background:#fffdf8!important;
+  border-color:rgba(23,24,23,.24)!important;
+}
+
+.skill-pill{
+  background:#dce9dc!important;
+  color:#24563b!important;
+  -webkit-text-fill-color:#24563b!important;
+  border:1px solid rgba(36,86,59,.18);
+}
+
+.ghost-btn,.close-btn{
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+  border-color:rgba(23,24,23,.30)!important;
+  background:rgba(255,253,248,.88)!important;
+}
+
+.tempt-btn{
+  color:#8b342c!important;
+  -webkit-text-fill-color:#8b342c!important;
+  background:#fffaf6!important;
+  border-color:rgba(139,52,44,.38)!important;
+}
+
+/* Safari normally reduces disabled button opacity; keep the state readable. */
+button:disabled,
+.tempt-btn[disabled]{
+  opacity:1!important;
+  color:#746f67!important;
+  -webkit-text-fill-color:#746f67!important;
+  background:#eee9df!important;
+  border-color:#c9c2b7!important;
+}
+
+.choice-btn.correct,
+.unknown-btn.marked,
+.depth-card.kept,
+.emotion-chip.placed{
+  color:#173f2a!important;
+  -webkit-text-fill-color:#173f2a!important;
+  background:#dce9dc!important;
+  border-color:#24563b!important;
+}
+
+.choice-btn.wrong,
+.feedback.bad{
+  color:#6e2923!important;
+  -webkit-text-fill-color:#6e2923!important;
+  background:#f6e7e3!important;
+  border-color:#8b342c!important;
+}
+
+.pause-orb{
+  background:#f7f2e9!important;
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+}
+
+.feedback{
+  color:#171817!important;
+  -webkit-text-fill-color:#171817!important;
+  background:#e4eee4!important;
+}
+.feedback .theory,
+.science-item a{
+  color:#24563b!important;
+  -webkit-text-fill-color:#24563b!important;
+}
+
+/* Keep both app controls clear of the production hamburger hit area. */
+.top-actions{margin-right:96px!important}
+
+@media(max-width:560px){
+  .top-actions{margin-right:88px!important;gap:6px}
+  .ghost-btn{padding-left:9px!important;padding-right:9px!important;font-size:11px!important}
+  .scenario-card h2{font-size:clamp(26px,7vw,36px)!important;line-height:1.28!important;letter-spacing:-.035em!important}
+}
