@@ -1,0 +1,40 @@
+name: Verify LEVEL UP target routes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/verify-levelup-target-routes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production routes and markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          verify() {
+            local url="$1"
+            local marker="$2"
+            local out="$3"
+            for attempt in $(seq 1 12); do
+              if curl -fLsS --max-time 30 "$url?verify=$GITHUB_SHA-$attempt" -o "$out" && grep -F "$marker" "$out" >/dev/null; then
+                echo "VERIFIED $url marker=$marker"
+                return 0
+              fi
+              sleep 5
+            done
+            echo "FAILED $url marker=$marker"
+            return 1
+          }
+          verify 'https://levelup.hitobito.jp/apps/thick-self/' 'thick-self-layout-refresh-v1' /tmp/thick-self.html
+          verify 'https://levelup.hitobito.jp/apps/bedtime-best-case/' 'guidedDreamBtn' /tmp/bedtime-best-case.html
+          verify 'https://levelup.hitobito.jp/apps/time-energy-triage/' 'TIME × ENERGY' /tmp/time-energy-triage.html
+          grep -F '余力で' /tmp/time-energy-triage.html >/dev/null
+          echo 'ALL TARGET LEVEL UP ROUTES VERIFIED'
