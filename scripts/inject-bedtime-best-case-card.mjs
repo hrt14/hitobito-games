@@ -55,3 +55,4 @@ for (const value of Object.values(copy)) {
   if (!home.includes(escapeHtml(value))) throw new Error('bedtime-best-case card copy verification failed');
 }
 console.log('[Firebase] bedtime-best-case app-specific card copy injected and verified.');
+await import('./inject-time-energy-triage-card.mjs');
