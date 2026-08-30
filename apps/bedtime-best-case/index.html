@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#090b0f" />
+  <meta name="description" content="寝る前3分で、全部うまくいった未来を3つの具体的なシーンに編集。目を閉じてから何をイメージするか迷わないためのLEVEL UPアプリ。" />
+  <title>寝る前3分 全部うまくいくイメトレ — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る">← <span>LEVEL UP</span></a>
+      <span class="night-label">BEFORE SLEEP · 3 CUTS</span>
+    </header>
+
+    <section class="screen active" id="startScreen">
+      <p class="eyebrow">TONIGHT'S MENTAL MOVIE</p>
+      <h1>寝る前3分<br><span>全部うまくいくイメトレ</span></h1>
+      <p class="lead">目を閉じてから迷わない。<br><strong>今夜見る3シーンを、先に作る。</strong></p>
+
+      <div class="saved-card" id="savedCard" hidden>
+        <div>
+          <small>LAST MOVIE</small>
+          <strong id="savedTheme">昨夜の3シーン</strong>
+          <p id="savedPreview"></p>
+        </div>
+        <div class="saved-actions">
+          <button class="primary compact" id="replayBtn" type="button">3シーンをもう一度 <b>▶</b></button>
+          <button class="secondary compact" id="sharpenSavedBtn" type="button">もっと鮮明にする</button>
+        </div>
+      </div>
+
+      <section class="theme-panel" aria-labelledby="themeQuestion">
+        <div class="section-head">
+          <span>01</span>
+          <h2 id="themeQuestion">今夜、何をうまくいかせる？</h2>
+        </div>
+        <div class="theme-grid" id="themeGrid">
+          <button type="button" class="theme-choice" data-theme="明日"><span>明日</span><small>朝から夜まで</small></button>
+          <button type="button" class="theme-choice" data-theme="仕事"><span>仕事</span><small>会議・商談・成果</small></button>
+          <button type="button" class="theme-choice" data-theme="人間関係"><span>人間関係</span><small>会話・関係・再会</small></button>
+          <button type="button" class="theme-choice" data-theme="お金"><span>お金</span><small>収入・事業・余裕</small></button>
+          <button type="button" class="theme-choice" data-theme="やりたいこと"><span>やりたいこと</span><small>挑戦・完成・実現</small></button>
+          <button type="button" class="theme-choice" data-theme="人生全体"><span>人生全体</span><small>理想の一日・暮らし</small></button>
+        </div>
+        <label class="custom-wrap" for="customTheme">
+          <span>もっと具体的なら一言だけ</span>
+          <input id="customTheme" type="text" maxlength="46" autocomplete="off" placeholder="例：明日のプレゼン / 新しい仕事 / 家族との時間" />
+        </label>
+        <button class="primary" id="customStartBtn" type="button">この内容で作る <b>→</b></button>
+        <p class="validation" id="startValidation" role="status" aria-live="polite"></p>
+      </section>
+
+      <div class="promise-row" aria-label="このアプリの特徴">
+        <span>約3分</span><span>3カットだけ</span><span>端末内に保存</span>
+      </div>
+      <p class="tiny">未来の結果や睡眠改善を保証するものではありません。寝る前にイメージする内容を具体化・整理するためのツールです。</p>
+    </section>
+
+    <section class="screen" id="buildScreen">
+      <div class="progress-row">
+        <span id="cutCounter">CUT 1 / 3</span>
+        <div class="progress"><b id="progressBar"></b></div>
+        <span id="buildTheme">明日</span>
+      </div>
+
+      <div class="filmstrip" id="filmstrip" aria-label="今夜の3カット">
+        <button class="film-frame current" type="button" data-index="0" aria-label="カット1 始まり">
+          <small>1 · 始まり</small><span id="frame0">まだ空白</span>
+        </button>
+        <button class="film-frame" type="button" data-index="1" aria-label="カット2 最高の瞬間">
+          <small>2 · 最高の瞬間</small><span id="frame1">まだ空白</span>
+        </button>
+        <button class="film-frame" type="button" data-index="2" aria-label="カット3 安心の余韻">
+          <small>3 · 安心の余韻</small><span id="frame2">まだ空白</span>
+        </button>
+      </div>
+
+      <div class="cut-editor">
+        <p class="cut-kicker" id="cutKicker">CUT 1 · OPENING</p>
+        <h2 id="cutQuestion">全部うまくいく日の最初の1秒。<br>どこにいて、何が見える？</h2>
+        <p class="cut-help" id="cutHelp">説明ではなく、頭の中で1枚絵にできるくらい短く。</p>
+        <div class="suggestions" id="suggestions" aria-label="入力例"></div>
+        <label class="scene-input-wrap" for="sceneInput">
+          <span id="sceneInputLabel">映像を一言で</span>
+          <textarea id="sceneInput" maxlength="120" rows="3" placeholder="例：朝、カーテン越しの光。落ち着いて起きている。"></textarea>
+        </label>
+        <label class="quote-wrap" id="quoteWrap" for="quoteInput" hidden>
+          <span>聞こえる一言があるなら（任意）</span>
+          <input id="quoteInput" type="text" maxlength="60" autocomplete="off" placeholder="例：『それで進めましょう』" />
+        </label>
+        <p class="validation" id="buildValidation" role="status" aria-live="polite"></p>
+        <button class="primary" id="addCutBtn" type="button">カットに入れる <b>＋</b></button>
+        <button class="back" id="buildBackBtn" type="button">← ひとつ戻る</button>
+      </div>
+    </section>
+
+    <section class="screen" id="storyboardScreen">
+      <p class="eyebrow">YOUR 3-CUT MOVIE</p>
+      <h2>今夜見る未来、完成。</h2>
+      <p class="lead small">目を閉じたら、考え足さない。<br><strong>この3枚を順番に見るだけ。</strong></p>
+
+      <div class="storyboard" id="storyboard"></div>
+
+      <section class="sharpen-panel" id="sharpenPanel">
+        <div class="section-head">
+          <span>+</span><h3>もう1つだけ、鮮明にする？</h3>
+        </div>
+        <p>増やしすぎない。1つだけ選ぶ。</p>
+        <div class="detail-choices">
+          <button type="button" class="detail-choice" data-detail="visual">見えるもの</button>
+          <button type="button" class="detail-choice" data-detail="sound">聞こえる一言</button>
+          <button type="button" class="detail-choice" data-detail="body">体の感じ</button>
+        </div>
+        <div class="detail-editor" id="detailEditor" hidden>
+          <label for="detailInput"><span id="detailLabel">何が見える？</span></label>
+          <input id="detailInput" type="text" maxlength="80" autocomplete="off" />
+          <button class="secondary" id="saveDetailBtn" type="button">1つだけ足す</button>
+          <p class="validation" id="detailValidation" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <div class="story-actions">
+        <button class="primary" id="prepareBtn" type="button">目を閉じる準備 <b>→</b></button>
+        <button class="secondary" id="editCutsBtn" type="button">3カットを直す</button>
+      </div>
+    </section>
+
+    <section class="screen playback-screen" id="playbackScreen">
+      <div class="playback-top">
+        <button class="back icon-back" id="playbackBackBtn" type="button">← 戻る</button>
+        <span id="playbackProgress">1 / 3</span>
+      </div>
+      <div class="playback-stage" aria-live="polite">
+        <p class="playback-kicker" id="playbackKicker">CUT 1 · 始まり</p>
+        <strong id="playbackText"></strong>
+        <p id="playbackQuote"></p>
+        <div class="detail-line" id="playbackDetail" hidden></div>
+      </div>
+      <div class="dots" id="playbackDots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <button class="primary calm" id="playbackNextBtn" type="button">次のシーン <b>→</b></button>
+      <p class="tiny center">一度読んだら、頭の中で同じ場面を1〜2秒だけ見る。</p>
+    </section>
+
+    <section class="screen lightsout-screen" id="lightsoutScreen">
+      <p class="eyebrow">READY</p>
+      <div class="lightsout-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <h2>準備できました。</h2>
+      <p class="lightsout-copy">ここから先は、<br><strong>うまくいくところを見るだけです。</strong></p>
+      <ol class="memory-cuts" id="memoryCuts"></ol>
+      <button class="primary lightsout-btn" id="screenDownBtn" type="button">画面を伏せる</button>
+      <button class="back" id="lightsoutBackBtn" type="button">← 3シーンをもう一度見る</button>
+    </section>
+
+    <section class="screen blackout-screen" id="blackoutScreen" aria-live="polite">
+      <button class="blackout-return" id="blackoutReturnBtn" type="button" aria-label="画面を戻す">
+        <span>おやすみなさい。</span>
+        <small>画面を戻す</small>
+      </button>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
