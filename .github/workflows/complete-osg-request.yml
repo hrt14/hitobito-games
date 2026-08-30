@@ -26,8 +26,9 @@ jobs:
           set -euo pipefail
           if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
             echo 'configured=false' >> "$GITHUB_OUTPUT"
-            echo 'Private request queue is not configured; completion sync skipped.' >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            echo 'Private request queue configuration is missing; completed requests cannot be synchronized.' >> "$GITHUB_STEP_SUMMARY"
+            echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required for OneShotGames completion sync.'
+            exit 1
           fi
           visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
           if [ "$visibility" != 'true' ]; then
@@ -72,10 +73,11 @@ jobs:
           count=0
           while read -r issue; do
             [ -n "$issue" ] || continue
-            GITHUB_REPOSITORY="$QUEUE_REPO" ISSUE_NUMBER="$issue" \
+            REQUEST_QUEUE_REPOSITORY="$QUEUE_REPO" ISSUE_NUMBER="$issue" \
               node functions/complete-osg-request-from-issue.mjs
             count=$((count + 1))
           done < /tmp/osg-closed-issues.txt
           echo "Checked $count closed OSG request issue(s) from the private queue." >> "$GITHUB_STEP_SUMMARY"
 
 # Private queue issue closures are polled from this public code repository so the private queue itself needs no Actions workflow.
+# Missing private-queue configuration is a hard failure so completion cannot silently stall.
