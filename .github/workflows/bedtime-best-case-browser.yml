@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - 'apps/bedtime-best-case/**'
+      - 'scripts/inject-bedtime-best-case-card.mjs'
+      - 'scripts/inject-mienai-zandaka-card-copy.mjs'
       - '.github/workflows/bedtime-best-case-browser.yml'
   push:
     branches:
       - main
     paths:
       - 'apps/bedtime-best-case/**'
+      - 'scripts/inject-bedtime-best-case-card.mjs'
+      - 'scripts/inject-mienai-zandaka-card-copy.mjs'
       - '.github/workflows/bedtime-best-case-browser.yml'
   workflow_dispatch:
 
@@ -21,13 +25,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - name: Install browser harness
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Check JavaScript syntax
-        run: node --check apps/bedtime-best-case/app.js
+        run: |
+          node --check apps/bedtime-best-case/app.js
+          node --check scripts/inject-bedtime-best-case-card.mjs
+      - name: Build Firebase bundle
+        run: npm run build:firebase
       - name: Start static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bedtime-best-case-server.log 2>&1 &
