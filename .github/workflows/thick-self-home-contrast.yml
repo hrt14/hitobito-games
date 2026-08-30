@@ -2,7 +2,7 @@ name: thick-self home contrast
 
 on:
   push:
-    branches: [main, fix/thick-self-home-contrast-v2]
+    branches: [main, fix/thick-self-home-contrast-v2, fix/thick-self-theme-contrast-test]
     paths:
       - 'apps/thick-self/**'
       - '.github/workflows/thick-self-home-contrast.yml'
@@ -30,7 +30,7 @@ jobs:
         run: |
           python3 -m http.server 4173 --directory . >/tmp/thick-home-server.log 2>&1 &
           sleep 2
-      - name: Verify iPhone dark-mode home remains readable
+      - name: Verify both home themes remain readable
         run: |
           cat > .thick-home-test.mjs <<'NODE'
           import puppeteer from 'puppeteer-core';
@@ -40,29 +40,30 @@ jobs:
           await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'dark'}]);
           await page.goto('http://127.0.0.1:4173/apps/thick-self/',{waitUntil:'domcontentloaded'});
           await page.waitForSelector('#startBtn');
-          const v=await page.evaluate(()=>{
-            const rgb=e=>getComputedStyle(e).backgroundColor;
-            const color=e=>getComputedStyle(e).color;
-            return {
-              bodyBg:rgb(document.body),
-              appBg:rgb(document.getElementById('app')),
-              heroBg:rgb(document.querySelector('.hero')),
-              title:color(document.querySelector('.hero h1')),
-              lead:color(document.querySelector('.hero .lead')),
-              micro:color(document.querySelector('.hero .micro')),
-              ctaBg:rgb(document.getElementById('startBtn')),
-              ctaText:color(document.getElementById('startBtn')),
-              titleSize:parseFloat(getComputedStyle(document.querySelector('.hero h1')).fontSize),
-              leadSize:parseFloat(getComputedStyle(document.querySelector('.hero .lead')).fontSize)
-            };
-          });
-          const light='rgb(243, 239, 231)', dark='rgb(23, 24, 23)', muted='rgb(80, 77, 71)', white='rgb(255, 253, 248)';
-          if(v.bodyBg!==light||v.appBg!==light||v.heroBg!==light) throw new Error(`home canvas is not forced light: ${JSON.stringify(v)}`);
-          if(v.title!==dark||v.lead!==muted||v.micro!==muted) throw new Error(`home text contrast regression: ${JSON.stringify(v)}`);
-          if(v.ctaBg!==dark||v.ctaText!==white) throw new Error(`home CTA contrast regression: ${JSON.stringify(v)}`);
-          if(v.titleSize<46||v.leadSize<18) throw new Error(`home typography too small: ${JSON.stringify(v)}`);
-          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1)) throw new Error('mobile horizontal overflow');
-          console.log('THICK-SELF HOME CONTRAST PASS',JSON.stringify(v));
+          const read=()=>page.evaluate(()=>({
+            theme:document.documentElement.dataset.thickTheme,
+            bodyBg:getComputedStyle(document.body).backgroundColor,
+            appBg:getComputedStyle(document.getElementById('app')).backgroundColor,
+            heroBg:getComputedStyle(document.querySelector('.hero')).backgroundColor,
+            title:getComputedStyle(document.querySelector('.hero h1')).color,
+            lead:getComputedStyle(document.querySelector('.hero .lead')).color,
+            micro:getComputedStyle(document.querySelector('.hero .micro')).color,
+            ctaBg:getComputedStyle(document.getElementById('startBtn')).backgroundColor,
+            ctaText:getComputedStyle(document.getElementById('startBtn')).color,
+            titleSize:parseFloat(getComputedStyle(document.querySelector('.hero h1')).fontSize),
+            leadSize:parseFloat(getComputedStyle(document.querySelector('.hero .lead')).fontSize)
+          }));
+          const dark=await read();
+          if(dark.theme!=='dark'||dark.bodyBg!=='rgb(7, 17, 29)'||dark.appBg!=='rgb(7, 17, 29)'||dark.heroBg!=='rgb(7, 17, 29)')throw new Error(`dark canvas regression: ${JSON.stringify(dark)}`);
+          if(dark.title!=='rgb(247, 249, 252)'||dark.lead!=='rgb(190, 200, 212)'||dark.micro!=='rgb(190, 200, 212)')throw new Error(`dark text contrast regression: ${JSON.stringify(dark)}`);
+          if(dark.ctaBg!=='rgb(185, 239, 60)'||dark.ctaText!=='rgb(7, 17, 29)')throw new Error(`dark CTA contrast regression: ${JSON.stringify(dark)}`);
+          await page.click('#themeBtn');
+          const light=await read();
+          if(light.theme!=='light'||light.bodyBg!=='rgb(246, 243, 237)'||light.appBg!=='rgb(246, 243, 237)'||light.heroBg!=='rgb(246, 243, 237)')throw new Error(`light canvas regression: ${JSON.stringify(light)}`);
+          if(light.title!=='rgb(13, 26, 43)'||light.lead!=='rgb(89, 97, 107)'||light.micro!=='rgb(89, 97, 107)')throw new Error(`light text contrast regression: ${JSON.stringify(light)}`);
+          if(light.titleSize<46||light.leadSize<18)throw new Error(`home typography too small: ${JSON.stringify(light)}`);
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('mobile horizontal overflow');
+          console.log('THICK-SELF HOME THEME PASS',JSON.stringify({dark,light}));
           await browser.close();
           NODE
           node .thick-home-test.mjs
