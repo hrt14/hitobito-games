@@ -7,7 +7,7 @@ const root = path.resolve(dir, '..', '..');
 const outDir = path.join(root, '.dist', 'firebase');
 const homePath = path.join(outDir, 'index.html');
 const MARKER = 'id="levelup-rights-notice-v1"';
-const HOME_LAYOUT_MARKER = 'id="levelup-home-header-cleanup-v1"';
+const HOME_LAYOUT_MARKER = 'id="levelup-home-header-cleanup-v2"';
 
 if (!fs.existsSync(outDir)) throw new Error('LEVEL UP Firebase bundle missing for rights notice injection.');
 
@@ -63,8 +63,11 @@ for (const filePath of walk(outDir)) {
 if (!injected) throw new Error('LEVEL UP rights notice was not injected into any feedback-enabled page.');
 
 const homeLayout = `
-<style id="levelup-home-header-cleanup-v1">
-  /* Keep the first screen calm: menu, brand and account only. */
+<style id="levelup-home-header-cleanup-v2">
+  /* Keep the first screen calm and clear the iPhone status bar reliably. */
+  body{
+    --lu-status-clearance:max(54px,calc(env(safe-area-inset-top) + 20px));
+  }
   body .top{
     position:relative!important;
     display:grid!important;
@@ -88,6 +91,7 @@ const homeLayout = `
     align-items:center!important;
     justify-content:flex-end!important;
     gap:0!important;
+    padding-right:max(2px,env(safe-area-inset-right))!important;
   }
   body .levelup-top-actions>a[href*="games.hitobito.jp"]{display:none!important}
   body #levelup-account-chip{
@@ -108,16 +112,32 @@ const homeLayout = `
   body .lu-home-note{margin-top:18px!important}
 
   @media(max-width:650px){
-    body .shell{width:min(100% - 22px,1120px)!important;padding-top:8px!important}
+    body .shell{
+      width:min(100% - 22px,1120px)!important;
+      padding-top:var(--lu-status-clearance)!important;
+    }
     body .top{
       min-height:56px!important;
       padding:6px 0 12px 56px!important;
       gap:8px!important;
     }
-    body .brand{font-size:12px!important;letter-spacing:.07em!important;transform:scale(.92);transform-origin:left center}
-    body #levelup-nav-fixed{top:max(8px,env(safe-area-inset-top))!important;left:max(8px,env(safe-area-inset-left))!important}
+    body .brand{
+      font-size:12px!important;
+      letter-spacing:.07em!important;
+      transform:scale(.92);
+      transform-origin:left center;
+    }
+    body #levelup-nav-fixed{
+      top:calc(var(--lu-status-clearance) + 4px)!important;
+      left:max(8px,env(safe-area-inset-left))!important;
+    }
     body #levelup-nav-toggle{width:44px!important;height:44px!important;border-radius:14px!important}
-    body #levelup-account-chip{max-width:104px!important;min-height:36px!important;padding-right:8px!important}
+    body #levelup-account-chip{
+      max-width:104px!important;
+      min-height:36px!important;
+      padding-right:8px!important;
+      margin-right:max(2px,env(safe-area-inset-right))!important;
+    }
     body #levelup-account-chip .account-name{max-width:60px!important}
     body #levelup-account-chip .account-avatar,
     body #levelup-account-chip .account-avatar-fallback{width:26px!important;height:26px!important;flex-basis:26px!important}
@@ -133,10 +153,16 @@ const homeLayout = `
   }
 
   @media(max-width:390px){
+    body{--lu-status-clearance:max(56px,calc(env(safe-area-inset-top) + 22px))}
     body .top{padding-left:54px!important}
-    body .brand{font-size:12px!important;letter-spacing:.05em!important;transform:scale(.84);transform-origin:left center}
-    body #levelup-account-chip{max-width:94px!important}
-    body #levelup-account-chip .account-name{max-width:50px!important}
+    body .brand{
+      font-size:12px!important;
+      letter-spacing:.05em!important;
+      transform:scale(.84);
+      transform-origin:left center;
+    }
+    body #levelup-account-chip{max-width:88px!important;padding-right:7px!important}
+    body #levelup-account-chip .account-name{max-width:44px!important}
   }
 </style>`;
 
@@ -149,8 +175,8 @@ if (!home.includes(HOME_LAYOUT_MARKER)) {
 }
 
 const finalHome = fs.readFileSync(homePath, 'utf8');
-for (const token of [HOME_LAYOUT_MARKER, '.levelup-top-actions>a[href*="games.hitobito.jp"]', '.lu-home-eyebrow{display:none', 'padding:6px 0 12px 56px']) {
+for (const token of [HOME_LAYOUT_MARKER, '--lu-status-clearance:max(54px', '.levelup-top-actions>a[href*="games.hitobito.jp"]', 'padding-top:var(--lu-status-clearance)', 'top:calc(var(--lu-status-clearance) + 4px)']) {
   if (!finalHome.includes(token)) throw new Error(`LEVEL UP home header cleanup missing ${token}`);
 }
 
-console.log(`[Firebase] LEVEL UP app-idea rights notice injected into ${injected} pages; home first-screen layout simplified.`);
+console.log(`[Firebase] LEVEL UP app-idea rights notice injected into ${injected} pages; iPhone status-bar-safe home header applied.`);
