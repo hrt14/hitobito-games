@@ -3,7 +3,13 @@ name: Complete OneShotGames requests from private queue
 on:
   workflow_dispatch:
   schedule:
-    - cron: '37 * * * *'
+    - cron: '*/10 * * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/complete-osg-request-from-issue.mjs'
+      - '.github/workflows/complete-osg-request.yml'
 
 permissions:
   contents: read
@@ -80,4 +86,6 @@ jobs:
           echo "Checked $count closed OSG request issue(s) from the private queue." >> "$GITHUB_STEP_SUMMARY"
 
 # Private queue issue closures are polled from this public code repository so the private queue itself needs no Actions workflow.
+# Poll every 10 minutes so MY QUESTS gets PLAY/改善する soon after production is verified.
+# A push to this workflow or its completion script also runs the sync immediately after maintenance changes.
 # Missing private-queue configuration is a hard failure so completion cannot silently stall.
