@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "hitobito-levelup"
+  },
+  "targets": {
+    "hitobito-levelup": {
+      "hosting": {
+        "osg": [
+          "hitobito-osg"
+        ]
+      }
+    }
   }
 }
