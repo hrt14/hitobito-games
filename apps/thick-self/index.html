@@ -3,27 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#f3efe7" />
+  <meta name="theme-color" content="#f6f3ed" />
   <title>分厚い自分をつくる | LEVEL UP</title>
   <meta name="description" content="批判・嫉妬・失敗・成功・不確実さ・自己嫌悪に、すぐ反応せず、否定せず、囚われず、戻れる。8つの心理学的スキルを毎日反復するトレーニング。" />
   <meta property="og:title" content="分厚い自分をつくる | LEVEL UP" />
   <meta property="og:description" content="取り乱さない人ではなく、取り乱しても戻り、自分の美学へ帰れる人へ。8つの型を反復する。" />
   <meta property="og:type" content="website" />
+  <script>
+    (()=>{
+      let theme='light';
+      try{
+        const saved=localStorage.getItem('thick-self:theme');
+        theme=(saved==='light'||saved==='dark')?saved:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+      }catch{
+        theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+      }
+      document.documentElement.dataset.thickTheme=theme;
+      document.documentElement.style.colorScheme=theme;
+    })();
+  </script>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="readability.css" />
   <link rel="stylesheet" href="theme-lock.css" />
   <link rel="stylesheet" href="v2.css" />
   <style>
-    /* Firebase production injects a fixed LEVEL UP menu at the top-right. Keep this app's own controls outside that reserved hit area. */
+    /* Firebase production injects a fixed LEVEL UP menu at the top-right. */
     .top-actions{margin-right:64px}
     @media(max-width:560px){.top-actions{margin-right:58px}.ghost-btn{padding-left:10px;padding-right:10px}}
   </style>
+  <link rel="stylesheet" href="theme-v3.css" />
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/" aria-label="LEVEL UP ホーム">LEVEL UP</a>
     <div class="top-actions">
       <button id="scienceBtn" class="ghost-btn" type="button">科学的背景</button>
+      <button id="themeBtn" class="ghost-btn" type="button" aria-label="表示テーマを切り替える">☾</button>
       <button id="exitBtn" class="ghost-btn" type="button">終了</button>
     </div>
   </header>
@@ -37,5 +52,6 @@
     <div id="scienceList" class="science-list"></div>
   </dialog>
   <script src="app-v2.js"></script>
+  <script src="theme-v3.js"></script>
 </body>
 </html>
