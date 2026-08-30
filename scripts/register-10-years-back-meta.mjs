@@ -1,4 +1,5 @@
 import { GAME_META } from './playtest-catalog.mjs';
+import './register-thick-self-meta.mjs';
 
 GAME_META['10-years-back'] = [
   'levelup',
