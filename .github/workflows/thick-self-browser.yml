@@ -1,0 +1,76 @@
+name: thick-self browser
+
+on:
+  push:
+    branches: [main, feat/thick-self]
+    paths:
+      - 'apps/thick-self/**'
+      - '.github/workflows/thick-self-browser.yml'
+  pull_request:
+    paths:
+      - 'apps/thick-self/**'
+      - '.github/workflows/thick-self-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    timeout-minutes: 4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory . >/tmp/thick-self-server.log 2>&1 &
+          sleep 2
+      - name: Browser test
+        run: |
+          cat > .thick-self-browser-test.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          const browser=await puppeteer.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+          const page=await browser.newPage();page.setDefaultTimeout(10000);await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          const base='http://127.0.0.1:4173/apps/thick-self/';
+          await page.goto(base,{waitUntil:'domcontentloaded'});
+          const title=await page.$eval('h1',e=>e.textContent.replace(/\s+/g,' ').trim());if(!title.includes('分厚い自分'))throw new Error('first view title missing');
+          const start=await page.$('#startBtn');const box=await start.boundingBox();if(!box||box.height<48)throw new Error('start tap target too small');
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('mobile horizontal overflow');
+          await page.click('#scienceBtn');await page.waitForSelector('dialog[open]');const evidence=await page.$$('.science-item');if(evidence.length!==7)throw new Error('evidence map must contain 7 skills');await page.click('#scienceClose');
+          await page.click('#startBtn');
+          // 1 pause: prove impulsive path, then recover and choose a valid delayed action.
+          await page.waitForSelector('#tempt');await page.click('#tempt');const early=await page.$eval('#tempt',e=>e.textContent);if(!early.includes('まだ戻れる'))throw new Error('impulsive recovery feedback missing');await new Promise(r=>setTimeout(r,3300));await page.waitForSelector('.choice-btn');const pauseChoices=await page.$$('.choice-btn');await pauseChoices[1].click();await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          // 2 acceptance: correct path.
+          await page.waitForSelector('#place');await page.click('#place');await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          // 3 distance.
+          await page.waitForSelector('.sort-row');const rows=await page.$$('.sort-row');if(rows.length!==4)throw new Error('distance rows missing');
+          for(const row of rows){const text=await row.$eval('p',e=>e.textContent);const story=/嫌われ|才能|将来|呆れ|恥をかいた|気に障る|原因/.test(text)&&!/理由|原因かは不明/.test(text);const buttons=await row.$$('.sort-controls button');await buttons[story?1:0].click();}
+          await page.click('#judge');await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          // 4 uncertainty.
+          await page.waitForSelector('.unknown-btn');const unknowns=await page.$$('.unknown-btn');for(const b of unknowns){const t=await b.evaluate(e=>e.textContent);if(/つもり|評価|理由|怒って|事情|終わった|成果が出る|最終結論/.test(t))await b.click();}await page.click('#judge');await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          // 5 depth: evidence-aligned first and third statements.
+          await page.waitForSelector('.depth-card');const depth=await page.$$('.depth-card');await depth[0].click();await depth[2].click();await page.click('#judge');await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          // 6 lightness: desire remains, grip moves to the middle.
+          await page.waitForSelector('#grip');await page.$eval('#grip',e=>{e.value=50;e.dispatchEvent(new Event('input',{bubbles:true}))});await page.click('#judge');await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          // 7 recovery: return to the smallest ordinary action.
+          await page.waitForSelector('.recovery-step');const rec=await page.$$('.recovery-step');await rec[0].click();await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
+          await page.waitForSelector('.summary');const challenge=await page.$eval('.ifthen',e=>e.textContent);if(!challenge.includes('もし'))throw new Error('real-world if-then challenge missing');
+          const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('thick-self:v1')));if(!saved?.history?.some(x=>x.kind==='session'))throw new Error('session history not saved');
+          if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('mobile summary overflow');
+          // Revisit: history and all seven layers persist after reload.
+          await page.click('#homeBtn');await page.waitForSelector('#startBtn');await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('.thickness-number');
+          const layerCount=await page.$$('.layer');if(layerCount.length!==7)throw new Error('7 persistent skill layers missing');
+          // Exit path uses the LEVEL UP home route.
+          page.once('dialog',d=>d.accept());await page.click('#exitBtn');await page.waitForFunction(()=>location.pathname==='/');
+          // Desktop layout exists and remains overflow-free.
+          await page.goto(base,{waitUntil:'domcontentloaded'});await page.setViewport({width:1280,height:900});if(!(await page.$('.shell')))throw new Error('desktop shell missing');if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('desktop horizontal overflow');
+          console.log('THICK-SELF BROWSER PASS: first view, evidence, impulsive recovery, all 7 drills, completion, real-world transfer, reload/revisit, exit, mobile and desktop verified.');
+          await browser.close();
+          NODE
+          timeout 120s node .thick-self-browser-test.mjs
+          rm .thick-self-browser-test.mjs
