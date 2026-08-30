@@ -11,6 +11,11 @@
   <meta property="og:description" content="取り乱さない人ではなく、取り乱しても戻れる人へ。1日3分、反応の型を反復する。" />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Firebase production injects a fixed LEVEL UP menu at the top-right. Keep this app's own controls outside that reserved hit area. */
+    .top-actions{margin-right:64px}
+    @media(max-width:560px){.top-actions{margin-right:58px}.ghost-btn{padding-left:10px;padding-right:10px}}
+  </style>
 </head>
 <body>
   <header class="topbar">

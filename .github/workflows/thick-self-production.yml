@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'apps/thick-self/**'
       - '.github/workflows/thick-self-production.yml'
   workflow_dispatch:
 
@@ -12,13 +13,29 @@ permissions:
 
 jobs:
   production:
-    timeout-minutes: 4
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Wait for exact commit to reach Firebase production
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 72); do
+            if curl -fsS --max-time 20 "https://levelup.hitobito.jp/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/thick-self-deploy-meta.json; then
+              live_sha=$(node -e "const fs=require('fs');try{process.stdout.write(JSON.parse(fs.readFileSync('/tmp/thick-self-deploy-meta.json','utf8')).sha||'')}catch{}")
+              echo "attempt=$attempt expected=$GITHUB_SHA live=$live_sha"
+              if [ "$live_sha" = "$GITHUB_SHA" ]; then
+                echo "Exact production SHA is live."
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "Exact commit did not reach production within the verification window."
+          exit 1
       - name: Install browser test dependency
         run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
       - name: Verify live LEVEL UP app
@@ -43,6 +60,13 @@ jobs:
           if(!title.includes('分厚い自分をつくる')) throw new Error(`production title mismatch: ${title}`);
           await page.waitForSelector('#startBtn');
           if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1)) throw new Error('production mobile horizontal overflow');
+          const scienceHit=await page.evaluate(()=>{
+            const b=document.getElementById('scienceBtn');
+            const r=b.getBoundingClientRect();
+            const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+            return {tag:top?.tagName,id:top?.id,cls:top?.className};
+          });
+          if(scienceHit.id==='levelup-app-menu-root') throw new Error(`science button still blocked by production menu: ${JSON.stringify(scienceHit)}`);
           await page.click('#scienceBtn');
           await page.waitForSelector('dialog[open]');
           if((await page.$$('.science-item')).length!==7) throw new Error('production evidence map must contain 7 skills');
@@ -103,8 +127,18 @@ jobs:
           await page.waitForSelector('#startBtn');
           await page.reload({waitUntil:'domcontentloaded'});
           if((await page.$$('.layer')).length!==7) throw new Error('production persistent seven layers missing');
+          const exitHit=await page.evaluate(()=>{
+            const b=document.getElementById('exitBtn');
+            const r=b.getBoundingClientRect();
+            const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+            return {tag:top?.tagName,id:top?.id,cls:top?.className};
+          });
+          if(exitHit.id==='levelup-app-menu-root') throw new Error(`exit button still blocked by production menu: ${JSON.stringify(exitHit)}`);
+          page.once('dialog',async d=>{await d.accept()});
+          await page.click('#exitBtn');
+          await page.waitForFunction(()=>location.pathname==='/');
           if(failures.length) throw new Error(failures.join(' | '));
-          console.log(`THICK-SELF PRODUCTION PASS: ${url} returned 200; mobile first view, evidence, impulsive recovery, seven drills, completion, real-world transfer, persistence/reload verified.`);
+          console.log(`THICK-SELF PRODUCTION PASS: ${url} returned 200; exact deployment, mobile first view, evidence, both top controls, impulsive recovery, seven drills, completion, real-world transfer, persistence/reload verified.`);
           await browser.close();
           NODE
           node .thick-self-production-test.mjs
