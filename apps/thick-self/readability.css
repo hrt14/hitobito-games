@@ -9,7 +9,7 @@
   --panel:#fffdf8;
   --panel2:#e7e1d7;
   --ink:#171817;
-  --muted:#5f5b54;
+  --muted:#504d47;
   --line:rgba(23,24,23,.22);
   --accent:#24563b;
   --accent2:#dce9dc;
@@ -20,6 +20,12 @@
 html,body{
   color:var(--ink)!important;
   -webkit-text-fill-color:currentColor;
+}
+
+body{
+  font-size:16px!important;
+  line-height:1.65!important;
+  text-rendering:optimizeLegibility;
 }
 
 /* Surfaces: explicit values prevent mixed dark/light host themes. */
@@ -84,8 +90,8 @@ html,body{
 .science-item span,
 .layer-labels span,
 .daily-return p{
-  color:#5f5b54!important;
-  -webkit-text-fill-color:#5f5b54!important;
+  color:#504d47!important;
+  -webkit-text-fill-color:#504d47!important;
 }
 
 /* Primary actions have guaranteed contrast. */
@@ -137,10 +143,10 @@ html,body{
 button:disabled,
 .tempt-btn[disabled]{
   opacity:1!important;
-  color:#746f67!important;
-  -webkit-text-fill-color:#746f67!important;
+  color:#625e57!important;
+  -webkit-text-fill-color:#625e57!important;
   background:#eee9df!important;
-  border-color:#c9c2b7!important;
+  border-color:#bcb4a8!important;
 }
 
 .choice-btn.correct,
@@ -178,11 +184,89 @@ button:disabled,
   -webkit-text-fill-color:#24563b!important;
 }
 
+/*
+ * Typography lock: on a phone, anything that carries meaning should be readable
+ * without zooming. Japanese copy also avoids aggressive negative tracking.
+ */
+.scenario-card h2{
+  font-size:clamp(28px,7.2vw,38px)!important;
+  line-height:1.38!important;
+  letter-spacing:0!important;
+  font-weight:800!important;
+}
+.scenario-context{
+  font-size:13px!important;
+  line-height:1.5!important;
+  letter-spacing:.07em!important;
+}
+.instruction{
+  font-size:16px!important;
+  line-height:1.8!important;
+  font-weight:600!important;
+}
+.instruction strong{font-weight:850!important}
+.choice-btn,
+.unknown-btn,
+.depth-card,
+.recovery-step,
+.sort-row p{
+  font-size:16px!important;
+  line-height:1.65!important;
+  font-weight:750!important;
+}
+.choice-btn,
+.unknown-btn,
+.recovery-step{min-height:64px!important}
+.depth-card{min-height:74px!important}
+.sort-controls button,
+.accept-actions button,
+.mini-choices button{
+  font-size:14px!important;
+  line-height:1.45!important;
+  font-weight:800!important;
+  min-height:48px!important;
+}
+.progress-text,
+.skill-pill{
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+.lead{
+  font-size:17px!important;
+  line-height:1.85!important;
+}
+.micro{
+  font-size:13px!important;
+  line-height:1.7!important;
+}
+.daily-return h3{font-size:17px!important;line-height:1.5!important}
+.daily-return p{font-size:15px!important;line-height:1.75!important}
+.feedback-title{font-size:16px!important;line-height:1.5!important}
+.feedback p{font-size:15px!important;line-height:1.75!important}
+.feedback .theory{font-size:12px!important;line-height:1.5!important;letter-spacing:.04em!important}
+.grip-labels{font-size:12px!important}
+.grip-hint{font-size:14px!important;line-height:1.7!important}
+.reward-pop span{font-size:12px!important}
+.summary-hero p{font-size:15px!important;line-height:1.8!important}
+.skill-result b{font-size:15px!important;line-height:1.5!important}
+.skill-result span{font-size:12px!important;line-height:1.55!important}
+.field-card h2{font-size:20px!important;line-height:1.5!important}
+.field-card p{font-size:15px!important;line-height:1.8!important}
+.ifthen{font-size:16px!important;line-height:1.75!important}
+.dialog-head h2{font-size:21px!important;line-height:1.45!important;letter-spacing:0!important}
+.dialog-note{font-size:14px!important;line-height:1.8!important}
+.science-item b{font-size:15px!important;line-height:1.5!important}
+.science-item span{font-size:13px!important;line-height:1.6!important}
+.science-item a{font-size:13px!important;line-height:1.5!important}
+.layer-labels span{font-size:10px!important;line-height:1.3!important}
+
 /* Keep both app controls clear of the production hamburger hit area. */
 .top-actions{margin-right:96px!important}
 
 @media(max-width:560px){
   .top-actions{margin-right:88px!important;gap:6px}
-  .ghost-btn{padding-left:9px!important;padding-right:9px!important;font-size:11px!important}
-  .scenario-card h2{font-size:clamp(26px,7vw,36px)!important;line-height:1.28!important;letter-spacing:-.035em!important}
+  .ghost-btn{padding-left:9px!important;padding-right:9px!important;font-size:12px!important}
+  .shell{width:min(100% - 24px,760px)!important}
+  .scenario-card{padding:22px!important}
+  .drill{padding:18px!important}
 }
