@@ -36,6 +36,7 @@ jobs:
           import puppeteer from 'puppeteer-core';
           const browser=await puppeteer.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
           const page=await browser.newPage();page.setDefaultTimeout(10000);await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+          await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'dark'}]);
           const base='http://127.0.0.1:4173/apps/thick-self/';
           await page.goto(base,{waitUntil:'domcontentloaded'});
           const title=await page.$eval('h1',e=>e.textContent.replace(/\s+/g,' ').trim());if(!title.includes('分厚い自分'))throw new Error('first view title missing');
@@ -43,6 +44,10 @@ jobs:
           if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('mobile horizontal overflow');
           await page.click('#scienceBtn');await page.waitForSelector('dialog[open]');const evidence=await page.$$('.science-item');if(evidence.length!==7)throw new Error('evidence map must contain 7 skills');await page.click('#scienceClose');
           await page.click('#startBtn');
+          // Reproduce the reported iPhone/system-dark-mode case: light cards must still carry dark readable text.
+          const colors=await page.$eval('.scenario-card',card=>({bg:getComputedStyle(card).backgroundColor,text:getComputedStyle(card.querySelector('h2')).color}));
+          if(colors.bg!=='rgb(255, 253, 248)'||colors.text!=='rgb(23, 24, 23)') throw new Error(`dark-mode readability regression: ${JSON.stringify(colors)}`);
+          const instructionColor=await page.$eval('.instruction',e=>getComputedStyle(e).color);if(instructionColor!=='rgb(95, 91, 84)') throw new Error(`instruction contrast regression: ${instructionColor}`);
           // 1 pause: prove impulsive path, then recover and choose a valid delayed action.
           await page.waitForSelector('#tempt');await page.click('#tempt');const early=await page.$eval('#tempt',e=>e.textContent);if(!early.includes('まだ戻れる'))throw new Error('impulsive recovery feedback missing');await new Promise(r=>setTimeout(r,3300));await page.waitForSelector('.choice-btn');const pauseChoices=await page.$$('.choice-btn');await pauseChoices[1].click();await page.waitForSelector('.feedback');await page.click('.feedback .continue-btn');
           // 2 acceptance: correct path.
@@ -69,7 +74,7 @@ jobs:
           page.once('dialog',d=>d.accept());await page.click('#exitBtn');await page.waitForFunction(()=>location.pathname==='/');
           // Desktop layout exists and remains overflow-free.
           await page.goto(base,{waitUntil:'domcontentloaded'});await page.setViewport({width:1280,height:900});if(!(await page.$('.shell')))throw new Error('desktop shell missing');if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error('desktop horizontal overflow');
-          console.log('THICK-SELF BROWSER PASS: first view, evidence, impulsive recovery, all 7 drills, completion, real-world transfer, reload/revisit, exit, mobile and desktop verified.');
+          console.log('THICK-SELF BROWSER PASS: system-dark readability, first view, evidence, impulsive recovery, all 7 drills, completion, real-world transfer, reload/revisit, exit, mobile and desktop verified.');
           await browser.close();
           NODE
           timeout 120s node .thick-self-browser-test.mjs
