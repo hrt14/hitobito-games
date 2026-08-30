@@ -9,6 +9,7 @@ on:
       - 'oneshotgames/**'
       - 'scripts/build-osg.mjs'
       - 'firebase.osg.json'
+      - 'storage.osg.rules'
       - '.firebaserc'
       - '.github/workflows/deploy-osg-production.yml'
 
@@ -58,6 +59,13 @@ jobs:
             deployedAt: new Date().toISOString()
           }, null, 2) + '\n');
           NODE
+      - name: Deploy OneShotGames source-photo Storage rules
+        id: storage_rules
+        continue-on-error: true
+        run: npx --yes firebase-tools@latest deploy --only storage --project hitobito-levelup --config firebase.osg.json --non-interactive
+      - name: Warn when Cloud Storage needs setup
+        if: steps.storage_rules.outcome == 'failure'
+        run: echo "::warning::OneShotGames Hosting will deploy, but photo-start requires Firebase Cloud Storage to be enabled and on a Blaze plan."
       - name: Deploy OneShotGames to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting:osg --project hitobito-levelup --config firebase.osg.json --non-interactive
       - name: Verify production
@@ -68,6 +76,10 @@ jobs:
           curl -fLsS --max-time 30 "$base/?sha=$GITHUB_SHA" -o /tmp/osg-home.html
           grep -F 'OneShotGames' /tmp/osg-home.html >/dev/null
           grep -F 'どんなゲームを作る？' /tmp/osg-home.html >/dev/null
+          grep -F '写真から始める' /tmp/osg-home.html >/dev/null
+          grep -F 'OPTIONAL 4' /tmp/osg-home.html >/dev/null
+          curl -fLsS --max-time 30 "$base/terms.html?sha=$GITHUB_SHA" -o /tmp/osg-terms.html
+          grep -F '投稿・権利ルール' /tmp/osg-terms.html >/dev/null
           curl -fLsS --max-time 30 "$base/g/first-shot/?sha=$GITHUB_SHA" -o /tmp/osg-first-shot.html
           grep -F 'FIRST SHOT' /tmp/osg-first-shot.html >/dev/null
           curl -fLsS --max-time 30 "$base/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-meta.json
