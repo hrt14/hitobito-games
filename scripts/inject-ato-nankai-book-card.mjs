@@ -14,6 +14,7 @@ const copies = {
   'daily-special-ability': { title: 'あなたの日常特殊能力診断 — 普通の強みを12問で能力名にする', obi: '違和感早期検知・締切直前超加速など、日常の行動傾向を発動条件つきの能力名に変える。' },
   'life-rpg-status': { title: '人生RPGステータス — 42問で自分の「取扱説明書」をつくる', obi: '6軸に加え、回復・判断・実行スタイルと前回からの変化まで見える化する。' },
   '100nin-rank': { title: '100人いたら何位？ — 12問で行動特性を推定順位にする', obi: '決断力・行動速度・メンタル耐久などを100人中の推定順位で可視化。実測統計ではなく回答パターンから算出。' },
+  'thick-self': { title: '分厚い自分をつくる — 揺さぶられても戻れる7つの反応を3分で反復する', obi: '余白・受容・距離・曖昧さ・奥行き・軽やかさ・復元。知識ではなく毎日の操作で、反応の型を身につける。' },
 };
 const escapeHtml = (value) => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) throw new Error('LEVEL UP home/catalog missing');
@@ -35,4 +36,4 @@ for (const [slug, copy] of Object.entries(copies)) {
 }
 fs.writeFileSync(homePath, html);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
-console.log('[Firebase] ato-nankai + jinsei-kieteru + jinsei-fukusen + what-stops-you + praise-manual + daily-special-ability + life-rpg-status + 100nin-rank book titles and obi injected after shared book conversion.');
+console.log('[Firebase] app-specific book titles and obi injected after shared book conversion, including thick-self.');
