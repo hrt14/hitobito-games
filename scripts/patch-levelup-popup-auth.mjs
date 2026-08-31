@@ -52,32 +52,6 @@ if (!source.includes('const result = await state.auth.signInWithPopup(provider);
   source = source.replace(popupCall, popupHandled);
 }
 
-const initializeNeedle = `  async function initializeFirebase() {
-    if (!window.firebase?.auth || !window.firebase?.firestore || !firebase.apps?.length) {
-      state.message = 'ログイン機能を読み込めませんでした。端末への保存は続いています。';
-      state.messageKind = 'error';
-      render();
-      return;
-    }
-    try {
-      state.auth = firebase.auth();
-      state.db = firebase.firestore();
-      await state.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-      state.auth.onAuthStateChanged(async (user) => {
-        state.user = user;
-        state.history = [];
-        state.busy = false;
-        render();
-        if (user) await syncUserData();
-      });
-    } catch (error) {
-      console.warn('[LEVEL UP account] initialization failed', error);
-      state.message = friendlyError(error);
-      state.messageKind = 'error';
-      render();
-    }
-  }`;
-
 const initializeReplacement = `  async function initializeFirebase() {
     try {
       if (!window.firebase?.initializeApp) {
@@ -126,6 +100,7 @@ const initializeReplacement = `  async function initializeFirebase() {
       state.auth.onAuthStateChanged(async (user) => {
         state.user = user;
         state.history = [];
+        state.creationRequestCount = 0;
         state.busy = false;
         render();
         if (user && state.db) await syncUserData();
@@ -140,8 +115,12 @@ const initializeReplacement = `  async function initializeFirebase() {
   }`;
 
 if (!source.includes("sessionStorage.removeItem('levelup-auth-redirect-pending-v5')")) {
-  if (!source.includes(initializeNeedle)) throw new Error('Could not find LEVEL UP Firebase initialization block.');
-  source = source.replace(initializeNeedle, initializeReplacement);
+  // Replace the generated initializer by structure instead of a full literal
+  // block. My Data gains fields over time (for example creationRequestCount),
+  // and auth hardening must not break whenever that local state evolves.
+  const initializePattern = /  async function initializeFirebase\(\) \{[\s\S]*?\n  \}\n\n  savePendingPlay\(\);/;
+  if (!initializePattern.test(source)) throw new Error('Could not find LEVEL UP Firebase initialization block.');
+  source = source.replace(initializePattern, `${initializeReplacement}\n\n  savePendingPlay();`);
 }
 
 fs.writeFileSync(accountPath, source);
@@ -178,6 +157,7 @@ const required = [
   "fetch('/__/firebase/init.json'",
   "sessionStorage.removeItem('levelup-auth-redirect-pending-v5')",
   "state.message = state.db ? 'Googleログインが完了しました。'",
+  'state.creationRequestCount = 0;',
 ];
 for (const marker of required) {
   if (!source.includes(marker)) throw new Error(`LEVEL UP popup auth hardening missing: ${marker}`);
