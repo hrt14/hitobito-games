@@ -8,6 +8,8 @@ on:
       - 'scripts/patch-levelup-popup-auth.mjs'
       - 'scripts/fix-levelup-feedback-session-ids.mjs'
       - 'scripts/validate-levelup-maker-only-request-flow.mjs'
+      - 'functions/levelup-request-queue-core.mjs'
+      - 'functions/sync-feedback-to-github.mjs'
       - 'functions/sync-levelup-creation-requests-to-github.mjs'
       - 'functions/complete-levelup-creation-request-from-issue.mjs'
       - 'functions/run-private-feedback-sync.mjs'
@@ -36,6 +38,8 @@ jobs:
           node --check scripts/patch-levelup-popup-auth.mjs
           node --check scripts/fix-levelup-feedback-session-ids.mjs
           node --check scripts/validate-levelup-maker-only-request-flow.mjs
+          node --check functions/levelup-request-queue-core.mjs
+          node --check functions/sync-feedback-to-github.mjs
           node --check functions/sync-levelup-creation-requests-to-github.mjs
           node --check functions/complete-levelup-creation-request-from-issue.mjs
           node --check functions/run-private-feedback-sync.mjs
@@ -121,10 +125,23 @@ jobs:
           fi
           grep -F 'validate-levelup-maker-only-request-flow.mjs' scripts/fix-levelup-feedback-session-ids.mjs
 
+      - name: Prove current request policy cannot drift backwards
+        run: |
+          grep -F '制作前の重複チェックでは止めない' functions/levelup-request-queue-core.mjs
+          grep -F 'retired duplicate-blocking' functions/run-private-feedback-sync.mjs
+          grep -F '似た既存アプリがあっても制作前の重複チェックでは止めません' functions/run-private-feedback-sync.mjs
+          grep -F 'Retired duplicate-blocking policy reached the private queue boundary' functions/run-private-feedback-sync.mjs
+          grep -F -- '--state all --label levelup-app-request' .github/workflows/complete-levelup-creation-request.yml
+          if grep -F 'add-iam-policy-binding hitobito-levelup' .github/workflows/sync-levelup-feedback.yml; then
+            echo 'Stale self-IAM repair returned to LEVEL UP queue sync.' >&2
+            exit 1
+          fi
+
       - name: Prove private queue and completion markers
         run: |
           grep -F 'levelup-creation-request-id:' functions/sync-levelup-creation-requests-to-github.mjs
           grep -F 'levelup-app-slug:pending' functions/sync-levelup-creation-requests-to-github.mjs
           grep -F "status: 'published'" functions/complete-levelup-creation-request-from-issue.mjs || grep -F "'published'" functions/complete-levelup-creation-request-from-issue.mjs
+          grep -F 'myPageSynced: true' functions/complete-levelup-creation-request-from-issue.mjs
           grep -F 'sync-levelup-creation-requests-to-github.mjs' functions/run-private-feedback-sync.mjs
           grep -F 'inject-levelup-maker.mjs' package.json
