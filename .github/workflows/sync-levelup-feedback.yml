@@ -64,18 +64,6 @@ jobs:
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v3
-
-      - name: Ensure Firestore access for feedback sync
-        continue-on-error: true
-        run: |
-          gcloud projects add-iam-policy-binding hitobito-levelup \
-            --member='serviceAccount:github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com' \
-            --role='roles/datastore.user' \
-            --condition=None \
-            --quiet >/dev/null 2>&1 || true
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -108,5 +96,7 @@ jobs:
         run: |
           echo 'LEVEL UP and OneShotGames private request sync finished. Raw user text is allowed only in the dedicated private request repository.' >> "$GITHUB_STEP_SUMMARY"
 
+# Firestore access is a prerequisite configured in IAM. This workflow verifies
+# it by performing the real sync; it never attempts to grant itself permissions.
 # Privacy rule: free-text LEVEL UP feedback and app requests are allowed only in the dedicated private request repository.
 # The private repository is a lightweight queue only; Actions remain in this public code repository.
