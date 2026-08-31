@@ -7,7 +7,7 @@ const REGION = 'asia-northeast1';
 const QUEUE_REPO = 'hrt14/hitobito-request-queue';
 const API_BASE = 'https://api.github.com';
 const CLAIM_TTL_MS = 2 * 60 * 1000;
-const OSG_PRIVATE_REQUEST_TOKEN = defineSecret('OSG_PRIVATE_REQUEST_TOKEN');
+const PRIVATE_REQUEST_TOKEN = defineSecret('PRIVATE_REQUEST_TOKEN');
 const [QUEUE_OWNER, QUEUE_NAME] = QUEUE_REPO.split('/');
 
 function validRequest(raw) {
@@ -204,10 +204,11 @@ export const queueOneShotGameRequest = onDocumentWritten(
   {
     document: 'levelupUsers/{userId}',
     region: REGION,
-    secrets: [OSG_PRIVATE_REQUEST_TOKEN],
+    secrets: [PRIVATE_REQUEST_TOKEN],
     timeoutSeconds: 30,
     memory: '256MiB',
-    maxInstances: 10
+    maxInstances: 10,
+    retry: true
   },
   async (event) => {
     const after = event.data?.after?.exists ? event.data.after.data() : null;
@@ -219,8 +220,8 @@ export const queueOneShotGameRequest = onDocumentWritten(
       .filter((request) => !previousIds.has(String(request.id)));
     if (!newRequests.length) return;
 
-    const token = OSG_PRIVATE_REQUEST_TOKEN.value();
-    if (!token) throw new Error('OSG private request token is unavailable');
+    const token = PRIVATE_REQUEST_TOKEN.value();
+    if (!token) throw new Error('Private request token is unavailable');
     await assertPrivateQueue(token);
     await Promise.all([
       ensureLabel(token, 'osg-game-request', '6f2cff', 'OneShotGames new game request'),
