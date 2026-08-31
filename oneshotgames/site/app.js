@@ -80,13 +80,12 @@
     const items = [...state.requests].reverse();
     els.questsList.innerHTML = items.map((req) => {
       const live = req.status === 'completed';
-      const improve = req.type === 'improve';
       return `<article class="quest-card">
         <div class="quest-top"><span class="quest-status">${escapeHtml(statusLabel(req.status))}</span><small>${escapeHtml(formatDate(req.createdAt))}</small></div>
         <p>${escapeHtml(req.prompt)}</p>
         <div class="quest-actions">
           ${live && req.resultUrl ? `<a class="mini-btn" href="${escapeHtml(req.resultUrl)}">PLAY</a>` : ''}
-          ${live && !improve ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
+          ${live ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
         </div>
       </article>`;
     }).join('');
