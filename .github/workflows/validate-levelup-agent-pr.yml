@@ -1,0 +1,136 @@
+name: Validate LEVEL UP agent PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: levelup-agent-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: >-
+      github.event.pull_request.user.login == 'copilot-swe-agent[bot]' &&
+      contains(github.event.pull_request.body || '', '<!-- levelup-agent-request:')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout proposed code without write credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Parse automation contract
+        id: meta
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const body = process.env.PR_BODY || '';
+          const expectedQueue = process.env.QUEUE_REPO || 'hrt14/hitobito-request-queue';
+          const request = body.match(/<!-- levelup-agent-request:([^#<>\s]+)#(\d+) -->/);
+          const requestId = body.match(/<!-- levelup-creation-request-id:([a-z0-9-]{8,36}) -->/);
+          const slug = body.match(/<!-- levelup-app-slug:([a-z0-9][a-z0-9-]{0,63}) -->/);
+          const title = body.match(/<!-- levelup-app-title:([^<>\n]{1,100}) -->/);
+          if (!request || !requestId || !slug || !title) {
+            throw new Error('Required LEVEL UP automation comments are missing from the PR body.');
+          }
+          if (request[1] !== expectedQueue) {
+            throw new Error(`Unexpected private queue repository: ${request[1]}`);
+          }
+          const cleanTitle = title[1].trim();
+          if (!cleanTitle) throw new Error('Public app title is empty.');
+          const out = process.env.GITHUB_OUTPUT;
+          fs.appendFileSync(out, `issue=${request[2]}\n`);
+          fs.appendFileSync(out, `request_id=${requestId[1]}\n`);
+          fs.appendFileSync(out, `slug=${slug[1]}\n`);
+          fs.appendFileSync(out, `title=${cleanTitle.replace(/\r?\n/g, ' ')}\n`);
+          NODE
+
+      - name: Enforce single-app change boundary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLUG: ${{ steps.meta.outputs.slug }}
+        run: |
+          set -euo pipefail
+          gh pr diff "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --name-only > /tmp/changed-files.txt
+          test -s /tmp/changed-files.txt
+          printf 'Changed files:\n'
+          cat /tmp/changed-files.txt
+
+          while IFS= read -r file; do
+            case "$file" in
+              "apps/$SLUG/"*) ;;
+              *)
+                echo "::error::Automated LEVEL UP PR changed a file outside apps/$SLUG/: $file"
+                exit 1
+                ;;
+            esac
+          done < /tmp/changed-files.txt
+
+          test -f "apps/$SLUG/index.html" || {
+            echo "::error::apps/$SLUG/index.html is required."
+            exit 1
+          }
+
+          if find "apps/$SLUG" -type l -print -quit | grep -q .; then
+            echo '::error::Symlinks are not allowed in automated LEVEL UP apps.'
+            exit 1
+          fi
+
+      - name: Reject obvious unsafe public-app patterns
+        env:
+          SLUG: ${{ steps.meta.outputs.slug }}
+        run: |
+          set -euo pipefail
+          app="apps/$SLUG"
+
+          if grep -RIE '<script[^>]+src=["'"']https?://|<iframe\b|eval\s*\(|new[[:space:]]+Function\s*\(' "$app"; then
+            echo '::error::External executable content, iframes, eval, and Function constructors are not allowed in automated LEVEL UP apps.'
+            exit 1
+          fi
+
+          if grep -RIE '(OPENAI_API_KEY|ANTHROPIC_API_KEY|GEMINI_API_KEY|PRIVATE_REQUEST_TOKEN|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|Authorization:[[:space:]]*Bearer)' "$app"; then
+            echo '::error::Potential credential or secret material found in automated LEVEL UP app.'
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the complete Firebase LEVEL UP bundle
+        run: npm run build:firebase
+
+      - name: Confirm generated app route exists
+        env:
+          SLUG: ${{ steps.meta.outputs.slug }}
+        run: |
+          set -euo pipefail
+          test -f ".dist/firebase/apps/$SLUG/index.html" || {
+            echo "::error::The Firebase build did not publish /apps/$SLUG/."
+            exit 1
+          }
+          grep -qi '<html' ".dist/firebase/apps/$SLUG/index.html"
+
+      - name: Record safe validation result
+        run: |
+          {
+            echo 'LEVEL UP automated PR validation passed.'
+            echo "App slug: ${{ steps.meta.outputs.slug }}"
+            echo "Private request issue: #${{ steps.meta.outputs.issue }}"
+            echo 'The private request body was not read or printed by this validation workflow.'
+          } >> "$GITHUB_STEP_SUMMARY"
