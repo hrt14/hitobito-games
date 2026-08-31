@@ -1,0 +1,61 @@
+name: Provision OSG event queue
+
+on:
+  push:
+    branches:
+      - feat/osg-event-driven-queue
+    paths:
+      - '.github/workflows/provision-osg-event-queue.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Enable event-driven Functions services
+        run: |
+          set -euo pipefail
+          gcloud services enable \
+            cloudfunctions.googleapis.com \
+            cloudbuild.googleapis.com \
+            artifactregistry.googleapis.com \
+            run.googleapis.com \
+            eventarc.googleapis.com \
+            pubsub.googleapis.com \
+            secretmanager.googleapis.com \
+            --project=hitobito-levelup
+
+      - name: Store private request token in Secret Manager
+        env:
+          OSG_PRIVATE_REQUEST_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${OSG_PRIVATE_REQUEST_TOKEN:-}"
+          if ! gcloud secrets describe OSG_PRIVATE_REQUEST_TOKEN --project=hitobito-levelup >/dev/null 2>&1; then
+            gcloud secrets create OSG_PRIVATE_REQUEST_TOKEN --replication-policy=automatic --project=hitobito-levelup
+          fi
+          printf '%s' "$OSG_PRIVATE_REQUEST_TOKEN" | gcloud secrets versions add OSG_PRIVATE_REQUEST_TOKEN --data-file=- --project=hitobito-levelup >/dev/null
+          echo 'OSG private request token stored without exposing its value.'
+
+      - name: Install Functions dependencies
+        run: npm install --prefix functions
+
+      - name: Deploy event-driven OSG Function
+        run: |
+          set -euo pipefail
+          npx --yes firebase-tools@latest deploy --only functions:queueOneShotGameRequest --project hitobito-levelup --non-interactive
