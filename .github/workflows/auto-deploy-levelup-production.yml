@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'apps/**'
+      - 'firebase-special-apps/**'
       - 'firebase-overrides/**'
       - 'functions/**'
       - 'scripts/**'
@@ -13,6 +14,7 @@ on:
       - 'package-lock.json'
       - 'firebase.json'
       - 'firestore.rules'
+      - '.github/workflows/auto-deploy-levelup-production.yml'
       - '.github/workflows/deploy-levelup-production-closed-loop.yml'
 
 permissions:
