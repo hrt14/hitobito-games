@@ -183,6 +183,10 @@
     renderAccount();
     markRefreshed();
     if (!state.profile?.nickname && !els.nicknameModal.classList.contains('open')) showNicknameModal();
+    if (state.pendingAction === 'submit' && state.profile?.nickname) {
+      state.pendingAction = null;
+      void submitQuest();
+    }
   }
 
   async function loadUserDoc({ server = false } = {}) {
@@ -407,17 +411,13 @@
     state.auth = firebase.auth();
     state.db = firebase.firestore();
     await state.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    state.auth.onAuthStateChanged(async (user) => {
+    state.auth.onAuthStateChanged((user) => {
       stopUserDocWatch();
       state.user = user;
       state.profile = null;
       state.requests = [];
       renderAccount();
       if (user) watchUserDoc();
-      if (user && state.pendingAction === 'submit' && state.profile?.nickname) {
-        state.pendingAction = null;
-        await submitQuest();
-      }
     });
   }
 
