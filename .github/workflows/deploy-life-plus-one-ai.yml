@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'functions/**'
+      - 'scripts/bootstrap-levelup-functions.sh'
       - 'firebase.json'
       - '.github/workflows/deploy-life-plus-one-ai.yml'
 
@@ -28,6 +29,12 @@ jobs:
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
+      - name: Bootstrap APIs and private queue secret
+        env:
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+          PRIVATE_REQUEST_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: bash scripts/bootstrap-levelup-functions.sh
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -37,7 +44,7 @@ jobs:
         run: npm install --prefix functions
 
       - name: Deploy LEVEL UP functions
-        run: npx --yes firebase-tools@latest deploy --only functions:analyzeLifePlusOne,functions:submitLevelupFeedback --project hitobito-levelup --non-interactive
+        run: npx --yes firebase-tools@latest deploy --only functions:analyzeLifePlusOne,functions:submitLevelupFeedback,functions:queueLevelupCreationRequests --project hitobito-levelup --non-interactive
 
       - name: Verify feedback endpoint
         run: |
@@ -52,3 +59,15 @@ jobs:
           test "$code" = "400"
           grep -F '"error":"INVALID_INPUT"' /tmp/feedback-health.json >/dev/null
           echo "Feedback endpoint reachable and validating input."
+
+      - name: Verify event-driven request queue function
+        run: |
+          set -euo pipefail
+          state=$(gcloud functions describe queueLevelupCreationRequests \
+            --gen2 \
+            --region=asia-northeast1 \
+            --project=hitobito-levelup \
+            --format='value(state)')
+          echo "queueLevelupCreationRequests state=$state"
+          test "$state" = 'ACTIVE'
+          echo 'Event-driven LEVEL UP request queue is ACTIVE.'
