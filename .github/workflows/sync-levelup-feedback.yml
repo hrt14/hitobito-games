@@ -10,6 +10,7 @@ on:
       - ops/feedback-sync
     paths:
       - 'functions/sync-feedback-to-github.mjs'
+      - 'functions/sync-levelup-creation-requests-to-github.mjs'
       - 'functions/run-private-feedback-sync.mjs'
       - '.github/workflows/sync-levelup-feedback.yml'
       - '.feedback-sync-trigger'
@@ -92,7 +93,7 @@ jobs:
       - name: Record privacy-safe result
         if: always()
         run: |
-          echo 'LEVEL UP feedback sync finished. Raw feedback text is allowed only in the dedicated private request repository.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'LEVEL UP feedback and guided app-request sync finished. Raw user text is allowed only in the dedicated private request repository.' >> "$GITHUB_STEP_SUMMARY"
 
 # Privacy rule: free-text LEVEL UP feedback and app requests are allowed only in the dedicated private request repository.
 # The private repository is a lightweight queue only; Actions remain in this public code repository.
