@@ -58,4 +58,5 @@ fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 for (const value of Object.values(copy)) {
   if (!home.includes(escapeHtml(value))) throw new Error('time-energy-triage card copy verification failed');
 }
-console.log('[Firebase] time-energy-triage app-specific card copy injected and verified.');
+console.log('[Firebase] time-energy-triage app-specific LEVEL UP card copy injected and verified.');
+await import('./inject-plan-restart-30-card.mjs');
