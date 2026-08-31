@@ -29,6 +29,8 @@ jobs:
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
       - name: Bootstrap Firebase Functions IAM and private queue secret
+        id: functions_bootstrap
+        continue-on-error: true
         env:
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
           PRIVATE_REQUEST_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
@@ -176,6 +178,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
           FIRESTORE_RULES_OUTCOME: ${{ steps.firestore_rules.outcome }}
+          FUNCTIONS_BOOTSTRAP_OUTCOME: ${{ steps.functions_bootstrap.outcome }}
           FUNCTIONS_OUTCOME: ${{ steps.functions_deploy.outcome }}
           QUEUE_FUNCTION_OUTCOME: ${{ steps.queue_function.outcome }}
         run: |
@@ -190,6 +193,7 @@ jobs:
             echo
             echo "Verified production conditions:"
             echo "- Firestore security rules release: $FIRESTORE_RULES_OUTCOME"
+            echo "- Firebase Functions bootstrap: $FUNCTIONS_BOOTSTRAP_OUTCOME"
             echo "- exact commit SHA is live on hitobito-levelup.web.app and levelup.hitobito.jp"
             echo "- production browser Firestore write smoke passed"
             echo "- Cloud Functions deploy: $FUNCTIONS_OUTCOME"
