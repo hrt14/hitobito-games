@@ -111,11 +111,12 @@ jobs:
 
       - name: Prove privacy-safe attribution reaches the private queue
         run: |
-          grep -F '## 公開時の見せ方' functions/sync-levelup-creation-requests-to-github.mjs
-          grep -F 'Requested by' functions/sync-levelup-creation-requests-to-github.mjs
-          grep -F '依頼文をそのまま引用しない' functions/sync-levelup-creation-requests-to-github.mjs
-          grep -F 'publicNickname' functions/sync-levelup-creation-requests-to-github.mjs
-          grep -F '依頼者名は表示しない' functions/sync-levelup-creation-requests-to-github.mjs
+          grep -F '## 公開時の見せ方' functions/levelup-request-queue-core.mjs
+          grep -F 'Requested by' functions/levelup-request-queue-core.mjs
+          grep -F '依頼文をそのまま引用しない' functions/levelup-request-queue-core.mjs
+          grep -F 'publicNickname' functions/levelup-request-queue-core.mjs
+          grep -F '依頼者名は表示しない' functions/levelup-request-queue-core.mjs
+          grep -F 'syncLevelupCreationRequests' functions/sync-levelup-creation-requests-to-github.mjs
 
       - name: Prove legacy anonymous request UI is disabled
         run: |
@@ -139,8 +140,8 @@ jobs:
 
       - name: Prove private queue and completion markers
         run: |
-          grep -F 'levelup-creation-request-id:' functions/sync-levelup-creation-requests-to-github.mjs
-          grep -F 'levelup-app-slug:pending' functions/sync-levelup-creation-requests-to-github.mjs
+          grep -F 'levelup-creation-request-id:' functions/levelup-request-queue-core.mjs
+          grep -F 'levelup-app-slug:pending' functions/levelup-request-queue-core.mjs
           grep -F "status: 'published'" functions/complete-levelup-creation-request-from-issue.mjs || grep -F "'published'" functions/complete-levelup-creation-request-from-issue.mjs
           grep -F 'myPageSynced: true' functions/complete-levelup-creation-request-from-issue.mjs
           grep -F 'sync-levelup-creation-requests-to-github.mjs' functions/run-private-feedback-sync.mjs
