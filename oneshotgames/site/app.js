@@ -210,7 +210,7 @@
   }
 
   async function startImprovement(gameId) {
-    const note = window.prompt('どう改善したい？', 'もっと気持ちよく遊べるように改善して');
+    const note = window.prompt('どう改善したい？', '');
     if (!note?.trim()) return;
     const id = requestId();
     const request = { id, gameId, type: 'improve', prompt: note.trim().slice(0, 600), status: 'queued', authorNickname: state.profile.nickname, createdAt: new Date().toISOString(), resultUrl: `/g/${gameId}/` };
