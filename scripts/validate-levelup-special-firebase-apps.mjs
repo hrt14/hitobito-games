@@ -4,10 +4,19 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, '..');
+const sourceRoot = path.join(root, 'firebase-special-apps');
 const outDir = path.join(root, '.dist', 'firebase');
 const firebasePath = path.join(root, 'firebase.json');
-const slugs = ['start', 'maa-iika', 'self-management', 'jibun-wa-jibun'];
 const problems = [];
+
+const slugs = fs.readdirSync(sourceRoot, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .filter((slug) => /^[a-z0-9-]+$/.test(slug))
+  .filter((slug) => fs.existsSync(path.join(sourceRoot, slug, 'index.html')))
+  .sort();
+
+if (!slugs.length) problems.push('no firebase-special-apps sources found');
 
 for (const slug of slugs) {
   for (const relative of [`${slug}/index.html`, `apps/${slug}/index.html`]) {
@@ -38,4 +47,4 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log('[Firebase special apps] OK: START / まあ、いいか。 / 自分を回せ。 / 自分は自分 are Firebase-hosted with shared login');
+console.log(`[Firebase special apps] OK: ${slugs.length} apps are Firebase-hosted with shared login: ${slugs.join(', ')}`);
