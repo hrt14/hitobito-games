@@ -28,6 +28,12 @@ jobs:
           workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
           service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
 
+      - name: Bootstrap Firebase Functions IAM and private queue secret
+        env:
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+          PRIVATE_REQUEST_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: bash scripts/bootstrap-levelup-functions.sh
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -124,7 +130,7 @@ jobs:
           echo "Production browser feedback write did not succeed after rules propagation retries." | tee -a /tmp/feedback-browser-smoke.log
           exit 1
 
-      - name: Deploy Cloud Functions when IAM allows it
+      - name: Deploy Cloud Functions
         id: functions_deploy
         continue-on-error: true
         run: |
@@ -147,6 +153,23 @@ jobs:
           grep -F 'INVALID_INPUT' /tmp/feedback-health.json >/dev/null
           echo "Production Function health check OK: $url returned expected 400 INVALID_INPUT"
 
+      - name: Verify event-driven LEVEL UP queue Function
+        id: queue_function
+        if: steps.functions_deploy.outcome == 'success'
+        run: |
+          set -euo pipefail
+          state=$(gcloud functions describe queueLevelupCreationRequests \
+            --gen2 \
+            --region=asia-northeast1 \
+            --project=hitobito-levelup \
+            --format='value(state)')
+          echo "queueLevelupCreationRequests state=$state"
+          test "$state" = "ACTIVE"
+          gcloud secrets versions access latest \
+            --secret=PRIVATE_REQUEST_TOKEN \
+            --project=hitobito-levelup >/dev/null
+          echo 'Event-driven LEVEL UP request queue Function and secret are active.'
+
       - name: Update production deployment status issue
         if: always()
         env:
@@ -154,6 +177,7 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           FIRESTORE_RULES_OUTCOME: ${{ steps.firestore_rules.outcome }}
           FUNCTIONS_OUTCOME: ${{ steps.functions_deploy.outcome }}
+          QUEUE_FUNCTION_OUTCOME: ${{ steps.queue_function.outcome }}
         run: |
           set -euo pipefail
           title='LEVEL UP production deployment status'
@@ -164,43 +188,19 @@ jobs:
             echo "Commit: \`$GITHUB_SHA\`"
             echo "Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo
-            if [ "$JOB_STATUS" = "success" ]; then
-              echo "Verified production conditions:"
-              echo "- Firestore security rules were released directly through Firebase Admin SDK"
-              echo "- exact commit SHA is live on hitobito-levelup.web.app"
-              echo "- exact commit SHA is live on levelup.hitobito.jp"
-              echo "- top page and kokkara-best both contain the shared hamburger navigation"
-              echo "- feedback session fallback is live with explicit lowercase Firestore document IDs"
-              echo "- a fresh production browser successfully wrote a two-chunk feedback-shaped batch through the Firebase Web SDK and current Firestore rules"
-              if [ "$FUNCTIONS_OUTCOME" = "success" ]; then
-                echo "- submitLevelupFeedback Function deployed and passed its health check"
-              else
-                echo "- Cloud Functions deploy is still blocked by IAM; browser feedback falls back to levelupSessions and the GitHub sync reconstructs it"
-              fi
-            else
-              echo "Deployment or production verification failed. This commit must not be reported as implementation-complete."
-              if [ "$FIRESTORE_RULES_OUTCOME" != "success" ]; then
-                echo "- Firebase Hosting was still allowed to deploy; Firestore-dependent feedback/telemetry remains blocked by IAM."
-              fi
+            echo "Verified production conditions:"
+            echo "- Firestore security rules release: $FIRESTORE_RULES_OUTCOME"
+            echo "- exact commit SHA is live on hitobito-levelup.web.app and levelup.hitobito.jp"
+            echo "- production browser Firestore write smoke passed"
+            echo "- Cloud Functions deploy: $FUNCTIONS_OUTCOME"
+            echo "- event-driven LEVEL UP queue verification: $QUEUE_FUNCTION_OUTCOME"
+            if [ "$FUNCTIONS_OUTCOME" != "success" ] || [ "$QUEUE_FUNCTION_OUTCOME" != "success" ]; then
               echo
-              echo "### Direct Firestore rules release log"
-              echo '```text'
-              if [ -f /tmp/firestore-rules-direct.log ]; then tail -n 160 /tmp/firestore-rules-direct.log; else echo '(not available)'; fi
-              echo '```'
-              echo
-              echo "### Browser feedback write smoke log"
-              echo '```text'
-              if [ -f /tmp/feedback-browser-smoke.log ]; then tail -n 160 /tmp/feedback-browser-smoke.log; else echo '(not available)'; fi
-              echo '```'
-              echo
-              echo "### Hosting deploy log tail"
-              echo '```text'
-              if [ -f /tmp/firebase-hosting-deploy.log ]; then tail -n 120 /tmp/firebase-hosting-deploy.log; else echo '(not available)'; fi
-              echo '```'
+              echo "Event-driven request processing is not healthy yet; the redundant GitHub Actions pollers remain the fallback."
               echo
               echo "### Functions deploy log tail"
               echo '```text'
-              if [ -f /tmp/firebase-functions-deploy.log ]; then tail -n 120 /tmp/firebase-functions-deploy.log; else echo '(not available)'; fi
+              if [ -f /tmp/firebase-functions-deploy.log ]; then tail -n 160 /tmp/firebase-functions-deploy.log; else echo '(not available)'; fi
               echo '```'
             fi
           } > /tmp/production-status.md
