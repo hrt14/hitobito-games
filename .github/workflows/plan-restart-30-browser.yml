@@ -50,6 +50,8 @@ jobs:
         env:
           PLAN_RESTART_30_URL: http://127.0.0.1:4173/apps/plan-restart-30/
         run: node apps/plan-restart-30/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/plan-restart-30
       - name: Upload playtest evidence
         if: always()
         uses: actions/upload-artifact@v4
