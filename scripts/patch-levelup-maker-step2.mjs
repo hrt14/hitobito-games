@@ -36,7 +36,7 @@ replaceOnce(
 
 replaceOnce(
   '      state.form[button.dataset.choice] = button.dataset.value;',
-  "      const field = button.dataset.choice;\n      const value = button.dataset.value;\n      if (field === 'goalType' && value !== 'other') state.form.goalDetail = '';\n      if (field === 'usageTiming' && value !== 'other') state.form.timingDetail = '';\n      state.form[field] = value;",
+  "      const field = button.dataset.choice;\n      const value = button.dataset.value;\n      if (field === 'goalType' && value !== 'other') state.form.goalDetail = labelFor(goalTypes, value);\n      if (field === 'usageTiming' && value !== 'other') state.form.timingDetail = '';\n      state.form[field] = value;",
   'choice state update',
 );
 
