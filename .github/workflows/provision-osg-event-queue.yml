@@ -17,6 +17,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install and validate Functions code
+        run: |
+          set -euo pipefail
+          npm install --prefix functions
+          node --check functions/osg-request-trigger.js
+          node --check functions/sync-osg-requests-to-github.mjs
+          node -e "import('./functions/entry.js').then(() => console.log('Functions entry imports successfully'))"
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -51,9 +63,6 @@ jobs:
           fi
           printf '%s' "$OSG_PRIVATE_REQUEST_TOKEN" | gcloud secrets versions add OSG_PRIVATE_REQUEST_TOKEN --data-file=- --project=hitobito-levelup >/dev/null
           echo 'OSG private request token stored without exposing its value.'
-
-      - name: Install Functions dependencies
-        run: npm install --prefix functions
 
       - name: Deploy event-driven OSG Function
         run: |
