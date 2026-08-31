@@ -34,6 +34,29 @@
     return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
   }
 
+  function publishedGame(gameId) {
+    if (!gameId) return null;
+    return state.games.find((game) => String(game.id || '') === String(gameId)) || null;
+  }
+
+  function requestIsPublished(req) {
+    if (req.status === 'completed') return true;
+    const game = publishedGame(req.gameId);
+    if (!game) return false;
+    if (req.type !== 'improve') return true;
+
+    const hasBaseVersion = req.baseVersion !== undefined && req.baseVersion !== null && req.baseVersion !== '';
+    if (hasBaseVersion) {
+      const baseVersion = Math.max(1, Number(req.baseVersion) || 1);
+      const liveVersion = Math.max(1, Number(game.version) || 1);
+      return liveVersion > baseVersion;
+    }
+
+    const requestTime = new Date(req.createdAt || 0).getTime();
+    const gameTime = new Date(game.updatedAt || game.createdAt || 0).getTime();
+    return Number.isFinite(requestTime) && Number.isFinite(gameTime) && gameTime >= requestTime;
+  }
+
   async function loadGames() {
     try {
       const response = await fetch(`/games.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -78,19 +101,20 @@
       els.questsList.innerHTML = '<div class="loading-card">まだ制作クエストはありません。</div>';
       return;
     }
-    const publishedIds = new Set(state.games.map((game) => String(game.id || '')));
     const items = [...state.requests].reverse();
     els.questsList.innerHTML = items.map((req) => {
-      const published = Boolean(req.gameId && publishedIds.has(String(req.gameId)));
-      const live = req.status === 'completed' || published;
-      const displayStatus = live ? 'LV.4 LIVE' : statusLabel(req.status);
+      const published = requestIsPublished(req);
+      const displayStatus = published ? 'LV.4 LIVE' : statusLabel(req.status);
       const resultUrl = req.resultUrl || (req.gameId ? `/g/${req.gameId}/` : '');
+      const publishedBadge = published
+        ? '<span style="display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#e9fbf4;color:#078864;font-size:10px;font-weight:900;letter-spacing:.04em;white-space:nowrap">✓ 公開済み</span>'
+        : '';
       return `<article class="quest-card">
-        <div class="quest-top"><span class="quest-status">${escapeHtml(displayStatus)}</span><small>${escapeHtml(formatDate(req.createdAt))}</small></div>
+        <div class="quest-top"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="quest-status">${escapeHtml(displayStatus)}</span>${publishedBadge}</div><small>${escapeHtml(formatDate(req.createdAt))}</small></div>
         <p>${escapeHtml(req.prompt)}</p>
         <div class="quest-actions">
-          ${live && resultUrl ? `<a class="mini-btn" href="${escapeHtml(resultUrl)}">PLAY</a>` : ''}
-          ${live && req.gameId ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
+          ${published && resultUrl ? `<a class="mini-btn" href="${escapeHtml(resultUrl)}">PLAY</a>` : ''}
+          ${published && req.gameId ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
         </div>
       </article>`;
     }).join('');
@@ -217,11 +241,23 @@
     const note = window.prompt('どう改善したい？', '');
     if (!note?.trim()) return;
     const id = requestId();
-    const request = { id, gameId, type: 'improve', prompt: note.trim().slice(0, 600), status: 'queued', authorNickname: state.profile.nickname, createdAt: new Date().toISOString(), resultUrl: `/g/${gameId}/` };
+    const currentGame = publishedGame(gameId);
+    const baseVersion = currentGame ? Math.max(1, Number(currentGame.version) || 1) : null;
+    const request = {
+      id,
+      gameId,
+      type: 'improve',
+      prompt: note.trim().slice(0, 600),
+      status: 'queued',
+      authorNickname: state.profile.nickname,
+      createdAt: new Date().toISOString(),
+      resultUrl: `/g/${gameId}/`,
+      ...(baseVersion ? { baseVersion } : {})
+    };
     try {
       await appendRequest(request);
       renderAccount();
-      setMessage('改善クエストを登録しました。', 'ok');
+      setMessage('改善クエストを登録しました。公開されると「公開済み」が付きます。', 'ok');
     } catch (error) {
       console.warn('[OSG] improvement request failed', error);
       setMessage('改善クエストを保存できませんでした。', 'error');
