@@ -94,7 +94,7 @@ jobs:
           set -euo pipefail
           app="apps/$SLUG"
 
-          if grep -RIE '<script[^>]+src=["'"']https?://|<iframe\b|eval\s*\(|new[[:space:]]+Function\s*\(' "$app"; then
+          if grep -RIE "<script[^>]+src=['\"]https?://|<iframe\\b|eval\\s*\\(|new[[:space:]]+Function\\s*\\(" "$app"; then
             echo '::error::External executable content, iframes, eval, and Function constructors are not allowed in automated LEVEL UP apps.'
             exit 1
           fi
