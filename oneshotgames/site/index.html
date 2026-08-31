@@ -119,9 +119,13 @@
     <div class="panel-backdrop" data-close-panel></div>
     <div class="panel-sheet">
       <div class="panel-head">
-        <div><div class="eyebrow">YOUR CREATOR LOG</div><h2>MY QUESTS</h2></div>
+        <div>
+          <div class="eyebrow">YOUR CREATOR LOG</div>
+          <h2>MY QUESTS</h2>
+          <small id="questsLastUpdated" style="display:block;margin-top:4px;color:#7b879f;font-weight:700;">自動更新 ON</small>
+        </div>
         <div class="quest-actions">
-          <button class="mini-btn" type="button" aria-label="最新版に更新" onclick="const u=new URL(location.href);u.searchParams.set('refresh',Date.now());location.replace(u.href)">↻ 更新</button>
+          <button id="questRefreshBtn" class="mini-btn" type="button" aria-label="最新版に更新">↻ 更新</button>
           <button class="icon-btn" data-close-panel type="button" aria-label="閉じる">×</button>
         </div>
       </div>
@@ -149,6 +153,6 @@
   <script src="/__/firebase/8.10.1/firebase-firestore.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script src="/creator-v2.js" defer></script>
-  <script src="/app.js?v=20260831-1654" defer></script>
+  <script src="/app.js?v=20260831-1928" defer></script>
 </body>
 </html>
