@@ -120,7 +120,10 @@
     <div class="panel-sheet">
       <div class="panel-head">
         <div><div class="eyebrow">YOUR CREATOR LOG</div><h2>MY QUESTS</h2></div>
-        <button class="icon-btn" data-close-panel type="button" aria-label="閉じる">×</button>
+        <div class="quest-actions">
+          <button class="mini-btn" type="button" aria-label="最新版に更新" onclick="const u=new URL(location.href);u.searchParams.set('refresh',Date.now());location.replace(u.href)">↻ 更新</button>
+          <button class="icon-btn" data-close-panel type="button" aria-label="閉じる">×</button>
+        </div>
       </div>
       <div id="profileBox"></div>
       <div id="questsList" class="quests-list"></div>
