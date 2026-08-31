@@ -110,7 +110,7 @@ const users = await db.collection('levelupUsers').limit(1000).get();
 let synced = 0;
 for (const userDoc of users.docs) {
   const requests = Array.isArray(userDoc.data()?.osgRequests) ? userDoc.data().osgRequests : [];
-  for (const request of requests.filter(validRequest).slice(0, 5)) {
+  for (const request of requests.filter(validRequest)) {
     const indexRef = db.collection('osgRequestIndex').doc(request.id);
     const indexed = await indexRef.get();
     if (indexed.exists) {
