@@ -37,4 +37,6 @@ jobs:
           verify 'https://levelup.hitobito.jp/apps/bedtime-best-case/' 'guidedDreamBtn' /tmp/bedtime-best-case.html
           verify 'https://levelup.hitobito.jp/apps/time-energy-triage/' 'TIME × ENERGY' /tmp/time-energy-triage.html
           grep -F '余力で' /tmp/time-energy-triage.html >/dev/null
+          verify 'https://levelup.hitobito.jp/apps/time-loss-reset/' 'PAST → NEXT' /tmp/time-loss-reset.html
+          grep -F 'ここから回収' /tmp/time-loss-reset.html >/dev/null
           echo 'ALL TARGET LEVEL UP ROUTES VERIFIED'
