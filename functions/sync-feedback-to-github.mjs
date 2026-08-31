@@ -21,6 +21,7 @@ const feedbackTypes = {
 };
 const feedbackTypeSet = new Set(Object.keys(feedbackTypes));
 const requestTypeSet = new Set(['improvement', 'new_app']);
+let productionMetaCache = null;
 
 async function github(path, options = {}) {
   const response = await fetch(`${apiBase}${path}`, {
@@ -276,6 +277,18 @@ async function findExistingIssue(feedbackId) {
   return result?.items?.[0] || null;
 }
 
+async function setPublicStatus(id, data, status, extra = {}) {
+  if (dryRun) return;
+  await db.collection('levelupFeedbackStatus').doc(id).set({
+    status,
+    appSlug: String(data?.appSlug || 'home').slice(0, 64),
+    requestType: requestTypeFor(data),
+    buildSha: String(data?.buildSha || 'local').slice(0, 12),
+    updatedAt: FieldValue.serverTimestamp(),
+    ...extra,
+  }, { merge: true });
+}
+
 async function syncPending(feedbackLabel, appRequestLabel) {
   const snap = await db.collection('levelupFeedback').where('syncStatus', '==', 'pending').limit(25).get();
   const docs = [...snap.docs].sort((a, b) => {
@@ -311,8 +324,33 @@ async function syncPending(feedbackLabel, appRequestLabel) {
       githubIssueUrl: issue.html_url || '',
       syncedAt: FieldValue.serverTimestamp(),
     });
+    await setPublicStatus(doc.id, data, 'processing', { githubIssueNumber: issue.number });
     console.log(`Synced feedback ${doc.id} -> issue #${issue.number}`);
   }
+}
+
+async function productionMeta() {
+  if (productionMetaCache) return productionMetaCache;
+  const response = await fetch(`https://levelup.hitobito.jp/deploy-meta.json?feedback=${Date.now()}`, {
+    cache: 'no-store',
+    headers: { 'cache-control': 'no-cache, no-store, must-revalidate', 'user-agent': 'levelup-feedback-sync' },
+  });
+  if (!response.ok) throw new Error(`LEVEL UP production deploy-meta unavailable: ${response.status}`);
+  const meta = await response.json();
+  if (!/^[a-f0-9]{40}$/.test(String(meta?.sha || ''))) throw new Error('LEVEL UP production deploy-meta has invalid SHA');
+  productionMetaCache = meta;
+  return meta;
+}
+
+async function productionPageIsLive(data) {
+  const slug = String(data?.appSlug || 'home');
+  const path = slug === 'home' ? '/' : `/apps/${slug}/`;
+  const response = await fetch(`https://levelup.hitobito.jp${path}?feedback=${Date.now()}`, {
+    cache: 'no-store',
+    redirect: 'follow',
+    headers: { 'cache-control': 'no-cache, no-store, must-revalidate', 'user-agent': 'levelup-feedback-sync' },
+  });
+  return response.ok;
 }
 
 async function syncClosed() {
@@ -323,13 +361,43 @@ async function syncClosed() {
     if (!issueNumber || data.status === 'done') continue;
     const issue = await github(`/repos/${owner}/${name}/issues/${issueNumber}`);
     if (issue?.state !== 'closed') continue;
+
+    if (issue?.state_reason === 'not_planned') {
+      if (!dryRun) {
+        await doc.ref.update({ status: 'rejected', completedAt: FieldValue.serverTimestamp() });
+        await setPublicStatus(doc.id, data, 'rejected', { githubIssueNumber: issueNumber });
+      }
+      console.log(`Marked feedback ${doc.id} rejected from issue #${issueNumber}`);
+      continue;
+    }
+
+    const meta = await productionMeta();
+    const productionSha = String(meta.sha || '');
+    const baseline = String(data.buildSha || '');
+    if (baseline && baseline !== 'local' && productionSha.startsWith(baseline)) {
+      await setPublicStatus(doc.id, data, 'processing', { githubIssueNumber: issueNumber });
+      console.log(`Feedback ${doc.id} issue #${issueNumber} is closed, but production is still baseline ${baseline}; waiting`);
+      continue;
+    }
+    if (!(await productionPageIsLive(data))) {
+      await setPublicStatus(doc.id, data, 'processing', { githubIssueNumber: issueNumber });
+      console.log(`Feedback ${doc.id} issue #${issueNumber} is closed, but target production page is not live yet; waiting`);
+      continue;
+    }
+
     if (!dryRun) {
       await doc.ref.update({
         status: 'done',
         completedAt: FieldValue.serverTimestamp(),
+        publishedSha: productionSha,
+      });
+      await setPublicStatus(doc.id, data, 'published', {
+        githubIssueNumber: issueNumber,
+        publishedSha: productionSha,
+        publishedAt: FieldValue.serverTimestamp(),
       });
     }
-    console.log(`Marked feedback ${doc.id} done from issue #${issueNumber}`);
+    console.log(`Marked feedback ${doc.id} published from issue #${issueNumber} on production ${productionSha.slice(0, 12)}`);
   }
 }
 
