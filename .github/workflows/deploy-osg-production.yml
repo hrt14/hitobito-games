@@ -9,6 +9,7 @@ on:
       - 'oneshotgames/**'
       - 'scripts/build-osg.mjs'
       - 'scripts/validate-osg-game-security.mjs'
+      - 'functions/complete-osg-request-from-issue.mjs'
       - 'firebase.osg.json'
       - '.firebaserc'
       - '.github/workflows/deploy-osg-production.yml'
@@ -67,7 +68,7 @@ jobs:
           NODE
       - name: Deploy creator and isolated game origins to Firebase Hosting
         run: npx --yes firebase-tools@latest deploy --only hosting:osg,hosting:osg-games --project hitobito-levelup --config firebase.osg.json --non-interactive
-      - name: Verify production isolation and security headers
+      - name: Verify production isolation, listing, and security headers
         run: |
           set -euo pipefail
           sleep 5
@@ -89,6 +90,7 @@ jobs:
 
           curl -fLsS --max-time 30 "$creator/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-meta.json
           curl -fLsS --max-time 30 "$games/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-games-meta.json
+          curl -fLsS --max-time 30 "$creator/games.json?sha=$GITHUB_SHA" -o /tmp/osg-live-games.json
           node - "$GITHUB_SHA" <<'NODE'
           const fs = require('fs');
           const expected = process.argv[2];
@@ -96,12 +98,34 @@ jobs:
             const meta = JSON.parse(fs.readFileSync(file, 'utf8'));
             if (meta.sha !== expected) throw new Error(`OSG SHA mismatch in ${file}: ${meta.sha} != ${expected}`);
           }
-          const manifest = JSON.parse(fs.readFileSync('.dist/osg/games.json', 'utf8'));
-          if (manifest.gameOrigin !== 'https://hitobito-osg-games.web.app') throw new Error(`Unexpected game origin: ${manifest.gameOrigin}`);
-          if (!Array.isArray(manifest.games) || !manifest.games.length) throw new Error('No built games to verify');
-          if (manifest.games.some((game) => !String(game.url || '').startsWith(`${manifest.gameOrigin}/g/`))) throw new Error('A game URL is not isolated on the game origin');
-          fs.writeFileSync('/tmp/osg-game-ids.txt', manifest.games.map((game) => game.id).join('\n') + '\n');
-          console.log(`OneShotGames production commit verified: ${expected}`);
+
+          const built = JSON.parse(fs.readFileSync('.dist/osg/games.json', 'utf8'));
+          const live = JSON.parse(fs.readFileSync('/tmp/osg-live-games.json', 'utf8'));
+          if (built.gameOrigin !== 'https://hitobito-osg-games.web.app') throw new Error(`Unexpected game origin: ${built.gameOrigin}`);
+          if (live.gameOrigin !== built.gameOrigin) throw new Error(`Live game origin mismatch: ${live.gameOrigin} != ${built.gameOrigin}`);
+          if (!Array.isArray(built.games) || !built.games.length) throw new Error('No built games to verify');
+          if (!Array.isArray(live.games)) throw new Error('Live games.json has no games array');
+
+          const liveById = new Map(live.games.map((game) => [String(game.id || ''), game]));
+          const missing = [];
+          const stale = [];
+          for (const game of built.games) {
+            const id = String(game.id || '');
+            const published = liveById.get(id);
+            if (!published) {
+              missing.push(id);
+              continue;
+            }
+            if (Number(published.version || 1) !== Number(game.version || 1) || String(published.url || '') !== String(game.url || '')) {
+              stale.push(id);
+            }
+          }
+          if (missing.length) throw new Error(`Creator listing is missing ${missing.length} built game(s): ${missing.join(', ')}`);
+          if (stale.length) throw new Error(`Creator listing has stale metadata for ${stale.length} game(s): ${stale.join(', ')}`);
+          if (built.games.some((game) => !String(game.url || '').startsWith(`${built.gameOrigin}/g/`))) throw new Error('A game URL is not isolated on the game origin');
+
+          fs.writeFileSync('/tmp/osg-game-ids.txt', built.games.map((game) => game.id).join('\n') + '\n');
+          console.log(`OneShotGames production commit and creator listing verified: ${expected}`);
           NODE
 
           curl -fsSI --max-time 30 "$games/g/first-shot/?sha=$GITHUB_SHA" | tr -d '\r' > /tmp/osg-game-headers.txt
@@ -117,3 +141,43 @@ jobs:
             grep -F 'data-osg-runtime' "$out" >/dev/null
             echo "Verified isolated production game: $games/g/$game_id/"
           done < /tmp/osg-game-ids.txt
+
+      - name: Verify private request queue configuration
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
+            echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required for OneShotGames completion sync.'
+            exit 1
+          fi
+          visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
+          if [ "$visibility" != 'true' ]; then
+            echo 'Refusing to synchronize completion from a non-private request repository.' >&2
+            exit 1
+          fi
+
+      - name: Install completion sync dependencies
+        run: npm install --prefix functions
+
+      - name: Sync verified production completions to MY QUESTS
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: |
+          set -euo pipefail
+          {
+            gh issue list --repo "$QUEUE_REPO" --state closed --label osg-game-request --limit 100 --json number --jq '.[].number'
+            gh issue list --repo "$QUEUE_REPO" --state closed --label osg-improvement --limit 100 --json number --jq '.[].number'
+          } | sort -nu > /tmp/osg-closed-issues.txt
+
+          count=0
+          while read -r issue; do
+            [ -n "$issue" ] || continue
+            REQUEST_QUEUE_REPOSITORY="$QUEUE_REPO" ISSUE_NUMBER="$issue" \
+              node functions/complete-osg-request-from-issue.mjs
+            count=$((count + 1))
+          done < /tmp/osg-closed-issues.txt
+          echo "Synchronized $count closed OneShotGames request issue(s) after production verification." >> "$GITHUB_STEP_SUMMARY"
