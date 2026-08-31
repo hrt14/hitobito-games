@@ -98,7 +98,8 @@ function issueBody(request) {
 `1. 本番反映と動作確認を完了する。\n` +
 `2. このIssue本文の \`<!-- levelup-app-slug:pending -->\` を、実際のslug（例: \`<!-- levelup-app-slug:my-app -->\`）へ置換する。\n` +
 `3. 完成したアプリ名を \`<!-- levelup-app-title:アプリ名 -->\` として本文へ追加する。\n` +
-`4. その後にIssueをcloseする。close後、ユーザーの「自分の制作アプリ」にPLAYリンクが反映される。\n\n` +
+`4. 完了同期がマイページの該当requestを \`published\` にし、appSlug・appPath・appTitle を反映したことを確認する。\n` +
+`5. その後にIssueをcloseする。マイページ同期が未完了ならcloseしない。\n\n` +
 `安全・合法に制作できない依頼は実装せず、\`levelup-request-rejected\` ラベルを付けてcloseする。\n`;
 }
 
