@@ -1,0 +1,28 @@
+name: Verify current LEVEL UP app URLs
+
+on:
+  push:
+    branches:
+      - levelup/new-calm-acceptance-and-moya-reset
+    paths:
+      - '.github/workflows/verify-current-levelup-app-urls.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify expectation-reset production URL
+        run: |
+          set -euo pipefail
+          body=$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 https://levelup.hitobito.jp/apps/expectation-reset/)
+          printf '%s' "$body" | grep -F 'EXPECT LESS / DO NEXT'
+          printf '%s' "$body" | grep -F '期待を、'
+      - name: Verify moya-30 production URL
+        run: |
+          set -euo pipefail
+          body=$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 https://levelup.hitobito.jp/apps/moya-30/)
+          printf '%s' "$body" | grep -F 'MOYA / OUTSIDE'
+          printf '%s' "$body" | grep -F 'モヤを、'
