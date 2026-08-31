@@ -1,5 +1,6 @@
 name: Provision OSG event queue
 
+# Rerun marker: 2026-08-31 permission verification
 on:
   workflow_dispatch:
   push:
