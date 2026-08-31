@@ -4,6 +4,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+export { queueLevelupCreationRequests } from './levelup-request-trigger.mjs';
 
 initializeApp();
 const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
@@ -115,7 +116,7 @@ async function enforceFeedbackQuota(req) {
     const snap = await tx.get(ref);
     const count = snap.exists ? Number(snap.data()?.count || 0) : 0;
     if (count >= FEEDBACK_DAILY_LIMIT) throw Object.assign(new Error('RATE_LIMIT'), { status:429 });
-    tx.set(ref, { date, fingerprint, count: count + 1, lastSubmittedAt: FieldValue.serverTimestamp() }, { merge:true });
+    tx.set(ref, { date, fingerprint, count:count + 1, lastSubmittedAt:FieldValue.serverTimestamp() }, { merge:true });
   });
 }
 
