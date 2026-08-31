@@ -1,0 +1,80 @@
+name: Complete LEVEL UP creation requests from private queue
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/complete-levelup-creation-request-from-issue.mjs'
+      - '.github/workflows/complete-levelup-creation-request.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: levelup-creation-request-completion-sync
+  cancel-in-progress: false
+
+jobs:
+  complete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify private request queue
+        id: queue
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
+            echo 'Private request queue configuration is missing; completed LEVEL UP requests cannot be synchronized.' >> "$GITHUB_STEP_SUMMARY"
+            echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required.'
+            exit 1
+          fi
+          visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
+          if [ "$visibility" != 'true' ]; then
+            echo "Refusing to read user requests: $QUEUE_REPO is not private." >&2
+            exit 1
+          fi
+          echo 'configured=true' >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install function dependencies
+        run: npm install --prefix functions
+
+      - name: Mark closed LEVEL UP creation requests complete in Firebase
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: |
+          set -euo pipefail
+          gh issue list --repo "$QUEUE_REPO" --state closed --label levelup-app-request --limit 100 --json number --jq '.[].number' \
+            | sort -nu > /tmp/levelup-closed-issues.txt
+
+          count=0
+          while read -r issue; do
+            [ -n "$issue" ] || continue
+            REQUEST_QUEUE_REPOSITORY="$QUEUE_REPO" ISSUE_NUMBER="$issue" \
+              node functions/complete-levelup-creation-request-from-issue.mjs
+            count=$((count + 1))
+          done < /tmp/levelup-closed-issues.txt
+          echo "Checked $count closed LEVEL UP creation request issue(s)." >> "$GITHUB_STEP_SUMMARY"
+
+# Completion stays in the public code repository; free-text request bodies remain only in the private request queue.
