@@ -22,20 +22,22 @@ required_services=(
   secretmanager.googleapis.com
 )
 
+if ! gcloud services list --enabled --project "$PROJECT_ID" --format='value(config.name)' >/tmp/enabled-services 2>/tmp/service-error; then
+  echo 'Cannot inspect enabled Google Cloud APIs.' >&2
+  echo 'Grant the deploy identity Cloud Functions Admin and Service Account User; if Service Usage access is still denied, also grant Service Usage Admin.' >&2
+  cat /tmp/service-error >&2 || true
+  exit 1
+fi
+
 for service in "${required_services[@]}"; do
-  if ! gcloud services describe "$service" --project "$PROJECT_ID" --format='value(state)' >/tmp/service-state 2>/tmp/service-error; then
-    echo "Cannot inspect required API $service." >&2
-    echo 'Grant the deploy identity Cloud Functions Admin and Service Account User; if API inspection/enabling is still denied, also grant Service Usage Admin.' >&2
-    cat /tmp/service-error >&2 || true
-    exit 1
+  if grep -Fxq "$service" /tmp/enabled-services; then
+    echo "Required API already enabled: $service"
+    continue
   fi
-  state=$(cat /tmp/service-state)
-  if [ "$state" != 'ENABLED' ]; then
-    echo "Enabling required API $service"
-    if ! gcloud services enable "$service" --project "$PROJECT_ID" --quiet; then
-      echo "Cannot enable $service. A project administrator must enable it or grant Service Usage Admin to the deploy identity." >&2
-      exit 1
-    fi
+  echo "Enabling required API $service"
+  if ! gcloud services enable "$service" --project "$PROJECT_ID" --quiet; then
+    echo "Cannot enable $service. A project administrator must enable it or grant Service Usage Admin to the deploy identity." >&2
+    exit 1
   fi
 done
 
