@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'scripts/inject-levelup-maker.mjs'
+      - 'scripts/fix-levelup-feedback-session-ids.mjs'
+      - 'scripts/validate-levelup-maker-only-request-flow.mjs'
       - 'functions/sync-levelup-creation-requests-to-github.mjs'
       - 'functions/complete-levelup-creation-request-from-issue.mjs'
       - 'functions/run-private-feedback-sync.mjs'
@@ -28,6 +30,8 @@ jobs:
       - name: Check Node syntax
         run: |
           node --check scripts/inject-levelup-maker.mjs
+          node --check scripts/fix-levelup-feedback-session-ids.mjs
+          node --check scripts/validate-levelup-maker-only-request-flow.mjs
           node --check functions/sync-levelup-creation-requests-to-github.mjs
           node --check functions/complete-levelup-creation-request-from-issue.mjs
           node --check functions/run-private-feedback-sync.mjs
@@ -46,6 +50,15 @@ jobs:
           grep -F "collection('levelupUsers')" .dist/firebase/levelup-maker.js
           grep -F 'creationRequests' .dist/firebase/levelup-maker.js
           node --check .dist/firebase/levelup-maker.js
+          node scripts/validate-levelup-maker-only-request-flow.mjs
+
+      - name: Prove legacy anonymous request UI is disabled
+        run: |
+          if grep -F "levelup-feedback/app-request.mjs" scripts/fix-levelup-feedback-session-ids.mjs; then
+            echo 'Legacy anonymous app-request widget is still imported.' >&2
+            exit 1
+          fi
+          grep -F 'validate-levelup-maker-only-request-flow.mjs' scripts/fix-levelup-feedback-session-ids.mjs
 
       - name: Prove private queue and completion markers
         run: |
