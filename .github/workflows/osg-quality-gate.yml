@@ -6,6 +6,7 @@ on:
       - 'oneshotgames/**'
       - 'scripts/build-osg.mjs'
       - 'scripts/validate-osg-game-security.mjs'
+      - 'scripts/test-osg-security-gate.mjs'
       - 'functions/*osg*'
       - 'firebase.osg.json'
       - '.firebaserc'
@@ -28,10 +29,13 @@ jobs:
           node --check oneshotgames/site/app.js
           node --check oneshotgames/site/osg-runtime.js
           node --check scripts/validate-osg-game-security.mjs
+          node --check scripts/test-osg-security-gate.mjs
           node --check functions/sync-osg-requests-to-github.mjs
           node --check functions/complete-osg-request-from-issue.mjs
       - name: Block unsafe generated game capabilities
         run: node scripts/validate-osg-game-security.mjs
+      - name: Verify security gate bypasses stay blocked
+        run: node scripts/test-osg-security-gate.mjs
       - name: Build OneShotGames bundles
         run: node scripts/build-osg.mjs
       - name: Verify isolated output
