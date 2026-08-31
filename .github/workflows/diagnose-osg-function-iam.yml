@@ -1,0 +1,44 @@
+name: Diagnose OSG Cloud Functions IAM
+
+on:
+  push:
+    branches:
+      - diag/osg-function-iam
+    paths:
+      - '.github/workflows/diagnose-osg-function-iam.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Check current IAM capabilities
+        shell: bash
+        run: |
+          set +e
+          echo '--- service usage get ---'
+          gcloud services describe cloudfunctions.googleapis.com --project=hitobito-levelup --format='value(state)'
+          echo "serviceusage_exit=$?"
+          echo '--- project IAM read ---'
+          gcloud projects get-iam-policy hitobito-levelup --flatten='bindings[].members' --filter='bindings.members:github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com' --format='table(bindings.role)'
+          echo "iam_read_exit=$?"
+          echo '--- secret manager read ---'
+          gcloud secrets describe OSG_PRIVATE_REQUEST_TOKEN --project=hitobito-levelup --format='value(name)'
+          echo "secret_read_exit=$?"
+          echo '--- cloud functions list ---'
+          gcloud functions list --gen2 --regions=asia-northeast1 --project=hitobito-levelup --format='table(name,state)'
+          echo "functions_list_exit=$?"
+          exit 0
