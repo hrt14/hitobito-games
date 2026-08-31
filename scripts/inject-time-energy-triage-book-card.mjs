@@ -47,3 +47,4 @@ if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class=
   throw new Error(`${slug} book card injection failed.`);
 }
 console.log('[Firebase] time-energy-triage title + obi book card injected.');
+await import('./inject-plan-restart-30-book-card.mjs');
