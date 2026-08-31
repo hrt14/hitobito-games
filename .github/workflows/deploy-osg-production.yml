@@ -8,6 +8,7 @@ on:
     paths:
       - 'oneshotgames/**'
       - 'scripts/build-osg.mjs'
+      - 'scripts/validate-osg-game-security.mjs'
       - 'firebase.osg.json'
       - '.firebaserc'
       - '.github/workflows/deploy-osg-production.yml'
@@ -37,35 +38,43 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Ensure secondary Hosting site exists
+      - name: Ensure Hosting sites exist
         run: |
           set +e
-          npx --yes firebase-tools@latest hosting:sites:create hitobito-osg --project hitobito-levelup --non-interactive
-          code=$?
+          for site in hitobito-osg hitobito-osg-games; do
+            npx --yes firebase-tools@latest hosting:sites:create "$site" --project hitobito-levelup --non-interactive
+            code=$?
+            if [ "$code" -ne 0 ]; then
+              echo "Site create for $site returned $code. Continuing because the site may already exist; deploy will verify it."
+            fi
+          done
           set -e
-          if [ "$code" -ne 0 ]; then
-            echo "Site create returned $code. Continuing because the site may already exist; deploy will verify it."
-          fi
+      - name: Security gate generated games
+        run: node scripts/validate-osg-game-security.mjs
       - name: Build OneShotGames
         run: node scripts/build-osg.mjs
       - name: Stamp production commit
         run: |
           node - <<'NODE'
           const fs = require('fs');
-          fs.writeFileSync('.dist/osg/deploy-meta.json', JSON.stringify({
+          const payload = JSON.stringify({
             sha: process.env.GITHUB_SHA,
             runId: process.env.GITHUB_RUN_ID,
             deployedAt: new Date().toISOString()
-          }, null, 2) + '\n');
+          }, null, 2) + '\n';
+          fs.writeFileSync('.dist/osg/deploy-meta.json', payload);
+          fs.writeFileSync('.dist/osg-games/deploy-meta.json', payload);
           NODE
-      - name: Deploy OneShotGames to Firebase Hosting
-        run: npx --yes firebase-tools@latest deploy --only hosting:osg --project hitobito-levelup --config firebase.osg.json --non-interactive
-      - name: Verify production
+      - name: Deploy creator and isolated game origins to Firebase Hosting
+        run: npx --yes firebase-tools@latest deploy --only hosting:osg,hosting:osg-games --project hitobito-levelup --config firebase.osg.json --non-interactive
+      - name: Verify production isolation and security headers
         run: |
           set -euo pipefail
           sleep 5
-          base=https://hitobito-osg.web.app
-          curl -fLsS --max-time 30 "$base/?sha=$GITHUB_SHA" -o /tmp/osg-home.html
+          creator=https://hitobito-osg.web.app
+          games=https://hitobito-osg-games.web.app
+
+          curl -fLsS --max-time 30 "$creator/?sha=$GITHUB_SHA" -o /tmp/osg-home.html
           grep -F 'OneShotGames' /tmp/osg-home.html >/dev/null
           grep -F 'どんなゲームを作る？' /tmp/osg-home.html >/dev/null
           grep -F 'これだけでも送れます' /tmp/osg-home.html >/dev/null
@@ -74,23 +83,37 @@ jobs:
             echo 'Paused photo UI unexpectedly present' >&2
             exit 1
           fi
-          curl -fLsS --max-time 30 "$base/terms.html?sha=$GITHUB_SHA" -o /tmp/osg-terms.html
+
+          curl -fLsS --max-time 30 "$creator/terms.html?sha=$GITHUB_SHA" -o /tmp/osg-terms.html
           grep -F '投稿・権利ルール' /tmp/osg-terms.html >/dev/null
-          curl -fLsS --max-time 30 "$base/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-meta.json
+
+          curl -fLsS --max-time 30 "$creator/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-meta.json
+          curl -fLsS --max-time 30 "$games/deploy-meta.json?sha=$GITHUB_SHA" -o /tmp/osg-games-meta.json
           node - "$GITHUB_SHA" <<'NODE'
           const fs = require('fs');
           const expected = process.argv[2];
-          const meta = JSON.parse(fs.readFileSync('/tmp/osg-meta.json', 'utf8'));
-          if (meta.sha !== expected) throw new Error(`OSG SHA mismatch: ${meta.sha} != ${expected}`);
+          for (const file of ['/tmp/osg-meta.json', '/tmp/osg-games-meta.json']) {
+            const meta = JSON.parse(fs.readFileSync(file, 'utf8'));
+            if (meta.sha !== expected) throw new Error(`OSG SHA mismatch in ${file}: ${meta.sha} != ${expected}`);
+          }
           const manifest = JSON.parse(fs.readFileSync('.dist/osg/games.json', 'utf8'));
+          if (manifest.gameOrigin !== 'https://hitobito-osg-games.web.app') throw new Error(`Unexpected game origin: ${manifest.gameOrigin}`);
           if (!Array.isArray(manifest.games) || !manifest.games.length) throw new Error('No built games to verify');
+          if (manifest.games.some((game) => !String(game.url || '').startsWith(`${manifest.gameOrigin}/g/`))) throw new Error('A game URL is not isolated on the game origin');
           fs.writeFileSync('/tmp/osg-game-ids.txt', manifest.games.map((game) => game.id).join('\n') + '\n');
           console.log(`OneShotGames production commit verified: ${expected}`);
           NODE
+
+          curl -fsSI --max-time 30 "$games/g/first-shot/?sha=$GITHUB_SHA" | tr -d '\r' > /tmp/osg-game-headers.txt
+          grep -i '^content-security-policy:' /tmp/osg-game-headers.txt >/dev/null
+          grep -i "connect-src 'none'" /tmp/osg-game-headers.txt >/dev/null
+          grep -i '^permissions-policy:' /tmp/osg-game-headers.txt >/dev/null
+          grep -i '^x-frame-options: DENY' /tmp/osg-game-headers.txt >/dev/null
+
           while IFS= read -r game_id; do
             [ -n "$game_id" ] || continue
             out="/tmp/osg-game-${game_id}.html"
-            curl -fLsS --max-time 30 "$base/g/$game_id/?sha=$GITHUB_SHA" -o "$out"
+            curl -fLsS --max-time 30 "$games/g/$game_id/?sha=$GITHUB_SHA" -o "$out"
             grep -F 'data-osg-runtime' "$out" >/dev/null
-            echo "Verified production game: $base/g/$game_id/"
+            echo "Verified isolated production game: $games/g/$game_id/"
           done < /tmp/osg-game-ids.txt

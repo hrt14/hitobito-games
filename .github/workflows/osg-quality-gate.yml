@@ -5,6 +5,7 @@ on:
     paths:
       - 'oneshotgames/**'
       - 'scripts/build-osg.mjs'
+      - 'scripts/validate-osg-game-security.mjs'
       - 'functions/*osg*'
       - 'firebase.osg.json'
       - '.firebaserc'
@@ -22,19 +23,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Syntax check browser scripts
+      - name: Syntax check browser and security scripts
         run: |
           node --check oneshotgames/site/app.js
           node --check oneshotgames/site/osg-runtime.js
+          node --check scripts/validate-osg-game-security.mjs
           node --check functions/sync-osg-requests-to-github.mjs
           node --check functions/complete-osg-request-from-issue.mjs
-      - name: Build OneShotGames bundle
+      - name: Block unsafe generated game capabilities
+        run: node scripts/validate-osg-game-security.mjs
+      - name: Build OneShotGames bundles
         run: node scripts/build-osg.mjs
-      - name: Verify required output
+      - name: Verify isolated output
         run: |
           test -f .dist/osg/index.html
-          test -f .dist/osg/g/first-shot/index.html
           test -f .dist/osg/games.json
+          test ! -e .dist/osg/g/first-shot/index.html
+          test -f .dist/osg-games/g/first-shot/index.html
+          test -f .dist/osg-games/osg-runtime.js
           grep -F 'OneShotGames' .dist/osg/index.html >/dev/null
-          grep -F 'data-osg-runtime' .dist/osg/g/first-shot/index.html >/dev/null
-          grep -F 'FIRST SHOT' .dist/osg/g/first-shot/index.html >/dev/null
+          grep -F 'hitobito-osg-games.web.app' .dist/osg/games.json >/dev/null
+          grep -F 'data-osg-runtime' .dist/osg-games/g/first-shot/index.html >/dev/null
+          grep -F 'FIRST SHOT' .dist/osg-games/g/first-shot/index.html >/dev/null

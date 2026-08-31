@@ -9,7 +9,7 @@
     nicknameError: $('nicknameError'), saveNickname: $('saveNicknameBtn')
   };
 
-  const state = { auth: null, db: null, user: null, profile: null, requests: [], games: [], pendingAction: null };
+  const state = { auth: null, db: null, user: null, profile: null, requests: [], games: [], gameOrigin: '', pendingAction: null };
 
   function escapeHtml(value) {
     return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -39,6 +39,14 @@
     return state.games.find((game) => String(game.id || '') === String(gameId)) || null;
   }
 
+  function isolatedGameUrl(gameId) {
+    if (!gameId) return '';
+    const published = publishedGame(gameId);
+    if (published?.url) return String(published.url);
+    const origin = String(state.gameOrigin || '').replace(/\/$/, '');
+    return origin ? `${origin}/g/${encodeURIComponent(gameId)}/` : '';
+  }
+
   function requestIsPublished(req) {
     if (req.status === 'completed') return true;
     const game = publishedGame(req.gameId);
@@ -62,6 +70,7 @@
       const response = await fetch(`/games.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`games.json ${response.status}`);
       const payload = await response.json();
+      state.gameOrigin = typeof payload.gameOrigin === 'string' ? payload.gameOrigin : '';
       state.games = Array.isArray(payload.games) ? payload.games : [];
       renderGames();
       if (state.user && state.requests.length) renderRequests();
@@ -77,7 +86,7 @@
       return;
     }
     els.gamesGrid.innerHTML = state.games.slice(0, 18).map((game) => `
-      <a class="game-card" href="${escapeHtml(game.url || `/g/${game.id}/`)}">
+      <a class="game-card" href="${escapeHtml(game.url || isolatedGameUrl(game.id))}">
         <div class="game-art"><div class="mini">ONE SHOT GAME · V${Number(game.version) || 1}</div><h3>${escapeHtml(game.title || 'Untitled Game')}</h3></div>
         <div class="game-info"><p>${escapeHtml(game.description || 'OneShotGamesで作られたゲーム')}</p><div class="game-meta"><span class="author">@${escapeHtml(game.authorNickname || 'oneshotgames')}</span><span>PLAY →</span></div></div>
       </a>`).join('');
@@ -105,7 +114,7 @@
     els.questsList.innerHTML = items.map((req) => {
       const published = requestIsPublished(req);
       const displayStatus = published ? 'LV.4 LIVE' : statusLabel(req.status);
-      const resultUrl = req.resultUrl || (req.gameId ? `/g/${req.gameId}/` : '');
+      const resultUrl = isolatedGameUrl(req.gameId) || req.resultUrl || '';
       const publishedBadge = published
         ? '<span style="display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#e9fbf4;color:#078864;font-size:10px;font-weight:900;letter-spacing:.04em;white-space:nowrap">✓ 公開済み</span>'
         : '';
@@ -221,7 +230,7 @@
     els.submit.disabled = true;
     const id = requestId();
     const gameId = `g-${id}`;
-    const request = { id, gameId, type: 'create', prompt, status: 'queued', authorNickname: state.profile.nickname, createdAt: new Date().toISOString(), resultUrl: `/g/${gameId}/` };
+    const request = { id, gameId, type: 'create', prompt, status: 'queued', authorNickname: state.profile.nickname, createdAt: new Date().toISOString(), resultUrl: isolatedGameUrl(gameId) };
     try {
       await appendRequest(request);
       els.prompt.value = '';
@@ -251,7 +260,7 @@
       status: 'queued',
       authorNickname: state.profile.nickname,
       createdAt: new Date().toISOString(),
-      resultUrl: `/g/${gameId}/`,
+      resultUrl: isolatedGameUrl(gameId),
       ...(baseVersion ? { baseVersion } : {})
     };
     try {

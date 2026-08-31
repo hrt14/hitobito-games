@@ -2,6 +2,7 @@
   'use strict';
   if (window.__OSG_RUNTIME__) return;
   window.__OSG_RUNTIME__ = true;
+  const CREATOR_ORIGIN = 'https://osg.hitobito.jp';
   const script = document.currentScript;
   const gameId = script?.dataset.gameId || '';
   const author = script?.dataset.author || 'oneshotgames';
@@ -11,7 +12,7 @@
   document.head.appendChild(style);
   const host = document.createElement('div');
   host.id = 'osg-runtime';
-  host.innerHTML = `<a class="brand" href="/">OneShotGames <span class="author">@${escapeHtml(author)}</span></a><div class="actions"><button type="button" data-osg-share>シェア</button></div>`;
+  host.innerHTML = `<a class="brand" href="${CREATOR_ORIGIN}/" rel="noopener">OneShotGames <span class="author">@${escapeHtml(author)}</span></a><div class="actions"><button type="button" data-osg-share>シェア</button></div>`;
   document.body.appendChild(host);
   host.querySelector('[data-osg-share]').addEventListener('click', async () => {
     const url = gameId ? `${location.origin}/g/${encodeURIComponent(gameId)}/` : location.href;
