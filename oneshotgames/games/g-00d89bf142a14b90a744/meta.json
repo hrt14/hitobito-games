@@ -1,8 +1,9 @@
 {
   "id": "g-00d89bf142a14b90a744",
   "title": "TRASH MERGE DROP",
-  "description": "同じゴミを3つつなげて消し、盤面を整理する落ち物パズル。",
+  "description": "次の2個を見ながら同じゴミを3つ以上つなげ、連鎖倍率で800点を狙う落ち物パズル。",
   "authorNickname": "OSG運営",
-  "version": 1,
-  "createdAt": "2026-08-31T13:40:00Z"
+  "version": 2,
+  "createdAt": "2026-08-31T13:40:00Z",
+  "updatedAt": "2026-08-31T14:55:00Z"
 }
