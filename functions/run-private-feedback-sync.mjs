@@ -42,3 +42,4 @@ globalThis.fetch = (input, init) => {
 };
 
 await import('./sync-feedback-to-github.mjs');
+await import('./sync-levelup-creation-requests-to-github.mjs');
