@@ -104,11 +104,17 @@ function validRequest(raw) {
   if (raw.usageTiming === 'other' && clean(raw.timingDetail, 121).length < 2) return false;
   if (!Object.hasOwn(modeLabels, raw.solutionType)) return false;
   if (!Object.hasOwn(durationLabels, raw.duration)) return false;
+  if (raw.showPublicName != null && typeof raw.showPublicName !== 'boolean') return false;
+  if (String(raw.publicNickname || '').length > 30) return false;
+  if (raw.showPublicName === true && clean(raw.publicNickname, 31).length < 1) return false;
   return true;
 }
 
 function issueBody(request) {
   const timing = `${timingLabels[request.usageTiming]}${request.timingDetail ? `：${request.timingDetail}` : ''}`;
+  const showPublicName = request.showPublicName === true;
+  const publicNickname = clean(request.publicNickname, 30);
+  const attribution = showPublicName ? `Requested by ${publicNickname}` : '依頼者名は表示しない';
   return `<!-- levelup-creation-request-id:${request.id} -->\n` +
 `<!-- levelup-app-slug:pending -->\n` +
 `# LEVEL UP 制作依頼\n\n` +
@@ -119,6 +125,13 @@ function issueBody(request) {
 `- **使うタイミング:** ${timing}\n` +
 `- **欲しい変化:** ${modeLabels[request.solutionType]}\n` +
 `- **1回の長さ:** ${durationLabels[request.duration]}\n\n` +
+`## 公開時の見せ方\n\n` +
+`- 作者名を主役にしない。主役は「何に効くLEVEL UPか」。\n` +
+`- アプリ内または共有時に、**「このアプリは○○という悩みから生まれたLEVEL UPです」**のような短い由来を入れてよい。\n` +
+`- ただし依頼文をそのまま引用しない。個人が特定されないよう一般化し、氏名・勤務先・メール・Google表示名・具体的な個人識別情報・センシティブな詳細は出さない。\n` +
+`- 公開用の依頼者表示: **${attribution}**。\n` +
+`- ニックネーム表示がOFFの場合、Requested by / Created for など依頼者を示す名前欄自体を出さない。\n` +
+`- ニックネーム表示がONでも、ここで指定された公開用ニックネーム以外のアカウント情報は絶対に使わない。\n\n` +
 `## LEVEL UP 制作コンセプト\n\n` +
 `これは「ゲームのアイデア」の依頼ではない。ユーザーの悩み・困りごと・やめたい行動・身につけたい考え方や習慣を、実際に変化を起こす小さなアプリへ変換する依頼。\n\n` +
 `- ユーザーにゲーム方式を求めない。依頼内容から最適な介入形式を設計する。\n` +

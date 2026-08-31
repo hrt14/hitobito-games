@@ -34,6 +34,7 @@ function accountBootstrap() {
     messageKind: '',
     favorites: readFavorites(),
     history: [],
+    creationRequestCount: 0,
   };
 
   function readJson(key, fallback) {
@@ -125,6 +126,7 @@ function accountBootstrap() {
     .user{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(255,255,255,.035)}.user .avatar,.user .avatar-fallback{width:42px;height:42px;flex-basis:42px}.who{min-width:0}.name{font-size:14px;font-weight:950;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.email{font-size:10px;color:var(--lu-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
     .sync{display:flex;align-items:center;gap:7px;margin:12px 1px 16px;font-size:10px;color:var(--lu-muted)}.sync .dot{flex:0 0 auto}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}.stat{padding:13px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025)}.stat strong{display:block;font-size:24px;color:var(--lu-lime)}.stat span{font-size:9px;letter-spacing:.08em;color:var(--lu-muted);font-weight:900}
+    .created-apps{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 15px;padding:13px 14px;border:1px solid rgba(216,255,91,.28);border-radius:14px;background:rgba(216,255,91,.055);color:var(--lu-text);cursor:pointer;text-align:left}.created-apps:hover{border-color:rgba(216,255,91,.55)}.created-apps strong{font-size:23px;line-height:1;color:var(--lu-lime);margin-right:9px}.created-apps span{font-size:11px;font-weight:950}.created-apps b{font-size:20px;color:var(--lu-lime)}
     .history-title{font-size:10px;letter-spacing:.12em;font-weight:950;margin:17px 0 8px}.history{display:grid;gap:7px;margin-bottom:16px}.history a{display:flex;justify-content:space-between;gap:12px;padding:10px 11px;border:1px solid rgba(255,255,255,.075);border-radius:12px;color:var(--lu-text);text-decoration:none;background:rgba(255,255,255,.025)}.history-name{font-size:11px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-meta{font-size:9px;color:var(--lu-muted);white-space:nowrap}.empty{font-size:11px;color:var(--lu-muted);padding:10px 2px 15px}
     .message{font-size:10px;line-height:1.5;color:var(--lu-muted);margin:10px 1px}.message.error{color:#ffb7a7}
     .privacy{font-size:9px;line-height:1.6;color:#7f8776;margin:13px 2px 0}
@@ -187,6 +189,7 @@ function accountBootstrap() {
       <div class="user">${avatar(user)}<div class="who"><div class="name">${escapeHtml(user.displayName || 'LEVEL UP ユーザー')}</div><div class="email">${escapeHtml(user.email || '')}</div></div></div>
       <div class="sync"><span class="dot on"></span><span>${state.busy ? 'クラウドと同期中…' : 'Googleアカウントで同期済み'}</span></div>
       <div class="stats"><div class="stat"><strong>${state.favorites.size}</strong><span>お気に入り</span></div><div class="stat"><strong>${state.history.length}</strong><span>プレイしたゲーム</span></div></div>
+      <button class="created-apps" data-action="created-apps" type="button"><span><strong>${state.creationRequestCount}</strong>自分の制作アプリ</span><b>→</b></button>
       <div class="history-title">最近のプレイ</div><div class="history">${historyHtml}</div>
       ${messageHtml}
       <button class="secondary" data-action="logout" type="button" ${state.busy ? 'disabled' : ''}>ログアウト</button>
@@ -202,6 +205,7 @@ function accountBootstrap() {
     panel.querySelector('.close')?.addEventListener('click', closePanel);
     panel.querySelector('[data-action="login"]')?.addEventListener('click', signIn);
     panel.querySelector('[data-action="logout"]')?.addEventListener('click', signOut);
+    panel.querySelector('[data-action="created-apps"]')?.addEventListener('click', openCreatedApps);
   }
 
   function openPanel() {
@@ -218,6 +222,15 @@ function accountBootstrap() {
     backdrop.classList.remove('open');
     trigger.setAttribute('aria-expanded', 'false');
     trigger.focus({ preventScroll: true });
+  }
+
+  function openCreatedApps() {
+    closePanel();
+    if (isHome) {
+      window.dispatchEvent(new CustomEvent('levelup:open-maker', { detail: { view: 'mine' } }));
+      return;
+    }
+    location.href = '/?levelupView=mine';
   }
 
   document.addEventListener('keydown', (event) => {
@@ -271,7 +284,10 @@ function accountBootstrap() {
   async function mergeFavorites() {
     const ref = state.db.collection('levelupUsers').doc(state.user.uid);
     const snapshot = await ref.get();
-    const remote = snapshot.exists && Array.isArray(snapshot.data()?.favorites) ? snapshot.data().favorites : [];
+    const data = snapshot.exists ? (snapshot.data() || {}) : {};
+    const remote = Array.isArray(data.favorites) ? data.favorites : [];
+    const requests = data.creationRequests;
+    state.creationRequestCount = requests && typeof requests === 'object' && !Array.isArray(requests) ? Object.keys(requests).length : 0;
     state.favorites = new Set([...remote, ...readFavorites()]);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify([...state.favorites]));
     await ref.set({
@@ -352,6 +368,7 @@ function accountBootstrap() {
     render();
     try {
       await state.auth.signOut();
+      state.creationRequestCount = 0;
       state.message = 'ログアウトしました。お気に入りはこの端末にも残っています。';
       state.messageKind = 'success';
     } catch (error) {
@@ -377,6 +394,7 @@ function accountBootstrap() {
       state.auth.onAuthStateChanged(async (user) => {
         state.user = user;
         state.history = [];
+        state.creationRequestCount = 0;
         state.busy = false;
         render();
         if (user) await syncUserData();

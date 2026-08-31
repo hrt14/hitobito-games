@@ -3,6 +3,7 @@ name: Validate LEVEL UP guided app request loop
 on:
   pull_request:
     paths:
+      - 'scripts/inject-levelup-account.mjs'
       - 'scripts/inject-levelup-maker.mjs'
       - 'scripts/fix-levelup-feedback-session-ids.mjs'
       - 'scripts/validate-levelup-maker-only-request-flow.mjs'
@@ -29,6 +30,7 @@ jobs:
 
       - name: Check Node syntax
         run: |
+          node --check scripts/inject-levelup-account.mjs
           node --check scripts/inject-levelup-maker.mjs
           node --check scripts/fix-levelup-feedback-session-ids.mjs
           node --check scripts/validate-levelup-maker-only-request-flow.mjs
@@ -52,8 +54,21 @@ jobs:
           grep -F 'この内容で制作を依頼する' .dist/firebase/levelup-maker.js
           grep -F "collection('levelupUsers')" .dist/firebase/levelup-maker.js
           grep -F 'creationRequests' .dist/firebase/levelup-maker.js
+          grep -F 'levelup:open-maker' .dist/firebase/levelup-maker.js
+          grep -F 'showPublicName' .dist/firebase/levelup-maker.js
+          grep -F 'publicNickname' .dist/firebase/levelup-maker.js
+          grep -F 'Googleアカウントの本名・メールアドレスは公開しません' .dist/firebase/levelup-maker.js
+          grep -F '自分の制作アプリ' .dist/firebase/levelup-maker.js
           node --check .dist/firebase/levelup-maker.js
           node scripts/validate-levelup-maker-only-request-flow.mjs
+
+      - name: Prove My Data opens created apps
+        run: |
+          grep -F 'creationRequestCount' scripts/inject-levelup-account.mjs
+          grep -F 'data-action="created-apps"' scripts/inject-levelup-account.mjs
+          grep -F 'levelup:open-maker' scripts/inject-levelup-account.mjs
+          grep -F 'levelupView=mine' scripts/inject-levelup-account.mjs
+          grep -F '自分の制作アプリ' scripts/inject-levelup-account.mjs
 
       - name: Prove maker stays secondary and login becomes ready
         run: |
@@ -66,6 +81,14 @@ jobs:
           grep -F "fetch('/__/firebase/init.json'" .dist/firebase/levelup-maker.js
           grep -F 'signInWithPopup(provider)' .dist/firebase/levelup-maker.js
           grep -F 'ログイン準備完了' .dist/firebase/levelup-maker.js
+
+      - name: Prove privacy-safe attribution reaches the private queue
+        run: |
+          grep -F '## 公開時の見せ方' functions/sync-levelup-creation-requests-to-github.mjs
+          grep -F 'Requested by' functions/sync-levelup-creation-requests-to-github.mjs
+          grep -F '依頼文をそのまま引用しない' functions/sync-levelup-creation-requests-to-github.mjs
+          grep -F 'publicNickname' functions/sync-levelup-creation-requests-to-github.mjs
+          grep -F '依頼者名は表示しない' functions/sync-levelup-creation-requests-to-github.mjs
 
       - name: Prove legacy anonymous request UI is disabled
         run: |
