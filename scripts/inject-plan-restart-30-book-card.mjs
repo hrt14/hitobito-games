@@ -45,3 +45,4 @@ if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class=
   throw new Error(`${slug} book card injection failed.`);
 }
 console.log('[Firebase] plan-restart-30 title + obi book card injected.');
+await import('./inject-new-reset-app-book-cards.mjs');
