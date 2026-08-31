@@ -1,9 +1,9 @@
 {
   "id": "g-93fedeb033854c05a844",
   "title": "SCARE SHIFT: HAUNTED HOUSE",
-  "description": "お化け屋敷全体を見渡し、客が各部屋に入る瞬間に仕掛けを発動するタイミング運営ゲーム。",
+  "description": "客タイプ・入室タイミング・連続成功を読みながら仕掛けを発動するお化け屋敷運営ゲーム。",
   "authorNickname": "OSG運営",
-  "version": 2,
+  "version": 3,
   "createdAt": "2026-08-31T06:00:00.000Z",
-  "updatedAt": "2026-08-31T22:45:00+09:00"
+  "updatedAt": "2026-08-31T14:55:00Z"
 }
