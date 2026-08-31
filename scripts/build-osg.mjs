@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const siteDir = path.join(root, 'oneshotgames', 'site');
 const gamesDir = path.join(root, 'oneshotgames', 'games');
-const outDir = path.join(root, '.dist', 'osg');
+const siteOutDir = path.join(root, '.dist', 'osg');
+const gamesOutDir = path.join(root, '.dist', 'osg-games');
+const gameOrigin = String(process.env.OSG_GAME_ORIGIN || 'https://hitobito-osg-games.web.app').replace(/\/$/, '');
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -21,13 +23,15 @@ function escAttr(value) {
   return String(value ?? '').replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-fs.rmSync(outDir, { recursive: true, force: true });
-copyDir(siteDir, outDir);
-fs.mkdirSync(path.join(outDir, 'g'), { recursive: true });
+fs.rmSync(siteOutDir, { recursive: true, force: true });
+fs.rmSync(gamesOutDir, { recursive: true, force: true });
+copyDir(siteDir, siteOutDir);
+fs.mkdirSync(path.join(gamesOutDir, 'g'), { recursive: true });
+fs.copyFileSync(path.join(siteDir, 'osg-runtime.js'), path.join(gamesOutDir, 'osg-runtime.js'));
 
 // Every production build gets a unique asset URL so mobile browsers do not keep stale JS/CSS.
 const buildVersion = String(process.env.GITHUB_SHA || Date.now()).slice(0, 16);
-const siteIndexPath = path.join(outDir, 'index.html');
+const siteIndexPath = path.join(siteOutDir, 'index.html');
 if (fs.existsSync(siteIndexPath)) {
   let siteHtml = fs.readFileSync(siteIndexPath, 'utf8');
   siteHtml = siteHtml.replace(
@@ -49,7 +53,7 @@ if (fs.existsSync(gamesDir)) {
     const id = String(meta.id || entry.name);
     if (!/^[a-z0-9-]{2,64}$/.test(id)) throw new Error(`Invalid OneShotGames id: ${id}`);
     if (!meta.title || !meta.authorNickname) throw new Error(`Missing OneShotGames meta fields: ${id}`);
-    const dest = path.join(outDir, 'g', id);
+    const dest = path.join(gamesOutDir, 'g', id);
     copyDir(src, dest);
     const destIndex = path.join(dest, 'index.html');
     let html = fs.readFileSync(destIndex, 'utf8');
@@ -66,16 +70,20 @@ if (fs.existsSync(gamesDir)) {
       version: Math.max(1, Number(meta.version) || 1),
       createdAt: String(meta.createdAt || ''),
       updatedAt: String(meta.updatedAt || meta.createdAt || ''),
-      url: `/g/${id}/`
+      url: `${gameOrigin}/g/${id}/`
     });
   }
 }
 
 games.sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
-fs.writeFileSync(path.join(outDir, 'games.json'), JSON.stringify({ generatedAt: new Date().toISOString(), games }, null, 2) + '\n');
+fs.writeFileSync(path.join(siteOutDir, 'games.json'), JSON.stringify({ generatedAt: new Date().toISOString(), gameOrigin, games }, null, 2) + '\n');
 
-for (const required of ['index.html', 'app.js', 'styles.css', 'logo.svg', 'osg-runtime.js', 'games.json']) {
-  if (!fs.existsSync(path.join(outDir, required))) throw new Error(`Missing OSG build file: ${required}`);
+for (const required of ['index.html', 'app.js', 'styles.css', 'logo.svg', 'games.json']) {
+  if (!fs.existsSync(path.join(siteOutDir, required))) throw new Error(`Missing OSG creator build file: ${required}`);
+}
+for (const required of ['osg-runtime.js', 'g/first-shot/index.html']) {
+  if (!fs.existsSync(path.join(gamesOutDir, required))) throw new Error(`Missing OSG game build file: ${required}`);
 }
 if (!games.length) throw new Error('OneShotGames requires at least one playable game.');
-console.log(`[OSG] built ${games.length} games into ${outDir}`);
+console.log(`[OSG] built creator into ${siteOutDir}`);
+console.log(`[OSG] built ${games.length} isolated games into ${gamesOutDir} (${gameOrigin})`);
