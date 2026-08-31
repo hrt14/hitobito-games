@@ -1,11 +1,15 @@
 name: Provision OSG event queue
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feat/osg-event-driven-queue
     paths:
       - '.github/workflows/provision-osg-event-queue.yml'
+      - 'functions/entry.js'
+      - 'functions/osg-request-trigger.js'
+      - 'functions/package.json'
 
 permissions:
   contents: read
@@ -54,15 +58,15 @@ jobs:
 
       - name: Store private request token in Secret Manager
         env:
-          OSG_PRIVATE_REQUEST_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+          PRIVATE_REQUEST_TOKEN_VALUE: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
         run: |
           set -euo pipefail
-          test -n "${OSG_PRIVATE_REQUEST_TOKEN:-}"
-          if ! gcloud secrets describe OSG_PRIVATE_REQUEST_TOKEN --project=hitobito-levelup >/dev/null 2>&1; then
-            gcloud secrets create OSG_PRIVATE_REQUEST_TOKEN --replication-policy=automatic --project=hitobito-levelup
+          test -n "${PRIVATE_REQUEST_TOKEN_VALUE:-}"
+          if ! gcloud secrets describe PRIVATE_REQUEST_TOKEN --project=hitobito-levelup >/dev/null 2>&1; then
+            gcloud secrets create PRIVATE_REQUEST_TOKEN --replication-policy=automatic --project=hitobito-levelup
           fi
-          printf '%s' "$OSG_PRIVATE_REQUEST_TOKEN" | gcloud secrets versions add OSG_PRIVATE_REQUEST_TOKEN --data-file=- --project=hitobito-levelup >/dev/null
-          echo 'OSG private request token stored without exposing its value.'
+          printf '%s' "$PRIVATE_REQUEST_TOKEN_VALUE" | gcloud secrets versions add PRIVATE_REQUEST_TOKEN --data-file=- --project=hitobito-levelup >/dev/null
+          echo 'Private request token stored without exposing its value.'
 
       - name: Deploy event-driven OSG Function
         run: |
