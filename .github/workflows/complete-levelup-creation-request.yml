@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
-            echo 'Private request queue configuration is missing; completed LEVEL UP requests cannot be synchronized.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Private request queue configuration is missing; LEVEL UP requests cannot be synchronized.' >> "$GITHUB_STEP_SUMMARY"
             echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required.'
             exit 1
           fi
@@ -58,15 +58,18 @@ jobs:
       - name: Install function dependencies
         run: npm install --prefix functions
 
-      - name: Mark closed LEVEL UP creation requests complete in Firebase
+      - name: Sync ready LEVEL UP creation requests to My Page
         env:
           QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
           GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
         run: |
           set -euo pipefail
-          gh issue list --repo "$QUEUE_REPO" --state closed --label levelup-app-request --limit 100 --json number --jq '.[].number' \
-            | sort -nu > /tmp/levelup-closed-issues.txt
+          # Scan both open and closed queue items. Open items with a completed
+          # app marker can therefore reach My Page before the queue item is
+          # closed, which keeps completion ordering non-circular.
+          gh issue list --repo "$QUEUE_REPO" --state all --label levelup-app-request --limit 100 --json number --jq '.[].number' \
+            | sort -nu > /tmp/levelup-creation-issues.txt
 
           count=0
           while read -r issue; do
@@ -74,7 +77,7 @@ jobs:
             REQUEST_QUEUE_REPOSITORY="$QUEUE_REPO" ISSUE_NUMBER="$issue" \
               node functions/complete-levelup-creation-request-from-issue.mjs
             count=$((count + 1))
-          done < /tmp/levelup-closed-issues.txt
-          echo "Checked $count closed LEVEL UP creation request issue(s)." >> "$GITHUB_STEP_SUMMARY"
+          done < /tmp/levelup-creation-issues.txt
+          echo "Checked $count LEVEL UP creation request issue(s) for production and My Page completion." >> "$GITHUB_STEP_SUMMARY"
 
 # Completion stays in the public code repository; free-text request bodies remain only in the private request queue.

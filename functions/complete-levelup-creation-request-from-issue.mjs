@@ -26,7 +26,7 @@ const issue = await issueResponse.json();
 const body = String(issue.body || '');
 const requestMatch = body.match(/<!-- levelup-creation-request-id:([a-z0-9-]{8,36}) -->/);
 if (!requestMatch) {
-  console.log('[LEVEL UP maker] closed queue item is not a guided creation request; skip');
+  console.log('[LEVEL UP maker] queue item is not a guided creation request; skip');
   process.exit(0);
 }
 
@@ -44,10 +44,10 @@ const slug = slugMatch?.[1] && slugMatch[1] !== 'pending' ? slugMatch[1] : '';
 const appTitle = String(titleMatch?.[1] || '').trim();
 
 if (!rejected && !slug) {
-  console.log(`[LEVEL UP maker] request ${requestId} is closed but has no completed app slug; keep request building`);
+  console.log(`[LEVEL UP maker] request ${requestId} has no completed app slug; keep request building`);
   await indexRef.set({
     status: 'building',
-    completionWarning: 'closed-without-app-slug',
+    completionWarning: 'waiting-for-app-slug',
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
   process.exit(0);
