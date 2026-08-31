@@ -47,7 +47,7 @@ if (!indexSnap.exists) throw new Error(`Missing osgRequestIndex/${requestId}`);
 const index = indexSnap.data();
 const rejected = Array.isArray(issue.labels) && issue.labels.some((label) => (typeof label === 'string' ? label : label?.name) === 'osg-rejected');
 const status = rejected ? 'rejected' : 'completed';
-const resultUrl = `https://osg.hitobito.jp/g/${index.gameId}/`;
+const resultUrl = `https://hitobito-osg-games.web.app/g/${index.gameId}/`;
 const userRef = db.collection('levelupUsers').doc(index.userId);
 
 await db.runTransaction(async (tx) => {
