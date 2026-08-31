@@ -69,5 +69,9 @@ fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 console.log(`[Firebase] removed ${removedCount} Negotiator cards from LEVEL UP home discovery; visible=${visibleCount}.`);
 
-await import('../firebase-overrides/levelup-feedback/app-request.mjs');
+// App creation requests now use the authenticated 5-step LEVEL UP maker injected
+// by scripts/inject-levelup-maker.mjs. Do not inject the legacy anonymous,
+// single-textarea app-request widget here; public apps remain login-free, while
+// creating a new app is intentionally tied to the signed-in user's account.
 await import('./apply-levelup-queue-improvements.mjs');
+await import('./validate-levelup-maker-only-request-flow.mjs');
