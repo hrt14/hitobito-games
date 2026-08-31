@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/inject-levelup-account.mjs'
       - 'scripts/inject-levelup-maker.mjs'
+      - 'scripts/patch-levelup-popup-auth.mjs'
       - 'scripts/fix-levelup-feedback-session-ids.mjs'
       - 'scripts/validate-levelup-maker-only-request-flow.mjs'
       - 'functions/sync-levelup-creation-requests-to-github.mjs'
@@ -32,11 +33,33 @@ jobs:
         run: |
           node --check scripts/inject-levelup-account.mjs
           node --check scripts/inject-levelup-maker.mjs
+          node --check scripts/patch-levelup-popup-auth.mjs
           node --check scripts/fix-levelup-feedback-session-ids.mjs
           node --check scripts/validate-levelup-maker-only-request-flow.mjs
           node --check functions/sync-levelup-creation-requests-to-github.mjs
           node --check functions/complete-levelup-creation-request-from-issue.mjs
           node --check functions/run-private-feedback-sync.mjs
+
+      - name: Prove generated account survives auth hardening
+        run: |
+          rm -rf .dist/firebase
+          mkdir -p .dist/firebase/apps/test-app
+          printf '<!doctype html><html><head></head><body><main></main></body></html>' > .dist/firebase/index.html
+          printf '<!doctype html><html><head></head><body><main></main></body></html>' > .dist/firebase/apps/test-app/index.html
+          node scripts/inject-levelup-account.mjs
+          node scripts/patch-levelup-popup-auth.mjs
+          node --check .dist/firebase/levelup-account.js
+          grep -F 'creationRequestCount' .dist/firebase/levelup-account.js
+          grep -F 'data-action="created-apps"' .dist/firebase/levelup-account.js
+          grep -F 'levelup:open-maker' .dist/firebase/levelup-account.js
+          grep -F "fetch('/__/firebase/init.json'" .dist/firebase/levelup-account.js
+          grep -F 'signInWithPopup(provider)' .dist/firebase/levelup-account.js
+          grep -F "sessionStorage.removeItem('levelup-auth-redirect-pending-v5')" .dist/firebase/levelup-account.js
+          grep -F '/levelup-account.js?v=' .dist/firebase/index.html
+          if grep -F '/__/firebase/init.js' .dist/firebase/index.html; then
+            echo 'Firebase init.js remained after popup-auth patch.' >&2
+            exit 1
+          fi
 
       - name: Prove guided maker injection
         run: |
