@@ -6,10 +6,25 @@
     authBtn: $('authBtn'), myQuestsBtn: $('myQuestsBtn'), prompt: $('gamePrompt'), promptCount: $('promptCount'),
     submit: $('submitQuestBtn'), message: $('creatorMessage'), gamesGrid: $('gamesGrid'), panel: $('questsPanel'),
     questsList: $('questsList'), profileBox: $('profileBox'), nicknameModal: $('nicknameModal'), nicknameInput: $('nicknameInput'),
-    nicknameError: $('nicknameError'), saveNickname: $('saveNicknameBtn')
+    nicknameError: $('nicknameError'), saveNickname: $('saveNicknameBtn'), questRefreshBtn: $('questRefreshBtn'),
+    questsLastUpdated: $('questsLastUpdated')
   };
 
-  const state = { auth: null, db: null, user: null, profile: null, requests: [], games: [], gameOrigin: '', pendingAction: null };
+  const AUTO_REFRESH_MS = 30000;
+  const state = {
+    auth: null,
+    db: null,
+    user: null,
+    profile: null,
+    requests: [],
+    games: [],
+    gameOrigin: '',
+    pendingAction: null,
+    userDocUnsubscribe: null,
+    autoRefreshTimer: null,
+    refreshInFlight: false,
+    lastRefreshAt: null
+  };
 
   function escapeHtml(value) {
     return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -26,12 +41,41 @@
   }
 
   function statusLabel(status) {
-    return ({ queued: 'LV.1 QUEST', synced: 'LV.1 QUEST', processing: 'LV.2 BUILDING', testing: 'LV.3 TESTING', deploying: 'LV.3 DEPLOYING', completed: 'LV.4 LIVE', failed: 'FAILED', rejected: 'REJECTED' })[status] || String(status || 'QUEUED').toUpperCase();
+    return ({
+      queued: 'LV.1 受付済み',
+      synced: 'LV.1 同期済み',
+      processing: 'LV.2 制作中',
+      testing: 'LV.3 テスト中',
+      deploying: 'LV.3 公開準備中',
+      completed: 'LV.4 公開済み',
+      failed: '制作エラー',
+      rejected: '受付不可'
+    })[status] || String(status || '受付済み').toUpperCase();
   }
 
   function formatDate(value) {
     const date = value?.toDate ? value.toDate() : new Date(value || Date.now());
     return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
+  }
+
+  function formatRefreshTime(date) {
+    if (!date) return '自動更新 ON';
+    return `最終更新 ${new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(date)}`;
+  }
+
+  function updateRefreshUi() {
+    if (els.questRefreshBtn) {
+      els.questRefreshBtn.disabled = state.refreshInFlight;
+      els.questRefreshBtn.textContent = state.refreshInFlight ? '↻ 更新中…' : '↻ 更新';
+    }
+    if (els.questsLastUpdated) {
+      els.questsLastUpdated.textContent = state.refreshInFlight ? '最新状態を確認中…' : formatRefreshTime(state.lastRefreshAt);
+    }
+  }
+
+  function markRefreshed() {
+    state.lastRefreshAt = new Date();
+    updateRefreshUi();
   }
 
   function publishedGame(gameId) {
@@ -65,7 +109,7 @@
     return Number.isFinite(requestTime) && Number.isFinite(gameTime) && gameTime >= requestTime;
   }
 
-  async function loadGames() {
+  async function loadGames({ silent = false } = {}) {
     try {
       const response = await fetch(`/games.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`games.json ${response.status}`);
@@ -74,9 +118,11 @@
       state.games = Array.isArray(payload.games) ? payload.games : [];
       renderGames();
       if (state.user && state.requests.length) renderRequests();
+      return true;
     } catch (error) {
       console.warn('[OSG] game list failed', error);
-      els.gamesGrid.innerHTML = '<div class="loading-card">まだ公開ゲームはありません。</div>';
+      if (!silent && !state.games.length) els.gamesGrid.innerHTML = '<div class="loading-card">公開ゲームを読み込めませんでした。更新してもう一度お試しください。</div>';
+      return false;
     }
   }
 
@@ -113,7 +159,7 @@
     const items = [...state.requests].reverse();
     els.questsList.innerHTML = items.map((req) => {
       const published = requestIsPublished(req);
-      const displayStatus = published ? 'LV.4 LIVE' : statusLabel(req.status);
+      const displayStatus = published ? 'LV.4 公開済み' : statusLabel(req.status);
       const resultUrl = isolatedGameUrl(req.gameId) || req.resultUrl || '';
       const publishedBadge = published
         ? '<span style="display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#e9fbf4;color:#078864;font-size:10px;font-weight:900;letter-spacing:.04em;white-space:nowrap">✓ 公開済み</span>'
@@ -130,15 +176,66 @@
     els.questsList.querySelectorAll('[data-improve]').forEach((button) => button.addEventListener('click', () => startImprovement(button.dataset.improve)));
   }
 
-  async function loadUserDoc() {
-    if (!state.user || !state.db) return;
-    const ref = state.db.collection('levelupUsers').doc(state.user.uid);
-    const snap = await ref.get();
-    const data = snap.exists ? snap.data() : {};
+  function applyUserDoc(snap) {
+    const data = snap?.exists ? snap.data() : {};
     state.profile = data.osgProfile || null;
     state.requests = Array.isArray(data.osgRequests) ? data.osgRequests : [];
     renderAccount();
-    if (!state.profile?.nickname) showNicknameModal();
+    markRefreshed();
+    if (!state.profile?.nickname && !els.nicknameModal.classList.contains('open')) showNicknameModal();
+  }
+
+  async function loadUserDoc({ server = false } = {}) {
+    if (!state.user || !state.db) return false;
+    const ref = state.db.collection('levelupUsers').doc(state.user.uid);
+    try {
+      const snap = server ? await ref.get({ source: 'server' }) : await ref.get();
+      applyUserDoc(snap);
+      return true;
+    } catch (error) {
+      console.warn('[OSG] user data refresh failed', error);
+      return false;
+    }
+  }
+
+  function stopUserDocWatch() {
+    if (typeof state.userDocUnsubscribe === 'function') state.userDocUnsubscribe();
+    state.userDocUnsubscribe = null;
+  }
+
+  function watchUserDoc() {
+    stopUserDocWatch();
+    if (!state.user || !state.db) return;
+    const ref = state.db.collection('levelupUsers').doc(state.user.uid);
+    state.userDocUnsubscribe = ref.onSnapshot(
+      { includeMetadataChanges: false },
+      (snap) => applyUserDoc(snap),
+      (error) => console.warn('[OSG] realtime user data failed', error)
+    );
+  }
+
+  async function refreshAll() {
+    if (state.refreshInFlight) return;
+    state.refreshInFlight = true;
+    updateRefreshUi();
+    try {
+      const jobs = [loadGames({ silent: true })];
+      if (state.user) jobs.push(loadUserDoc({ server: true }));
+      await Promise.allSettled(jobs);
+      markRefreshed();
+    } finally {
+      state.refreshInFlight = false;
+      updateRefreshUi();
+    }
+  }
+
+  function startAutoRefresh() {
+    if (state.autoRefreshTimer) clearInterval(state.autoRefreshTimer);
+    state.autoRefreshTimer = setInterval(async () => {
+      if (document.visibilityState !== 'visible') return;
+      const refreshed = await loadGames({ silent: true });
+      if (refreshed) markRefreshed();
+    }, AUTO_REFRESH_MS);
   }
 
   function showNicknameModal() {
@@ -276,7 +373,9 @@
   function openPanel() {
     els.panel.classList.add('open');
     els.panel.setAttribute('aria-hidden', 'false');
+    refreshAll();
   }
+
   function closePanel() {
     els.panel.classList.remove('open');
     els.panel.setAttribute('aria-hidden', 'true');
@@ -289,10 +388,14 @@
     document.querySelectorAll('[data-close-panel]').forEach((node) => node.addEventListener('click', closePanel));
     els.saveNickname.addEventListener('click', saveNickname);
     els.nicknameInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') saveNickname(); });
+    if (els.questRefreshBtn) els.questRefreshBtn.addEventListener('click', refreshAll);
     els.authBtn.addEventListener('click', async () => {
       if (!state.user) return signIn();
       if (!state.profile?.nickname) return showNicknameModal();
       openPanel();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refreshAll();
     });
   }
 
@@ -305,11 +408,12 @@
     state.db = firebase.firestore();
     await state.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     state.auth.onAuthStateChanged(async (user) => {
+      stopUserDocWatch();
       state.user = user;
       state.profile = null;
       state.requests = [];
       renderAccount();
-      if (user) await loadUserDoc();
+      if (user) watchUserDoc();
       if (user && state.pendingAction === 'submit' && state.profile?.nickname) {
         state.pendingAction = null;
         await submitQuest();
@@ -319,6 +423,8 @@
 
   bind();
   renderAccount();
-  loadGames();
+  updateRefreshUi();
+  loadGames({ silent: false }).then((ok) => { if (ok) markRefreshed(); });
+  startAutoRefresh();
   initFirebase();
 })();
