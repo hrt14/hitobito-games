@@ -1,4 +1,5 @@
 import { GAME_META } from './playtest-catalog.mjs';
+import './register-plan-restart-30-meta.mjs';
 
 GAME_META['time-energy-triage'] = [
   'levelup',
