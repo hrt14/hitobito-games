@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - 'functions/complete-levelup-creation-request-from-issue.mjs'
+      - 'scripts/.levelup-creation-completion-trigger'
       - '.github/workflows/complete-levelup-creation-request.yml'
 
 permissions:
