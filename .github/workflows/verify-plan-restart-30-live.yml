@@ -1,0 +1,25 @@
+name: verify plan-restart-30 live route
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-plan-restart-30-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify production app URL and markers
+        run: |
+          set -euo pipefail
+          url='https://levelup.hitobito.jp/apps/plan-restart-30/'
+          curl -fLsS --max-time 30 "$url" -o /tmp/plan-restart-30-live.html
+          grep -F '<title>予定が崩れたら30秒 — LEVEL UP</title>' /tmp/plan-restart-30-live.html >/dev/null
+          grep -F '30 SEC RESTART' /tmp/plan-restart-30-live.html >/dev/null
+          grep -F '2秒長押しして開始' /tmp/plan-restart-30-live.html >/dev/null
+          echo "LIVE ROUTE VERIFIED: $url"
