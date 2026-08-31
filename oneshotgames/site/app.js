@@ -41,6 +41,7 @@
       const payload = await response.json();
       state.games = Array.isArray(payload.games) ? payload.games : [];
       renderGames();
+      if (state.user && state.requests.length) renderRequests();
     } catch (error) {
       console.warn('[OSG] game list failed', error);
       els.gamesGrid.innerHTML = '<div class="loading-card">まだ公開ゲームはありません。</div>';
@@ -77,15 +78,19 @@
       els.questsList.innerHTML = '<div class="loading-card">まだ制作クエストはありません。</div>';
       return;
     }
+    const publishedIds = new Set(state.games.map((game) => String(game.id || '')));
     const items = [...state.requests].reverse();
     els.questsList.innerHTML = items.map((req) => {
-      const live = req.status === 'completed';
+      const published = Boolean(req.gameId && publishedIds.has(String(req.gameId)));
+      const live = req.status === 'completed' || published;
+      const displayStatus = live ? 'LV.4 LIVE' : statusLabel(req.status);
+      const resultUrl = req.resultUrl || (req.gameId ? `/g/${req.gameId}/` : '');
       return `<article class="quest-card">
-        <div class="quest-top"><span class="quest-status">${escapeHtml(statusLabel(req.status))}</span><small>${escapeHtml(formatDate(req.createdAt))}</small></div>
+        <div class="quest-top"><span class="quest-status">${escapeHtml(displayStatus)}</span><small>${escapeHtml(formatDate(req.createdAt))}</small></div>
         <p>${escapeHtml(req.prompt)}</p>
         <div class="quest-actions">
-          ${live && req.resultUrl ? `<a class="mini-btn" href="${escapeHtml(req.resultUrl)}">PLAY</a>` : ''}
-          ${live ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
+          ${live && resultUrl ? `<a class="mini-btn" href="${escapeHtml(resultUrl)}">PLAY</a>` : ''}
+          ${live && req.gameId ? `<button class="mini-btn" type="button" data-improve="${escapeHtml(req.gameId)}">改善する</button>` : ''}
         </div>
       </article>`;
     }).join('');
