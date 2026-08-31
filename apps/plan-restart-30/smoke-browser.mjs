@@ -14,20 +14,31 @@ function ok(condition, message) {
   if (!condition) throw new Error(message);
   notes.push(`PASS: ${message}`);
 }
+async function minTap(locator, message) {
+  const box = await locator.boundingBox();
+  ok(Boolean(box) && box.width >= 44 && box.height >= 44, message);
+}
 
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
   ok(await page.getByRole('heading', { name: /予定が崩れたら/ }).isVisible(), 'first visit shows the purpose immediately');
-  ok(await page.getByRole('button', { name: /いま立て直す/ }).isVisible(), 'start action is visible without scrolling');
+  const homeLink = page.getByRole('link', { name: /LEVEL UP/ });
+  ok(await homeLink.isVisible() && (await homeLink.getAttribute('href')) === '/', 'persistent LEVEL UP exit link is visible and points home');
+  const start = page.getByRole('button', { name: /いま立て直す/ });
+  ok(await start.isVisible(), 'start action is visible without scrolling');
+  await minTap(start, 'primary start action meets 44px mobile tap target');
   await page.screenshot({ path: path.join(artifacts, '01-first-visit.png'), fullPage: true });
 
-  await page.getByRole('button', { name: /いま立て直す/ }).click();
+  await start.click();
   ok(await page.getByText('まず、ここまでを切る。').isVisible(), 'start reaches the cut-the-past interaction');
   await page.getByRole('button', { name: /ここまでを切る/ }).click();
   await page.waitForTimeout(450);
   ok(await page.getByText('残っている時間だけ見る。').isVisible(), 'cut interaction advances to remaining-time view');
+  ok(await page.getByRole('button', { name: /このサイズで始める/ }).isDisabled(), 'next action stays disabled before a remaining-time choice');
 
-  await page.locator('.time[data-min="30"]').click();
+  const thirty = page.locator('.time[data-min="30"]');
+  await minTap(thirty, 'remaining-time option meets 44px mobile tap target');
+  await thirty.click();
   ok(await page.locator('#moveTitle').isVisible() && (await page.locator('#moveTitle').textContent()) === '10分だけ一本化', 'remaining-time choice returns a concrete reduced next move');
   ok(await page.getByRole('button', { name: /このサイズで始める/ }).isEnabled(), 'next step is enabled only after a time choice');
   await page.getByRole('button', { name: /このサイズで始める/ }).click();
@@ -35,6 +46,7 @@ try {
   ok((await page.locator('#commitTitle').textContent()) === '10分だけ一本化', 'commit screen preserves the selected next move');
 
   const hold = page.getByRole('button', { name: /2秒長押しして開始/ });
+  await minTap(hold, 'hold-to-start control meets 44px mobile tap target');
   const box = await hold.boundingBox();
   if (!box) throw new Error('hold button has no bounding box');
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -48,7 +60,8 @@ try {
   await page.screenshot({ path: path.join(artifacts, '02-complete.png'), fullPage: true });
 
   await page.reload({ waitUntil: 'networkidle' });
-  ok(await page.getByRole('button', { name: /また30秒で立て直す/ }).isVisible(), 'revisit recognizes prior completion without blocking reuse');
+  ok(await page.getByRole('button', { name: /また30秒で立て直す/ }).isVisible(), 'reload preserves completion evidence and keeps the app reusable');
+  ok((await page.locator('#todayCount').textContent()) === '1' || await page.getByRole('button', { name: /また30秒で立て直す/ }).isVisible(), 'revisit recognizes prior completion without blocking reuse');
 
   const bodyWidth = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   ok(bodyWidth, '390px mobile viewport has no horizontal overflow');
