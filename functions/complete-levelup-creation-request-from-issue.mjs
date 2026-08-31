@@ -37,7 +37,7 @@ if (!indexSnap.exists) throw new Error(`Missing levelupCreationRequestIndex/${re
 const index = indexSnap.data() || {};
 
 const labels = Array.isArray(issue.labels) ? issue.labels.map((label) => typeof label === 'string' ? label : label?.name).filter(Boolean) : [];
-const rejected = labels.includes('levelup-request-rejected');
+const rejected = labels.includes('levelup-request-rejected') || issue.state_reason === 'not_planned';
 const slugMatch = body.match(/<!-- levelup-app-slug:([a-z0-9-]{1,64}) -->/);
 const titleMatch = body.match(/<!-- levelup-app-title:([^<>\n]{1,100}) -->/);
 const slug = slugMatch?.[1] && slugMatch[1] !== 'pending' ? slugMatch[1] : '';
@@ -53,8 +53,53 @@ if (!rejected && !slug) {
   process.exit(0);
 }
 
-const status = rejected ? 'rejected' : 'published';
 const appPath = slug ? `/apps/${slug}/` : '';
+
+async function verifyProductionApp(appSlug) {
+  if (!/^[a-z0-9-]{1,64}$/.test(appSlug)) return false;
+  const nonce = Date.now();
+  const appUrl = `https://levelup.hitobito.jp/apps/${appSlug}/?verify=${nonce}`;
+  const appResponse = await fetch(appUrl, {
+    cache: 'no-store',
+    redirect: 'follow',
+    headers: { 'cache-control': 'no-cache, no-store, must-revalidate', 'user-agent': 'levelup-creation-completer' },
+  });
+  if (!appResponse.ok) {
+    console.log(`[LEVEL UP maker] production app is not live yet: ${appUrl} -> ${appResponse.status}`);
+    return false;
+  }
+
+  const catalogResponse = await fetch(`https://levelup.hitobito.jp/levelup-catalog.json?verify=${nonce}`, {
+    cache: 'no-store',
+    headers: { 'cache-control': 'no-cache, no-store, must-revalidate', 'user-agent': 'levelup-creation-completer' },
+  });
+  if (!catalogResponse.ok) {
+    console.log(`[LEVEL UP maker] production catalog is not available yet: ${catalogResponse.status}`);
+    return false;
+  }
+  const catalog = await catalogResponse.json().catch(() => null);
+  const games = Array.isArray(catalog?.games) ? catalog.games : [];
+  const listed = games.some((game) => String(game?.slug || '') === appSlug);
+  if (!listed) console.log(`[LEVEL UP maker] ${appSlug} is not in the production catalog yet; keep request building`);
+  return listed;
+}
+
+if (!rejected) {
+  const live = await verifyProductionApp(slug);
+  if (!live) {
+    await indexRef.set({
+      status: 'building',
+      completionWarning: 'waiting-for-production',
+      appSlug: slug,
+      appPath,
+      githubIssueNumber: issueNumber,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    process.exit(0);
+  }
+}
+
+const status = rejected ? 'rejected' : 'published';
 const userRef = db.collection('levelupUsers').doc(index.userId);
 await db.runTransaction(async (tx) => {
   const snap = await tx.get(userRef);
@@ -85,6 +130,7 @@ await indexRef.set({
   githubIssueNumber: issueNumber,
   githubIssueUrl: issue.html_url,
   completionChannel: 'my-levelup',
+  completionWarning: FieldValue.delete(),
   updatedAt: FieldValue.serverTimestamp(),
   completedAt: FieldValue.serverTimestamp(),
 }, { merge: true });
