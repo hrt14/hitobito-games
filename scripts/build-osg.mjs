@@ -78,6 +78,8 @@ if (fs.existsSync(gamesDir)) {
 games.sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
 fs.writeFileSync(path.join(siteOutDir, 'games.json'), JSON.stringify({ generatedAt: new Date().toISOString(), gameOrigin, games }, null, 2) + '\n');
 
+await import('../oneshotgames/patch-implement-button.mjs');
+
 for (const required of ['index.html', 'app.js', 'styles.css', 'logo.svg', 'games.json']) {
   if (!fs.existsSync(path.join(siteOutDir, required))) throw new Error(`Missing OSG creator build file: ${required}`);
 }
