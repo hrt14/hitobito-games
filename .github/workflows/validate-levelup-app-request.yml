@@ -43,7 +43,10 @@ jobs:
           printf '<!doctype html><html><head></head><body><main><section class="intro"></section></main></body></html>' > .dist/firebase/index.html
           node scripts/inject-levelup-maker.mjs
           grep -F 'data-levelup-maker' .dist/firebase/index.html
-          grep -F '/levelup-maker.js' .dist/firebase/index.html
+          grep -F '/levelup-maker.js?v=' .dist/firebase/index.html
+          grep -F 'data-maker-fab' .dist/firebase/levelup-maker.js
+          grep -F 'アプリ制作' .dist/firebase/levelup-maker.js
+          grep -F '今あるLEVEL UPを使うだけでなく' .dist/firebase/levelup-maker.js
           grep -F '困りごとを、' .dist/firebase/levelup-maker.js
           grep -F 'STEP 1 / 5' .dist/firebase/levelup-maker.js
           grep -F 'この内容で制作を依頼する' .dist/firebase/levelup-maker.js
@@ -51,6 +54,18 @@ jobs:
           grep -F 'creationRequests' .dist/firebase/levelup-maker.js
           node --check .dist/firebase/levelup-maker.js
           node scripts/validate-levelup-maker-only-request-flow.mjs
+
+      - name: Prove maker stays secondary and login becomes ready
+        run: |
+          if grep -F 'insertBefore(host, intro.nextSibling)' .dist/firebase/levelup-maker.js; then
+            echo 'Maker returned to the main home content stream.' >&2
+            exit 1
+          fi
+          grep -F 'document.body.appendChild(host)' .dist/firebase/levelup-maker.js
+          grep -F 'waitForFirebaseSdk' .dist/firebase/levelup-maker.js
+          grep -F "fetch('/__/firebase/init.json'" .dist/firebase/levelup-maker.js
+          grep -F 'signInWithPopup(provider)' .dist/firebase/levelup-maker.js
+          grep -F 'ログイン準備完了' .dist/firebase/levelup-maker.js
 
       - name: Prove legacy anonymous request UI is disabled
         run: |
