@@ -75,7 +75,8 @@ if (fs.existsSync(gamesDir)) {
   }
 }
 
-games.sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
+// Keep the public gallery in true newest-first order. Improving an older game must not move it above newly created games.
+games.sort((a, b) => String(b.createdAt || b.updatedAt).localeCompare(String(a.createdAt || a.updatedAt)));
 fs.writeFileSync(path.join(siteOutDir, 'games.json'), JSON.stringify({ generatedAt: new Date().toISOString(), gameOrigin, games }, null, 2) + '\n');
 
 for (const required of ['index.html', 'app.js', 'styles.css', 'logo.svg', 'games.json']) {
