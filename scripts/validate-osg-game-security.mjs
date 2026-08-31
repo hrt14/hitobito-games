@@ -22,25 +22,69 @@ const rules = [
   ['external URL or protocol', /(?:https?:\/\/|\/\/[^\s'\"<]+|mailto:|tel:|data:text\/html)/i]
 ];
 
-function walk(dir) {
+const namedEntities = new Map([
+  ['amp', '&'],
+  ['colon', ':'],
+  ['sol', '/'],
+  ['quot', '"'],
+  ['apos', "'"],
+  ['lt', '<'],
+  ['gt', '>']
+]);
+
+function decodeHtmlEntities(text) {
+  return String(text).replace(/&(?:#(\d+)|#x([\da-f]+)|([a-z][a-z0-9]+));?/gi, (match, decimal, hex, named) => {
+    if (decimal) {
+      const codePoint = Number.parseInt(decimal, 10);
+      return Number.isFinite(codePoint) && codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : match;
+    }
+    if (hex) {
+      const codePoint = Number.parseInt(hex, 16);
+      return Number.isFinite(codePoint) && codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : match;
+    }
+    return namedEntities.get(String(named).toLowerCase()) ?? match;
+  });
+}
+
+function isWithin(parent, candidate) {
+  const relative = path.relative(parent, candidate);
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+function walk(dir, failures, gamesRealDir) {
   const files = [];
   if (!fs.existsSync(dir)) return files;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) files.push(...walk(full));
-    else files.push(full);
+    const relative = path.relative(root, full);
+
+    if (entry.isSymbolicLink()) {
+      failures.push(`${relative}: symbolic links are not allowed`);
+      continue;
+    }
+
+    const real = fs.realpathSync(full);
+    if (!isWithin(gamesRealDir, real)) {
+      failures.push(`${relative}: resolved path escapes oneshotgames/games`);
+      continue;
+    }
+
+    if (entry.isDirectory()) files.push(...walk(full, failures, gamesRealDir));
+    else if (entry.isFile()) files.push(full);
+    else failures.push(`${relative}: unsupported filesystem entry type`);
   }
   return files;
 }
 
 function normalizedForScan(text) {
-  return String(text)
+  return decodeHtmlEntities(String(text))
     .replaceAll('http://www.w3.org/2000/svg', '')
     .replaceAll('http://www.w3.org/1999/xlink', '');
 }
 
 const failures = [];
-for (const file of walk(gamesDir)) {
+const gamesRealDir = fs.existsSync(gamesDir) ? fs.realpathSync(gamesDir) : gamesDir;
+for (const file of walk(gamesDir, failures, gamesRealDir)) {
   const ext = path.extname(file).toLowerCase();
   if (!textExtensions.has(ext)) continue;
   const stat = fs.statSync(file);
