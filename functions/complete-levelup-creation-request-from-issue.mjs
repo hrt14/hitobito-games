@@ -127,6 +127,7 @@ const myPageSynced = await db.runTransaction(async (tx) => {
     ...map,
     [requestId]: {
       ...current,
+      id: requestId,
       status,
       appSlug: slug,
       appPath,
