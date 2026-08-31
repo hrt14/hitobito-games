@@ -3,7 +3,6 @@ import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
-const db = getFirestore();
 const REGION = 'asia-northeast1';
 const QUEUE_REPO = 'hrt14/hitobito-request-queue';
 const API_BASE = 'https://api.github.com';
@@ -113,6 +112,7 @@ async function findExistingIssue(token, requestId) {
 }
 
 async function updateUserRequest(userId, requestId, patch) {
+  const db = getFirestore();
   const userRef = db.collection('levelupUsers').doc(userId);
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(userRef);
@@ -124,6 +124,7 @@ async function updateUserRequest(userId, requestId, patch) {
 }
 
 async function acquireClaim(userId, request) {
+  const db = getFirestore();
   const indexRef = db.collection('osgRequestIndex').doc(request.id);
   const claimId = randomUUID();
   let acquired = false;
@@ -155,6 +156,7 @@ async function acquireClaim(userId, request) {
 }
 
 async function syncRequest(token, userId, request) {
+  const db = getFirestore();
   const { indexRef, claimId, acquired, completed } = await acquireClaim(userId, request);
   if (completed?.githubIssueNumber) {
     await updateUserRequest(userId, request.id, {
