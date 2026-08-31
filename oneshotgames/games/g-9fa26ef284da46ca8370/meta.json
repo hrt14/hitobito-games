@@ -1,8 +1,9 @@
 {
   "id": "g-9fa26ef284da46ca8370",
   "title": "HOOK!",
-  "description": "HITの瞬間にタイミングバーを合わせて魚を引き上げる横視点フィッシングゲーム。",
+  "description": "HIT後のタイミングバーと連続成功の加速を読みながら7匹を釣り上げるフィッシングゲーム。",
   "authorNickname": "OSG運営",
-  "version": 1,
-  "createdAt": "2026-08-31T13:40:00Z"
+  "version": 2,
+  "createdAt": "2026-08-31T13:40:00Z",
+  "updatedAt": "2026-08-31T14:55:00Z"
 }

@@ -1,8 +1,9 @@
 {
   "id": "g-fa2020f1bd944eecb067",
   "title": "RIVER SHADOWS",
-  "description": "魚影を選んでキャストし、食いつきに合わせて20種類の魚図鑑を集める川釣りゲーム。",
+  "description": "魚影を見極めてキャストし、食いつきと糸の緊張を読んで20種類の魚図鑑を集める川釣りゲーム。",
   "authorNickname": "OSG運営",
-  "version": 2,
-  "createdAt": "2026-08-31T13:40:00Z"
+  "version": 3,
+  "createdAt": "2026-08-31T13:40:00Z",
+  "updatedAt": "2026-08-31T14:55:00Z"
 }
