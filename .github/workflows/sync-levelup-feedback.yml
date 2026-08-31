@@ -3,7 +3,7 @@ name: Sync LEVEL UP feedback to private queue
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '*/10 * * * *'
   push:
     branches:
       - main
