@@ -74,3 +74,4 @@ console.log(`[Firebase] removed ${removedCount} Negotiator cards from LEVEL UP h
 // single-textarea app-request widget here; public apps remain login-free, while
 // creating a new app is intentionally tied to the signed-in user's account.
 await import('./apply-levelup-queue-improvements.mjs');
+await import('./validate-levelup-maker-only-request-flow.mjs');
