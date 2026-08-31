@@ -25,6 +25,18 @@ fs.rmSync(outDir, { recursive: true, force: true });
 copyDir(siteDir, outDir);
 fs.mkdirSync(path.join(outDir, 'g'), { recursive: true });
 
+// Every production build gets a unique asset URL so mobile browsers do not keep stale JS/CSS.
+const buildVersion = String(process.env.GITHUB_SHA || Date.now()).slice(0, 16);
+const siteIndexPath = path.join(outDir, 'index.html');
+if (fs.existsSync(siteIndexPath)) {
+  let siteHtml = fs.readFileSync(siteIndexPath, 'utf8');
+  siteHtml = siteHtml.replace(
+    /(href|src)="\/(styles\.css|creator-v2\.css|build-cycle\.css|creator-v2\.js|app\.js)(?:\?[^\"]*)?"/g,
+    (_match, attr, asset) => `${attr}="/${asset}?v=${buildVersion}"`
+  );
+  fs.writeFileSync(siteIndexPath, siteHtml);
+}
+
 const games = [];
 if (fs.existsSync(gamesDir)) {
   for (const entry of fs.readdirSync(gamesDir, { withFileTypes: true })) {
@@ -42,7 +54,7 @@ if (fs.existsSync(gamesDir)) {
     const destIndex = path.join(dest, 'index.html');
     let html = fs.readFileSync(destIndex, 'utf8');
     if (!html.includes('data-osg-runtime')) {
-      const runtime = `<script src="/osg-runtime.js" data-osg-runtime data-game-id="${escAttr(id)}" data-author="${escAttr(meta.authorNickname)}" data-title="${escAttr(meta.title)}"></script>`;
+      const runtime = `<script src="/osg-runtime.js?v=${buildVersion}" data-osg-runtime data-game-id="${escAttr(id)}" data-author="${escAttr(meta.authorNickname)}" data-title="${escAttr(meta.title)}"></script>`;
       html = html.includes('</body>') ? html.replace('</body>', `${runtime}</body>`) : `${html}${runtime}`;
       fs.writeFileSync(destIndex, html);
     }
