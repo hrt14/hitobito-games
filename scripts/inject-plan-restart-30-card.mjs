@@ -51,3 +51,4 @@ for (const value of Object.values(copy)) {
   if (!home.includes(escapeHtml(value))) throw new Error('plan-restart-30 card copy verification failed');
 }
 console.log('[Firebase] plan-restart-30 app-specific LEVEL UP card copy injected and verified.');
+await import('./inject-new-reset-app-card-copy.mjs');
