@@ -27,11 +27,12 @@ try {
   await page.waitForTimeout(450);
   ok(await page.getByText('残っている時間だけ見る。').isVisible(), 'cut interaction advances to remaining-time view');
 
-  await page.getByRole('button', { name: /30/ }).click();
-  ok(await page.getByText('10分だけ一本化').isVisible(), 'remaining-time choice returns a concrete reduced next move');
+  await page.locator('.time[data-min="30"]').click();
+  ok(await page.locator('#moveTitle').isVisible() && (await page.locator('#moveTitle').textContent()) === '10分だけ一本化', 'remaining-time choice returns a concrete reduced next move');
   ok(await page.getByRole('button', { name: /このサイズで始める/ }).isEnabled(), 'next step is enabled only after a time choice');
   await page.getByRole('button', { name: /このサイズで始める/ }).click();
   ok(await page.getByText('2秒押して、開始。').isVisible(), 'commit screen explains the physical start action');
+  ok((await page.locator('#commitTitle').textContent()) === '10分だけ一本化', 'commit screen preserves the selected next move');
 
   const hold = page.getByRole('button', { name: /2秒長押しして開始/ });
   const box = await hold.boundingBox();
@@ -42,7 +43,7 @@ try {
   await page.mouse.up();
   await page.waitForTimeout(250);
   ok(await page.getByText('遅れではなく、').isVisible(), 'successful hold reaches completion');
-  ok(await page.getByText('10分だけ一本化').isVisible(), 'completion preserves the chosen next move');
+  ok((await page.locator('#doneMove').textContent()) === '10分だけ一本化', 'completion preserves the chosen next move');
   ok((await page.locator('#todayCount').textContent()) === '1', 'completion records one real restart today');
   await page.screenshot({ path: path.join(artifacts, '02-complete.png'), fullPage: true });
 
@@ -55,8 +56,8 @@ try {
   await page.getByRole('button', { name: /また30秒で立て直す/ }).click();
   await page.getByRole('button', { name: /ここまでを切る/ }).click();
   await page.waitForTimeout(450);
-  await page.getByRole('button', { name: /10/ }).click();
-  ok(await page.getByText('3分だけ着手').isVisible(), 'low-time path reduces the next move further');
+  await page.locator('.time[data-min="10"]').click();
+  ok(await page.locator('#moveTitle').isVisible() && (await page.locator('#moveTitle').textContent()) === '3分だけ着手', 'low-time path reduces the next move further');
 
   fs.writeFileSync(path.join(artifacts, 'playtest.txt'), notes.join('\n') + '\n');
   console.log(notes.join('\n'));
