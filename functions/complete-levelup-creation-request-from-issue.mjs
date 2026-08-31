@@ -21,12 +21,12 @@ if (!repoResponse.ok) throw new Error(`Unable to verify request queue: ${repoRes
 if ((await repoResponse.json())?.private !== true) throw new Error('Refusing to read LEVEL UP requests from a non-private repository');
 
 const issueResponse = await fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}`, { headers });
-if (!issueResponse.ok) throw new Error(`Unable to fetch issue ${issueNumber}: ${issueResponse.status}`);
+if (!issueResponse.ok) throw new Error(`Unable to fetch private request: ${issueResponse.status}`);
 const issue = await issueResponse.json();
 const body = String(issue.body || '');
 const requestMatch = body.match(/<!-- levelup-creation-request-id:([a-z0-9-]{8,36}) -->/);
 if (!requestMatch) {
-  console.log('[LEVEL UP maker] closed issue is not a guided creation request; skip');
+  console.log('[LEVEL UP maker] closed queue item is not a guided creation request; skip');
   process.exit(0);
 }
 
@@ -44,7 +44,7 @@ const slug = slugMatch?.[1] && slugMatch[1] !== 'pending' ? slugMatch[1] : '';
 const appTitle = String(titleMatch?.[1] || '').trim();
 
 if (!rejected && !slug) {
-  console.log(`[LEVEL UP maker] issue #${issueNumber} is closed but has no completed app slug; keep request building`);
+  console.log(`[LEVEL UP maker] request ${requestId} is closed but has no completed app slug; keep request building`);
   await indexRef.set({
     status: 'building',
     completionWarning: 'closed-without-app-slug',
@@ -65,7 +65,7 @@ async function verifyProductionApp(appSlug) {
     headers: { 'cache-control': 'no-cache, no-store, must-revalidate', 'user-agent': 'levelup-creation-completer' },
   });
   if (!appResponse.ok) {
-    console.log(`[LEVEL UP maker] production app is not live yet: ${appUrl} -> ${appResponse.status}`);
+    console.log(`[LEVEL UP maker] production app is not live yet for request ${requestId}: ${appResponse.status}`);
     return false;
   }
 
@@ -74,13 +74,13 @@ async function verifyProductionApp(appSlug) {
     headers: { 'cache-control': 'no-cache, no-store, must-revalidate', 'user-agent': 'levelup-creation-completer' },
   });
   if (!catalogResponse.ok) {
-    console.log(`[LEVEL UP maker] production catalog is not available yet: ${catalogResponse.status}`);
+    console.log(`[LEVEL UP maker] production catalog is not available yet for request ${requestId}: ${catalogResponse.status}`);
     return false;
   }
   const catalog = await catalogResponse.json().catch(() => null);
   const games = Array.isArray(catalog?.games) ? catalog.games : [];
   const listed = games.some((game) => String(game?.slug || '') === appSlug);
-  if (!listed) console.log(`[LEVEL UP maker] ${appSlug} is not in the production catalog yet; keep request building`);
+  if (!listed) console.log(`[LEVEL UP maker] production catalog is waiting for request ${requestId}; keep request building`);
   return listed;
 }
 
@@ -92,7 +92,6 @@ if (!rejected) {
       completionWarning: 'waiting-for-production',
       appSlug: slug,
       appPath,
-      githubIssueNumber: issueNumber,
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     process.exit(0);
@@ -100,39 +99,69 @@ if (!rejected) {
 }
 
 const status = rejected ? 'rejected' : 'published';
-const userRef = db.collection('levelupUsers').doc(index.userId);
-await db.runTransaction(async (tx) => {
+const userId = String(index.userId || '').trim();
+if (!userId) {
+  await indexRef.set({
+    status: 'building',
+    completionWarning: 'my-page-user-link-missing',
+    appSlug: slug,
+    appPath,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+  console.log(`[LEVEL UP maker] request ${requestId} is waiting for its My Page user link`);
+  process.exit(0);
+}
+
+const completedAt = new Date().toISOString();
+const userRef = db.collection('levelupUsers').doc(userId);
+const myPageSynced = await db.runTransaction(async (tx) => {
   const snap = await tx.get(userRef);
-  if (!snap.exists) return;
-  const map = snap.data()?.creationRequests;
-  if (!map || typeof map !== 'object' || Array.isArray(map) || !map[requestId]) return;
+  if (!snap.exists) return false;
+
+  const rawMap = snap.data()?.creationRequests;
+  const map = rawMap && typeof rawMap === 'object' && !Array.isArray(rawMap) ? rawMap : {};
+  const current = map[requestId] && typeof map[requestId] === 'object' && !Array.isArray(map[requestId])
+    ? map[requestId]
+    : {};
   const next = {
     ...map,
     [requestId]: {
-      ...map[requestId],
+      ...current,
       status,
       appSlug: slug,
       appPath,
-      appTitle: appTitle || map[requestId].appTitle || '',
-      githubIssueNumber: issueNumber,
-      completedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      appTitle: appTitle || current.appTitle || String(index.appTitle || '').trim(),
+      completedAt,
+      updatedAt: completedAt,
     },
   };
   tx.set(userRef, { creationRequests: next }, { merge: true });
+  return true;
 });
+
+if (!myPageSynced) {
+  await indexRef.set({
+    status: 'building',
+    completionWarning: 'my-page-user-document-missing',
+    appSlug: slug,
+    appPath,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+  console.log(`[LEVEL UP maker] request ${requestId} is waiting for its My Page user document`);
+  process.exit(0);
+}
 
 await indexRef.set({
   status,
   appSlug: slug,
   appPath,
   appTitle,
-  githubIssueNumber: issueNumber,
-  githubIssueUrl: issue.html_url,
   completionChannel: 'my-levelup',
+  myPageSynced: true,
+  myPageSyncedAt: FieldValue.serverTimestamp(),
   completionWarning: FieldValue.delete(),
   updatedAt: FieldValue.serverTimestamp(),
   completedAt: FieldValue.serverTimestamp(),
 }, { merge: true });
 
-console.log(`[LEVEL UP maker] request ${requestId} -> ${status}${slug ? ` (${slug})` : ''}`);
+console.log(`[LEVEL UP maker] request ${requestId} -> ${status}; My Page synchronized`);
