@@ -22,7 +22,7 @@ async function minTap(locator, message) {
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
   ok(await page.getByRole('heading', { name: /予定が崩れたら/ }).isVisible(), 'first visit shows the purpose immediately');
-  const homeLink = page.getByRole('link', { name: /LEVEL UP/ });
+  const homeLink = page.getByRole('link', { name: '← LEVEL UP', exact: true });
   ok(await homeLink.isVisible() && (await homeLink.getAttribute('href')) === '/', 'persistent LEVEL UP exit link is visible and points home');
   const start = page.getByRole('button', { name: /いま立て直す/ });
   ok(await start.isVisible(), 'start action is visible without scrolling');
@@ -61,7 +61,7 @@ try {
 
   await page.reload({ waitUntil: 'networkidle' });
   ok(await page.getByRole('button', { name: /また30秒で立て直す/ }).isVisible(), 'reload preserves completion evidence and keeps the app reusable');
-  ok((await page.locator('#todayCount').textContent()) === '1' || await page.getByRole('button', { name: /また30秒で立て直す/ }).isVisible(), 'revisit recognizes prior completion without blocking reuse');
+  ok(await page.getByRole('button', { name: /また30秒で立て直す/ }).isVisible(), 'revisit recognizes prior completion without blocking reuse');
 
   const bodyWidth = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   ok(bodyWidth, '390px mobile viewport has no horizontal overflow');
