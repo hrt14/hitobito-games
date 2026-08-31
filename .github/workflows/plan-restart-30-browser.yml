@@ -1,0 +1,64 @@
+name: plan-restart-30 browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/plan-restart-30/**'
+      - 'scripts/register-plan-restart-30-meta.mjs'
+      - 'scripts/register-time-energy-triage-meta.mjs'
+      - '.github/workflows/plan-restart-30-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/plan-restart-30/**'
+      - 'scripts/register-plan-restart-30-meta.mjs'
+      - 'scripts/register-time-energy-triage-meta.mjs'
+      - '.github/workflows/plan-restart-30-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: |
+          node --check apps/plan-restart-30/smoke-browser.mjs
+          node --check scripts/register-plan-restart-30-meta.mjs
+      - name: Build Firebase bundle
+        run: npm run build:firebase
+      - name: Start static server
+        run: |
+          cd .dist/firebase
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/plan-restart-30-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/plan-restart-30/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/plan-restart-30-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          PLAN_RESTART_30_URL: http://127.0.0.1:4173/apps/plan-restart-30/
+        run: node apps/plan-restart-30/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-restart-30-browser-playtest
+          path: apps/plan-restart-30/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/plan-restart-30-server.log || true
