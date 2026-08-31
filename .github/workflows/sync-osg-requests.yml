@@ -3,20 +3,27 @@ name: Sync OneShotGames requests
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/10 * * * *'
+    # Independent staggered poller. Both this workflow and the LEVEL UP poller
+    # process both queues because GitHub schedule events can be delayed or dropped.
+    - cron: '3,13,23,33,43,53 * * * *'
   push:
     branches:
       - main
     paths:
       - 'functions/sync-osg-requests-to-github.mjs'
+      - 'functions/sync-feedback-to-github.mjs'
+      - 'functions/sync-levelup-creation-requests-to-github.mjs'
+      - 'functions/run-private-feedback-sync.mjs'
       - '.github/workflows/sync-osg-requests.yml'
+      - '.github/workflows/sync-levelup-feedback.yml'
 
 permissions:
   contents: read
   id-token: write
 
+# Shared with sync-levelup-feedback.yml so redundant pollers do not race.
 concurrency:
-  group: osg-request-sync
+  group: private-request-queue-sync
   cancel-in-progress: false
 
 jobs:
@@ -33,7 +40,7 @@ jobs:
           if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
             echo 'configured=false' >> "$GITHUB_OUTPUT"
             echo 'Private request queue configuration is missing; queued requests cannot be processed.' >> "$GITHUB_STEP_SUMMARY"
-            echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required for OneShotGames request sync.'
+            echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required for private request sync.'
             exit 1
           fi
           visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
@@ -72,5 +79,23 @@ jobs:
           GOOGLE_CLOUD_PROJECT: hitobito-levelup
         run: node functions/sync-osg-requests-to-github.mjs
 
-# Privacy rule: raw creator prompts must never be written to the public code repository.
+      - name: Redundant LEVEL UP private queue sync
+        if: steps.queue.outputs.configured == 'true'
+        env:
+          REQUEST_QUEUE_REPOSITORY: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: |
+          set -o pipefail
+          node functions/run-private-feedback-sync.mjs 2>&1 \
+            | sed -E \
+              -e 's/(Recovered session feedback [^:]+):.*/\1: [message redacted]/' \
+              -e 's/(\[dry-run\] [^:]+):.*/\1: [message redacted]/'
+
+      - name: Record privacy-safe result
+        if: always()
+        run: |
+          echo 'OneShotGames and LEVEL UP private request sync finished. Raw user text is allowed only in the dedicated private request repository.' >> "$GITHUB_STEP_SUMMARY"
+
+# Privacy rule: raw creator prompts and LEVEL UP free text must never be written to the public code repository.
 # Missing private-queue configuration is a hard failure so queued requests cannot silently stall.
