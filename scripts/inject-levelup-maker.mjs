@@ -30,6 +30,7 @@ function makerBootstrap() {
     modalOpen: false,
     pendingWizard: false,
     screen: 'landing',
+    focusMine: false,
     step: 0,
     busy: false,
     message: '',
@@ -77,6 +78,8 @@ function makerBootstrap() {
       timingDetail: '',
       solutionType: '',
       duration: '',
+      showPublicName: false,
+      publicNickname: '',
     };
   }
 
@@ -112,7 +115,7 @@ function makerBootstrap() {
   shadow.innerHTML = `
     <style>
       :host{all:initial;display:contents;color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;--lime:#d8ff5b;--text:#f6f8f1;--muted:#aab19e;--line:rgba(216,255,91,.22)}
-      *{box-sizing:border-box}button,input,textarea{font:inherit}button{cursor:pointer}.maker-fab{position:fixed;right:0;top:calc(50% + 106px);transform:translateY(-50%);z-index:2147483290;width:40px;min-height:112px;padding:10px 7px;border:1px solid rgba(216,255,91,.48);border-right:0;border-radius:15px 0 0 15px;background:#d8ff5b;color:#11150c;font-size:11px;font-weight:950;line-height:1.08;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.05em;box-shadow:0 10px 30px rgba(0,0,0,.36);-webkit-tap-highlight-color:transparent}.maker-fab:focus-visible{outline:2px solid #fff;outline-offset:2px}.maker-fab .spark{margin-bottom:6px;font-size:13px}.backdrop{position:fixed;z-index:2147483300;inset:0;background:rgba(0,0,0,.68);display:none;place-items:center;padding:12px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}.backdrop.open{display:grid}.dialog{width:min(620px,100%);max-height:min(820px,calc(100dvh - 24px));overflow:auto;border:1px solid var(--line);border-radius:25px;background:radial-gradient(circle at 92% 0,rgba(216,255,91,.09),transparent 30%),linear-gradient(145deg,#171c12,#0b0e09);box-shadow:0 30px 100px rgba(0,0,0,.62);color:var(--text)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:17px 19px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:rgba(18,23,15,.97);z-index:2}.progress{font-size:9px;letter-spacing:.14em;font-weight:950;color:var(--lime)}.close{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text);font-size:19px}.dialog-body{padding:23px 20px 20px}.step-kicker,.eyebrow{font-size:9px;color:var(--lime);font-weight:950;letter-spacing:.14em}.dialog h2{font-size:clamp(27px,7vw,40px);line-height:1.07;letter-spacing:-.045em;margin:8px 0 11px}.desc{font-size:12px;line-height:1.8;color:#abb3a3;margin:0 0 18px}.desc strong{color:var(--text)}.examples{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 19px}.example{font-size:10px;color:#c1c8b9;border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.025)}.primary,.secondary,.google{min-height:48px;border-radius:14px;padding:0 17px;font-weight:950}.primary{border:0;background:var(--lime);color:#11150c}.primary:disabled,.google:disabled{opacity:.5;cursor:wait}.secondary{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:var(--text)}.google{width:100%;border:0;background:#fff;color:#202124}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.hint{font-size:10px;color:#7e8777}.field{width:100%;border:1px solid rgba(255,255,255,.14);border-radius:15px;background:#0c100a;color:var(--text);padding:13px 14px;outline:none}.field:focus{border-color:rgba(216,255,91,.65);box-shadow:0 0 0 3px rgba(216,255,91,.08)}textarea.field{min-height:128px;resize:vertical;line-height:1.65}.small-field{margin-top:11px;min-height:86px}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.choice{min-height:50px;text-align:left;border:1px solid rgba(255,255,255,.10);border-radius:13px;background:rgba(255,255,255,.025);color:var(--text);padding:11px 12px;font-size:11px;font-weight:850}.choice.on{border-color:rgba(216,255,91,.65);background:rgba(216,255,91,.09);color:#efffc0}.choice small{display:block;color:#899281;font-size:9px;font-weight:500;line-height:1.5;margin-top:4px}.choice.on small{color:#bdc99e}.nav{display:flex;justify-content:space-between;gap:10px;margin-top:21px;padding-top:17px;border-top:1px solid rgba(255,255,255,.07)}.error,.message{font-size:10px;color:#ffb5a6;margin:10px 0}.summary{display:grid;gap:8px}.summary-row{padding:11px 12px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.025)}.summary-row span{display:block;font-size:8px;letter-spacing:.12em;color:#7f8878;font-weight:950;margin-bottom:4px}.summary-row strong{font-size:11px;line-height:1.55}.promise{margin:14px 0 0;padding:12px;border-radius:13px;background:rgba(216,255,91,.07);color:#cbd5b4;font-size:10px;line-height:1.7}.success{text-align:center;padding:18px 5px 5px}.success-mark{width:58px;height:58px;display:grid;place-items:center;margin:0 auto 14px;border-radius:50%;background:var(--lime);color:#11150c;font-size:25px;font-weight:950}.success h2{margin-bottom:10px}.success p{font-size:11px;line-height:1.8;color:#aab29f}.my-block{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}.my-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:10px}.my-head h3{font-size:17px;margin:4px 0 0}.count{font-size:9px;color:#858e7d}.request-list{display:grid;gap:8px}.request{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.025)}.request-title{font-size:11px;font-weight:900;line-height:1.45}.request-meta{font-size:9px;color:#899281;margin-top:4px}.status{align-self:start;font-size:9px;font-weight:950;border-radius:999px;padding:5px 8px;background:rgba(216,255,91,.1);color:var(--lime);white-space:nowrap}.request-actions{grid-column:1/-1;display:flex;gap:7px}.mini{border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text);border-radius:10px;padding:7px 10px;font-size:10px;font-weight:900;text-decoration:none}.empty{font-size:10px;color:#858e7d}.auth-ready{margin-top:10px;font-size:9px;color:#7f8878}.auth-ready strong{color:#b8c3a5}
+      *{box-sizing:border-box}button,input,textarea{font:inherit}button{cursor:pointer}.maker-fab{position:fixed;right:0;top:calc(50% + 106px);transform:translateY(-50%);z-index:2147483290;width:40px;min-height:112px;padding:10px 7px;border:1px solid rgba(216,255,91,.48);border-right:0;border-radius:15px 0 0 15px;background:#d8ff5b;color:#11150c;font-size:11px;font-weight:950;line-height:1.08;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.05em;box-shadow:0 10px 30px rgba(0,0,0,.36);-webkit-tap-highlight-color:transparent}.maker-fab:focus-visible{outline:2px solid #fff;outline-offset:2px}.maker-fab .spark{margin-bottom:6px;font-size:13px}.backdrop{position:fixed;z-index:2147483300;inset:0;background:rgba(0,0,0,.68);display:none;place-items:center;padding:12px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}.backdrop.open{display:grid}.dialog{width:min(620px,100%);max-height:min(820px,calc(100dvh - 24px));overflow:auto;border:1px solid var(--line);border-radius:25px;background:radial-gradient(circle at 92% 0,rgba(216,255,91,.09),transparent 30%),linear-gradient(145deg,#171c12,#0b0e09);box-shadow:0 30px 100px rgba(0,0,0,.62);color:var(--text)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:17px 19px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:rgba(18,23,15,.97);z-index:2}.progress{font-size:9px;letter-spacing:.14em;font-weight:950;color:var(--lime)}.close{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text);font-size:19px}.dialog-body{padding:23px 20px 20px}.step-kicker,.eyebrow{font-size:9px;color:var(--lime);font-weight:950;letter-spacing:.14em}.dialog h2{font-size:clamp(27px,7vw,40px);line-height:1.07;letter-spacing:-.045em;margin:8px 0 11px}.desc{font-size:12px;line-height:1.8;color:#abb3a3;margin:0 0 18px}.desc strong{color:var(--text)}.examples{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 19px}.example{font-size:10px;color:#c1c8b9;border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.025)}.primary,.secondary,.google{min-height:48px;border-radius:14px;padding:0 17px;font-weight:950}.primary{border:0;background:var(--lime);color:#11150c}.primary:disabled,.google:disabled{opacity:.5;cursor:wait}.secondary{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:var(--text)}.google{width:100%;border:0;background:#fff;color:#202124}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.hint{font-size:10px;color:#7e8777}.field{width:100%;border:1px solid rgba(255,255,255,.14);border-radius:15px;background:#0c100a;color:var(--text);padding:13px 14px;outline:none}.field:focus{border-color:rgba(216,255,91,.65);box-shadow:0 0 0 3px rgba(216,255,91,.08)}textarea.field{min-height:128px;resize:vertical;line-height:1.65}.small-field{margin-top:11px;min-height:86px}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.choice{min-height:50px;text-align:left;border:1px solid rgba(255,255,255,.10);border-radius:13px;background:rgba(255,255,255,.025);color:var(--text);padding:11px 12px;font-size:11px;font-weight:850}.choice.on{border-color:rgba(216,255,91,.65);background:rgba(216,255,91,.09);color:#efffc0}.choice small{display:block;color:#899281;font-size:9px;font-weight:500;line-height:1.5;margin-top:4px}.choice.on small{color:#bdc99e}.nav{display:flex;justify-content:space-between;gap:10px;margin-top:21px;padding-top:17px;border-top:1px solid rgba(255,255,255,.07)}.error,.message{font-size:10px;color:#ffb5a6;margin:10px 0}.summary{display:grid;gap:8px}.summary-row{padding:11px 12px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.025)}.summary-row span{display:block;font-size:8px;letter-spacing:.12em;color:#7f8878;font-weight:950;margin-bottom:4px}.summary-row strong{font-size:11px;line-height:1.55}.promise{margin:14px 0 0;padding:12px;border-radius:13px;background:rgba(216,255,91,.07);color:#cbd5b4;font-size:10px;line-height:1.7}.public-setting{margin-top:12px;padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.025)}.public-title{font-size:9px;letter-spacing:.12em;color:#899281;font-weight:950;margin-bottom:9px}.toggle-row{display:flex;align-items:flex-start;gap:10px;color:var(--text);font-size:11px;font-weight:900;cursor:pointer}.toggle-row input{margin-top:2px;width:18px;height:18px;accent-color:var(--lime)}.toggle-row small{display:block;color:#899281;font-size:9px;font-weight:500;line-height:1.5;margin-top:3px}.public-name{margin-top:11px}.public-note{margin:9px 0 0;color:#808979;font-size:9px;line-height:1.6}.success{text-align:center;padding:18px 5px 5px}.success-mark{width:58px;height:58px;display:grid;place-items:center;margin:0 auto 14px;border-radius:50%;background:var(--lime);color:#11150c;font-size:25px;font-weight:950}.success h2{margin-bottom:10px}.success p{font-size:11px;line-height:1.8;color:#aab29f}.my-block{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}.my-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:10px}.my-head h3{font-size:17px;margin:4px 0 0}.count{font-size:9px;color:#858e7d}.request-list{display:grid;gap:8px}.request{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.025)}.request-title{font-size:11px;font-weight:900;line-height:1.45}.request-meta{font-size:9px;color:#899281;margin-top:4px}.status{align-self:start;font-size:9px;font-weight:950;border-radius:999px;padding:5px 8px;background:rgba(216,255,91,.1);color:var(--lime);white-space:nowrap}.request-actions{grid-column:1/-1;display:flex;gap:7px}.mini{border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text);border-radius:10px;padding:7px 10px;font-size:10px;font-weight:900;text-decoration:none}.empty{font-size:10px;color:#858e7d}.auth-ready{margin-top:10px;font-size:9px;color:#7f8878}.auth-ready strong{color:#b8c3a5}
       @media(max-width:600px){.maker-fab{top:calc(50% + 98px);width:38px;min-height:104px;font-size:10px}.choices{grid-template-columns:1fr}.dialog-body{padding:20px 15px}.backdrop{align-items:end;padding:0}.dialog{width:100%;max-height:92dvh;border-radius:23px 23px 0 0;border-bottom:0}.dialog-head{padding:13px 15px}.request{grid-template-columns:1fr}.status{justify-self:start}}
       @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
     </style>
@@ -167,6 +170,7 @@ function makerBootstrap() {
   function closeModal() {
     state.modalOpen = false;
     state.screen = 'landing';
+    state.focusMine = false;
     backdrop.classList.remove('open');
     backdrop.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
@@ -185,14 +189,16 @@ function makerBootstrap() {
     dialog.querySelectorAll('[data-share]').forEach((button) => button.addEventListener('click', () => shareRequest(button)));
   }
 
-  function openMaker() {
+  function openMaker(event) {
     state.screen = 'landing';
+    state.focusMine = event?.detail?.view === 'mine';
     state.message = '';
     renderLanding();
     openModal();
   }
 
-  fab.addEventListener('click', openMaker);
+  fab.addEventListener('click', () => openMaker());
+  window.addEventListener('levelup:open-maker', openMaker);
   backdrop.addEventListener('click', (event) => {
     if (event.target === backdrop) closeModal();
   });
@@ -203,6 +209,13 @@ function makerBootstrap() {
   function renderLanding() {
     state.screen = 'landing';
     const my = state.user ? `<div class="my-block"><div class="my-head"><div><div class="eyebrow">MY LEVEL UP</div><h3>自分の制作アプリ</h3></div><span class="count">${state.requests.length}件</span></div><div class="request-list">${requestListHtml()}</div></div>` : '';
+    if (state.focusMine) {
+      dialog.innerHTML = `${header('MY LEVEL UP')}<div class="dialog-body"><div class="step-kicker">自分が依頼したLEVEL UP</div><h2>自分の制作アプリ</h2><p class="desc">制作中・公開済みのアプリをここで確認できます。公開済みならそのまま遊んだりシェアできます。</p>${state.user ? `<div class="request-list">${requestListHtml()}</div><div class="actions" style="margin-top:18px"><button class="primary" type="button" data-start>新しいアプリを制作依頼する</button></div>` : `<div class="message">Googleログインすると、自分の制作アプリを表示できます。</div><button class="primary" type="button" data-start>ログインして確認する</button>`}</div>`;
+      wireClose();
+      wireShare();
+      dialog.querySelector('[data-start]')?.addEventListener('click', startRequest);
+      return;
+    }
     dialog.innerHTML = `${header('APP CREATION')}<div class="dialog-body"><div class="step-kicker">もう少し、自分に合わせたいときに。</div><h2>困りごとを、<br>自分用のLEVEL UPへ。</h2><p class="desc">今あるLEVEL UPを使うだけでなく、<strong>あなたの悩み・変えたい行動・身につけたい習慣に合わせたアプリ</strong>を制作依頼できます。ゲームのアイデアは必要ありません。5つの質問に答えると、内容に合う形をこちらで考えます。</p><div class="examples"><span class="example">朝すぐ起きたい</span><span class="example">仕事を始めたい</span><span class="example">嫌なことを引きずりたくない</span><span class="example">スマホをやめたい</span></div><div class="actions"><button class="primary" type="button" data-start>5問で制作依頼する</button><span class="hint">約1〜2分</span></div>${my}</div>`;
     wireClose();
     wireShare();
@@ -231,6 +244,7 @@ function makerBootstrap() {
       renderLogin();
       return;
     }
+    state.focusMine = false;
     state.form = blankForm();
     state.step = 0;
     state.message = '';
@@ -305,14 +319,30 @@ function makerBootstrap() {
     state.screen = 'confirm';
     const f = state.form;
     const timing = labelFor(timings, f.usageTiming) + (f.timingDetail ? `：${f.timingDetail}` : '');
-    dialog.innerHTML = `${header('CONFIRM')}<div class="dialog-body"><div class="step-kicker">制作依頼の確認</div><h2>この内容で、<br>あなた用のLEVEL UPを依頼。</h2><div class="summary"><div class="summary-row"><span>困りごと</span><strong>${escapeHtml(f.problem)}</strong></div><div class="summary-row"><span>なりたい状態</span><strong>${escapeHtml(labelFor(goalTypes, f.goalType))}<br>${escapeHtml(f.goalDetail)}</strong></div><div class="summary-row"><span>使うタイミング</span><strong>${escapeHtml(timing)}</strong></div><div class="summary-row"><span>タイプ</span><strong>${escapeHtml(labelFor(modes, f.solutionType))}</strong></div><div class="summary-row"><span>1回の長さ</span><strong>${escapeHtml(labelFor(durations, f.duration))}</strong></div></div><div class="promise">どんなゲームにするかは聞きません。内容に合う「即時介入・反復トレーニング・段階的行動・習慣化」などの構造をLEVEL UP側で考えて制作します。</div>${state.message ? `<div class="error">${escapeHtml(state.message)}</div>` : ''}<div class="nav"><button class="secondary" type="button" data-back>戻る</button><button class="primary" type="button" data-submit ${state.busy ? 'disabled' : ''}>${state.busy ? '送信中…' : 'この内容で制作を依頼する'}</button></div></div>`;
+    dialog.innerHTML = `${header('CONFIRM')}<div class="dialog-body"><div class="step-kicker">制作依頼の確認</div><h2>この内容で、<br>あなた用のLEVEL UPを依頼。</h2><div class="summary"><div class="summary-row"><span>困りごと</span><strong>${escapeHtml(f.problem)}</strong></div><div class="summary-row"><span>なりたい状態</span><strong>${escapeHtml(labelFor(goalTypes, f.goalType))}<br>${escapeHtml(f.goalDetail)}</strong></div><div class="summary-row"><span>使うタイミング</span><strong>${escapeHtml(timing)}</strong></div><div class="summary-row"><span>タイプ</span><strong>${escapeHtml(labelFor(modes, f.solutionType))}</strong></div><div class="summary-row"><span>1回の長さ</span><strong>${escapeHtml(labelFor(durations, f.duration))}</strong></div></div><div class="promise">どんなゲームにするかは聞きません。内容に合う「即時介入・反復トレーニング・段階的行動・習慣化」などの構造をLEVEL UP側で考えて制作します。</div><div class="public-setting"><div class="public-title">公開時の名前</div><label class="toggle-row"><input type="checkbox" data-public-toggle ${f.showPublicName ? 'checked' : ''}><span>ニックネームを表示する<small>OFFなら依頼者名は表示されません。</small></span></label>${f.showPublicName ? `<input class="field public-name" type="text" maxlength="30" data-public-nickname placeholder="公開用ニックネーム" value="${escapeHtml(f.publicNickname)}">` : ''}<p class="public-note">Googleアカウントの本名・メールアドレスは公開しません。アプリが生まれた悩みは、個人が特定されないよう一般化して紹介します。</p></div>${state.message ? `<div class="error">${escapeHtml(state.message)}</div>` : ''}<div class="nav"><button class="secondary" type="button" data-back>戻る</button><button class="primary" type="button" data-submit ${state.busy ? 'disabled' : ''}>${state.busy ? '送信中…' : 'この内容で制作を依頼する'}</button></div></div>`;
     wireClose();
     dialog.querySelector('[data-back]')?.addEventListener('click', () => { state.step = 4; state.message = ''; renderWizard(); });
+    dialog.querySelector('[data-public-toggle]')?.addEventListener('change', (event) => {
+      f.showPublicName = Boolean(event.currentTarget.checked);
+      if (!f.showPublicName) f.publicNickname = '';
+      state.message = '';
+      renderConfirm();
+    });
+    dialog.querySelector('[data-public-nickname]')?.addEventListener('input', (event) => {
+      f.publicNickname = event.currentTarget.value;
+    });
     dialog.querySelector('[data-submit]')?.addEventListener('click', submitRequest);
   }
 
   async function submitRequest() {
     if (!state.user || !state.db || state.busy) return;
+    const nickname = state.form.publicNickname.trim();
+    if (state.form.showPublicName && (nickname.length < 1 || nickname.length > 30)) {
+      state.message = '公開するニックネームを30文字以内で入力してください。';
+      renderConfirm();
+      return;
+    }
+    state.form.publicNickname = state.form.showPublicName ? nickname : '';
     state.busy = true;
     state.message = '';
     renderConfirm();
@@ -344,7 +374,7 @@ function makerBootstrap() {
     state.busy = false;
     dialog.innerHTML = `${header('REQUESTED')}<div class="dialog-body"><div class="success"><div class="success-mark">✓</div><h2>制作依頼を受け付けました。</h2><p>依頼は「自分の制作アプリ」に残ります。制作状況や公開されたアプリも、この制作タブから確認できます。</p><button class="primary" type="button" data-done>制作アプリを確認する</button></div></div>`;
     wireClose();
-    dialog.querySelector('[data-done]')?.addEventListener('click', renderLanding);
+    dialog.querySelector('[data-done]')?.addEventListener('click', () => { state.focusMine = true; renderLanding(); });
   }
 
   function normalizeRequests(data) {
@@ -451,6 +481,13 @@ function makerBootstrap() {
   }
 
   initializeFirebase();
+  const requestedView = new URL(location.href).searchParams.get('levelupView');
+  if (requestedView === 'mine') {
+    const cleanUrl = new URL(location.href);
+    cleanUrl.searchParams.delete('levelupView');
+    history.replaceState(null, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    queueMicrotask(() => openMaker({ detail: { view: 'mine' } }));
+  }
 }
 
 const assetSource = `(${makerBootstrap.toString()})();\n`;
@@ -472,6 +509,9 @@ if (!fs.existsSync(assetPath) || !builtHtml.includes(marker) || !builtHtml.inclu
 }
 if (!assetSource.includes('data-maker-fab') || assetSource.includes('insertBefore(host, intro.nextSibling)')) {
   throw new Error('LEVEL UP maker must stay a floating secondary flow and must not occupy the home content stream.');
+}
+if (!assetSource.includes('levelup:open-maker') || !assetSource.includes('publicNickname')) {
+  throw new Error('LEVEL UP maker My Apps/public attribution flow is missing.');
 }
 
 console.log(`[Firebase] LEVEL UP floating guided app request flow injected; maker=${assetVersion}`);
