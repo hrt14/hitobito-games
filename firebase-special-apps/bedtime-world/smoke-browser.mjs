@@ -3,6 +3,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const url = process.env.BEDTIME_WORLD_URL || 'http://127.0.0.1:4173/apps/bedtime-world/';
+const appOrigin = new URL(url).origin;
 const artifactDir = path.resolve('firebase-special-apps/bedtime-world/.artifacts');
 fs.mkdirSync(artifactDir, { recursive: true });
 
@@ -10,8 +11,9 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function expectedLocalFirebaseBootstrap(urlValue) {
-  return urlValue.includes('/__/firebase/init.json');
+function isAppResource(urlValue) {
+  const parsed = new URL(urlValue);
+  return parsed.origin === appOrigin && !parsed.pathname.startsWith('/__/firebase/');
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -26,12 +28,12 @@ try {
     }
   });
   page.on('response', (response) => {
-    if (response.status() >= 400 && !expectedLocalFirebaseBootstrap(response.url())) {
+    if (response.status() >= 400 && isAppResource(response.url())) {
       browserErrors.push(`http ${response.status()}: ${response.url()}`);
     }
   });
   page.on('requestfailed', (request) => {
-    if (!expectedLocalFirebaseBootstrap(request.url())) {
+    if (isAppResource(request.url())) {
       browserErrors.push(`requestfailed: ${request.url()} (${request.failure()?.errorText || 'unknown'})`);
     }
   });
@@ -94,8 +96,13 @@ try {
   const desktopErrors = [];
   desktopPage.on('pageerror', (err) => desktopErrors.push(`pageerror: ${err.message}`));
   desktopPage.on('response', (response) => {
-    if (response.status() >= 400 && !expectedLocalFirebaseBootstrap(response.url())) {
+    if (response.status() >= 400 && isAppResource(response.url())) {
       desktopErrors.push(`http ${response.status()}: ${response.url()}`);
+    }
+  });
+  desktopPage.on('requestfailed', (request) => {
+    if (isAppResource(request.url())) {
+      desktopErrors.push(`requestfailed: ${request.url()} (${request.failure()?.errorText || 'unknown'})`);
     }
   });
   await desktopPage.goto(url, { waitUntil: 'networkidle' });
