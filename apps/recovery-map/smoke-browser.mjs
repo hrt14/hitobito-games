@@ -15,12 +15,10 @@ if(!(await page.locator('h1').innerText()).includes('休み方'))throw new Error
 await page.screenshot({path:path.join(out,'01-home.png'),fullPage:true});
 await page.click('#startBtn');
 if(!(await page.locator('#showResult').isDisabled()))throw new Error('result should be gated before selecting signs');
-await page.click('[data-signal="loop"]');
-await page.click('[data-signal="loop"]');
-await page.click('[data-signal="focus"]');
-await page.click('[data-signal="focus"]');
-await page.click('[data-signal="irritable"]');
-await page.click('[data-signal="body"]', {trial:true}).catch(()=>{});
+for(const id of ['loop','focus','irritable']){
+  await page.click(`[data-signal="${id}"]`);
+  await page.click(`[data-signal="${id}"]`);
+}
 if(await page.locator('#showResult').isDisabled())throw new Error('result did not unlock');
 const meterText=await page.locator('.meter.mind').innerText();
 if(!meterText.includes('6 / 8'))throw new Error(`mind meter did not update: ${meterText}`);
