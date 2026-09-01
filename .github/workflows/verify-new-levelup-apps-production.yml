@@ -1,0 +1,28 @@
+name: Verify new LEVEL UP apps in production mobile browser
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/verify-new-levelup-apps-production.mjs'
+      - '.github/workflows/verify-new-levelup-apps-production.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run real production interactions at mobile width
+        env:
+          LEVELUP_PRODUCTION_ORIGIN: https://levelup.hitobito.jp
+        run: node scripts/verify-new-levelup-apps-production.mjs
