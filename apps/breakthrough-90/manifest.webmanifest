@@ -1,0 +1,10 @@
+{
+  "name": "八方塞がりで動けないときの90秒",
+  "short_name": "次の一手90秒",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#090b08",
+  "theme_color": "#090b08",
+  "lang": "ja",
+  "description": "詰んだ気分を、次の15分の一手に戻すLEVEL UPアプリ。"
+}
