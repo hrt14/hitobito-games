@@ -35,8 +35,49 @@ if (!source.includes("String(date.getMinutes()).padStart(2, '0')")) {
     throw new Error('Could not find LEVEL UP maker date formatter.');
   }
   source = source.replace(oldFormatter, newFormatter);
-  fs.writeFileSync(assetPath, source);
 }
+
+const titleFunction = `  function requestTitle(request) {
+    return request.appTitle || request.problem || '制作依頼';
+  }`;
+
+const purposeFunction = `  function requestTitle(request) {
+    return request.appTitle || request.problem || '制作依頼';
+  }
+
+  function requestPurpose(request) {
+    if (!request.appTitle) return '';
+    const savedPurpose = String(request.appSummaryJa || request.goalDetail || request.problem || '').trim();
+    if (!savedPurpose || savedPurpose === String(request.appTitle || '').trim()) return '';
+    return savedPurpose;
+  }`;
+
+if (!source.includes('function requestPurpose(request)')) {
+  if (!source.includes(titleFunction)) {
+    throw new Error('Could not find LEVEL UP maker request title function.');
+  }
+  source = source.replace(titleFunction, purposeFunction);
+}
+
+const oldCardCss = '.request-title{font-size:11px;font-weight:900;line-height:1.45}.request-meta{font-size:9px;color:#899281;margin-top:4px}';
+const newCardCss = '.request-title{font-size:11px;font-weight:900;line-height:1.45}.request-purpose{margin-top:5px;color:#dce4d2;font-size:10px;font-weight:800;line-height:1.55}.request-meta{font-size:9px;color:#899281;margin-top:5px}';
+if (!source.includes('.request-purpose{')) {
+  if (!source.includes(oldCardCss)) {
+    throw new Error('Could not find LEVEL UP maker request card styles.');
+  }
+  source = source.replace(oldCardCss, newCardCss);
+}
+
+const oldCardRender = 'return `<div class="request"><div><div class="request-title">${escapeHtml(requestTitle(request))}</div><div class="request-meta">${escapeHtml(formatDate(request.createdAt))} · ${escapeHtml(labelFor(modes, request.solutionType))}</div></div><span class="status">${escapeHtml(statusLabel(request.status))}</span>${appPath ? `<div class="request-actions"><a class="mini" href="${escapeHtml(appPath)}">遊ぶ ↗</a><button class="mini" type="button" data-share="${escapeHtml(appPath)}" data-title="${escapeHtml(requestTitle(request))}">シェア</button></div>` : \'\'}</div>`;';
+const newCardRender = 'const purpose = requestPurpose(request);\n      return `<div class="request"><div><div class="request-title">${escapeHtml(requestTitle(request))}</div>${purpose ? `<div class="request-purpose">${escapeHtml(purpose)}</div>` : \'\'}<div class="request-meta">${escapeHtml(formatDate(request.createdAt))} · ${escapeHtml(labelFor(modes, request.solutionType))}</div></div><span class="status">${escapeHtml(statusLabel(request.status))}</span>${appPath ? `<div class="request-actions"><a class="mini" href="${escapeHtml(appPath)}">遊ぶ ↗</a><button class="mini" type="button" data-share="${escapeHtml(appPath)}" data-title="${escapeHtml(requestTitle(request))}">シェア</button></div>` : \'\'}</div>`;';
+if (!source.includes('const purpose = requestPurpose(request);')) {
+  if (!source.includes(oldCardRender)) {
+    throw new Error('Could not find LEVEL UP maker request card renderer.');
+  }
+  source = source.replace(oldCardRender, newCardRender);
+}
+
+fs.writeFileSync(assetPath, source);
 
 const version = createHash('sha256').update(source).digest('hex').slice(0, 12);
 let html = fs.readFileSync(indexPath, 'utf8');
@@ -50,8 +91,14 @@ fs.writeFileSync(indexPath, html);
 if (!source.includes("return monthDay + ' ' + hour + ':' + minute;")) {
   throw new Error('LEVEL UP maker date/time formatter was not applied.');
 }
+if (!source.includes('function requestPurpose(request)') || !source.includes('request.appSummaryJa || request.goalDetail || request.problem')) {
+  throw new Error('LEVEL UP maker Japanese app purpose fallback was not applied.');
+}
+if (!source.includes('class="request-purpose"')) {
+  throw new Error('LEVEL UP maker Japanese app purpose is not rendered in My Apps cards.');
+}
 if (!html.includes(`/levelup-maker.js?v=${version}`)) {
   throw new Error('LEVEL UP maker cache-busting version was not updated.');
 }
 
-console.log(`[Firebase] LEVEL UP maker date/time patched: M/D HH:mm; maker=${version}`);
+console.log(`[Firebase] LEVEL UP maker date/time + Japanese purpose patched; maker=${version}`);
