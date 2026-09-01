@@ -6,6 +6,8 @@ on:
       - 'apps/confidence-before-results/**'
       - 'scripts/register-confidence-before-results-meta.mjs'
       - 'scripts/register-inaction-cost-meta.mjs'
+      - 'scripts/inject-inaction-cost-card-copy.mjs'
+      - 'scripts/inject-inaction-cost-book-card.mjs'
       - '.github/workflows/confidence-before-results-browser.yml'
   push:
     branches:
@@ -14,6 +16,8 @@ on:
       - 'apps/confidence-before-results/**'
       - 'scripts/register-confidence-before-results-meta.mjs'
       - 'scripts/register-inaction-cost-meta.mjs'
+      - 'scripts/inject-inaction-cost-card-copy.mjs'
+      - 'scripts/inject-inaction-cost-book-card.mjs'
       - '.github/workflows/confidence-before-results-browser.yml'
   workflow_dispatch:
 
