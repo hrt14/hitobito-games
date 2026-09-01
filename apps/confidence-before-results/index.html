@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ja" dir="ltr"
+  data-title="結果が出る前に自信をつくる"
+  data-subtitle="成功の証拠を待たず、次の一手を出す練習"
+  data-description="挑戦の前に出る自信のブレーキを見抜き、成功保証ではなく『次の一手を出せる前提』へ切り替えて、10分以内の行動を始める反復ゲーム。"
+  data-developer="hitobito"
+  data-version="1.0.0"
+  data-update-policy="pre-launch"
+  data-risk-profile="standard"
+  data-risk-commerce="none"
+  data-risk-external-network="none"
+  data-risk-data="stores-local">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0d0b" />
+  <meta name="description" content="成功の証拠を待たず、次の一手を出せる自信を先に入れる60秒トレーニング。" />
+  <title>結果が出る前に自信をつくる | LEVEL UP</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;color:#f7f8f4;background:#0a0d0b;--lime:#d8ff5b;--ink:#f7f8f4;--muted:#9da69c;--panel:#121713;--line:rgba(216,255,91,.18);--danger:#ff8d75;--good:#9fffa3}
+    *{box-sizing:border-box}html{min-height:100%;background:#0a0d0b}body{margin:0;min-height:100svh;background:radial-gradient(circle at 50% -10%,rgba(216,255,91,.12),transparent 34%),#0a0d0b;color:var(--ink);-webkit-font-smoothing:antialiased}button,input{font:inherit}button{cursor:pointer}a{color:inherit}.app{width:min(760px,100%);min-height:100svh;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:950;letter-spacing:.14em}.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 20px rgba(216,255,91,.55)}.home{width:42px;height:42px;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;text-decoration:none;color:var(--lime);background:rgba(18,23,19,.9)}.hud{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-bottom:14px}.progress{height:8px;border-radius:99px;background:#1b211c;overflow:hidden}.progress>i{display:block;width:20%;height:100%;background:var(--lime);border-radius:99px;transition:width .25s ease}.score{font-size:11px;color:var(--muted);font-weight:850;white-space:nowrap}.score strong{color:var(--lime)}.panel{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 0}.eyebrow{margin:0 0 12px;color:var(--lime);font-size:10px;font-weight:950;letter-spacing:.18em}.order{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;font-weight:900;color:#6f786f}.order .flip{color:var(--lime);border:1px solid var(--line);border-radius:99px;padding:5px 9px}.title{margin:0;font-size:clamp(38px,11vw,68px);line-height:.96;letter-spacing:-.065em;font-weight:950}.title em{font-style:normal;color:var(--lime)}.lead{margin:18px 0 0;color:#b7beb6;font-size:15px;line-height:1.85}.lead strong{color:#fff}.question{margin:28px 0 12px;font-size:14px;font-weight:900}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choice{appearance:none;text-align:left;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:var(--panel);color:var(--ink);min-height:92px;padding:16px;transition:.15s ease}.choice:hover,.choice:focus-visible{border-color:rgba(216,255,91,.48);transform:translateY(-1px);outline:none}.choice.active{border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime);background:#172013}.choice b{display:block;font-size:15px;line-height:1.35}.choice small{display:block;margin-top:7px;color:var(--muted);font-size:11px;line-height:1.55}.field{display:block;margin-top:12px}.field span{display:block;margin-bottom:7px;color:var(--muted);font-size:11px;font-weight:800}.field input{width:100%;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:#0e120f;color:#fff;padding:15px 16px;outline:none}.field input:focus{border-color:var(--lime)}.primary,.secondary{width:100%;min-height:58px;border-radius:17px;font-weight:950;margin-top:18px}.primary{border:0;background:var(--lime);color:#11170b;box-shadow:0 12px 40px rgba(216,255,91,.12)}.primary:disabled{opacity:.35;cursor:not-allowed}.secondary{border:1px solid rgba(255,255,255,.14);background:transparent;color:#f4f6f2}.micro{margin-top:10px;text-align:center;color:#7f887f;font-size:10px;line-height:1.6}.switch-card{margin:18px 0 4px;border:1px solid var(--line);border-radius:24px;padding:22px;background:linear-gradient(145deg,rgba(216,255,91,.08),rgba(216,255,91,.015))}.switch-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:20px;font-weight:950;letter-spacing:-.04em}.switch-row .muted{text-decoration:line-through;color:#697169}.switch-row .on{color:var(--lime)}.mantra{margin:18px 0 0;text-align:center;font-size:18px;line-height:1.65;font-weight:900}.mantra small{display:block;margin-top:8px;color:#9aa39a;font-size:11px;font-weight:650;line-height:1.7}.battery{height:14px;margin-top:18px;border:1px solid var(--line);border-radius:99px;padding:2px}.battery i{display:block;width:0;height:100%;border-radius:99px;background:var(--lime);transition:width .22s ease}.tap-charge{margin-top:12px;min-height:54px;border:1px solid var(--line);border-radius:16px;background:#11170f;color:var(--lime);font-weight:950}.countdown{display:grid;place-items:center;min-height:170px;margin:18px 0;border:1px solid var(--line);border-radius:28px;background:radial-gradient(circle,rgba(216,255,91,.11),transparent 62%)}.countdown strong{font-size:92px;line-height:1;color:var(--lime);letter-spacing:-.08em}.action-card{border:1px solid rgba(216,255,91,.26);border-radius:22px;padding:18px;background:#11170f}.action-label{font-size:10px;color:var(--lime);font-weight:950;letter-spacing:.15em}.action-text{margin:8px 0 0;font-size:22px;font-weight:950;line-height:1.35;letter-spacing:-.035em}.done{border:1px solid rgba(159,255,163,.25);border-radius:28px;padding:24px;background:radial-gradient(circle at 50% 0,rgba(159,255,163,.12),transparent 55%),#0f1510;text-align:center}.win{font-size:11px;color:var(--good);font-weight:950;letter-spacing:.17em}.win-num{margin:8px 0;font-size:74px;line-height:1;color:var(--lime);font-weight:950;letter-spacing:-.08em}.done h2{margin:0;font-size:28px;letter-spacing:-.05em}.done p{color:#aab2aa;line-height:1.75;font-size:13px}.share{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}.share button{min-height:50px;border-radius:15px;font-weight:900}.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translate(-50%,20px);padding:10px 14px;border-radius:99px;background:#f3f6ef;color:#10150f;font-size:11px;font-weight:900;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}.hidden{display:none!important}.footnote{margin-top:auto;padding-top:22px;color:#667066;font-size:9px;line-height:1.7;text-align:center}
+    @media(max-width:560px){.app{padding-left:14px;padding-right:14px}.panel{justify-content:flex-start;padding-top:18px}.grid{grid-template-columns:1fr}.choice{min-height:74px}.title{font-size:clamp(42px,13vw,58px)}.share{grid-template-columns:1fr}.switch-row{font-size:18px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand"><span class="brand-dot"></span><span>LEVEL UP / CONFIDENCE</span></div>
+    <a class="home" href="https://levelup.hitobito.jp/" aria-label="LEVEL UPトップへ戻る" title="LEVEL UPトップへ戻る">⌂</a>
+  </header>
+  <div class="hud" aria-label="進行状況"><div class="progress"><i id="progressBar"></i></div><div class="score">先払い成功 <strong id="wins">0</strong>回</div></div>
+
+  <section class="panel" id="stageChallenge">
+    <div class="order" aria-hidden="true"><span>結果</span><span>→</span><span>自信</span><span class="flip">順番を逆にする</span></div>
+    <p class="eyebrow">60 SECOND SWITCH</p>
+    <h1 class="title">結果が出る前に、<br><em>自信をつくる。</em></h1>
+    <p class="lead">自信は「成功する保証」ではない。<strong>壁に当たっても、次の一手を出せる前提</strong>を先に入れる。</p>
+    <p class="question">今、何を前にして止まりそう？</p>
+    <div class="grid" id="challengeChoices">
+      <button class="choice" data-value="仕事で、一段上のことに挑戦する"><b>仕事の挑戦</b><small>一段上の仕事・企画・役割</small></button>
+      <button class="choice" data-value="会議・発表で、自分の意見を出す"><b>人前で話す</b><small>会議・発表・人前で意見を出す</small></button>
+      <button class="choice" data-value="提案・営業・交渉で、踏み込んだ一手を出す"><b>提案・営業</b><small>断られる可能性がある場面</small></button>
+      <button class="choice" data-value="未経験のことを、初めてやってみる"><b>初めての挑戦</b><small>経験も実績もまだ少ないこと</small></button>
+    </div>
+    <label class="field"><span>それ以外なら、ここに書く</span><input id="customChallenge" maxlength="80" placeholder="例：新しいサービスを公開する" autocomplete="off"></label>
+    <button class="primary" id="toBrake" disabled>この挑戦に自信を先払いする →</button>
+    <p class="micro">※「絶対うまくいく」と思い込むゲームではありません。</p>
+  </section>
+
+  <section class="panel hidden" id="stageBrake">
+    <p class="eyebrow">ROUND 1 / FIND THE BRAKE</p>
+    <h2 class="title" style="font-size:clamp(36px,9vw,58px)">いま自信を止めている<br><em>ブレーキはどれ？</em></h2>
+    <p class="lead" id="challengeEcho"></p>
+    <div class="grid" id="brakeChoices" style="margin-top:22px">
+      <button class="choice" data-value="実績待ち"><b>実績がないから、まだ早い</b><small>結果が出てから自信を持とうとしている</small></button>
+      <button class="choice" data-value="評価不安"><b>失敗したら、評価が下がりそう</b><small>挑戦より他人の反応を先に見ている</small></button>
+      <button class="choice" data-value="準備待ち"><b>もっと準備してから動きたい</b><small>準備が安心の代わりになっている</small></button>
+      <button class="choice" data-value="他人比較"><b>自分よりできる人がいる</b><small>他人の現在地を自分の出発条件にしている</small></button>
+    </div>
+    <button class="primary" id="toSwitch" disabled>ブレーキを外す →</button>
+    <button class="secondary" data-back="challenge">← 挑戦を選び直す</button>
+  </section>
+
+  <section class="panel hidden" id="stageSwitch">
+    <p class="eyebrow">ROUND 2 / REVERSE THE ORDER</p>
+    <h2 class="title" style="font-size:clamp(36px,9vw,58px)">自信を、<br><em>結果の前へ。</em></h2>
+    <div class="switch-card">
+      <div class="switch-row"><span class="muted">結果 → 自信</span><span>ではなく</span><span class="on">自信 → 行動 → 修正 → 結果</span></div>
+      <p class="mantra">「成功するか」は、まだわからない。<br>でも、<span style="color:var(--lime)">次の一手は出せる。</span><small id="brakeEcho"></small></p>
+      <div class="battery" aria-label="自信の先払いゲージ"><i id="batteryFill"></i></div>
+      <button class="tap-charge" id="chargeButton">押して自信を先払い 0 / 3</button>
+    </div>
+    <button class="primary" id="toAction" disabled>行動に変える →</button>
+    <button class="secondary" data-back="brake">← ブレーキを選び直す</button>
+  </section>
+
+  <section class="panel hidden" id="stageAction">
+    <p class="eyebrow">ROUND 3 / ONE MOVE</p>
+    <h2 class="title" style="font-size:clamp(36px,9vw,58px)">自信は、<br><em>10分の一手</em>に変える。</h2>
+    <p class="lead">大きな成功は選ばない。今から始められる一手だけ。</p>
+    <div class="grid" id="actionChoices" style="margin-top:22px">
+      <button class="choice" data-value="1人に送る・相談する"><b>1人に送る</b><small>相談・提案・確認を1人に出す</small></button>
+      <button class="choice" data-value="3行だけ案を書く"><b>3行だけ書く</b><small>完成ではなく、叩き台を作る</small></button>
+      <button class="choice" data-value="10分だけ試してみる"><b>10分だけ試す</b><small>評価より先に、小さく実験する</small></button>
+      <button class="choice" data-value="公開・予約・着手のボタンを1つ押す"><b>ボタンを1つ押す</b><small>現実が動く操作を1つだけする</small></button>
+    </div>
+    <label class="field"><span>自分の一手を書く</span><input id="customAction" maxlength="80" placeholder="例：企画の1ページ目だけ作る" autocomplete="off"></label>
+    <button class="primary" id="toCountdown" disabled>3・2・1で始める →</button>
+    <button class="secondary" data-back="switch">← 切り替えをやり直す</button>
+  </section>
+
+  <section class="panel hidden" id="stageCountdown">
+    <p class="eyebrow">START BEFORE DOUBT</p>
+    <div class="action-card"><div class="action-label">YOUR NEXT MOVE</div><p class="action-text" id="actionEcho"></p></div>
+    <div class="countdown"><strong id="countdownNumber">3</strong></div>
+    <button class="primary hidden" id="startNow">今すぐ始める</button>
+    <p class="micro">画面を閉じてもOK。ここから先は現実がゲーム画面。</p>
+  </section>
+
+  <section class="panel hidden" id="stageReturn">
+    <p class="eyebrow">REAL WORLD CHECK</p>
+    <h2 class="title" style="font-size:clamp(36px,9vw,58px)">一手、<br><em>出せた？</em></h2>
+    <p class="lead">結果はまだいらない。行動したかだけ判定する。</p>
+    <button class="primary" id="markDone">出した。+1勝</button>
+    <button class="secondary" id="hitWall">壁に当たった。次の一手を選び直す</button>
+    <button class="secondary" id="notYet">まだ。もう一度3・2・1</button>
+  </section>
+
+  <section class="panel hidden" id="stageDone">
+    <div class="done">
+      <div class="win">CONFIDENCE PAID FIRST</div>
+      <div class="win-num">+1</div>
+      <h2>結果より先に、動けた。</h2>
+      <p id="resultText"></p>
+      <div class="share">
+        <button class="primary" id="shareResult" style="margin-top:0">結果をシェア</button>
+        <button class="secondary" id="playAgain" style="margin-top:0">もう1ラウンド</button>
+      </div>
+    </div>
+    <p class="micro">勝利条件は「成功した」ではなく「次の一手を出した」。結果が悪ければ、また修正して一手を出す。</p>
+  </section>
+
+  <p class="footnote">このゲームは自己効力感の練習を目的としたセルフトレーニングです。成功・安全・利益を保証するものではありません。重要な判断では必要な確認や専門家の助言を省略しないでください。</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const stages = ['challenge','brake','switch','action','countdown','return','done'];
+  const state = { challenge:'', brake:'', action:'', charge:0 };
+  const storageKey = 'levelup-confidence-before-results-v1';
+  let wins = 0;
+  try { wins = Math.max(0, Number(JSON.parse(localStorage.getItem(storageKey) || '{}').wins || 0)); } catch {}
+  $('wins').textContent = wins;
+
+  function show(name) {
+    stages.forEach((s) => $('stage' + s[0].toUpperCase() + s.slice(1)).classList.toggle('hidden', s !== name));
+    const idx = Math.max(0, stages.indexOf(name));
+    $('progressBar').style.width = Math.min(100, ((idx + 1) / stages.length) * 100) + '%';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function select(container, button, key) {
+    [...container.querySelectorAll('.choice')].forEach((b) => b.classList.remove('active'));
+    button.classList.add('active');
+    state[key] = button.dataset.value || '';
+  }
+  function bindChoices(containerId, key, nextButtonId, customId) {
+    const container = $(containerId);
+    container.addEventListener('click', (e) => {
+      const button = e.target.closest('.choice'); if (!button) return;
+      select(container, button, key);
+      if (customId) $(customId).value = '';
+      $(nextButtonId).disabled = !state[key];
+    });
+    if (customId) {
+      $(customId).addEventListener('input', (e) => {
+        const value = e.target.value.trim();
+        if (value) [...container.querySelectorAll('.choice')].forEach((b) => b.classList.remove('active'));
+        state[key] = value;
+        $(nextButtonId).disabled = !value;
+      });
+    }
+  }
+  bindChoices('challengeChoices','challenge','toBrake','customChallenge');
+  bindChoices('brakeChoices','brake','toSwitch');
+  bindChoices('actionChoices','action','toCountdown','customAction');
+
+  $('toBrake').addEventListener('click', () => { $('challengeEcho').textContent = '挑戦：' + state.challenge; show('brake'); });
+  $('toSwitch').addEventListener('click', () => {
+    $('brakeEcho').textContent = 'いま外すブレーキ：' + state.brake;
+    state.charge = 0; $('batteryFill').style.width='0%'; $('chargeButton').textContent='押して自信を先払い 0 / 3'; $('toAction').disabled=true; show('switch');
+  });
+  $('chargeButton').addEventListener('click', () => {
+    if (state.charge >= 3) return;
+    state.charge += 1;
+    $('batteryFill').style.width = (state.charge / 3 * 100) + '%';
+    $('chargeButton').textContent = state.charge < 3 ? `押して自信を先払い ${state.charge} / 3` : '先払い完了 ✓';
+    if (navigator.vibrate) navigator.vibrate(18);
+    if (state.charge === 3) $('toAction').disabled = false;
+  });
+  $('toAction').addEventListener('click', () => show('action'));
+
+  let timer = null;
+  function runCountdown() {
+    show('countdown');
+    $('actionEcho').textContent = state.action;
+    $('startNow').classList.add('hidden');
+    let n=3; $('countdownNumber').textContent=n;
+    clearInterval(timer);
+    timer=setInterval(() => {
+      n -= 1;
+      if (n > 0) $('countdownNumber').textContent=n;
+      else {
+        clearInterval(timer); $('countdownNumber').textContent='GO'; $('startNow').classList.remove('hidden');
+        if (navigator.vibrate) navigator.vibrate([25,35,25]);
+      }
+    },700);
+  }
+  $('toCountdown').addEventListener('click', runCountdown);
+  $('startNow').addEventListener('click', () => show('return'));
+  $('notYet').addEventListener('click', runCountdown);
+  $('hitWall').addEventListener('click', () => { state.action=''; $('customAction').value=''; [...$('actionChoices').querySelectorAll('.choice')].forEach((b)=>b.classList.remove('active')); $('toCountdown').disabled=true; show('action'); });
+  $('markDone').addEventListener('click', () => {
+    wins += 1; $('wins').textContent=wins;
+    try { localStorage.setItem(storageKey, JSON.stringify({wins,lastAt:new Date().toISOString(),lastChallenge:state.challenge,lastAction:state.action})); } catch {}
+    $('resultText').textContent = `「${state.challenge}」に対して「${state.action}」を選んで動いた。先払い成功は通算 ${wins} 回。`;
+    show('done');
+  });
+  $('playAgain').addEventListener('click', () => {
+    state.challenge='';state.brake='';state.action='';state.charge=0;
+    $('customChallenge').value='';$('customAction').value='';
+    document.querySelectorAll('.choice').forEach((b)=>b.classList.remove('active'));
+    ['toBrake','toSwitch','toAction','toCountdown'].forEach((id)=>$(id).disabled=true);
+    show('challenge');
+  });
+
+  document.querySelectorAll('[data-back]').forEach((button) => button.addEventListener('click', () => show(button.dataset.back)));
+
+  function toast(text){const t=$('toast');t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+  $('shareResult').addEventListener('click', async () => {
+    const text = `LEVEL UP「結果が出る前に自信をつくる」\n結果を待たずに、次の一手を出した。\n挑戦：${state.challenge}\n一手：${state.action}\n先払い成功：${wins}回\nhttps://levelup.hitobito.jp/apps/confidence-before-results/`;
+    try {
+      if (navigator.share) await navigator.share({title:'結果が出る前に自信をつくる',text});
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(text); toast('結果をコピーしました'); }
+      else { window.prompt('コピーしてシェアしてください', text); }
+    } catch (e) { if (e && e.name !== 'AbortError') toast('シェアできませんでした'); }
+  });
+
+  show('challenge');
+})();
+</script>
+</body>
+</html>
