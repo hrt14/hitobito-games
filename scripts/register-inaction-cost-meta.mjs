@@ -1,3 +1,4 @@
+import './register-confidence-before-results-meta.mjs';
 import { GAME_META } from './playtest-catalog.mjs';
 
 GAME_META['inaction-cost'] = [
