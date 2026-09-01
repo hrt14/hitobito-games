@@ -1,0 +1,43 @@
+name: 仕事の雪崩を止める production mobile playtest
+
+on:
+  pull_request:
+    paths:
+      - '.github/tests/work-avalanche-production.mjs'
+      - '.github/workflows/work-avalanche-production-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/tests/work-avalanche-production.mjs'
+      - '.github/workflows/work-avalanche-production-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  production-mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install production browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check test syntax
+        run: node --check .github/tests/work-avalanche-production.mjs
+      - name: Play through production on an iPhone-size viewport
+        env:
+          WORK_AVALANCHE_URL: https://levelup.hitobito.jp/apps/work-avalanche/?test=1
+        run: node .github/tests/work-avalanche-production.mjs
+      - name: Upload production playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: work-avalanche-production-mobile-playtest
+          path: .artifacts/work-avalanche-production/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
