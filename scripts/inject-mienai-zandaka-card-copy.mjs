@@ -77,3 +77,4 @@ for (const text of Object.values(copy)) {
 console.log('[Firebase] 見えない残高 app-specific LEVEL UP card copy injected.');
 await import('./inject-bedtime-best-case-card.mjs');
 await import('./inject-queue-batch-card-values.mjs');
+await import('./inject-work-avalanche-card-copy.mjs');
