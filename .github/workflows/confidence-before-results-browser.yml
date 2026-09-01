@@ -40,8 +40,9 @@ jobs:
         run: npm run levelup:quality-gate -- --app apps/confidence-before-results
       - name: Build Firebase bundle
         run: npm run build:firebase
-      - name: Start static server
+      - name: Start generated Firebase bundle server
         run: |
+          cd .dist/firebase
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/confidence-before-results-server.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS 'http://127.0.0.1:4173/apps/confidence-before-results/' >/dev/null; then exit 0; fi
@@ -49,7 +50,7 @@ jobs:
           done
           cat /tmp/confidence-before-results-server.log
           exit 1
-      - name: Run real mobile playtest
+      - name: Run real mobile playtest against generated Firebase output
         env:
           CONFIDENCE_BEFORE_RESULTS_URL: http://127.0.0.1:4173/apps/confidence-before-results/
         run: node apps/confidence-before-results/smoke-browser.mjs
