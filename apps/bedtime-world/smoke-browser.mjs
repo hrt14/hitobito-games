@@ -31,7 +31,7 @@ try {
 
   await page.getByRole('button', { name: /夜行列車の世界/ }).click();
   if (!(await page.locator('h1').innerText()).includes('今夜も、続きがある')) fail('World selection did not reach nightly home.');
-  if (!(await page.getByText('月明かりのホーム', { exact: true }).isVisible())) fail('Tonight location is missing.');
+  if (!(await page.locator('.teaser-title').innerText()).includes('月明かりのホーム')) fail('Tonight location is missing.');
   if ((await page.locator('.landmark').count()) !== 14) fail('World map does not expose the planned 14-step arc.');
   const enter = page.getByRole('button', { name: '布団に入った。入口を開く' });
   const enterBox = await enter.boundingBox();
@@ -79,7 +79,7 @@ try {
   await page.getByRole('button', { name: '画面を伏せる' }).click();
   await page.getByRole('button', { name: 'ホームへ戻る' }).click();
   if (!(await page.locator('.map-head').innerText()).includes('1夜ぶん進行')) fail('Same-day replay incorrectly incremented progress twice.');
-  if (!(await page.getByText('月明かりのホーム', { exact: true }).isVisible())) fail('Same-day replay incorrectly advanced tonight location.');
+  if (!(await page.locator('.teaser-title').innerText()).includes('月明かりのホーム')) fail('Same-day replay incorrectly advanced tonight location.');
 
   // Reload and revisit should preserve the world and progress.
   await page.reload({ waitUntil: 'domcontentloaded' });
