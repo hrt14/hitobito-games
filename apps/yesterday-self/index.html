@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#151515" />
+  <meta name="description" content="人と比べてしまった瞬間、比較相手を画面から外し、今日ひとつだけ昨日の自分を超える。比較を前進へ変えるLEVEL UPミニアプリ。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>昨日の自分に1勝 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home-link" href="/" aria-label="LEVEL UPトップへ戻る">⌂ <span>LEVEL UP</span></a>
+      <div class="brand-mini">BEAT YESTERDAY</div>
+      <button class="record-btn" id="recordBtn" type="button" aria-label="自分の1勝記録を見る">記録</button>
+    </header>
+
+    <section class="screen active" id="resetScreen" data-screen="reset">
+      <div class="reset-copy">
+        <p class="eyebrow">COMPARE RESET</p>
+        <h1>今、誰と<br>戦ってる？</h1>
+        <p class="lead">その人は、今日の対戦相手じゃない。</p>
+      </div>
+
+      <label class="opponent-label" for="opponentInput">気になっている相手 <span>任意・保存しません</span></label>
+      <input class="opponent-input" id="opponentInput" type="text" maxlength="28" autocomplete="off" placeholder="例：同僚 / SNSで見た人" />
+
+      <div class="dismiss-stage" id="dismissStage">
+        <div class="lane lane-left" aria-hidden="true"><span>OUT</span></div>
+        <div class="lane lane-right" aria-hidden="true"><span>OUT</span></div>
+        <div class="opponent-card" id="opponentCard" role="button" tabindex="0" aria-label="比較相手カード。左右どちらかへスワイプして対戦表から外す">
+          <small>NOT YOUR ENEMY</small>
+          <strong id="opponentName">他人</strong>
+          <span>この人との勝敗は、今日の試合から外す</span>
+          <i aria-hidden="true"></i>
+        </div>
+        <div class="swipe-guide" id="swipeGuide" aria-hidden="true">
+          <span>←</span><b>横に払って外す</b><span>→</span>
+        </div>
+      </div>
+      <button class="fallback-btn" id="dismissFallbackBtn" type="button">タップで対戦表から外す →</button>
+
+      <div class="today-mini" id="todayMini" hidden>
+        <span>今日の記録</span><strong id="todayMiniWins">0勝</strong>
+      </div>
+    </section>
+
+    <section class="screen enemy-screen" id="enemyScreen" data-screen="enemy">
+      <p class="eyebrow">TODAY'S ENEMY</p>
+      <div class="enemy-reveal" aria-hidden="true">
+        <div class="ghost-card">
+          <span>YESTERDAY</span>
+          <strong>昨日の<br>あなた</strong>
+          <b>VS</b>
+        </div>
+        <div class="today-card">
+          <span>TODAY</span>
+          <strong>今日の<br>あなた</strong>
+          <b>?</b>
+        </div>
+      </div>
+      <h2>勝つのは、<br><em>1個だけでいい。</em></h2>
+      <p class="lead">昨日全部を超えなくていい。今日ひとつ前へ。</p>
+      <div class="last-win" id="lastWin" hidden>
+        <span>昨日の1勝</span>
+        <strong id="lastWinText"></strong>
+      </div>
+      <button class="primary-btn" id="chooseWinBtn" type="button"><span>今日の1勝を決める</span><b>→</b></button>
+    </section>
+
+    <section class="screen choose-screen" id="chooseScreen" data-screen="choose">
+      <div class="screen-copy">
+        <p class="eyebrow">PICK ONE WIN</p>
+        <h2>昨日より、<br>どこを1ミリ進める？</h2>
+        <p>大きく勝たなくていい。比較できる小ささにする。</p>
+      </div>
+
+      <div class="win-grid" id="winGrid">
+        <button type="button" class="win-option" data-win="start">
+          <span class="win-code">START</span><strong>着手を早める</strong><small>昨日より5分早く、大事なことを始める</small>
+        </button>
+        <button type="button" class="win-option" data-win="focus">
+          <span class="win-code">FOCUS</span><strong>集中を伸ばす</strong><small>昨日より5分長く、一つだけに集中する</small>
+        </button>
+        <button type="button" class="win-option" data-win="reply">
+          <span class="win-code">REPLY</span><strong>止めた返信を返す</strong><small>昨日より1件多く、返信を前へ進める</small>
+        </button>
+        <button type="button" class="win-option" data-win="sleep">
+          <span class="win-code">SLEEP</span><strong>寝る準備を早める</strong><small>昨日より5分早く、布団へ向かう準備を始める</small>
+        </button>
+        <button type="button" class="win-option" data-win="move">
+          <span class="win-code">+1</span><strong>一手だけ先へ</strong><small>昨日止まった場所から、一手だけ進める</small>
+        </button>
+        <button type="button" class="win-option" data-win="custom">
+          <span class="win-code">YOU</span><strong>自分で決める</strong><small>今日の自分だけが分かる、小さな1勝を作る</small>
+        </button>
+      </div>
+
+      <label class="custom-wrap" id="customWrap" for="customWin" hidden>
+        <span>「昨日より〜」で書く</span>
+        <textarea id="customWin" maxlength="72" rows="3" placeholder="例：昨日より10分早く企画書を開く"></textarea>
+      </label>
+
+      <div class="selected-win" id="selectedWin" hidden>
+        <span>今日の勝利条件</span>
+        <strong id="selectedWinText"></strong>
+      </div>
+      <button class="primary-btn" id="startMatchBtn" type="button" disabled><span>この1勝を取りに行く</span><b>→</b></button>
+      <button class="text-btn" id="chooseBackBtn" type="button">← 対戦相手を見る</button>
+    </section>
+
+    <section class="screen duel-screen" id="duelScreen" data-screen="duel">
+      <p class="eyebrow">1 ON 1</p>
+      <div class="scoreboard">
+        <div class="score-side yesterday-side">
+          <span>YESTERDAY</span><strong>0</strong><small>基準</small>
+        </div>
+        <div class="score-vs">VS</div>
+        <div class="score-side today-side">
+          <span>TODAY</span><strong id="todayScore">?</strong><small id="todayScoreLabel">あと1勝</small>
+        </div>
+      </div>
+
+      <div class="mission-card">
+        <span>WIN CONDITION</span>
+        <strong id="missionText"></strong>
+      </div>
+
+      <div class="nudge-card" id="nudgeCard" hidden>
+        <span>NEXT 30 SEC</span>
+        <strong id="nudgeText"></strong>
+        <p>昨日を大きく超えなくていい。最小の一手で試合を動かす。</p>
+      </div>
+
+      <div class="duel-actions">
+        <button class="win-btn" id="winBtn" type="button"><span>勝った</span><b>1 — 0</b></button>
+        <button class="not-yet-btn" id="notYetBtn" type="button">まだ</button>
+      </div>
+      <button class="text-btn" id="changeWinBtn" type="button">← 勝利条件を変える</button>
+      <p class="local-note">勝利記録はこの端末内だけに保存します。</p>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen" data-screen="result">
+      <p class="eyebrow">TODAY'S RESULT</p>
+      <div class="one-win-mark" aria-hidden="true"><span>1</span></div>
+      <h2>昨日の自分に<br><em>1勝。</em></h2>
+      <p class="lead">今日の相手は、他の誰でもなかった。</p>
+
+      <div class="final-score" aria-label="昨日0対今日1">
+        <div><span>昨日</span><strong>0</strong></div><b>—</b><div><span>今日</span><strong>1</strong></div>
+      </div>
+
+      <div class="mission-card result-mission">
+        <span>今日、超えたこと</span>
+        <strong id="resultMission"></strong>
+      </div>
+
+      <div class="actual-stats">
+        <div><span>今日</span><strong id="todayWins">1勝</strong></div>
+        <div><span>連続</span><strong id="streakDays">1日</strong></div>
+        <div><span>累計</span><strong id="totalWins">1勝</strong></div>
+      </div>
+
+      <div class="seven-days">
+        <div class="seven-head"><span>直近7日</span><b>昨日との試合だけを見る</b></div>
+        <div class="day-bars" id="dayBars" aria-label="直近7日間の1勝記録"></div>
+      </div>
+
+      <blockquote>誰かが気になったら、<br><strong>「昨日の自分はどうだった？」</strong></blockquote>
+
+      <div class="result-actions">
+        <button class="primary-btn" id="shareBtn" type="button"><span>結果をシェア</span><b>↗</b></button>
+        <button class="secondary-btn" id="resetAgainBtn" type="button">また誰かと比べた → リセット</button>
+      </div>
+      <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="screen record-screen" id="recordScreen" data-screen="record">
+      <div class="screen-copy">
+        <p class="eyebrow">YOUR MATCHES</p>
+        <h2>戦績は、<br>自分の前進だけ。</h2>
+        <p>他人の順位も平均も出しません。</p>
+      </div>
+      <div class="record-summary">
+        <div><span>累計1勝</span><strong id="recordTotal">0</strong></div>
+        <div><span>連続日数</span><strong id="recordStreak">0</strong></div>
+      </div>
+      <div class="record-list" id="recordList"></div>
+      <button class="primary-btn" id="recordResetBtn" type="button"><span>比較リセットを始める</span><b>→</b></button>
+      <button class="text-btn" id="recordBackBtn" type="button">戻る</button>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
