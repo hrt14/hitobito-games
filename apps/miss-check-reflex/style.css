@@ -3,7 +3,7 @@
   --bg:#f6f4ee;
   --paper:#fffdf8;
   --ink:#191816;
-  --muted:#716e67;
+  --muted:#55524c;
   --line:#d9d5cb;
   --soft:#ece8de;
   --accent:#173a2d;
@@ -60,7 +60,7 @@ footer{padding:0 20px calc(26px + env(safe-area-inset-bottom));text-align:center
 .hold.ready{background:var(--accent-2);color:var(--accent)}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .choice{min-height:74px;border-radius:16px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:900;font-size:19px;cursor:pointer;position:relative}
-.choice.locked{cursor:pointer;color:#77736c;background:#f2efe8}
+.choice.locked{cursor:pointer;color:#5d5a54;background:#f2efe8}
 .choice.correct{border-color:var(--ok);background:#e6f0e9;color:var(--ok)}
 .choice.wrong{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
 .shake{animation:shake .28s ease}
