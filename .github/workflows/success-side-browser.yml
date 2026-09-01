@@ -1,0 +1,62 @@
+name: 成功する方で考える browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/success-side/**'
+      - 'scripts/playtest-catalog.mjs'
+      - '.github/workflows/success-side-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/success-side/**'
+      - 'scripts/playtest-catalog.mjs'
+      - '.github/workflows/success-side-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: |
+          node --check apps/success-side/app.js
+          node --check apps/success-side/smoke-browser.mjs
+          node --check scripts/playtest-catalog.mjs
+      - name: Build Firebase bundle
+        run: npm run build:firebase
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/success-side-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/success-side/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/success-side-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          SUCCESS_SIDE_URL: http://127.0.0.1:4173/apps/success-side/
+        run: node apps/success-side/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: success-side-browser-playtest
+          path: apps/success-side/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/success-side-server.log || true
