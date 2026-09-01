@@ -10,13 +10,31 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function expectedLocalFirebaseBootstrap(urlValue) {
+  return urlValue.includes('/__/firebase/init.json');
+}
+
 const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Tokyo' });
   const page = await context.newPage();
-  const consoleErrors = [];
-  page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
-  page.on('pageerror', (err) => consoleErrors.push(err.message));
+  const browserErrors = [];
+  page.on('pageerror', (err) => browserErrors.push(`pageerror: ${err.message}`));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' && !msg.text().startsWith('Failed to load resource:')) {
+      browserErrors.push(`console: ${msg.text()}`);
+    }
+  });
+  page.on('response', (response) => {
+    if (response.status() >= 400 && !expectedLocalFirebaseBootstrap(response.url())) {
+      browserErrors.push(`http ${response.status()}: ${response.url()}`);
+    }
+  });
+  page.on('requestfailed', (request) => {
+    if (!expectedLocalFirebaseBootstrap(request.url())) {
+      browserErrors.push(`requestfailed: ${request.url()} (${request.failure()?.errorText || 'unknown'})`);
+    }
+  });
 
   await page.goto(url, { waitUntil: 'networkidle' });
   assert(await page.getByText('今夜から、').isVisible(), 'first screen headline is not visible');
@@ -68,14 +86,22 @@ try {
   const mobileOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   assert(!mobileOverflow, 'mobile layout has horizontal overflow');
   await page.screenshot({ path: path.join(artifactDir, 'mobile-revisit.png'), fullPage: true });
-  assert(consoleErrors.length === 0, `browser errors: ${consoleErrors.join(' | ')}`);
+  assert(browserErrors.length === 0, `browser errors: ${browserErrors.join(' | ')}`);
   await context.close();
 
   const desktop = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'Asia/Tokyo' });
   const desktopPage = await desktop.newPage();
+  const desktopErrors = [];
+  desktopPage.on('pageerror', (err) => desktopErrors.push(`pageerror: ${err.message}`));
+  desktopPage.on('response', (response) => {
+    if (response.status() >= 400 && !expectedLocalFirebaseBootstrap(response.url())) {
+      desktopErrors.push(`http ${response.status()}: ${response.url()}`);
+    }
+  });
   await desktopPage.goto(url, { waitUntil: 'networkidle' });
   const desktopOverflow = await desktopPage.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   assert(!desktopOverflow, 'desktop layout has horizontal overflow');
+  assert(desktopErrors.length === 0, `desktop browser errors: ${desktopErrors.join(' | ')}`);
   await desktopPage.screenshot({ path: path.join(artifactDir, 'desktop-intro.png'), fullPage: true });
   await desktop.close();
 
