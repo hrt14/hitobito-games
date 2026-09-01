@@ -112,6 +112,39 @@ function injectMienaiZandakaReadability(html) {
   return /<\/head>/i.test(html) ? html.replace(/<\/head>/i, `${style}\n</head>`) : `${style}\n${html}`;
 }
 
+function injectRecentAppReadability(html, file) {
+  const normalized = file.split(path.sep).join('/');
+  const app = ['work-avalanche', 'miss-check-reflex', 'success-side'].find((slug) => normalized.includes(`/apps/${slug}/index.html`));
+  if (!app || html.includes('id="recent-app-mobile-readable"')) return html;
+  const shared = `
+<style id="recent-app-mobile-readable">
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  @media (max-width: 768px) {
+    .eyebrow,.scene-mark,.scene-label,.step-head p,.progress-head,.counter,.win-label,.pill,.lane-label,.metric span,
+    .field-help,.tiny,.footer-note,.test-badge,.meter,.cut-status span,.cut-status em,.risk-done>span,.action-zone>p,
+    .result-scene span,.result-rule p,.result-stats span,.result-stats small,.mini,footer {
+      font-size:14px !important;
+      line-height:1.55 !important;
+    }
+    .lead,.hero-copy,.section-copy,.scene-sub,.intro-card p,.finish-line,.timer-label,.notice,.feedback,.history,
+    .action span,.choice span,.category span,.risk-choice span,.result-rule strong,.result-scene strong {
+      font-size:16px !important;
+      line-height:1.7 !important;
+    }
+    .field label,.task span,.shrink-item,.summary-box span,.pressure,.cue,.previous {
+      font-size:15px !important;
+      line-height:1.6 !important;
+    }
+    .action b,.choice b,.category b,.risk-choice b,.guard-box>p,.action-option,.btn,.primary,.secondary,.hold {
+      font-size:16px !important;
+      line-height:1.45 !important;
+    }
+    .branch-chip,.guard-option { font-size:14px !important; line-height:1.5 !important; }
+  }
+</style>`;
+  return /<\/head>/i.test(html) ? html.replace(/<\/head>/i, `${shared}\n</head>`) : `${shared}\n${html}`;
+}
+
 let filesChanged = 0;
 let declarationsRaised = 0;
 let viewportNormalized = 0;
@@ -126,6 +159,7 @@ for (const file of walk(firebaseRoot)) {
     next = injectMobileBaseline(next);
     next = injectReactionPatternReadability(next);
     next = injectMienaiZandakaReadability(next);
+    next = injectRecentAppReadability(next, file);
   }
   if (next !== original) {
     fs.writeFileSync(file, next);
