@@ -49,3 +49,4 @@ if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class=
 }
 
 console.log('[Firebase] miss-check-reflex title + obi book card injected.');
+await import('./inject-work-avalanche-book-card.mjs');
