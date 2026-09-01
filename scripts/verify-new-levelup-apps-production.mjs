@@ -6,7 +6,7 @@ const context = await browser.newContext({ viewport: { width: 390, height: 844 }
 
 async function oneThingRoom() {
   const page = await context.newPage();
-  await page.goto(`${base}/apps/one-thing-room/`, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.goto(`${base}/apps/one-thing-room/`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.getByRole('button', { name: '今すぐ1個に戻す' }).click();
   await page.getByRole('button', { name: '書き出しへ進む' }).click();
   await page.locator('.slot').first().fill('次の1個');
@@ -20,7 +20,7 @@ async function oneThingRoom() {
 
 async function rhythmAnchor() {
   const page = await context.newPage();
-  await page.goto(`${base}/apps/rhythm-anchor/`, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.goto(`${base}/apps/rhythm-anchor/`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.getByRole('button', { name: '今夜のアンカーを作る' }).click();
   await page.getByRole('button', { name: 'この2つで準備する' }).click();
   await page.getByRole('button', { name: '今夜の3チェックへ' }).click();
