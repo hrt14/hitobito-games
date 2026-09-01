@@ -1,0 +1,66 @@
+name: LEVEL UP request browser verification
+
+on:
+  pull_request:
+    paths:
+      - 'apps/recovery-map/**'
+      - 'apps/miss-check-reflex/**'
+      - '.github/workflows/recovery-map-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/recovery-map/**'
+      - 'apps/miss-check-reflex/**'
+      - '.github/workflows/recovery-map-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-use:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: |
+          node --check apps/recovery-map/app.js
+          node --check apps/recovery-map/smoke-browser.mjs
+          node --check apps/miss-check-reflex/contrast-browser.mjs
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/levelup-request-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/recovery-map/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/levelup-request-server.log
+          exit 1
+      - name: Run recovery map mobile use
+        env:
+          RECOVERY_MAP_URL: http://127.0.0.1:4173/apps/recovery-map/
+        run: node apps/recovery-map/smoke-browser.mjs
+      - name: Verify secondary text contrast
+        env:
+          MISS_CHECK_URL: http://127.0.0.1:4173/apps/miss-check-reflex/
+        run: node apps/miss-check-reflex/contrast-browser.mjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: levelup-request-browser-evidence
+          path: |
+            apps/recovery-map/.artifacts/*
+            apps/miss-check-reflex/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/levelup-request-server.log || true
