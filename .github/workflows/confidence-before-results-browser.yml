@@ -1,0 +1,63 @@
+name: 結果が出る前に自信をつくる browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/confidence-before-results/**'
+      - 'scripts/register-confidence-before-results-meta.mjs'
+      - 'scripts/register-inaction-cost-meta.mjs'
+      - '.github/workflows/confidence-before-results-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/confidence-before-results/**'
+      - 'scripts/register-confidence-before-results-meta.mjs'
+      - 'scripts/register-inaction-cost-meta.mjs'
+      - '.github/workflows/confidence-before-results-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check test syntax
+        run: node --check apps/confidence-before-results/smoke-browser.mjs
+      - name: Run LEVEL UP quality gate
+        run: npm run levelup:quality-gate -- --app apps/confidence-before-results
+      - name: Build Firebase bundle
+        run: npm run build:firebase
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/confidence-before-results-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/confidence-before-results/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/confidence-before-results-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          CONFIDENCE_BEFORE_RESULTS_URL: http://127.0.0.1:4173/apps/confidence-before-results/
+        run: node apps/confidence-before-results/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: confidence-before-results-browser-playtest
+          path: apps/confidence-before-results/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/confidence-before-results-server.log || true
