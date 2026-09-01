@@ -14,6 +14,10 @@ const cards = {
     title: '生活リズムが崩れやすい人の 夜2つだけアンカー',
     obi: '明日の起床時刻と今夜の終了時刻を決め、朝の判断を3つ減らす。',
   },
+  'recovery-map': {
+    title: '疲れ方が分からないときの 休み方マップ',
+    obi: '頭・気持ちと身体の2メーターで、次の10分の休み方を1つ決める。',
+  },
 };
 
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) throw new Error('LEVEL UP home/catalog not found.');
