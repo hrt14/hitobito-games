@@ -8,6 +8,8 @@ on:
       - 'scripts/register-negotiator-rest-meta.mjs'
       - 'scripts/inject-bedtime-world-card.mjs'
       - 'scripts/inject-mienai-zandaka-card-copy.mjs'
+      - 'scripts/inject-bedtime-world-book-card.mjs'
+      - 'scripts/inject-bedtime-best-case-book-card.mjs'
       - '.github/workflows/bedtime-world-browser.yml'
   push:
     branches:
@@ -18,6 +20,8 @@ on:
       - 'scripts/register-negotiator-rest-meta.mjs'
       - 'scripts/inject-bedtime-world-card.mjs'
       - 'scripts/inject-mienai-zandaka-card-copy.mjs'
+      - 'scripts/inject-bedtime-world-book-card.mjs'
+      - 'scripts/inject-bedtime-best-case-book-card.mjs'
       - '.github/workflows/bedtime-world-browser.yml'
   workflow_dispatch:
 
@@ -40,6 +44,7 @@ jobs:
           node --check apps/bedtime-world/smoke-browser.mjs
           node --check scripts/register-bedtime-world-meta.mjs
           node --check scripts/inject-bedtime-world-card.mjs
+          node --check scripts/inject-bedtime-world-book-card.mjs
       - name: Run LEVEL UP quality gate
         run: node scripts/validate-levelup-quality-gate.mjs --app apps/bedtime-world
       - name: Build Firebase bundle
@@ -49,6 +54,7 @@ jobs:
           test -f .dist/firebase/apps/bedtime-world/index.html
           grep -F '寝る前が楽しみになるイメトレ' .dist/firebase/apps/bedtime-world/index.html >/dev/null
           grep -F '今夜の続きを見たい' .dist/firebase/index.html >/dev/null
+          grep -F '今夜も、続きがある。布団に入ったら世界をひとつ先へ進め' .dist/firebase/index.html >/dev/null
       - name: Start static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bedtime-world-server.log 2>&1 &
