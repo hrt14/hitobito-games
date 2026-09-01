@@ -2,6 +2,7 @@ import { GAME_META } from './playtest-catalog.mjs';
 import './register-thick-self-meta.mjs';
 import './register-mienai-zandaka-meta.mjs';
 import './register-work-avalanche-meta.mjs';
+import './register-yesterday-self-meta.mjs';
 
 GAME_META['10-years-back'] = [
   'levelup',
@@ -31,9 +32,4 @@ GAME_META['miss-check-reflex'] = [
 GAME_META['recovery-map'] = [
   'levelup',
   '疲れのサインを頭・気持ち側と身体側の2メーターに分け、次の10分にやる回復行動を1つ決める90秒チェックイン。',
-];
-
-GAME_META['yesterday-self'] = [
-  'levelup',
-  '他人と比べてしまった瞬間、比較相手を対戦表から外し、昨日の自分を相手に今日ひとつだけ具体的な1勝を作る。',
 ];
