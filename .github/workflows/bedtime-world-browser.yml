@@ -1,0 +1,82 @@
+name: 寝る前が楽しみになるイメトレ browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/bedtime-world/**'
+      - 'scripts/register-bedtime-world-meta.mjs'
+      - 'scripts/register-negotiator-rest-meta.mjs'
+      - 'scripts/inject-bedtime-world-card.mjs'
+      - 'scripts/inject-mienai-zandaka-card-copy.mjs'
+      - 'scripts/inject-bedtime-world-book-card.mjs'
+      - 'scripts/inject-bedtime-best-case-book-card.mjs'
+      - '.github/workflows/bedtime-world-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/bedtime-world/**'
+      - 'scripts/register-bedtime-world-meta.mjs'
+      - 'scripts/register-negotiator-rest-meta.mjs'
+      - 'scripts/inject-bedtime-world-card.mjs'
+      - 'scripts/inject-mienai-zandaka-card-copy.mjs'
+      - 'scripts/inject-bedtime-world-book-card.mjs'
+      - 'scripts/inject-bedtime-best-case-book-card.mjs'
+      - '.github/workflows/bedtime-world-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: |
+          node --check apps/bedtime-world/app.js
+          node --check apps/bedtime-world/smoke-browser.mjs
+          node --check scripts/register-bedtime-world-meta.mjs
+          node --check scripts/inject-bedtime-world-card.mjs
+          node --check scripts/inject-bedtime-world-book-card.mjs
+      - name: Run LEVEL UP quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/bedtime-world
+      - name: Build Firebase bundle
+        run: npm run build:firebase
+      - name: Confirm Firebase routing
+        run: |
+          test -f .dist/firebase/apps/bedtime-world/index.html
+          grep -F '寝る前が楽しみになるイメトレ' .dist/firebase/apps/bedtime-world/index.html >/dev/null
+          grep -F '今夜の続きを見たい' .dist/firebase/index.html >/dev/null
+          grep -F '今夜も、続きがある。布団に入ったら世界をひとつ先へ進め' .dist/firebase/index.html >/dev/null
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bedtime-world-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/bedtime-world/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/bedtime-world-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          BEDTIME_WORLD_URL: http://127.0.0.1:4173/apps/bedtime-world/
+        run: node apps/bedtime-world/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bedtime-world-browser-playtest
+          path: apps/bedtime-world/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/bedtime-world-server.log || true

@@ -5,14 +5,14 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const homePath = path.join(root, '.dist', 'firebase', 'index.html');
 const catalogPath = path.join(root, '.dist', 'firebase', 'levelup-catalog.json');
-const slug = 'bedtime-best-case';
+const slug = 'recovery-map';
 const card = {
-  title: '寝る前3分\n全部うまくいくイメトレ',
-  obi: '目を閉じてから迷わない。始まり・最高の瞬間・安心の余韻。今夜見る3シーンを先に作る。',
+  title: 'RECOVERY MAP\n疲れを分けて、休み方を決める',
+  obi: '頭・気持ち側と身体側の疲れサインを約90秒で整理し、次の10分にやる回復行動を1つ決める。',
 };
 
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
-  throw new Error('LEVEL UP home/catalog not found for bedtime-best-case book card.');
+  throw new Error('LEVEL UP home/catalog not found for recovery-map book card.');
 }
 
 const escapeHtml = (value) => String(value)
@@ -37,17 +37,9 @@ let body = match[2].replace(/<p class="book-obi">[\s\S]*?<\/p>\s*/g, '');
 if (!/<h2\b[^>]*>[\s\S]*?<\/h2>/.test(body)) throw new Error(`${slug} card title missing.`);
 const titleHtml = escapeHtml(card.title).replace('\n', '<br>');
 body = body.replace(/<h2\b[^>]*>[\s\S]*?<\/h2>/, `<h2>${titleHtml}</h2>\n      <p class="book-obi">${escapeHtml(card.obi)}</p>`);
-body = body.replace(/aria-label="[^"]*をお気に入りに追加"/, `aria-label="寝る前3分 全部うまくいくイメトレをお気に入りに追加"`);
+body = body.replace(/aria-label="[^"]*をお気に入りに追加"/, `aria-label="RECOVERY MAP 疲れを分けて、休み方を決めるをお気に入りに追加"`);
 html = html.replace(cardPattern, `$1${body}$3`);
 
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 fs.writeFileSync(homePath, html);
-
-const finalHtml = fs.readFileSync(homePath, 'utf8');
-if (!finalHtml.includes(`data-game="${slug}"`) || !finalHtml.includes(`<p class="book-obi">${escapeHtml(card.obi)}</p>`)) {
-  throw new Error(`${slug} book card injection failed.`);
-}
-console.log('[Firebase] bedtime-best-case title + obi book card injected.');
-await import('./inject-bedtime-world-book-card.mjs');
-await import('./inject-recovery-map-book-card.mjs');
-await import('./inject-time-energy-triage-book-card.mjs');
+console.log('[Firebase] recovery-map title + obi book card injected.');

@@ -1,4 +1,5 @@
 import { GAME_META } from './playtest-catalog.mjs';
+import './register-bedtime-world-meta.mjs';
 
 GAME_META['negotiator-rest'] = [
   'levelup',
