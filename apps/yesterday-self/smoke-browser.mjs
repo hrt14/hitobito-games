@@ -30,6 +30,13 @@ async function screenshot(name) {
   await page.screenshot({ path: path.join(artifactDir, `${name}.png`), fullPage: true });
 }
 
+async function assertTarget(selector, minimum = 44) {
+  const locator = page.locator(selector).first();
+  assert(await locator.isVisible(), `Tap target is not visible: ${selector}`);
+  const box = await locator.boundingBox();
+  assert(box && box.height >= minimum, `Tap target ${selector} is ${Math.round(box?.height || 0)}px; expected >= ${minimum}px.`);
+}
+
 try {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   await page.evaluate(() => {
@@ -47,6 +54,9 @@ try {
   assert(startDisabled, 'Match must not start before choosing one win.');
   const homeHref = await page.locator('.home-link').getAttribute('href');
   assert(homeHref === '/', 'Home/exit link must point to LEVEL UP root.');
+  await assertTarget('.home-link', 40);
+  await assertTarget('.record-btn', 40);
+  await assertTarget('#dismissFallbackBtn', 40);
   await screenshot('01-first-visit');
 
   // Enter a comparison target, then physically dismiss the card with a horizontal drag.
@@ -62,6 +72,9 @@ try {
   await page.mouse.up();
   await page.locator('#enemyScreen.active').waitFor();
   assert(await page.getByText("TODAY'S ENEMY", { exact: true }).isVisible(), 'Yesterday-self reveal did not appear after swipe.');
+  await page.locator('.today-card').waitFor({ state: 'visible' });
+  await page.waitForTimeout(550);
+  await assertTarget('#chooseWinBtn');
   await screenshot('02-yesterday-reveal');
 
   // Choose one specific win and enter the duel.
@@ -71,10 +84,14 @@ try {
   assert(!(await page.locator('#startMatchBtn').isDisabled()), 'Start button did not enable after win selection.');
   const selectedText = await page.locator('#selectedWinText').textContent();
   assert(selectedText?.includes('一手だけ'), 'Selected win copy is not concrete.');
+  await assertTarget('[data-win="move"]');
+  await assertTarget('#startMatchBtn');
   await page.locator('#startMatchBtn').click();
   await page.locator('#duelScreen.active').waitFor();
 
   // Failure/not-yet path must shrink the real action rather than punish the user.
+  await assertTarget('#winBtn');
+  await assertTarget('#notYetBtn');
   await page.locator('#notYetBtn').click();
   assert(await page.locator('#nudgeCard').isVisible(), 'Not-yet path did not reveal a smaller action.');
   const nudge = await page.locator('#nudgeText').textContent();
@@ -94,6 +111,8 @@ try {
   assert(await page.getByText('昨日の自分に', { exact: false }).isVisible(), 'Result headline is missing.');
   assert((await page.locator('#todayWins').textContent()) === '1勝', 'First win was not recorded as today 1 win.');
   assert((await page.locator('#totalWins').textContent()) === '1勝', 'First win was not added to total wins.');
+  await assertTarget('#shareBtn');
+  await assertTarget('#resetAgainBtn');
   await screenshot('04-result');
 
   // Privacy: comparison target must not be written into localStorage.
@@ -109,20 +128,8 @@ try {
   await page.locator('#recordScreen.active').waitFor();
   assert((await page.locator('#recordTotal').textContent()) === '1', 'Record screen did not restore total win count.');
   assert(await page.locator('.record-item').first().isVisible(), 'Record history is missing on revisit.');
+  await assertTarget('#recordResetBtn');
   await screenshot('05-revisit-record');
-
-  // Major tap targets on mobile should be at least 44px high.
-  const tooSmall = await page.evaluate(() => {
-    const selectors = ['.home-link', '.record-btn', '.primary-btn', '.secondary-btn', '.fallback-btn', '.win-option', '.win-btn', '.not-yet-btn'];
-    return selectors.flatMap((selector) => [...document.querySelectorAll(selector)]
-      .filter((element) => {
-        const style = getComputedStyle(element);
-        return style.display !== 'none' && style.visibility !== 'hidden';
-      })
-      .map((element) => ({ selector, h: Math.round(element.getBoundingClientRect().height), text: element.textContent?.trim().slice(0, 30) }))
-      .filter((item) => item.h < 44));
-  });
-  assert(tooSmall.length === 0, `Mobile tap targets under 44px: ${JSON.stringify(tooSmall)}`);
 
   assert(pageErrors.length === 0, `Page errors: ${pageErrors.join(' | ')}`);
   assert(consoleErrors.length === 0, `Console errors: ${consoleErrors.join(' | ')}`);
