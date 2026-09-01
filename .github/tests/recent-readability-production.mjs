@@ -29,11 +29,19 @@ try {
     if (readable.count === 0) throw new Error(`${app.slug}: no readability targets found`);
     if (readable.tooSmall.length) throw new Error(`${app.slug}: text below 14px: ${JSON.stringify(readable.tooSmall.slice(0, 5))}`);
 
-    const action = page.locator(app.action).filter({ visible: true }).first();
-    if (await action.count()) {
-      await action.click({ timeout: 10000 });
-      await page.waitForTimeout(300);
+    const candidates = page.locator(app.action);
+    const count = await candidates.count();
+    let clicked = false;
+    for (let i = 0; i < count; i += 1) {
+      const candidate = candidates.nth(i);
+      if (await candidate.isVisible() && await candidate.isEnabled()) {
+        await candidate.click({ timeout: 10000 });
+        clicked = true;
+        break;
+      }
     }
+    if (!clicked) throw new Error(`${app.slug}: no visible enabled interaction control found`);
+    await page.waitForTimeout(300);
     console.log(`[production-mobile] ${app.slug}: PASS (${readable.count} readable targets)`);
     await page.close();
   }
