@@ -1,0 +1,30 @@
+name: Verify recent LEVEL UP mobile readability
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/recent-readability-production.yml'
+      - '.github/tests/recent-readability-production.mjs'
+      - 'scripts/enforce-levelup-mobile-typography.mjs'
+  pull_request:
+    paths:
+      - '.github/workflows/recent-readability-production.yml'
+      - '.github/tests/recent-readability-production.mjs'
+  workflow_dispatch:
+
+jobs:
+  production-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify production at 390x844
+        run: node .github/tests/recent-readability-production.mjs
