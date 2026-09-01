@@ -1,0 +1,62 @@
+name: yesterday-self browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/yesterday-self/**'
+      - 'scripts/register-yesterday-self-meta.mjs'
+      - 'scripts/register-10-years-back-meta.mjs'
+      - '.github/workflows/yesterday-self-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/yesterday-self/**'
+      - 'scripts/register-yesterday-self-meta.mjs'
+      - 'scripts/register-10-years-back-meta.mjs'
+      - '.github/workflows/yesterday-self-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: |
+          node --check apps/yesterday-self/app.js
+          node --check apps/yesterday-self/smoke-browser.mjs
+          node --check scripts/register-yesterday-self-meta.mjs
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/yesterday-self-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/yesterday-self/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/yesterday-self-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          YESTERDAY_SELF_URL: http://127.0.0.1:4173/apps/yesterday-self/
+        run: node apps/yesterday-self/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yesterday-self-browser-playtest
+          path: apps/yesterday-self/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/yesterday-self-server.log || true

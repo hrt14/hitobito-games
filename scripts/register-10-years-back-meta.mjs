@@ -2,6 +2,7 @@ import { GAME_META } from './playtest-catalog.mjs';
 import './register-thick-self-meta.mjs';
 import './register-mienai-zandaka-meta.mjs';
 import './register-work-avalanche-meta.mjs';
+import './register-yesterday-self-meta.mjs';
 
 GAME_META['10-years-back'] = [
   'levelup',

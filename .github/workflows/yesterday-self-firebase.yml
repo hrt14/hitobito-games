@@ -1,0 +1,55 @@
+name: yesterday-self Firebase verification
+
+on:
+  pull_request:
+    paths:
+      - 'apps/yesterday-self/**'
+      - 'scripts/register-yesterday-self-meta.mjs'
+      - 'scripts/register-10-years-back-meta.mjs'
+      - '.github/workflows/yesterday-self-firebase.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/yesterday-self/**'
+      - 'scripts/register-yesterday-self-meta.mjs'
+      - 'scripts/register-10-years-back-meta.mjs'
+      - '.github/workflows/yesterday-self-firebase.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm install
+      - name: Run app quality gate
+        run: node scripts/validate-levelup-quality-gate.mjs --app apps/yesterday-self
+      - name: Prepare Firebase mobile sources
+        run: node scripts/prepare-firebase-mobile.mjs
+      - name: Build complete Firebase bundle
+        run: npm run build:firebase
+      - name: Verify app and catalog output
+        run: |
+          set -euo pipefail
+          test -f .dist/firebase/apps/yesterday-self/index.html
+          grep -F '昨日の自分に1勝' .dist/firebase/apps/yesterday-self/index.html >/dev/null
+          grep -F 'data-game="yesterday-self"' .dist/firebase/index.html >/dev/null
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('.dist/firebase/index.html', 'utf8');
+          const catalog = JSON.parse(fs.readFileSync('.dist/firebase/levelup-catalog.json', 'utf8'));
+          const card = html.match(/<article\b[^>]*data-game="yesterday-self"[^>]*>[\s\S]*?<\/article>/)?.[0] || '';
+          if (!card.includes('class="book-obi"')) throw new Error('yesterday-self book obi is missing');
+          if (!card.includes('人と比べてしまう人の 昨日の自分に1勝')) throw new Error('yesterday-self book title is missing');
+          if (!card.includes('他人を対戦表から外して、今日ひとつだけ昨日を超える。')) throw new Error('yesterday-self book obi copy is missing');
+          const game = catalog.games?.find((item) => item.slug === 'yesterday-self');
+          if (!game) throw new Error('yesterday-self is missing from levelup-catalog.json');
+          if (game.href !== '/apps/yesterday-self/') throw new Error(`unexpected href: ${game.href}`);
+          console.log({ title: game.title, href: game.href, category: 'levelup' });
+          NODE
