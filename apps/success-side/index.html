@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#f6f7ef" />
+  <meta name="description" content="失敗予想を考え尽くす前に、必要な確認だけして成功側の一手へ戻る30秒トレーニング。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>成功する方で考える。 — LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="home" href="/" aria-label="LEVEL UPトップへ戻る">← LEVEL UP</a>
+      <button class="reset" id="resetBtn" type="button">RESET</button>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">STOP FORECASTING FAILURE</p>
+      <h1>成功する方で<br><span>考える。</span></h1>
+      <p class="hero-copy">成功を保証するゲームじゃない。<br>失敗予想を増やしすぎず、<b>成功確率を上げる行動</b>へ戻る練習。</p>
+      <div class="meter" aria-label="今日の成功側への切り替え回数">
+        <span>この端末で</span><strong id="lifetimeCount">0</strong><span>回 切り替えた</span>
+      </div>
+    </section>
+
+    <section class="screen active" id="introScreen">
+      <div class="scene-card intro-card">
+        <div class="scene-mark">30 SEC</div>
+        <h2>考えすぎる前に、<br>枝を切る。</h2>
+        <p>場面が出たら、増えていく「失敗予想」をタップして切ってください。</p>
+        <button class="primary" id="startBtn" type="button"><span>枝を切る</span><b>→</b></button>
+      </div>
+    </section>
+
+    <section class="screen" id="branchScreen">
+      <div class="step-head"><span>01</span><p>失敗予想を増やさない</p></div>
+      <div class="scene-card branch-stage">
+        <p class="scene-label">いまの場面</p>
+        <h2 id="sceneTitle">会議で新しい提案を出す</h2>
+        <p class="scene-sub" id="sceneSub">成功する可能性はある。でも頭が先に失敗を作り始める。</p>
+        <div class="branch-board" id="branchBoard" aria-live="polite">
+          <div class="trunk"><span>自分</span></div>
+          <div class="future-node">やる</div>
+          <svg class="branch-lines" id="branchLines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M50 78 C47 62, 26 55, 19 34" />
+            <path d="M50 78 C53 61, 73 54, 81 34" />
+            <path d="M50 78 C44 55, 42 39, 36 20" />
+            <path d="M50 78 C57 55, 58 39, 64 20" />
+          </svg>
+          <div class="branch-cloud" id="branchCloud"></div>
+        </div>
+        <div class="cut-status"><strong id="cutCount">0</strong><span>/ 4 CUT</span><em id="cutHint">気になる枝をタップ</em></div>
+      </div>
+    </section>
+
+    <section class="screen" id="riskScreen">
+      <div class="step-head"><span>02</span><p>最悪を1回だけ確認</p></div>
+      <div class="scene-card risk-card">
+        <p class="scene-label">もし失敗したら</p>
+        <h2 id="riskQuestion">それ、本当に致命傷？</h2>
+        <div class="risk-scale" role="group" aria-label="失敗した場合の戻しやすさ">
+          <button class="risk-choice" data-risk="recoverable" type="button"><b>戻せる</b><span>修正・再挑戦・謝る・やり直すができる</span></button>
+          <button class="risk-choice" data-risk="guard" type="button"><b>少し備える</b><span>取り返しにくい部分だけ、先に1個守る</span></button>
+        </div>
+        <div class="guard-box" id="guardBox" hidden>
+          <p>なら、守るのは1個だけ。</p>
+          <div id="guardOptions" class="guard-options"></div>
+        </div>
+        <div class="risk-done" id="riskDone" hidden>
+          <span>確認はここまで。</span>
+          <strong>これ以上、失敗パターンを増やさない。</strong>
+          <button class="primary" id="toCommitBtn" type="button"><span>成功側へ戻る</span><b>→</b></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="commitScreen">
+      <div class="step-head"><span>03</span><p>成功側の一手へ収束</p></div>
+      <div class="scene-card commit-card">
+        <p class="scene-label">ここからは</p>
+        <h2>「どう失敗する？」ではなく、<br><span>「どう通す？」を考える。</span></h2>
+        <button class="success-lever" id="successLever" type="button" aria-label="成功する方で考えるへ切り替える">
+          <span class="lever-track"><i></i></span>
+          <strong>成功する方で考える</strong>
+          <small>押して切り替える</small>
+        </button>
+        <div class="action-zone" id="actionZone" hidden>
+          <p>成功確率を上げるなら、次の一手は？</p>
+          <div class="action-options" id="actionOptions"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen">
+      <div class="result-card">
+        <div class="result-line"><span class="line-dot"></span><i></i><span class="line-arrow">→</span></div>
+        <p class="eyebrow">ONE LINE FORWARD</p>
+        <h2>枝分かれをやめて、<br><span>一本に戻した。</span></h2>
+        <div class="result-scene">
+          <span id="resultScene">会議で新しい提案を出す</span>
+          <strong id="resultAction">結論を一文で先に言う</strong>
+        </div>
+        <div class="result-rule">
+          <p>今日のルール</p>
+          <strong>失敗は1回だけ確認。<br>その後は成功確率を上げる方を考える。</strong>
+        </div>
+        <div class="result-stats">
+          <div><span>切り替え</span><strong id="resultCount">1</strong><small>回</small></div>
+          <div><span>今回</span><strong id="resultTime">0</strong><small>秒</small></div>
+          <div><span>最速</span><strong id="bestTime">—</strong><small>秒</small></div>
+        </div>
+        <button class="primary" id="againBtn" type="button"><span>別の場面でもう1回</span><b>↻</b></button>
+        <a class="home-bottom" href="/">LEVEL UPへ戻る</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
