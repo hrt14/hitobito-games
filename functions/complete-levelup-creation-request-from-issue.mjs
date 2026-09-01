@@ -40,8 +40,10 @@ const labels = Array.isArray(issue.labels) ? issue.labels.map((label) => typeof 
 const rejected = labels.includes('levelup-request-rejected') || issue.state_reason === 'not_planned';
 const slugMatch = body.match(/<!-- levelup-app-slug:([a-z0-9-]{1,64}) -->/);
 const titleMatch = body.match(/<!-- levelup-app-title:([^<>\n]{1,100}) -->/);
+const purposeMatch = body.match(/<!-- levelup-app-purpose-ja:([^<>\n]{2,80}) -->/);
 const slug = slugMatch?.[1] && slugMatch[1] !== 'pending' ? slugMatch[1] : '';
 const appTitle = String(titleMatch?.[1] || '').trim();
+const appPurposeJa = String(purposeMatch?.[1] || '').trim();
 
 if (!rejected && !slug) {
   console.log(`[LEVEL UP maker] request ${requestId} has no completed app slug; keep request building`);
@@ -132,6 +134,7 @@ const myPageSynced = await db.runTransaction(async (tx) => {
       appSlug: slug,
       appPath,
       appTitle: appTitle || current.appTitle || String(index.appTitle || '').trim(),
+      appPurposeJa: appPurposeJa || current.appPurposeJa || String(index.appPurposeJa || '').trim(),
       completedAt,
       updatedAt: completedAt,
     },
@@ -157,6 +160,7 @@ await indexRef.set({
   appSlug: slug,
   appPath,
   appTitle,
+  appPurposeJa,
   completionChannel: 'my-levelup',
   myPageSynced: true,
   myPageSyncedAt: FieldValue.serverTimestamp(),
