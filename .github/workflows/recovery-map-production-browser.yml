@@ -1,5 +1,6 @@
 name: Verify LEVEL UP request production
 
+# A workflow-only main update can safely re-run the live mobile checks when needed.
 on:
   workflow_run:
     workflows:
