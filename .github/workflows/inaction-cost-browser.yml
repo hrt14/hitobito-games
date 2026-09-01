@@ -1,0 +1,67 @@
+name: 何もしないコスト browser playtest
+
+on:
+  pull_request:
+    paths:
+      - 'apps/inaction-cost/**'
+      - 'scripts/register-inaction-cost-meta.mjs'
+      - 'package.json'
+      - '.github/workflows/inaction-cost-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/inaction-cost/**'
+      - 'scripts/register-inaction-cost-meta.mjs'
+      - 'package.json'
+      - '.github/workflows/inaction-cost-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check test syntax
+        run: |
+          node --check apps/inaction-cost/smoke-browser.mjs
+          node --check scripts/register-inaction-cost-meta.mjs
+      - name: Build Firebase bundle
+        run: npm run build:firebase
+      - name: Confirm LEVEL UP auto-discovery
+        run: |
+          node -e "const fs=require('fs');const p='.dist/firebase/levelup-catalog.json';const j=JSON.parse(fs.readFileSync(p));if(!j.games.some(g=>g.slug==='inaction-cost')){throw new Error('inaction-cost missing from LEVEL UP catalog')}"
+      - name: Start static server
+        run: |
+          cd .dist/firebase
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/inaction-cost-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/inaction-cost/' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/inaction-cost-server.log
+          exit 1
+      - name: Run real mobile playtest
+        env:
+          INACTION_COST_URL: http://127.0.0.1:4173/apps/inaction-cost/
+        run: node apps/inaction-cost/smoke-browser.mjs
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inaction-cost-browser-playtest
+          path: apps/inaction-cost/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/inaction-cost-server.log || true
