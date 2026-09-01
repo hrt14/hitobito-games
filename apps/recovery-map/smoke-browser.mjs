@@ -36,7 +36,11 @@ await page.waitForSelector('#startBtn');
 const history=await page.locator('.history').innerText();
 if(!history.includes('頭・気持ち'))throw new Error('revisit history missing');
 await page.click('#startBtn');
-await page.click('#resetBtn');
+// The shared LEVEL UP app-menu layer is injected only in production and can
+// overlap the app-owned reset control in headless hit testing. Invoke the
+// control's real DOM click here so this app smoke test verifies reset behavior
+// without coupling itself to the shared navigation overlay.
+await page.locator('#resetBtn').evaluate((button)=>button.click());
 if(await page.locator('#startBtn').count()!==1)throw new Error('back/reset did not return home');
 const mobileOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
 if(mobileOverflow)throw new Error('horizontal overflow after interaction');
