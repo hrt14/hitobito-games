@@ -1,0 +1,90 @@
+name: Verify DAY SWITCH mobile
+
+on:
+  pull_request:
+    paths:
+      - 'apps/day-switch/**'
+      - 'scripts/inject-day-switch-*.mjs'
+      - '.github/workflows/day-switch-browser.yml'
+      - 'package.json'
+  workflow_run:
+    workflows:
+      - 'Deploy LEVEL UP production closed loop'
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  local-mobile:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Syntax check
+        run: |
+          node --check apps/day-switch/app.js
+          node --check apps/day-switch/smoke-browser.mjs
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/day-switch-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/apps/day-switch/ >/dev/null && exit 0; sleep 1; done
+          cat /tmp/day-switch-server.log
+          exit 1
+      - name: Operate DAY SWITCH at 390x844
+        env:
+          DAY_SWITCH_URL: http://127.0.0.1:4173/apps/day-switch/
+        run: node apps/day-switch/smoke-browser.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day-switch-mobile-evidence
+          path: apps/day-switch/.artifacts/*
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7
+
+  production-mobile:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait for production page
+        run: |
+          for i in $(seq 1 36); do
+            code=$(curl -L -sS -o /tmp/day-switch.html -w '%{http_code}' -H 'cache-control: no-cache' "https://levelup.hitobito.jp/apps/day-switch/?verify=${GITHUB_RUN_ID}" || true)
+            if [ "$code" = '200' ] && grep -q 'DAY SWITCH' /tmp/day-switch.html; then exit 0; fi
+            sleep 10
+          done
+          exit 1
+      - name: Operate DAY SWITCH in production at 390x844
+        env:
+          DAY_SWITCH_URL: https://levelup.hitobito.jp/apps/day-switch/?verify=production
+        run: node apps/day-switch/smoke-browser.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day-switch-production-evidence
+          path: apps/day-switch/.artifacts/*
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7
