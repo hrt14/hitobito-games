@@ -53,3 +53,5 @@ Object.assign(game, copy);
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
 console.log('[Firebase] recovery-map app-specific LEVEL UP card copy injected.');
+
+await import('./inject-day-switch-card-copy.mjs');

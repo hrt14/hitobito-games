@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const homePath=path.join(root,'.dist','firebase','index.html');
+const catalogPath=path.join(root,'.dist','firebase','levelup-catalog.json');
+const slug='day-switch';
+const card={title:'進まなかった日の 夜90秒リセット',obi:'未完了を1つ預け、明日の最初の10分だけ決めて、今日を閉じる。'};
+if(!fs.existsSync(homePath)||!fs.existsSync(catalogPath))throw new Error('LEVEL UP home/catalog not found for day-switch book card.');
+const esc=v=>String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+const catalog=JSON.parse(fs.readFileSync(catalogPath,'utf8'));const game=catalog.games.find(x=>x.slug===slug);if(!game)throw new Error('day-switch missing from LEVEL UP catalog.');game.title=card.title;game.description=card.obi;
+let html=fs.readFileSync(homePath,'utf8');const pattern=new RegExp(`(<article\\b[^>]*\\bdata-game="${slug}"[^>]*>)([\\s\\S]*?)(</article>)`);const match=html.match(pattern);if(!match)throw new Error('day-switch card missing from LEVEL UP home.');let body=match[2].replace(/<p class="book-obi">[\s\S]*?<\/p>\s*/g,'');if(!/<h2\b[^>]*>[\s\S]*?<\/h2>/.test(body))throw new Error('day-switch card title missing.');body=body.replace(/<h2\b[^>]*>[\s\S]*?<\/h2>/,`<h2>${esc(card.title)}</h2>\n      <p class="book-obi">${esc(card.obi)}</p>`);body=body.replace(/aria-label="[^"]*をお気に入りに追加"/,`aria-label="${esc(card.title)}をお気に入りに追加"`);html=html.replace(pattern,`$1${body}$3`);fs.writeFileSync(catalogPath,`${JSON.stringify(catalog,null,2)}\n`);fs.writeFileSync(homePath,html);console.log('[Firebase] day-switch title + obi book card injected.');
