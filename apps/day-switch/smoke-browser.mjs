@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { chromium } from 'playwright';
+
+const url=process.env.DAY_SWITCH_URL||'http://127.0.0.1:4173/apps/day-switch/';
+const browser=await chromium.launch({headless:true});
+const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+const page=await context.newPage();
+await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
+await page.locator('#startBtn').click();
+await page.locator('#carryInput').fill('明日に預ける作業');
+await page.locator('#carryNext').click();
+await page.locator('[data-release]').first().click();
+await page.locator('#releaseNext').click();
+await page.locator('#tomorrowInput').fill('資料を開いて最初の1行を書く');
+await page.locator('#finishBtn').click();
+await page.getByText('TODAY CLOSED').waitFor();
+await page.getByText('資料を開いて最初の1行を書く').waitFor();
+const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1);
+if(overflow)throw new Error('horizontal overflow at 390px');
+const fontSizes=await page.locator('button,input,.stage-copy,.lead,.hint').evaluateAll(nodes=>nodes.filter(n=>{const r=n.getBoundingClientRect();return r.width>0&&r.height>0}).map(n=>parseFloat(getComputedStyle(n).fontSize)));
+if(fontSizes.some(v=>v<13))throw new Error(`mobile text below 13px: ${Math.min(...fontSizes)}`);
+const artifactDir=path.resolve('apps/day-switch/.artifacts');fs.mkdirSync(artifactDir,{recursive:true});await page.screenshot({path:path.join(artifactDir,'day-switch-mobile.png'),fullPage:true});
+await page.reload({waitUntil:'domcontentloaded'});
+await page.getByText('前回決めた最初の10分').waitFor();
+await browser.close();
+console.log(`DAY SWITCH mobile flow passed: ${url}`);
