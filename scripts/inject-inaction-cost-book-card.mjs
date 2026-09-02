@@ -65,3 +65,5 @@ for (const [slug, card] of Object.entries(CARDS)) {
 }
 
 console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる + breakthrough-90 title + obi book cards injected.');
+
+await import('./inject-day-switch-book-card.mjs');
