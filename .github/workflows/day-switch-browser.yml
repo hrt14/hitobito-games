@@ -7,6 +7,11 @@ on:
       - 'scripts/inject-day-switch-*.mjs'
       - '.github/workflows/day-switch-browser.yml'
       - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/day-switch-browser.yml'
   workflow_run:
     workflows:
       - 'Deploy LEVEL UP production closed loop'
@@ -53,7 +58,11 @@ jobs:
           retention-days: 7
 
   production-mobile:
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main') ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
