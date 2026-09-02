@@ -27,6 +27,13 @@ const CARDS = {
     purpose: '自信を「成功した後のご褒美」から「結果が出る前に次の一手を出す前提」へ置き直す',
     benefit: '成功を思い込まずに、10分以内の一手を決めて3・2・1で現実の行動を始めやすくなる',
   },
+  'breakthrough-90': {
+    kicker: 'ZOOM OUT. MOVE ONE STEP.',
+    skill: '俯瞰 / 比較リセット / 次の一手',
+    forWho: '新しい挑戦が行き詰まり、「もう無理かも」と次の一手が見えなくなっている人',
+    purpose: '時間軸を10年まで引き、他人比較を外して、考える対象を昨日の自分と次の15分へ戻す',
+    benefit: '八方塞がりの感覚を抱えたままでも、いま実行できる具体的な一手を1つ決めて動き始めやすくなる',
+  },
 };
 
 const escapeHtml = (value) => String(value)
@@ -87,4 +94,4 @@ for (const [slug, copy] of Object.entries(CARDS)) patchCard(slug, copy);
 fs.writeFileSync(homePath, home);
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 
-console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる app-specific LEVEL UP card copy injected.');
+console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる + breakthrough-90 app-specific LEVEL UP card copy injected.');
