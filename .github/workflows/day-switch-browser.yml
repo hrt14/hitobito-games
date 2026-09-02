@@ -97,3 +97,5 @@ jobs:
           if-no-files-found: warn
           include-hidden-files: true
           retention-days: 7
+
+# A workflow-file push intentionally re-runs the production mobile verification.
