@@ -15,6 +15,10 @@ const CARDS = {
     title: '結果が出る前に自信をつくる',
     obi: '成功の証拠を待たない。「次の一手は出せる」を先払いして、3・2・1で動き始める。',
   },
+  'breakthrough-90': {
+    title: '八方塞がりから次の一手へ',
+    obi: '10年まで引く。他人比較を外す。最後は「次の15分」だけを決める90秒リセット。',
+  },
 };
 
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
@@ -60,4 +64,4 @@ for (const [slug, card] of Object.entries(CARDS)) {
   }
 }
 
-console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる title + obi book cards injected.');
+console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる + breakthrough-90 title + obi book cards injected.');
