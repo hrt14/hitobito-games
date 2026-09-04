@@ -1,0 +1,20 @@
+/* Readability overrides: keep the visual hierarchy while ensuring secondary copy stays legible on mobile. */
+.lead{color:#45443f}
+.section-head p{color:#4f4d48}
+.leak-number{opacity:.72}
+.leak-state{color:#55534d}
+.under-note{color:#55534d}
+.rank-row small{color:#55534d}
+.recommendation>p{color:#4b4944}
+.why-order p{color:#51504b}
+.return-copy p{color:#e1dfd7}
+.return-copy small{color:#b8b5aa}
+.result-top{color:#b8b5aa}
+.result-label{color:#b8b5aa}
+.result-bottom{color:#b8b5aa}
+.four-week p{color:#4f4d48}
+.evidence-body p{color:#4f4d48}
+.footer{color:#55534d}
+@media(max-width:760px){
+  .eyebrow,.bucket-zone>p,.section-head p,.leak-number,.leak-state,.under-note,.rank-row span,.rank-row small,.if-preview span,.plug-target span,.plan-field span,.rule-preview>span,.mini-label,.return-copy small,.result-top,.result-label,.result-rule span,.result-bottom,.four-week>span,.evidence summary,.source-links a,.footer{font-size:max(11px,1em)}
+}
