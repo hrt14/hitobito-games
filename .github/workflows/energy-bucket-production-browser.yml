@@ -10,6 +10,7 @@ on:
     branches:
       - main
     paths:
+      - 'apps/energy-bucket/**'
       - '.github/workflows/energy-bucket-production-browser.yml'
       - '.github/scripts/energy-bucket-production-cdp.mjs'
 
