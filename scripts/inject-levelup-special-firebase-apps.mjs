@@ -47,6 +47,13 @@ const CARD_META = {
     purpose: '「早く寝なきゃ」ではなく、「昨日の世界の続きを見たい」から布団へ向かう理由を作る',
     benefit: '入口と3つの感覚手がかりだけ準備し、画面を伏せたあと頭の中で毎晩続きを楽しめる',
   },
+  'energy-bucket': {
+    title: '夕方に電池切れする人の 体力の穴を1個ふさぐ', kicker: 'LEAK FIRST / ONE PLUG', skill: '疲労習慣 / If-Then', icon: '▽',
+    description: '10個の「体力の穴」を見つけ、明日ふさぐ1個だけをIF-THENの行動ルールにする。',
+    forWho: '朝は動けても夕方になると頭も体も電池切れし、何から生活を直せばいいか分からない人',
+    purpose: '体力対策を増やす前に、毎日エネルギーを減らしていそうな生活習慣を1個だけ選ぶ',
+    benefit: '明日1回だけ試せるIF-THENルールを持ち帰り、できた／まだを次回記録できる',
+  },
 };
 
 function titleFromHtml(html, slug) {
