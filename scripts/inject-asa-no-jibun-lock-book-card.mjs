@@ -19,6 +19,10 @@ const cards = {
     title: '変えられないことを考え続ける人の 影響範囲を切り分ける練習',
     obi: '直接動かせることを見分け、自分の次の一手へ注意を戻す。',
   },
+  'energy-bucket': {
+    title: '夕方に電池切れする人の 体力の穴を1個ふさぐ',
+    obi: '10個の体力の穴から明日ふさぐ1個だけを選び、IF-THENの行動ルールにする。',
+  },
 };
 
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
