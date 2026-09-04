@@ -1,0 +1,67 @@
+name: Energy bucket browser verification
+
+on:
+  pull_request:
+    paths:
+      - 'apps/energy-bucket/**'
+      - 'firebase-special-apps/energy-bucket/**'
+      - 'deploy-targets.json'
+      - '.github/workflows/energy-bucket-browser.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/energy-bucket/**'
+      - 'firebase-special-apps/energy-bucket/**'
+      - 'deploy-targets.json'
+      - '.github/workflows/energy-bucket-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: node --check apps/energy-bucket/app.js
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/energy-bucket-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:4173/apps/energy-bucket/?test=1' >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/energy-bucket-server.log
+          exit 1
+      - name: Run real mobile flow
+        env:
+          ENERGY_BUCKET_URL: http://127.0.0.1:4173/apps/energy-bucket/?test=1
+        run: node apps/energy-bucket/smoke-browser.mjs
+      - name: Build Firebase LEVEL UP bundle
+        run: npm run build:firebase
+      - name: Verify Firebase bundle contains app
+        run: |
+          test -f .dist/firebase/apps/energy-bucket/index.html
+          grep -F 'energy-bucket' .dist/firebase/manifest.json >/dev/null
+          grep -F 'energy-bucket' .dist/firebase/levelup-catalog.json >/dev/null
+          grep -F '体力の穴を1個ふさぐ' .dist/firebase/apps/energy-bucket/index.html >/dev/null
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-bucket-browser-evidence
+          path: apps/energy-bucket/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/energy-bucket-server.log || true
