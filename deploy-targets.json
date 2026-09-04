@@ -16,7 +16,7 @@
       "role": "normal-games-batch",
       "source": "apps/*",
       "excludeCategories": ["levelup", "aaa-lab"],
-      "excludeSlugs": ["404-kaiki", "reflex-7", "reaction-pattern"]
+      "excludeSlugs": ["404-kaiki", "reflex-7", "reaction-pattern", "energy-bucket"]
     },
     "firebaseHosting": {
       "role": "level-up",
