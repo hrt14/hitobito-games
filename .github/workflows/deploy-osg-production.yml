@@ -21,7 +21,7 @@ permissions:
 
 concurrency:
   group: osg-firebase-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -39,17 +39,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Ensure Hosting sites exist
-        run: |
-          set +e
-          for site in hitobito-osg hitobito-osg-games; do
-            npx --yes firebase-tools@latest hosting:sites:create "$site" --project hitobito-levelup --non-interactive
-            code=$?
-            if [ "$code" -ne 0 ]; then
-              echo "Site create for $site returned $code. Continuing because the site may already exist; deploy will verify it."
-            fi
-          done
-          set -e
       - name: Security gate generated games
         run: node scripts/validate-osg-game-security.mjs
       - name: Build OneShotGames
