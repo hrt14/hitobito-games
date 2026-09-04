@@ -41,10 +41,22 @@ try {
   assert(await page.locator('.recommendation').count() === 2, 'Recommendations should reflect the two selected leaks.');
   assert((await page.locator('.recommendation').first().innerText()).includes('食後2分だけ歩く'), 'Highest-priority recommendation is unexpected.');
 
+  await page.locator('[data-back="check"]').click();
+  await page.waitForSelector('#checkView:not([hidden])');
+  assert((await page.locator('#leakCounter').innerText()).includes('2 / 10'), 'Back from recommendation lost selected leaks.');
+  await page.locator('#toChoose').click();
+  await page.waitForSelector('#chooseView:not([hidden])');
+
   await page.locator('.recommendation').first().click();
   await page.waitForSelector('#planView:not([hidden])');
   assert((await page.locator('#triggerInput').inputValue()).includes('昼食'), 'IF trigger was not prefilled.');
   assert((await page.locator('#actionInput').inputValue()).includes('2分'), 'THEN action was not prefilled.');
+
+  await page.locator('[data-back="choose"]').click();
+  await page.waitForSelector('#chooseView:not([hidden])');
+  assert(await page.locator('.recommendation').count() === 2, 'Back from plan lost recommendation choices.');
+  await page.locator('.recommendation').first().click();
+  await page.waitForSelector('#planView:not([hidden])');
 
   await page.locator('#triggerInput').fill('昼食を食べ終えたら');
   await page.locator('#actionInput').fill('2分だけ軽く歩く');
@@ -79,6 +91,7 @@ try {
       'first visit promise and 10 leak choices visible',
       'bucket holes and water state respond to taps',
       'recommendation prioritization',
+      'back navigation preserves selections',
       'IF-THEN plan edit and save',
       'completion result',
       'reload and revisit persistence',
