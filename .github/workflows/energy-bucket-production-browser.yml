@@ -6,10 +6,15 @@ on:
       - Deploy LEVEL UP production closed loop
     types:
       - completed
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/energy-bucket-production-browser.yml'
 
 jobs:
   verify-production:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    if: github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
