@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f1e8" />
+  <meta name="description" content="夕方に電池切れする人が、毎日の体力の漏れを見つけ、明日ふさぐ1個だけを決めるLEVEL UPアプリ。" />
+  <title>夕方に電池切れする人の 体力の穴を1個ふさぐ | LEVEL UP</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="LEVEL UPトップへ">← LEVEL UP</a>
+    <div class="progress-dots" aria-label="進行状況">
+      <i data-progress="check" class="active"></i><i data-progress="choose"></i><i data-progress="plan"></i><i data-progress="done"></i>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section id="returnCard" class="return-card" hidden aria-live="polite">
+      <div class="return-copy">
+        <span class="mini-label">LAST PLUG</span>
+        <strong id="lastPlugTitle"></strong>
+        <p id="lastRule"></p>
+        <small id="lastCount"></small>
+      </div>
+      <div class="return-actions">
+        <button id="markDone" class="compact-primary" type="button">できた</button>
+        <button id="markNotYet" class="compact-ghost" type="button">まだ</button>
+      </div>
+    </section>
+
+    <section id="checkView" class="view active" data-view="check">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">ENERGY BUCKET / LEAK FIRST</p>
+          <h1>体力を足す前に、<br><em>漏れを1個ふさぐ。</em></h1>
+          <p class="lead">夕方に電池切れするなら、いきなり全部変えない。まず毎日どこから減っていそうか、30秒で見つけます。</p>
+          <div class="rule-strip"><span>見つける</span><b>→</b><span>1個選ぶ</span><b>→</b><span>明日1回だけ</span></div>
+        </div>
+
+        <div class="bucket-zone" aria-live="polite">
+          <div class="bucket-handle" aria-hidden="true"></div>
+          <div id="bucket" class="bucket" aria-label="体力バケツ">
+            <div id="water" class="water" style="height:92%"><span id="waterNumber">92</span></div>
+            <div id="holeLayer" class="hole-layer" aria-hidden="true"></div>
+          </div>
+          <p id="bucketCaption">今のバケツ</p>
+        </div>
+      </div>
+
+      <section class="check-panel" aria-labelledby="checkTitle">
+        <div class="section-head">
+          <div><p>30 SECOND CHECK</p><h2 id="checkTitle">当てはまる穴をタップ</h2></div>
+          <strong id="leakCounter">0 / 10</strong>
+        </div>
+        <div id="leakGrid" class="leak-grid"></div>
+        <div id="safetyNote" class="safety-note" hidden>
+          <strong>息切れだけは「鍛えればOK」と決めつけない。</strong>
+          <span>急な悪化、胸の痛み、強いめまいなどがある場合は、セルフケアより医療機関への相談を優先してください。</span>
+        </div>
+        <button id="toChoose" class="primary" type="button" disabled>まず1つタップ</button>
+        <p class="under-note">3個以上見つかっても、明日直すのは1個だけ。</p>
+      </section>
+    </section>
+
+    <section id="chooseView" class="view" data-view="choose" hidden>
+      <button class="back-button" type="button" data-back="check">← チェックに戻る</button>
+      <p class="eyebrow">DON'T FIX EVERYTHING</p>
+      <h1 class="step-title">明日ふさぐ穴は、<br><em>1個だけ。</em></h1>
+      <p class="lead narrow">安全性、小さく実行できること、毎日起こる合図に結びやすいことを優先して、候補を3つに絞りました。</p>
+      <div id="recommendations" class="recommendation-stack"></div>
+      <details class="why-order"><summary>なぜこの順番？</summary><p>「効果が最大そう」だけでなく、安全性と実行しやすさを優先しています。疲れている人に新しいタスクを7個追加しないための順番です。</p></details>
+    </section>
+
+    <section id="planView" class="view" data-view="plan" hidden>
+      <button class="back-button" type="button" data-back="choose">← 穴を選び直す</button>
+      <p class="eyebrow">IF → THEN</p>
+      <h1 class="step-title">疲れた明日の自分に、<br><em>決断させない。</em></h1>
+      <p class="lead narrow">合図が来たら何をするか、今のうちに1本のルールへ固定します。</p>
+      <div class="plug-board">
+        <div class="plug-target"><span>塞ぐ穴</span><strong id="planLeakName"></strong></div>
+        <label class="plan-field"><span>IF / もし</span><input id="triggerInput" maxlength="80" autocomplete="off" /></label>
+        <div class="down-arrow">↓</div>
+        <label class="plan-field"><span>THEN / そのとき</span><input id="actionInput" maxlength="100" autocomplete="off" /></label>
+        <div class="rule-preview"><span>明日のルール</span><p id="rulePreview"></p></div>
+      </div>
+      <button id="savePlan" class="primary" type="button">この1個だけで明日を試す →</button>
+      <p class="under-note">新しい習慣を増やすのではなく、明日の判断を1個減らす。</p>
+    </section>
+
+    <section id="doneView" class="view" data-view="done" hidden>
+      <p class="eyebrow">ONE PLUG INSTALLED</p>
+      <h1 class="step-title">明日はこれだけ。<br><em>他はやらなくていい。</em></h1>
+      <article id="resultCard" class="result-card">
+        <div class="result-top"><span>ENERGY BUCKET</span><strong id="resultFraction"></strong></div>
+        <p class="result-label">明日ふさぐ穴</p>
+        <h2 id="resultLeak"></h2>
+        <div class="result-rule"><span>IF</span><p id="resultIf"></p><i>↓</i><span>THEN</span><p id="resultThen"></p></div>
+        <div class="result-bottom"><span>成功条件</span><strong>1回やれば勝ち</strong></div>
+      </article>
+      <div class="done-actions">
+        <button id="sharePlan" class="primary" type="button">結果をシェア</button>
+        <button id="restart" class="secondary" type="button">もう一度バケツを見る</button>
+      </div>
+      <div class="four-week"><span>4 WEEK CHECK</span><strong>4週間後、同じ10項目をもう一度。</strong><p>穴が1個でも減っていれば前進。増えていたら、自分を責めず別の穴を見る。</p></div>
+    </section>
+
+    <section class="evidence">
+      <details>
+        <summary>根拠と注意点</summary>
+        <div class="evidence-body">
+          <p><strong>軽い歩行：</strong>長く座り続ける条件に比べ、短い軽歩行をはさむ条件で食後の血糖・インスリン反応が小さくなる方向の系統的レビュー・メタ分析があります。このアプリは「2分で17%改善」のような固定値は表示しません。</p>
+          <p><strong>If-Then：</strong>「もしXならYする」というimplementation intentionは、目標行動を実行しやすくする設計として研究されています。効果は対象や行動によって異なります。</p>
+          <p><strong>冷水シャワー：</strong>参考動画では紹介されていますが、このアプリの最初の行動には採用していません。既存RCTから「体力が上がる」とまでは断定できないためです。</p>
+          <p>このアプリは医療診断ではありません。強い疲労が続く、急な息切れ、胸の痛み、強いめまいなどがある場合は医療機関へ相談してください。</p>
+          <div class="source-links">
+            <a href="https://pubmed.ncbi.nlm.nih.gov/35147898/" target="_blank" rel="noreferrer">Sports Medicine 2022 ↗</a>
+            <a href="https://pubmed.ncbi.nlm.nih.gov/25965276/" target="_blank" rel="noreferrer">If-Then meta-analysis ↗</a>
+            <a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0161749" target="_blank" rel="noreferrer">Cold shower RCT ↗</a>
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer"><strong>hitobito LEVEL UP</strong><span>LEAK FIRST / ONE PLUG</span></footer>
+  <script src="./app.js"></script>
+</body>
+</html>
