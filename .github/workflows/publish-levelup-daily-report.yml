@@ -11,6 +11,7 @@ on:
       - 'scripts/export-levelup-daily-report.mjs'
       - 'scripts/inject-levelup-auto-circuit.mjs'
       - 'firebase-overrides/levelup-home-ux/daily-report-telemetry.mjs'
+      - 'firebase-overrides/levelup-growth-loop/inject.mjs'
   schedule:
     - cron: '48 19 * * *' # 04:48 JST
 

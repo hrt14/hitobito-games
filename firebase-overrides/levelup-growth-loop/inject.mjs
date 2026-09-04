@@ -316,14 +316,17 @@ function homeScript() {
 </script>`;
 }
 
-function appMarkup(slug, game) {
+function appMarkup(slug, game, includeComplete = true) {
   const related = relatedFor(slug);
   const relatedMarkup = related.map((item) => {
     const href = item.href || `/apps/${encodeURIComponent(item.slug)}/`;
     return `<a href="${escapeAttr(href)}?ref=related&utm_source=levelup&utm_medium=internal&utm_campaign=after_complete"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.skill || item.description || '')}</span></a>`;
   }).join('');
+  const completeButton = includeComplete
+    ? '<button type="button" class="lu-complete-fab" data-lu-complete aria-label="今日のトレーニングを完了">✓</button>'
+    : '';
   return `
-<button type="button" class="lu-complete-fab" data-lu-complete aria-label="今日のトレーニングを完了">✓</button>
+${completeButton}
 <div class="lu-share-sheet" data-lu-sheet aria-hidden="true">
   <div class="lu-share-panel" role="dialog" aria-modal="true">
     <div class="lu-diagnosis-top"><strong>今日のLEVEL UP</strong><button type="button" class="lu-close" data-lu-sheet-close aria-label="閉じる">×</button></div>
@@ -442,8 +445,19 @@ function injectApps() {
     if (!html.includes('id="levelup-growth-loop-v1-style"')) {
       html = html.replace('</head>', `${commonStyle}\n</head>`);
     }
-    if (!html.includes('data-lu-complete')) {
-      html = html.replace('</body>', `${appMarkup(slug, game)}\n${appScript(slug, game)}\n</body>`);
+
+    const hasComplete = html.includes('data-lu-complete');
+    const hasShareUi = html.includes('data-lu-share') && html.includes('data-lu-sheet');
+    const hasGrowthScript = html.includes(`${marker} data-game-slug=`);
+
+    // App-specific experiences may already expose their own completion control.
+    // Preserve it, but still attach the common result/share/related loop instead
+    // of treating "has a complete button" as "growth loop is fully installed".
+    if (!hasShareUi) {
+      const scriptMarkup = hasGrowthScript ? '' : `\n${appScript(slug, game)}`;
+      html = html.replace('</body>', `${appMarkup(slug, game, !hasComplete)}${scriptMarkup}\n</body>`);
+    } else if (!hasGrowthScript) {
+      html = html.replace('</body>', `${appScript(slug, game)}\n</body>`);
     }
     fs.writeFileSync(indexPath, html);
   }
