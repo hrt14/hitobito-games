@@ -26,6 +26,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,7 +57,7 @@ jobs:
           fs.writeFileSync('.dist/osg-games/deploy-meta.json', payload);
           NODE
       - name: Deploy creator and isolated game origins to Firebase Hosting
-        run: npx --yes firebase-tools@latest deploy --only hosting:osg,hosting:osg-games --project hitobito-levelup --config firebase.osg.json --non-interactive
+        run: npx --yes firebase-tools@15.28.1 deploy --only hosting:osg,hosting:osg-games --project hitobito-levelup --config firebase.osg.json --non-interactive
       - name: Verify production isolation, listing, and security headers
         run: |
           set -euo pipefail
