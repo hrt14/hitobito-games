@@ -18,8 +18,9 @@ function assert(condition, message) {
 }
 
 try {
-  await page.addInitScript(() => localStorage.removeItem('levelup:energy-bucket:v1'));
   await page.goto(url, { waitUntil: 'networkidle' });
+  await page.evaluate(() => localStorage.removeItem('levelup:energy-bucket:v1'));
+  await page.reload({ waitUntil: 'networkidle' });
   await page.screenshot({ path: path.join(artifactDir, '01-first-visit.png'), fullPage: true });
 
   assert((await page.locator('h1').first().innerText()).includes('漏れを1個ふさぐ'), 'First-view promise is not visible.');
