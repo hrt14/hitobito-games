@@ -1,0 +1,49 @@
+name: Energy bucket production browser verification
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy LEVEL UP production closed loop
+    types:
+      - completed
+
+jobs:
+  verify-production:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for energy-bucket route
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsSL --max-time 20 'https://levelup.hitobito.jp/apps/energy-bucket/' | grep -F '体力の穴を1個ふさぐ' >/dev/null; then
+              echo 'Production route is live.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Production route did not become verifiable.' >&2
+          exit 1
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run full production mobile flow
+        env:
+          ENERGY_BUCKET_URL: https://levelup.hitobito.jp/apps/energy-bucket/?production-smoke=1
+        run: node apps/energy-bucket/smoke-browser.mjs
+      - name: Upload production browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-bucket-production-browser-evidence
+          path: apps/energy-bucket/.artifacts/*
+          if-no-files-found: warn
+          retention-days: 7
+          include-hidden-files: true
