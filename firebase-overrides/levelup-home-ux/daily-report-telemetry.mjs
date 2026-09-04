@@ -200,7 +200,10 @@ function scriptFor(slug, pageKind) {
 
   const bind = () => {
     document.addEventListener('click', (event) => {
-      const node = event.target?.closest?.('[data-complete="true"],[data-action="complete"],[data-action="finish"]');
+      // The shared growth-loop completion control uses data-lu-complete. Keep it
+      // in the same explicit completion path as app-native finish controls so the
+      // daily circuit can learn from actual completions instead of page views only.
+      const node = event.target?.closest?.('[data-lu-complete],[data-complete="true"],[data-action="complete"],[data-action="finish"]');
       if (node) finalize('completed');
       const card = event.target?.closest?.('.card-link');
       const input = document.getElementById('levelup-search-input');
