@@ -9,6 +9,8 @@ on:
       - '.levelup-daily-report-trigger'
       - '.github/workflows/publish-levelup-daily-report.yml'
       - 'scripts/export-levelup-daily-report.mjs'
+      - 'scripts/inject-levelup-auto-circuit.mjs'
+      - 'firebase-overrides/levelup-home-ux/daily-report-telemetry.mjs'
   schedule:
     - cron: '48 19 * * *' # 04:48 JST
 
@@ -55,15 +57,23 @@ jobs:
       - name: Export sanitized daily report JSON
         run: node scripts/export-levelup-daily-report.mjs
 
-      - name: Deploy hosting with report
+      - name: Build automatic market-test circuit from latest aggregates
+        run: node scripts/inject-levelup-auto-circuit.mjs
+
+      - name: Deploy hosting with report and circuit
         run: npx --yes firebase-tools@latest deploy --only hosting --project hitobito-levelup --non-interactive
 
-      - name: Verify report endpoint
+      - name: Verify report and circuit endpoints
         run: |
           set -euo pipefail
           sleep 5
           curl -fLsS https://levelup.hitobito.jp/reports/latest.json -o /tmp/report.json
           node -e "const r=require('/tmp/report.json'); if(!r.schemaVersion||!r.current) process.exit(1); console.log(r.current.date, r.current.available, r.blockedReason || 'ok')"
+          curl -fLsS https://levelup.hitobito.jp/reports/circuit.json -o /tmp/circuit.json
+          node -e "const c=require('/tmp/circuit.json'); if(c.schemaVersion!==1||!Array.isArray(c.games)||!c.telemetry) process.exit(1); console.log('circuit', c.reportDate, c.featured?.slug || 'none', 'boosts=' + c.boosts.length, 'explore=' + c.explore.length, 'improve=' + c.improvements.length)"
+          curl -fLsS https://levelup.hitobito.jp/ -o /tmp/levelup-home.html
+          grep -F 'data-levelup-auto-circuit-v1' /tmp/levelup-home.html >/dev/null
+          echo 'Automatic circuit is live on the LEVEL UP home.'
 
       - name: Record successful report publish
         env:
@@ -73,12 +83,21 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const r = JSON.parse(fs.readFileSync('/tmp/report.json', 'utf8'));
+          const c = JSON.parse(fs.readFileSync('/tmp/circuit.json', 'utf8'));
           const status = {
             publishedAt: new Date().toISOString(),
             reportDate: r.current?.date || null,
             available: Boolean(r.current?.available),
             blockedReason: r.blockedReason || null,
             generatedAt: r.generatedAt || null,
+            circuit: {
+              reportDate: c.reportDate || null,
+              featured: c.featured?.slug || null,
+              boosts: Array.isArray(c.boosts) ? c.boosts.map((item) => item.slug) : [],
+              explore: Array.isArray(c.explore) ? c.explore.map((item) => item.slug) : [],
+              improvements: Array.isArray(c.improvements) ? c.improvements.map((item) => item.slug) : [],
+              completionReady: Boolean(c.telemetry?.completionReady),
+            },
             workflowRun: process.env.GITHUB_RUN_ID || null,
           };
           fs.writeFileSync('/tmp/report-status.json', JSON.stringify(status, null, 2) + '\n');
@@ -96,8 +115,9 @@ jobs:
             gh api "${args[@]}" >/dev/null
           }
 
-          # Mirror the same sanitized aggregate payload to GitHub so the morning
-          # report task can read it through the connected GitHub integration even
-          # when direct JSON fetching is unavailable in the chat runtime.
+          # Mirror sanitized aggregates and the derived circuit decision to GitHub
+          # so connected agents can audit what the production homepage used without
+          # exposing user-level analytics data.
           publish_file /tmp/report.json .levelup-daily-report-latest.json 'Mirror LEVEL UP daily report aggregates'
+          publish_file /tmp/circuit.json .levelup-circuit-latest.json 'Mirror LEVEL UP automatic circuit decision'
           publish_file /tmp/report-status.json .levelup-daily-report-status.json 'Record LEVEL UP daily report publish'
