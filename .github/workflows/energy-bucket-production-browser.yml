@@ -11,12 +11,13 @@ on:
       - main
     paths:
       - '.github/workflows/energy-bucket-production-browser.yml'
+      - '.github/scripts/energy-bucket-production-cdp.mjs'
 
 jobs:
   verify-production:
     if: github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,14 +36,19 @@ jobs:
           done
           echo 'Production route did not become verifiable.' >&2
           exit 1
-      - name: Install browser harness
+      - name: Start system Chrome with DevTools Protocol
         run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME_BIN"
+          "$CHROME_BIN" --headless=new --no-sandbox --disable-gpu --remote-debugging-port=9222 --user-data-dir=/tmp/energy-bucket-chrome about:blank >/tmp/energy-bucket-chrome.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:9222/json/version >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/energy-bucket-chrome.log
+          exit 1
       - name: Run full production mobile flow
-        env:
-          ENERGY_BUCKET_URL: https://levelup.hitobito.jp/apps/energy-bucket/?production-smoke=1
-        run: node apps/energy-bucket/smoke-browser.mjs
+        run: node .github/scripts/energy-bucket-production-cdp.mjs
       - name: Upload production browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -52,3 +58,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
           include-hidden-files: true
+      - name: Chrome log on failure
+        if: failure()
+        run: cat /tmp/energy-bucket-chrome.log || true
