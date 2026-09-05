@@ -15,6 +15,7 @@
 .four-week p{color:#4f4d48}
 .evidence-body p{color:#4f4d48}
 .footer{color:#55534d}
+.leak-card,.primary,.secondary,.compact-primary,.compact-ghost{-webkit-appearance:none;appearance:none}
 @media(max-width:760px){
   .eyebrow,.bucket-zone>p,.section-head p,.leak-number,.leak-state,.under-note,.rank-row span,.rank-row small,.if-preview span,.plug-target span,.plan-field span,.rule-preview>span,.mini-label,.return-copy small,.result-top,.result-label,.result-rule span,.result-bottom,.four-week>span,.evidence summary,.source-links a,.footer{font-size:max(11px,1em)}
 }
@@ -26,21 +27,21 @@
   .progress-dots i.active{background:var(--ink)}
   .lead,.section-head p,.under-note,.rank-row small,.recommendation>p,.why-order p,.four-week p,.evidence-body p,.footer{color:#d0ccc0}
   .rule-strip span,.recommendation,.four-week{background:#242420;border-color:var(--line)}
-  .leak-card{background:#1f1f1c;border-color:var(--line);color:#f5f2e8}
-  .leak-card .leak-state{color:#e3dfd3}
-  .leak-card .leak-number{color:#d8d4c8;opacity:1}
-  .leak-card:hover,.recommendation.best{border-color:#f5f2e8}
+  button.leak-card{background:#1f1f1c;border-color:var(--line);color:#f5f2e8}
+  button.leak-card .leak-state{color:#e3dfd3}
+  button.leak-card .leak-number{color:#d8d4c8;opacity:1}
+  button.leak-card:hover,.recommendation.best{border-color:#f5f2e8}
   .recommendation.best{background:#2b2b26}
-  .leak-card.selected{background:#0f0f0e;color:#fff;border-color:var(--lime)}
-  .leak-card.selected .leak-state{color:var(--lime)}
+  button.leak-card.selected{background:#0f0f0e;color:#fff;border-color:var(--lime)}
+  button.leak-card.selected .leak-state{color:var(--lime)}
   .bucket-handle{border-color:#e4e0d5}
   .bucket{border-color:#e4e0d5;background:#2b2a25}
   .hole-layer i{background:#0d0d0c;box-shadow:0 0 0 5px rgba(255,255,255,.12)}
   .safety-note{background:#321d1a;border-left-color:#f07d70}
   .safety-note span{color:#ffd0c9}
-  .primary{background:#f5f2e8;color:#151513;box-shadow:0 10px 26px rgba(0,0,0,.34)}
-  .primary:disabled{background:#4b4943;color:#f1ede2}
-  .secondary{color:var(--ink)}
+  button.primary{background:#f5f2e8;color:#151513;box-shadow:0 10px 26px rgba(0,0,0,.34)}
+  button.primary:disabled{background:#4b4943;color:#f1ede2}
+  button.secondary{color:var(--ink)}
   .back-button{color:var(--ink)}
   .source-links a{background:#242420}
   .footer strong{color:#f5f2e8}
