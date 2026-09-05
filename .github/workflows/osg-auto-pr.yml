@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  validate-and-open-pr:
+  validate-open-and-merge:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout request branch
@@ -46,6 +46,7 @@ jobs:
         run: node scripts/build-osg.mjs
 
       - name: Open or reuse pull request
+        id: pr
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_BRANCH: ${{ github.ref_name }}
@@ -54,11 +55,22 @@ jobs:
           set -euo pipefail
           existing="$(gh pr list --state open --head "$HEAD_BRANCH" --base main --json number --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then
-            echo "PR #$existing already exists for $HEAD_BRANCH"
-            exit 0
+            pr_number="$existing"
+            echo "PR #$pr_number already exists for $HEAD_BRANCH"
+          else
+            request_id="$(printf '%s' "$HEAD_BRANCH" | sed -E 's/^osg-(request|requests|improvement)-//')"
+            title="OSG request ${request_id}"
+            body="Automated OneShotGames change from branch \`${HEAD_BRANCH}\`.\n\nThis PR intentionally contains only generalized implementation information."
+            pr_url="$(gh pr create --base main --head "$HEAD_BRANCH" --title "$title" --body "$body")"
+            pr_number="$(gh pr view "$pr_url" --json number --jq '.number')"
           fi
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
 
-          request_id="$(printf '%s' "$HEAD_BRANCH" | sed -E 's/^osg-(request|requests|improvement)-//')"
-          title="OSG request ${request_id}"
-          body="Automated OneShotGames change from branch \`${HEAD_BRANCH}\`.\n\nThis PR intentionally contains only generalized implementation information."
-          gh pr create --base main --head "$HEAD_BRANCH" --title "$title" --body "$body"
+      - name: Merge validated pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR_NUMBER" --squash --delete-branch
