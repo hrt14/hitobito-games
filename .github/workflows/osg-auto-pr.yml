@@ -1,4 +1,4 @@
-name: OSG Auto PR
+name: OSG Auto Integrate
 
 on:
   push:
@@ -15,14 +15,13 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
-  group: osg-auto-pr-${{ github.ref_name }}
+  group: osg-auto-integrate
   cancel-in-progress: false
 
 jobs:
-  validate-open-and-merge:
+  validate-and-integrate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout request branch
@@ -41,32 +40,22 @@ jobs:
       - name: Build OSG
         run: node scripts/build-osg.mjs
 
-      - name: Open or reuse pull request
-        id: pr
+      - name: Integrate validated request into main
         env:
-          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.sha }}
           HEAD_BRANCH: ${{ github.ref_name }}
         shell: bash
         run: |
           set -euo pipefail
-          existing="$(gh pr list --state open --head "$HEAD_BRANCH" --base main --json number --jq '.[0].number // empty')"
-          if [ -n "$existing" ]; then
-            pr_number="$existing"
-            echo "PR #$pr_number already exists for $HEAD_BRANCH"
-          else
-            request_id="$(printf '%s' "$HEAD_BRANCH" | sed -E 's/^osg-(request|requests|improvement)-//')"
-            title="OSG request ${request_id}"
-            body="Automated OneShotGames change from branch \`${HEAD_BRANCH}\`.\n\nThis PR intentionally contains only generalized implementation information."
-            pr_url="$(gh pr create --base main --head "$HEAD_BRANCH" --title "$title" --body "$body")"
-            pr_number="$(gh pr view "$pr_url" --json number --jq '.number')"
+          request_id="$(printf '%s' "$HEAD_BRANCH" | sed -E 's/^osg-(request|requests|improvement)-//')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          git merge --squash "$HEAD_SHA"
+          if git diff --cached --quiet; then
+            echo "No changes remain to integrate for $HEAD_BRANCH"
+            exit 0
           fi
-          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
-
-      - name: Merge validated pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh pr merge "$PR_NUMBER" --squash --delete-branch
+          git commit -m "OSG request ${request_id}"
+          git push origin main
