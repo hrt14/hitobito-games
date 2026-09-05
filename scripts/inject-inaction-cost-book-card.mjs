@@ -19,6 +19,10 @@ const CARDS = {
     title: '八方塞がりから次の一手へ',
     obi: '10年まで引く。他人比較を外す。最後は「次の15分」だけを決める90秒リセット。',
   },
+  'anti-vision-day': {
+    title: '「このままの5年後は嫌だ」を明日の一手に変える',
+    obi: '避けたい未来を先に見る。昼に5回、自分の向きを確かめる。夜には「明日やること」を1つにする。',
+  },
 };
 
 if (!fs.existsSync(homePath) || !fs.existsSync(catalogPath)) {
@@ -64,6 +68,6 @@ for (const [slug, card] of Object.entries(CARDS)) {
   }
 }
 
-console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる + breakthrough-90 title + obi book cards injected.');
+console.log('[Firebase] 何もしないコスト + 結果が出る前に自信をつくる + breakthrough-90 + anti-vision-day title + obi book cards injected.');
 
 await import('./inject-day-switch-book-card.mjs');
