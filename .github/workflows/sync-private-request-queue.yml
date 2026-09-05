@@ -1,0 +1,89 @@
+name: Sync private request queue
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Consolidated fallback poller for both LEVEL UP and OneShotGames queues.
+    # Keep the minute offset away from the top of the hour to reduce scheduler load.
+    - cron: '11,26,41,56 * * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/sync-feedback-to-github.mjs'
+      - 'functions/sync-levelup-creation-requests-to-github.mjs'
+      - 'functions/sync-osg-requests-to-github.mjs'
+      - 'functions/run-private-feedback-sync.mjs'
+      - '.github/workflows/sync-private-request-queue.yml'
+      - '.feedback-sync-trigger'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: private-request-queue-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify private request queue
+        env:
+          QUEUE_REPO: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUEUE_REPO:-}" ] || [ -z "${GH_TOKEN:-}" ]; then
+            echo 'Private request queue configuration is missing.' >> "$GITHUB_STEP_SUMMARY"
+            echo '::error::PRIVATE_REQUEST_REPOSITORY and PRIVATE_REQUEST_TOKEN are required.'
+            exit 1
+          fi
+          visibility=$(gh api "repos/$QUEUE_REPO" --jq '.private')
+          if [ "$visibility" != 'true' ]; then
+            echo 'Configured request queue is not private.' >&2
+            exit 1
+          fi
+          echo 'Private request queue verified.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: hitobito-levelup
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install function dependencies
+        run: npm install --prefix functions
+
+      - name: Sync LEVEL UP requests
+        env:
+          REQUEST_QUEUE_REPOSITORY: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: |
+          set -o pipefail
+          node functions/run-private-feedback-sync.mjs 2>&1 \
+            | sed -E \
+              -e 's/(Recovered session feedback [^:]+):.*/\1: [message redacted]/' \
+              -e 's/(\[dry-run\] [^:]+):.*/\1: [message redacted]/'
+
+      - name: Sync OneShotGames requests
+        env:
+          REQUEST_QUEUE_REPOSITORY: ${{ vars.PRIVATE_REQUEST_REPOSITORY }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REQUEST_TOKEN }}
+          GOOGLE_CLOUD_PROJECT: hitobito-levelup
+        run: node functions/sync-osg-requests-to-github.mjs
+
+      - name: Record privacy-safe result
+        if: always()
+        run: echo 'Private request queue sync finished.' >> "$GITHUB_STEP_SUMMARY"
