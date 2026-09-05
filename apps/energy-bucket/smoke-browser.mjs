@@ -28,6 +28,45 @@ try {
   assert(await page.locator('#toChoose').isDisabled(), 'Continue should be disabled before a leak is selected.');
   assert((await page.locator('body').evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)), 'Mobile layout overflows horizontally.');
 
+  await page.emulateMedia({ colorScheme: 'dark' });
+  const darkReadability = await page.evaluate(() => {
+    const rgb = (value) => {
+      const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!match) return null;
+      return match.slice(1, 4).map(Number);
+    };
+    const luminance = (channels) => {
+      const linear = channels.map((channel) => {
+        const value = channel / 255;
+        return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      });
+      return (0.2126 * linear[0]) + (0.7152 * linear[1]) + (0.0722 * linear[2]);
+    };
+    const contrast = (foreground, background) => {
+      const fg = luminance(rgb(foreground));
+      const bg = luminance(rgb(background));
+      return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+    };
+    const body = getComputedStyle(document.body);
+    const lead = getComputedStyle(document.querySelector('.lead'));
+    const card = getComputedStyle(document.querySelector('.leak-card'));
+    const cardState = getComputedStyle(document.querySelector('.leak-state'));
+    const primary = getComputedStyle(document.querySelector('#toChoose'));
+    return {
+      prefersDark: matchMedia('(prefers-color-scheme: dark)').matches,
+      bodyBackground: body.backgroundColor,
+      leadContrast: contrast(lead.color, body.backgroundColor),
+      cardContrast: contrast(cardState.color, card.backgroundColor),
+      primaryContrast: contrast(primary.color, primary.backgroundColor)
+    };
+  });
+  assert(darkReadability.prefersDark, 'Dark color scheme was not activated.');
+  assert(darkReadability.leadContrast >= 4.5, `Dark-mode lead contrast is too low: ${darkReadability.leadContrast}`);
+  assert(darkReadability.cardContrast >= 4.5, `Dark-mode card text contrast is too low: ${darkReadability.cardContrast}`);
+  assert(darkReadability.primaryContrast >= 4.5, `Dark-mode button contrast is too low: ${darkReadability.primaryContrast}`);
+  await page.screenshot({ path: path.join(artifactDir, '01b-dark-mode.png'), fullPage: true });
+  await page.emulateMedia({ colorScheme: 'light' });
+
   await page.locator('.leak-card[data-key="postLunchSleepy"]').click();
   await page.locator('.leak-card[data-key="nightPhone"]').click();
   assert((await page.locator('#leakCounter').innerText()).includes('2 / 10'), 'Leak counter did not update.');
@@ -89,6 +128,7 @@ try {
     viewport: '390x844',
     checks: [
       'first visit promise and 10 leak choices visible',
+      'dark-mode text and button contrast',
       'bucket holes and water state respond to taps',
       'recommendation prioritization',
       'back navigation preserves selections',
