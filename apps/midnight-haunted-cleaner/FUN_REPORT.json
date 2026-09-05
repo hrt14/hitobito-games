@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "game": "midnight-haunted-cleaner",
+  "funStatement": "暗い部屋の違和感を自分で見つけ、光で幽霊の隙を作り、吸引中は逃げる方向と逆へ踏ん張って捕まえる一連の駆け引きが楽しい。",
+  "coreLoop": [
+    "薄暗い部屋を歩き、家具・物音・足跡の違和感を探す",
+    "安全に出口へ進むか、危険を承知で怪しい家具をさらに調べるか決める",
+    "現れた幽霊の正面をライトで捉えて短時間ひるませる",
+    "吸引を続けながら幽霊の逃げる方向と逆へ動き、障害物と反撃を避ける",
+    "捕獲で落ちた鍵や封印片を使い、次の部屋と新しい仕掛けへ進む"
+  ],
+  "meaningfulDecision": {
+    "tradeoff": "吸引を長く続ければ一気に捕獲できるが移動が鈍って反撃を受けやすい。途中で離せば安全に立て直せるが、幽霊は回復して位置を変える。探索でも、出口を急ぐ安全策と、家具を調べて鍵・回復・隠し部屋を狙う危険策を両立できない。",
+    "consequence": "欲張って吸引や探索を続けるほど次の部屋へ有利な鍵・回復・封印片を得やすい一方、体力やライトのクールダウンを失った状態で次の襲撃を迎える。"
+  },
+  "highestMoment": "大時計が鳴って三体の幽霊が家具から同時に飛び出し、広角フラッシュで二体を止め、暴れる一体を踏ん張って吸い込みながらテーブルへ叩きつけ、壊れた家具の中から次の部屋の鍵が転がり出る5秒。",
+  "oneMoreRunReason": "幽霊の潜伏家具と一部の鍵配置が変わるため、前回より少ない被弾で捕獲し、見逃した隠し部屋や封印片を回収する別ルートを試したくなる。",
+  "playtest": {
+    "method": "real browser playtest pending",
+    "first10Seconds": {"pass": false, "evidence": "未実装のため未検証。"},
+    "first30Seconds": {"pass": false, "evidence": "未実装のため未検証。"},
+    "threeMinutes": {"pass": false, "evidence": "未実装のため未検証。"},
+    "tenMinutes": {"pass": false, "evidence": "未実装のため未検証。"},
+    "retryDesire": {"pass": false, "evidence": "未実装のため未検証。"},
+    "noReward": {"pass": false, "evidence": "未実装のため未検証。"}
+  },
+  "scores": {
+    "first10Seconds": 1,
+    "coreLoop": 1,
+    "inputFeel": 1,
+    "decisionQuality": 1,
+    "masteryDepth": 1,
+    "surpriseVariation": 1,
+    "riskReward": 1,
+    "pacing": 1,
+    "retryDesire": 1,
+    "uniqueness": 1
+  },
+  "scoreEvidence": {
+    "first10Seconds": "未検証。",
+    "coreLoop": "未検証。",
+    "inputFeel": "未検証。",
+    "decisionQuality": "未検証。",
+    "masteryDepth": "未検証。",
+    "surpriseVariation": "未検証。",
+    "riskReward": "未検証。",
+    "pacing": "未検証。",
+    "retryDesire": "未検証。",
+    "uniqueness": "未検証。"
+  },
+  "verifiedAt": "2026-08-22T02:25:00+09:00"
+}
