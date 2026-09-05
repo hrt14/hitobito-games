@@ -29,6 +29,7 @@ try {
   assert((await page.locator('body').evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)), 'Mobile layout overflows horizontally.');
 
   await page.emulateMedia({ colorScheme: 'dark' });
+  await page.waitForTimeout(250);
   const darkReadability = await page.evaluate(() => {
     const rgb = (value) => {
       const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -66,6 +67,7 @@ try {
   assert(darkReadability.primaryContrast >= 4.5, `Dark-mode button contrast is too low: ${darkReadability.primaryContrast}`);
   await page.screenshot({ path: path.join(artifactDir, '01b-dark-mode.png'), fullPage: true });
   await page.emulateMedia({ colorScheme: 'light' });
+  await page.waitForTimeout(250);
 
   await page.locator('.leak-card[data-key="postLunchSleepy"]').click();
   await page.locator('.leak-card[data-key="nightPhone"]').click();
