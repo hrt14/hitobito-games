@@ -1,0 +1,64 @@
+name: OSG Auto PR
+
+on:
+  push:
+    branches:
+      - 'osg-request-*'
+      - 'osg-requests-*'
+      - 'osg-improvement-*'
+    paths:
+      - 'oneshotgames/games/**'
+      - 'oneshotgames/site/**'
+      - 'scripts/build-osg.mjs'
+      - 'scripts/validate-osg-game-security.mjs'
+      - 'firebase.osg.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: osg-auto-pr-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout request branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate OSG game security
+        run: node scripts/validate-osg-game-security.mjs
+
+      - name: Build OSG
+        run: node scripts/build-osg.mjs
+
+      - name: Open or reuse pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_BRANCH: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing="$(gh pr list --state open --head "$HEAD_BRANCH" --base main --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "PR #$existing already exists for $HEAD_BRANCH"
+            exit 0
+          fi
+
+          request_id="$(printf '%s' "$HEAD_BRANCH" | sed -E 's/^osg-(request|requests|improvement)-//')"
+          title="OSG request ${request_id}"
+          body="Automated OneShotGames change from branch \`${HEAD_BRANCH}\`.\n\nThis PR intentionally contains only generalized implementation information."
+          gh pr create --base main --head "$HEAD_BRANCH" --title "$title" --body "$body"
