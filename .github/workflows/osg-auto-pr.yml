@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: osg-auto-integrate
@@ -41,6 +42,7 @@ jobs:
         run: node scripts/build-osg.mjs
 
       - name: Integrate validated request into main
+        id: integrate
         env:
           HEAD_SHA: ${{ github.sha }}
           HEAD_BRANCH: ${{ github.ref_name }}
@@ -54,8 +56,17 @@ jobs:
           git checkout -B main origin/main
           git merge --squash "$HEAD_SHA"
           if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No changes remain to integrate for $HEAD_BRANCH"
             exit 0
           fi
           git commit -m "OSG request ${request_id}"
           git push origin main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch verified production deployment
+        if: steps.integrate.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh workflow run deploy-osg-production.yml --ref main
