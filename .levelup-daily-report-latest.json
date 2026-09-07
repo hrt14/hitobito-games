@@ -1,130 +1,35 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-06T21:46:38.956Z",
+  "generatedAt": "2026-09-07T22:17:34.417Z",
   "timezone": "Asia/Tokyo",
   "current": {
-    "date": "20260906",
-    "available": true,
-    "metrics": {
-      "sessions": 2,
-      "lastUpdatedAt": "2026-09-06T10:19:13.898Z",
-      "completedGames": 0,
-      "loginUu": 1,
-      "homeSessions": 2,
-      "visitorUu": 1,
-      "searches": 0,
-      "leftGames": 0,
-      "gameDurationSec": 0,
-      "gameSessions": 0,
-      "date": "20260906",
-      "completionRate": null,
-      "avgGameDurationSec": null
-    },
+    "date": "20260907",
+    "available": false,
+    "metrics": null,
     "games": [],
     "needs": [],
     "blockedReason": null
   },
   "previous": {
-    "date": "20260905",
+    "date": "20260906",
     "available": true,
     "metrics": {
-      "gameSessions": 23,
-      "leftGames": 0,
-      "searches": 5,
-      "sessions": 27,
+      "date": "20260906",
+      "visitorUu": 1,
       "gameDurationSec": 0,
-      "loginUu": 1,
-      "homeSessions": 4,
-      "visitorUu": 6,
-      "lastUpdatedAt": "2026-09-05T14:20:00.341Z",
       "completedGames": 0,
-      "date": "20260905",
-      "completionRate": 0,
-      "avgGameDurationSec": 0
+      "searches": 0,
+      "loginUu": 1,
+      "leftGames": 0,
+      "sessions": 2,
+      "gameSessions": 0,
+      "homeSessions": 2,
+      "lastUpdatedAt": "2026-09-06T10:19:13.898Z",
+      "completionRate": null,
+      "avgGameDurationSec": null
     },
-    "games": [
-      {
-        "slug": "energy-bucket",
-        "sessions": 4,
-        "left": 0,
-        "date": "20260905",
-        "durationSec": 0,
-        "completed": 0,
-        "lastUpdatedAt": "2026-09-05T01:27:12.781Z",
-        "title": "体力を足す前に、漏れを1個ふさぐ。",
-        "completionRate": 0,
-        "avgDurationSec": 0
-      },
-      {
-        "title": "「このままの5年後は嫌だ」を、明日の一手に変える。",
-        "completed": 0,
-        "sessions": 3,
-        "durationSec": 0,
-        "lastUpdatedAt": "2026-09-05T02:11:15.929Z",
-        "slug": "anti-vision-day",
-        "date": "20260905",
-        "left": 0,
-        "completionRate": 0,
-        "avgDurationSec": 0
-      },
-      {
-        "date": "20260905",
-        "left": 0,
-        "title": "スマホ中毒脱出",
-        "slug": "smartphone-escape",
-        "lastUpdatedAt": "2026-09-05T04:15:51.148Z",
-        "durationSec": 0,
-        "completed": 0,
-        "sessions": 3,
-        "completionRate": 0,
-        "avgDurationSec": 0
-      },
-      {
-        "sessions": 2,
-        "completed": 0,
-        "slug": "mind-reading-off",
-        "durationSec": 0,
-        "title": "考えすぎストップ。",
-        "left": 0,
-        "date": "20260905",
-        "lastUpdatedAt": "2026-09-05T00:44:31.786Z",
-        "completionRate": 0,
-        "avgDurationSec": 0
-      },
-      {
-        "durationSec": 0,
-        "slug": "approval-off",
-        "sessions": 1,
-        "date": "20260905",
-        "title": "他人軸OFF",
-        "left": 0,
-        "completed": 0,
-        "lastUpdatedAt": "2026-09-05T03:09:19.730Z",
-        "completionRate": 0,
-        "avgDurationSec": 0
-      },
-      {
-        "left": 0,
-        "date": "20260905",
-        "durationSec": 0,
-        "title": "疲れたの正体。",
-        "completed": 0,
-        "slug": "chou-tsukareta",
-        "sessions": 1,
-        "lastUpdatedAt": "2026-09-05T14:20:01.444Z",
-        "completionRate": 0,
-        "avgDurationSec": 0
-      }
-    ],
-    "needs": [
-      {
-        "date": "20260905",
-        "label": "疲れ",
-        "lastUpdatedAt": "2026-09-05T00:37:18.095Z",
-        "need": "tired",
-        "count": 2
-      }
-    ],
+    "games": [],
+    "needs": [],
     "blockedReason": null
   },
   "blockedReason": null,
