@@ -1,0 +1,48 @@
+name: Habit Planet CI
+
+on:
+  pull_request:
+    paths:
+      - "standalone/habit-planet/**"
+      - ".github/workflows/habit-planet-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "standalone/habit-planet/**"
+      - ".github/workflows/habit-planet-ci.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          for file in public/*.js functions/index.js; do
+            node --check "$file"
+          done
+      - name: Verify required app files
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          test -f public/index.html
+          test -f public/styles.css
+          test -f public/app-entry.js
+          test -f public/app-part1.js
+          test -f public/app-part2.js
+          test -f public/app-part3.js
+          test -f public/app-part4.js
+          test -f public/app-part5.js
+          test -f public/firebase-client.js
+          test -f public/manifest.json
+          test -f public/sw.js
+          test -f firestore.rules
+          test -f firebase.json
+          grep -q '/app-part5.js' public/app-entry.js
+          grep -q '/api/stripe-webhook' firebase.json
+          grep -q 'Habit Planet Pro' PARITY.md
