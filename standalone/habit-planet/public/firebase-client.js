@@ -8,46 +8,18 @@ import {
   getRedirectResult,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  onSnapshot,
-  serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-import {
-  initializeAppCheck,
-  ReCaptchaEnterpriseProvider,
-  getToken as getAppCheckToken,
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
 
 const config = window.HABIT_PLANET_FIREBASE_CONFIG;
-const appCheckSiteKey = String(window.HABIT_PLANET_APP_CHECK_SITE_KEY || "").trim();
 const configured = Boolean(config && config.apiKey && config.projectId && config.authDomain);
 let app = null;
 let auth = null;
-let db = null;
-let appCheck = null;
 if (configured) {
   app = initializeApp(config);
   auth = getAuth(app);
-  db = getFirestore(app);
-  if (appCheckSiteKey) {
-    try {
-      appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
-        isTokenAutoRefreshEnabled: true,
-      });
-    } catch (error) {
-      console.warn("Firebase App Check initialization failed", error);
-    }
-  }
   getRedirectResult(auth).catch((error) => console.warn("Firebase redirect result", error));
 }
 
 export const cloudAvailable = configured;
-export const appCheckAvailable = Boolean(appCheck);
 export const getCurrentUser = () => auth?.currentUser ?? null;
 
 export function watchAuth(callback) {
@@ -59,7 +31,7 @@ export function watchAuth(callback) {
 }
 
 export async function loginGoogle() {
-  if (!auth) throw new Error("Firebase is not configured");
+  if (!auth) throw new Error("Firebase Auth is not configured");
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
   try {
@@ -78,48 +50,94 @@ export async function logout() {
   if (auth) await signOut(auth);
 }
 
+export async function idToken(forceRefresh = false) {
+  if (!auth?.currentUser) throw new Error("Login required");
+  return auth.currentUser.getIdToken(forceRefresh);
+}
+
+async function api(path, init = {}) {
+  const token = await idToken();
+  const headers = new Headers(init.headers || {});
+  headers.set("Authorization", `Bearer ${token}`);
+  if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json; charset=utf-8");
+  let response = await fetch(path, { ...init, headers });
+
+  // A freshly rotated Firebase signing key/token can briefly fail verification.
+  // Refresh once before surfacing a login error to the UI.
+  if (response.status === 401 && auth?.currentUser) {
+    const freshToken = await idToken(true);
+    headers.set("Authorization", `Bearer ${freshToken}`);
+    response = await fetch(path, { ...init, headers });
+  }
+  return response;
+}
+
+async function apiJson(path, init = {}) {
+  const response = await api(path, init);
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+  if (!response.ok) throw new Error(body?.error || `API error ${response.status}`);
+  return body;
+}
+
 export async function loadState(uid) {
-  if (!db || !uid) return null;
-  const snap = await getDoc(doc(db, "users", uid, "appState", "habit_planet"));
-  if (!snap.exists()) return null;
-  return snap.data()?.state ?? null;
+  if (!auth?.currentUser || auth.currentUser.uid !== uid) return null;
+  const body = await apiJson("/api/state", { method: "GET" });
+  return body?.state ?? null;
 }
 
 export async function saveState(uid, state) {
-  if (!db || !uid) return;
-  await setDoc(
-    doc(db, "users", uid, "appState", "habit_planet"),
-    { state, updatedAt: serverTimestamp() },
-    { merge: true },
-  );
+  if (!auth?.currentUser || auth.currentUser.uid !== uid) return;
+  await apiJson("/api/state", {
+    method: "PUT",
+    body: JSON.stringify({ state }),
+  });
 }
 
 export function watchEntitlement(uid, callback) {
-  if (!db || !uid) {
+  if (!auth?.currentUser || auth.currentUser.uid !== uid) {
     callback(null);
     return () => {};
   }
-  return onSnapshot(
-    doc(db, "entitlements", uid),
-    (snap) => callback(snap.exists() ? snap.data() : null),
-    (error) => {
+
+  let stopped = false;
+  let timer = null;
+  let inFlight = false;
+
+  const refresh = async () => {
+    if (stopped || inFlight || !auth?.currentUser || auth.currentUser.uid !== uid) return;
+    inFlight = true;
+    try {
+      const body = await apiJson("/api/entitlement", { method: "GET" });
+      if (!stopped) callback(body?.entitlement ?? null);
+    } catch (error) {
       console.warn("entitlement watch failed", error);
-      callback(null);
-    },
-  );
+      if (!stopped) callback(null);
+    } finally {
+      inFlight = false;
+    }
+  };
+
+  const onVisibility = () => {
+    if (document.visibilityState === "visible") refresh();
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+  refresh();
+  timer = setInterval(refresh, 15000);
+
+  return () => {
+    stopped = true;
+    if (timer) clearInterval(timer);
+    document.removeEventListener("visibilitychange", onVisibility);
+  };
 }
 
-export async function idToken() {
-  if (!auth?.currentUser) throw new Error("Login required");
-  return auth.currentUser.getIdToken();
-}
-
+// Kept as a compatibility no-op for older app-entry code. Cloudflare API access is
+// protected by Firebase ID Token verification; Firestore/App Check is not used.
 export async function appCheckToken() {
-  if (!appCheck) return "";
-  try {
-    return (await getAppCheckToken(appCheck, false)).token || "";
-  } catch (error) {
-    console.warn("Firebase App Check token failed", error);
-    return "";
-  }
+  return "";
 }
