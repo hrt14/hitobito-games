@@ -1,30 +1,42 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-
 const config = window.HABIT_PLANET_FIREBASE_CONFIG;
 const configured = Boolean(config && config.apiKey && config.projectId && config.authDomain);
 const returningFromCheckout = new URLSearchParams(location.search).get("pro") === "success";
-let app = null;
+
 let auth = null;
+let GoogleAuthProvider = null;
+let onAuthStateChanged = null;
+let signInWithPopup = null;
+let signInWithRedirect = null;
+let signOut = null;
+
 if (configured) {
-  app = initializeApp(config);
-  auth = getAuth(app);
-  getRedirectResult(auth).catch((error) => console.warn("Firebase redirect result", error));
+  try {
+    const [{ initializeApp }, authModule] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"),
+    ]);
+    const app = initializeApp(config);
+    auth = authModule.getAuth(app);
+    GoogleAuthProvider = authModule.GoogleAuthProvider;
+    onAuthStateChanged = authModule.onAuthStateChanged;
+    signInWithPopup = authModule.signInWithPopup;
+    signInWithRedirect = authModule.signInWithRedirect;
+    signOut = authModule.signOut;
+    authModule.getRedirectResult(auth).catch((error) => console.warn("Firebase redirect result", error));
+  } catch (error) {
+    // The Habit Planet UI must still boot in LocalStorage mode when offline or when
+    // Google's CDN is temporarily unavailable. Reloading after connectivity returns
+    // re-enables Firebase Authentication.
+    console.warn("Firebase Auth unavailable; using local mode", error);
+    auth = null;
+  }
 }
 
-export const cloudAvailable = configured;
+export const cloudAvailable = Boolean(auth);
 export const getCurrentUser = () => auth?.currentUser ?? null;
 
 export function watchAuth(callback) {
-  if (!auth) {
+  if (!auth || !onAuthStateChanged) {
     callback(null);
     return () => {};
   }
@@ -32,7 +44,7 @@ export function watchAuth(callback) {
 }
 
 export async function loginGoogle() {
-  if (!auth) throw new Error("Firebase Auth is not configured");
+  if (!auth || !GoogleAuthProvider) throw new Error("Firebase Auth is not available");
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
   try {
@@ -48,7 +60,7 @@ export async function loginGoogle() {
 }
 
 export async function logout() {
-  if (auth) await signOut(auth);
+  if (auth && signOut) await signOut(auth);
 }
 
 export async function idToken(forceRefresh = false) {
@@ -159,8 +171,8 @@ export function watchEntitlement(uid, callback) {
   };
 }
 
-// Kept as a compatibility no-op for older app-entry code. Cloudflare API access is
-// protected by Firebase ID Token verification; Firestore/App Check is not used.
+// Compatibility no-op. Cloudflare API access is protected by Firebase ID Token
+// verification; Firestore/App Check is not used by the Cloudflare edition.
 export async function appCheckToken() {
   return "";
 }
