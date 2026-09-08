@@ -16,20 +16,38 @@ import {
   onSnapshot,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+  getToken as getAppCheckToken,
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app-check.js";
 
 const config = window.HABIT_PLANET_FIREBASE_CONFIG;
+const appCheckSiteKey = String(window.HABIT_PLANET_APP_CHECK_SITE_KEY || "").trim();
 const configured = Boolean(config && config.apiKey && config.projectId && config.authDomain);
 let app = null;
 let auth = null;
 let db = null;
+let appCheck = null;
 if (configured) {
   app = initializeApp(config);
   auth = getAuth(app);
   db = getFirestore(app);
+  if (appCheckSiteKey) {
+    try {
+      appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (error) {
+      console.warn("Firebase App Check initialization failed", error);
+    }
+  }
   getRedirectResult(auth).catch((error) => console.warn("Firebase redirect result", error));
 }
 
 export const cloudAvailable = configured;
+export const appCheckAvailable = Boolean(appCheck);
 export const getCurrentUser = () => auth?.currentUser ?? null;
 
 export function watchAuth(callback) {
@@ -94,4 +112,14 @@ export function watchEntitlement(uid, callback) {
 export async function idToken() {
   if (!auth?.currentUser) throw new Error("Login required");
   return auth.currentUser.getIdToken();
+}
+
+export async function appCheckToken() {
+  if (!appCheck) return "";
+  try {
+    return (await getAppCheckToken(appCheck, false)).token || "";
+  } catch (error) {
+    console.warn("Firebase App Check token failed", error);
+    return "";
+  }
 }
