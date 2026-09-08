@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "headers": [
+      {"source":"/sw.js","headers":[{"key":"Cache-Control","value":"no-cache"}]},
+      {"source":"**/*.@(js|css|svg)","headers":[{"key":"Cache-Control","value":"public,max-age=300"}]}
+    ],
+    "rewrites": [
+      {"source":"/api/checkout","function":{"functionId":"checkout","region":"asia-northeast1"}},
+      {"source":"/api/portal","function":{"functionId":"portal","region":"asia-northeast1"}},
+      {"source":"/api/stripe-webhook","function":{"functionId":"stripeWebhook","region":"asia-northeast1"}},
+      {"source":"**","destination":"/index.html"}
+    ]
+  },
+  "functions": [{"source":"functions","codebase":"habit-planet","runtime":"nodejs20","ignore":["node_modules",".git","firebase-debug.log","firebase-debug.*.log"]}],
+  "firestore": {"rules":"firestore.rules","indexes":"firestore.indexes.json"}
+}
