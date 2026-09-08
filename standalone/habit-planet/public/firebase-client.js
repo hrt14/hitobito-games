@@ -11,6 +11,7 @@ import {
 
 const config = window.HABIT_PLANET_FIREBASE_CONFIG;
 const configured = Boolean(config && config.apiKey && config.projectId && config.authDomain);
+const returningFromCheckout = new URLSearchParams(location.search).get("pro") === "success";
 let app = null;
 let auth = null;
 if (configured) {
@@ -106,14 +107,24 @@ export function watchEntitlement(uid, callback) {
 
   let stopped = false;
   let timer = null;
+  let checkoutTimer = null;
+  let checkoutPollsRemaining = returningFromCheckout ? 15 : 0;
   let inFlight = false;
+
+  const stopCheckoutPolling = () => {
+    checkoutPollsRemaining = 0;
+    if (checkoutTimer) clearInterval(checkoutTimer);
+    checkoutTimer = null;
+  };
 
   const refresh = async () => {
     if (stopped || inFlight || !auth?.currentUser || auth.currentUser.uid !== uid) return;
     inFlight = true;
     try {
       const body = await apiJson("/api/entitlement", { method: "GET" });
-      if (!stopped) callback(body?.entitlement ?? null);
+      const value = body?.entitlement ?? null;
+      if (!stopped) callback(value);
+      if (["active", "trialing"].includes(String(value?.status || ""))) stopCheckoutPolling();
     } catch (error) {
       console.warn("entitlement watch failed", error);
       if (!stopped) callback(null);
@@ -127,11 +138,23 @@ export function watchEntitlement(uid, callback) {
   };
   document.addEventListener("visibilitychange", onVisibility);
   refresh();
-  timer = setInterval(refresh, 15000);
+
+  // Normal operation is deliberately sparse to conserve account-level D1 row reads.
+  timer = setInterval(refresh, 60_000);
+
+  // A successful Stripe return gets a short, bounded fast-poll window so Pro unlocks
+  // promptly without making every signed-in client poll D1 every few seconds forever.
+  if (checkoutPollsRemaining > 0) {
+    checkoutTimer = setInterval(() => {
+      if (--checkoutPollsRemaining < 0) return stopCheckoutPolling();
+      refresh();
+    }, 2_000);
+  }
 
   return () => {
     stopped = true;
     if (timer) clearInterval(timer);
+    stopCheckoutPolling();
     document.removeEventListener("visibilitychange", onVisibility);
   };
 }
