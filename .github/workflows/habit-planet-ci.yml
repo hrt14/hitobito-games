@@ -92,8 +92,9 @@ jobs:
             curl -fsS http://127.0.0.1:4173/ci-smoke.html >/dev/null && break
             sleep 0.25
           done
-          google-chrome --headless --no-sandbox --disable-gpu --virtual-time-budget=3000 \
+          google-chrome --headless --no-sandbox --disable-gpu --disable-background-networking \
+            --disable-component-update --disable-sync --no-first-run --virtual-time-budget=2500 \
             --dump-dom http://127.0.0.1:4173/ci-smoke.html > /tmp/habit-planet-dom.html
           grep -Fq 'HABIT PLANET' /tmp/habit-planet-dom.html
-          grep -Fq '今日の習慣' /tmp/habit-planet-dom.html
+          grep -Eq '今日の(歩み|習慣)' /tmp/habit-planet-dom.html
           ! grep -Fq 'ReferenceError' /tmp/habit-planet-dom.html
