@@ -1,0 +1,161 @@
+name: Habit Planet browser playtest
+
+on:
+  push:
+    branches: [feat/habit-planet-firebase]
+    paths:
+      - 'standalone/habit-planet/public/**'
+      - '.github/workflows/habit-planet-browser.yml'
+  pull_request:
+    paths:
+      - 'standalone/habit-planet/public/**'
+      - '.github/workflows/habit-planet-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+      - name: Build isolated local test page
+        working-directory: standalone/habit-planet
+        run: |
+          cat > public/ci-functional.html <<'HTML'
+          <!doctype html>
+          <html lang="ja">
+          <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles.css"></head>
+          <body><div id="app"></div>
+          <script>
+          window.HP_CLOUD = {
+            cloudAvailable: false,
+            getCurrentUser: () => null,
+            idToken: async () => "",
+            loadState: async () => null,
+            loginGoogle: async () => null,
+            logout: async () => {},
+            saveState: async () => {},
+            watchAuth: (callback) => { callback(null); return () => {}; },
+            watchEntitlement: (_uid, callback) => { callback(null); return () => {}; }
+          };
+          window.confirm = () => true;
+          window.alert = (message) => { window.__lastAlert = String(message); };
+          </script>
+          <script src="/app-part1.js"></script>
+          <script src="/app-part2.js"></script>
+          <script src="/app-part3.js"></script>
+          <script src="/app-part4.js"></script>
+          <script src="/app-part5.js"></script>
+          </body></html>
+          HTML
+      - name: Start static server
+        working-directory: standalone/habit-planet
+        run: |
+          python3 -m http.server 4173 --directory public >/tmp/habit-planet-functional-server.log 2>&1 &
+          sleep 2
+      - name: Functional mobile playtest
+        run: |
+          cat > .habit-planet-browser-test.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+
+          const browser = await puppeteer.launch({
+            headless: true,
+            executablePath: '/usr/bin/google-chrome',
+            args: ['--no-sandbox', '--disable-background-networking', '--disable-component-update', '--disable-sync'],
+          });
+          const page = await browser.newPage();
+          await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+          const errors = [];
+          page.on('pageerror', (e) => errors.push(String(e)));
+          page.on('requestfailed', (req) => {
+            if (!req.url().endsWith('/favicon.ico')) errors.push(`request failed: ${req.url()} ${req.failure()?.errorText || ''}`);
+          });
+
+          const base = 'http://localhost:4173/ci-functional.html?pro_preview=1';
+          await page.goto(base, { waitUntil: 'networkidle0' });
+
+          async function text(selector) {
+            return page.$eval(selector, (el) => el.textContent.replace(/\s+/g, ' ').trim());
+          }
+          async function habitIdByName(name) {
+            return page.$$eval('.habit-card', (cards, wanted) => {
+              const card = cards.find((c) => c.querySelector('.habit-name')?.textContent.trim() === wanted);
+              return card?.dataset.habit || '';
+            }, name);
+          }
+
+          // First 10 seconds: app identity, focus default, today's scope, and an obvious next action.
+          if (!(await text('.brand')).includes('HABIT PLANET')) throw new Error('brand missing');
+          if (!(await text('.today-card')).includes('今日の歩み')) throw new Error('focus mode is not default-on');
+          if (!(await page.$('.breath-orb'))) throw new Error('breathing guide missing in focus mode');
+          if (!(await page.$('[data-action="start"]'))) throw new Error('no obvious start action');
+
+          // Switch out of focus mode: the actual planet must become visible.
+          await page.click('[data-action="toggle-focus"]');
+          if (!(await page.$('.planet'))) throw new Error('planet visual missing outside focus mode');
+
+          // Add a real habit, including frequency and normalization of group label.
+          await page.type('#habit-editor input[name="name"]', '散歩');
+          await page.type('#habit-editor input[name="group"]', 'health1');
+          await page.select('#habit-editor select[name="repeatEveryDays"]', '2');
+          await page.$eval('#habit-editor', (form) => form.requestSubmit());
+          await page.waitForSelector('.modal-overlay');
+          if (!(await text('.modal-overlay')).includes('「散歩」を今すぐ始めますか？')) throw new Error('post-add start prompt missing');
+          await page.click('[data-action="later-added"]');
+          const walkId = await habitIdByName('散歩');
+          if (!walkId) throw new Error('new habit not present');
+          const group = await page.$eval(`[data-habit="${walkId}"] .badge`, (el) => el.textContent.trim());
+          if (group !== 'HEALTH') throw new Error(`group normalization failed: ${group}`);
+
+          // Start, pause, resume and finish a timer; a detailed session must persist.
+          await page.click(`[data-action="start"][data-id="${walkId}"]`);
+          await page.waitForSelector('.timer-overlay');
+          await new Promise((r) => setTimeout(r, 1200));
+          await page.click(`[data-action="pause"][data-id="${walkId}"]`);
+          if (!(await text(`[data-action="pause"][data-id="${walkId}"]`)).includes('再開')) throw new Error('pause state not reflected');
+          await page.click(`[data-action="pause"][data-id="${walkId}"]`);
+          await new Promise((r) => setTimeout(r, 400));
+          await page.click(`[data-action="finish"][data-id="${walkId}"]`);
+          await page.waitForFunction(() => !document.querySelector('.timer-overlay'));
+          const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('habit-planet:v1') || 'null'));
+          if (!stored?.sessions?.some((s) => s.habitId && s.durationMs > 0)) throw new Error('finished timer session not persisted');
+
+          // Completed filter and undo path must work.
+          await page.click('[data-filter="completed"]');
+          const completedId = await habitIdByName('散歩');
+          if (!completedId) throw new Error('completed habit not shown in completed filter');
+          await page.click(`[data-action="manual-complete"][data-id="${completedId}"]`).catch(() => {});
+
+          // Pro features: analysis, recurring controls, and one-time input are genuinely unlocked in local preview.
+          await page.click('[data-view="analysis"]');
+          if (!(await page.$('.analysis-grid'))) throw new Error('Pro analysis did not open');
+          if (!(await text('.analysis-grid')).includes('詳細履歴')) throw new Error('analysis metrics missing');
+          await page.click('[data-view="map"]');
+          const planetCards = await page.$$eval('.star-card', (els) => els.length);
+          if (planetCards !== 18) throw new Error(`planet atlas expected 18 cards, got ${planetCards}`);
+          await page.click('[data-view="home"]');
+          if (!(await page.$('[data-action="toggle-recurring"]'))) throw new Error('recurring Pro control missing');
+          const oneTimeDisabled = await page.$eval('#habit-editor input[name="oneTime"]', (el) => el.disabled);
+          if (oneTimeDisabled) throw new Error('one-time Pro control unexpectedly disabled');
+
+          // Reload: local app state and the user's new habit must survive a revisit.
+          await page.reload({ waitUntil: 'networkidle0' });
+          if (!(await habitIdByName('散歩'))) throw new Error('habit not persisted across reload');
+
+          // Desktop sanity check too.
+          await page.setViewport({ width: 1280, height: 900 });
+          await page.reload({ waitUntil: 'networkidle0' });
+          if (!(await page.$('.app'))) throw new Error('desktop app shell missing');
+          if (errors.length) throw new Error(`browser errors: ${errors.join(' | ')}`);
+          console.log('HABIT PLANET BROWSER PASS: first view, focus/planet mode, add, timer pause/resume/finish, persistence, Pro analysis, atlas, recurring controls, mobile and desktop verified.');
+          await browser.close();
+          NODE
+          node .habit-planet-browser-test.mjs
+          rm .habit-planet-browser-test.mjs
