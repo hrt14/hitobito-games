@@ -1,7 +1,7 @@
 # Habit Planet
 
 毎日の行動を「自分の惑星の成長」に変換する習慣・タイマーアプリ。
-Habit Eggの成熟した実用機能をベースにしつつ、既存Habit EggのDB/認証/ユーザーデータは一切移行せず、Firebaseの新規アプリとして独立させる。
+Habit Eggの成熟した実用機能をベースにしつつ、既存Habit EggのDB・認証・ユーザーデータは移行しない独立アプリ。
 
 ## 料金
 
@@ -23,135 +23,194 @@ Stripe Sandbox:
 - Product: `prod_VDpvSMqdeljCGP`
 - Price: `price_1UDOG913XnwPDs4e0qYRUIXo`
 
-## 構成
+## 本番アーキテクチャ
 
-- Firebase project: `habit-planet-5bbc3`
-- Firebase Hosting: SPA / PWA
-- Firebase Authentication: Google
-- Cloud Firestore: app state + entitlement
-- Cloud Functions for Firebase (2nd gen / Cloud Run Functions): Stripe Checkout / Customer Portal / Webhook
-- Stripe: Hosted Checkout / Billing
+Habit Planetの本番経路は次に統一する。
 
-通常利用の状態は `users/{uid}/appState/habit_planet` の1ドキュメントへ保存し、Firestoreのreadを増やしすぎない構成にしている。
-Pro状態は `entitlements/{uid}`。クライアントは自分のentitlementを読むだけで書けない。
+- Cloudflare Workers + Static Assets: Web配信とAPI
+- Cloudflare D1: アプリ状態 / Pro entitlement / Stripe event marker
+- Firebase Authentication: Googleログインだけを利用
+- Stripe: Hosted Checkout / Customer Portal / Webhook
 
-## 課金事故のガードレール
+**本番経路では Firestore / Firebase Hosting / Firebase Functions を使わない。**
+Firebase版は別ブランチ / PR #459 に退避してあり、Cloudflare版のロールバック比較用に残す。
 
-Google Cloud / Firebase側で設定済み:
-- Blaze従量課金
-- project全体の通常Budget Alert: 月 `¥1,000`
-- `Cloud Run Functions` の Spend Cap enforcement: 月 `¥500`
-- 通知: 50% / 80% / 100%
+## D1
 
-コード側でもFunctionsの暴走を抑える:
-- `minInstances: 0`
-- `maxInstances: 2`
-- `memory: 256MiB`
-- `cpu: gcf_gen1`（低メモリFunctionsのfractional CPU相当）
-- `concurrency: 1`
-- `timeoutSeconds: 30`
-- Checkout: 1ユーザー5回 / 10分のbest-effort rate limit
-- Portal: 1ユーザー10回 / 10分のbest-effort rate limit
-- user API request body 32KiB、Stripe webhook 1MiBに制限
+初期migration: `migrations/0001_init.sql`
 
-Firestore:
-- ユーザーは自分の固定 `habit_planet` state documentだけ取得・更新可
-- 書き込みfieldは `state`, `updatedAt` のみ
-- entitlementは自分のdocumentの取得のみ、client write/list不可
-- Stripe event markerはserver only
-- 未定義collectionはexplicit deny
+### `user_states`
+1ユーザーにつき1行。現在のアプリ状態全体をJSONで保存し、細かいテーブル分割によるread増加を避ける。
 
-Hosting:
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- camera / microphone / geolocation / payment permissionsを禁止
+- `uid` primary key
+- `state_json`
+- `updated_at`
 
-> Spend Capは課金集計の遅延があるため「500円を1円も超えない」保証ではない。コード側のmaxInstances等と二重で守る。
+### `entitlements`
+Stripe subscriptionから作るserver-ownedのPro状態。
 
-## App Check
+- `uid` primary key
+- `status`
+- `stripe_customer_id`
+- `stripe_subscription_id`
+- `current_period_end`
+- `cancel_at_period_end`
+- `updated_at`
 
-WebクライアントとHTTP APIにはApp Check対応コードを準備済み。
-初回deployを壊さないため、まだenforcementはOFFの状態で出せる。
+### `stripe_events`
+Webhook再送時の重複副作用を防ぐ処理済みイベントID。
+副作用が成功した**後**にマーカーを保存するため、一時障害時はStripe retryで復旧できる。
 
-有効化手順:
-1. Google CloudでWeb用reCAPTCHA Enterprise score-based keyを作成
-2. Firebase > App Checkで `Habit Planet Web` を登録
-3. 公開site keyを `public/firebase-config.js` の `HABIT_PLANET_APP_CHECK_SITE_KEY` に入れる
-4. メトリクスを確認
-5. FirestoreのApp Check enforcementをON
-6. Functions parameter `HABIT_PLANET_REQUIRE_APP_CHECK=true` で再deploy
+## Worker API
 
-Checkout / Portalは `X-Firebase-AppCheck` を送信し、Functions側でFirebase Admin SDKを使ってtokenを検証する。Stripe webhookはStripe自身から来るためApp Check対象外。
+`worker/index.js`
 
-## Firebase初期設定状況
+- `GET /api/state` — 自分の状態を取得
+- `PUT /api/state` — 自分の状態を保存
+- `GET /api/entitlement` — 自分のPro状態を取得
+- `POST /api/checkout` — Stripe Hosted Checkout開始
+- `POST /api/portal` — Stripe Customer Portal開始
+- `POST /api/stripe-webhook` — Stripe Webhook受信
 
-完了:
-1. Authentication > Googleを有効化
-2. Firestore Database作成
-3. Hosting有効化
-4. Blaze接続
-5. Web app `Habit Planet Web` 登録
-6. Firebase公開config反映
-7. project Budget Alert / Cloud Run Functions Spend Cap設定
+`state`は最大1MiB。Checkout/PortalはFirebase Auth必須。WebhookはFirebase AuthではなくStripe署名で保護する。
 
-未完了:
-1. `STRIPE_SECRET_KEY` をFirebase Secret Managerへ設定
-2. 初回 Hosting / Firestore Rules / Functions deploy
-3. deploy後のStripe Sandbox webhook endpoint作成
-4. `STRIPE_WEBHOOK_SECRET` をFirebase Secret Managerへ設定してFunctions再deploy
-5. App Check登録・enforcement
-6. Sandbox E2E
+## Firebase Authentication
 
-秘密鍵をGitHubやクライアントJSに置かない。
+FirebaseはGoogleログイン専用で使う。Firestore SDKやFirebase Admin SDKはCloudflare版には入れない。
 
-## Stripe Webhook
+ブラウザはFirebase ID TokenをWorkerへBearer tokenとして送る。WorkerはGoogleの公開証明書を使って署名検証する。
 
-デプロイ後のURL:
+必須検証項目:
 
-`https://habit-planet-5bbc3.web.app/api/stripe-webhook`
+1. `alg` が `RS256`
+2. `kid` がGoogle公開証明書リストに存在
+3. JWT署名が正しい
+4. `exp` が未来
+5. `iat` が未来ではない
+6. `aud` が `habit-planet-5bbc3`
+7. `iss` が `https://securetoken.google.com/habit-planet-5bbc3`
+8. `sub` が空でなく128文字以下
+9. `auth_time` が未来ではない
 
-購読イベント:
+公開証明書はGoogleのレスポンスのHTTP cache policyに従いCloudflare Cache APIへ保存する。未知の`kid`が来た場合は1度だけcacheを破棄して再取得し、鍵ローテーションに追従する。
+
+Firebase Authのauthorized domainには、最終的なCloudflare Worker / custom domainを追加する。
+
+## Stripe
+
+Sandboxで先にE2Eする。
+
+必要な秘密値:
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+これらは**Wrangler config、GitHub、クライアントJS、チャットへ書かない**。
+Cloudflare側へsecretとして直接登録する。
+
+通常変数:
+- `STRIPE_PRICE_ID=price_1UDOG913XnwPDs4e0qYRUIXo`
+- `FIREBASE_PROJECT_ID=habit-planet-5bbc3`
+- `PUBLIC_ORIGIN=<Cloudflareの実URL>`
+
+Webhook購読イベント:
 - `checkout.session.completed`
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 
-FunctionsはStripe署名を5分許容で検証し、Firestoreの `stripeEvents/{eventId}` を処理済みマーカーとして使用する。
-処理済みマーカーは副作用がすべて成功した後に保存するので、一時障害時はStripe retryで復旧できる。
+Webhookは`stripe-signature`をHMAC-SHA256で検証し、timestamp許容は5分。CheckoutはFirebase uid + 10分bucketのStripe Idempotency-Keyを送って連打時の重複session作成を抑える。
 
-## deploy parameter / secret
+## Cloudflare初期セットアップ
 
-- `STRIPE_SECRET_KEY`: Firebase Secret Manager（必須）
-- `STRIPE_WEBHOOK_SECRET`: Firebase Secret Manager（webhook deploy時に必須）
-- `STRIPE_HABIT_PLANET_PRICE_ID`: default `price_1UDOG913XnwPDs4e0qYRUIXo`
-- `HABIT_PLANET_PUBLIC_ORIGIN`: default `https://habit-planet-5bbc3.web.app`
-- `HABIT_PLANET_REQUIRE_APP_CHECK`: default `false`
+Cloudflare側のD1 database IDはまだリポジトリへ固定していない。実環境作成後に以下を行う。
 
-手動deploy例:
+1. `habit-planet` D1 databaseを作成
+2. `wrangler.example.jsonc` を `wrangler.jsonc` へコピー
+3. `database_id` を実D1 IDへ置換
+4. `PUBLIC_ORIGIN` を実URLへ置換
+5. D1 migrationを適用
+6. Stripe secretsをCloudflareへ直接登録
+7. deploy
+8. Firebase Auth authorized domainへ公開domainを追加
+9. Stripe Sandbox Webhookを `/api/stripe-webhook` へ接続
+10. Sandbox E2E
 
-`firebase deploy --only firestore:rules,hosting,functions --project habit-planet-5bbc3`
+ローカル例:
 
-## ローカル確認
+```bash
+cd standalone/habit-planet
+npm install
+cp wrangler.example.jsonc wrangler.jsonc
+npm run d1:migrate:local
+npm run dev
+```
 
-Firebase未設定でもLocalStorageモードで無料機能は動作する。
-localhostでPro UI/機能だけ確認する場合:
+remote D1 IDを入れた後:
+
+```bash
+npm run d1:migrate:remote
+npm run deploy
+```
+
+secretはCloudflare dashboardまたはWranglerのsecret登録機能から入力し、shell historyやファイルに残さない。
+
+## D1使用量を増やしすぎない設計
+
+- アプリ状態は1ユーザー1 row
+- タイマーの1秒tickではD1を書かない
+- 変更時のcloud saveはdebounce
+- entitlementの通常pollは60秒に1回
+- tabが再表示された時は即refresh
+- Stripe購入直後だけ最大約30秒、2秒間隔の限定fast poll
+
+Free開発環境で1本のアプリがaccount-wide quotaを食い切らないよう、不要なpoll/read/writeを最初から抑える。
+
+## Cloudflare料金運用
+
+- 開発 / Sandbox: Workers Freeで検証
+- **有料ユーザーから課金受付を開始する前にWorkers Paidへ変更**
+
+Freeのハード停止は開発中の課金事故防止には有効だが、有料ユーザーが利用中にaccount-wide quotaへ到達するとサービス停止になるため、本番の課金受付後はPaidを前提にする。
+
+D1/Workersは同一Cloudflareアカウント全体でquotaを共有する。Hitobitoの他アプリを増やす場合も、1アプリだけの使用量ではなくアカウント総量を監視する。
+
+## Firebase Blaze → Sparkについて
+
+**Cloudflare E2E完了前には降格しない。**
+
+Cloudflare版でFireStore / Hosting / Functionsへの依存がゼロになったことを確認後、Firebase AuthenticationのIdentity Platform状態を確認する。
+
+- Identity Platform未アップグレード: Spark降格候補
+- Identity Platformアップグレード済み: 利用上限とAuth料金を確認してBlaze維持も検討
+
+昨日作成したGCP Budget / Spend Capの削除も、Cloudflare移行完了とロールバック不要判断の後に行う。
+
+## ローカル保存
+
+Firebase未設定・未ログイン時もLocalStorageで無料機能は動く。
+localhostでPro UIだけ確認する場合:
 
 `http://localhost:PORT/?pro_preview=1`
 
-これはlocalhost限定でStripe購入権限を偽装する開発用表示で、本番ホストでは有効にならない。
+これはlocalhost限定で、実課金entitlementを偽装するものではない。
 
-## 本番化前チェック
+## 本番化前E2E
 
-- Sandbox checkout成功
-- webhook署名OK
-- checkout後に `entitlements/{uid}` がactiveになる
+- Cloudflare Static Assets表示
+- Googleログイン
+- Firebase ID Tokenの正常tokenのみWorkerで通る
+- tokenなし / 改ざんtoken / wrong aud / expired tokenを拒否
+- D1 state save / reload / 別uidアクセス不可
+- Sandbox Checkout成功
+- Webhook署名OK / 不正署名拒否
+- checkout後にD1 entitlementがactive
 - Pro解放
-- Customer Portalからcancel_at_period_end
-- 期間終了/削除イベントでPro失効
-- Webhook再送で二重副作用なし
-- Googleログイン / Firestore同期
-- iPhoneでPWA / タイマー / 通知挙動
-- 無料ユーザーからPro機能が直接使えない
-- App Check enforcement後も正規Webアプリが動く
-- Live用Product/Price/WebhookはSandboxと分離して新規作成
+- Customer Portal
+- `cancel_at_period_end`反映
+- subscription deletedでPro失効
+- Webhook再送で重複副作用なし
+- D1失敗時にWebhookが2xxを返さずStripe retry可能
+- iPhone PWA / タイマー / 通知
+- FreeユーザーからPro機能を直接使えない
+- Firestore / Firebase Hosting / Firebase Functionsへ本番トラフィックがない
+- Workers Paidへ変更後に課金受付開始
