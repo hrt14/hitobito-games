@@ -100,6 +100,52 @@ jobs:
         run: |
           set -euo pipefail
           npx wrangler deploy --dry-run --config wrangler.example.jsonc
+      - name: Local Worker + D1 integration
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          rm -rf .wrangler
+          npx wrangler d1 migrations apply habit-planet --local --config wrangler.example.jsonc
+          cat > .dev.vars <<'VARS'
+          STRIPE_SECRET_KEY="sk_test_ci_placeholder"
+          STRIPE_WEBHOOK_SECRET="whsec_habit_planet_ci"
+          VARS
+          npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config wrangler.example.jsonc >/tmp/habit-planet-worker.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" 2>/dev/null || true; rm -f .dev.vars' EXIT
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:8787/ >/tmp/hp-index.html && break
+            sleep 0.5
+          done
+          grep -Fq '<title>Habit Planet</title>' /tmp/hp-index.html
+
+          code="$(curl -sS -o /tmp/hp-state.json -w '%{http_code}' http://127.0.0.1:8787/api/state)"
+          test "$code" = "401"
+          grep -Fq 'Login required' /tmp/hp-state.json
+
+          code="$(curl -sS -o /tmp/hp-webhook-no-signature.json -w '%{http_code}' -X POST http://127.0.0.1:8787/api/stripe-webhook -d '{}')"
+          test "$code" = "400"
+          grep -Fq 'Missing stripe-signature' /tmp/hp-webhook-no-signature.json
+
+          payload='{"id":"evt_habit_planet_ci","type":"habit.planet.ci","data":{"object":{}}}'
+          timestamp="$(date +%s)"
+          signature="$(PAYLOAD="$payload" TS="$timestamp" node - <<'NODE'
+          const crypto = require('node:crypto');
+          const digest = crypto.createHmac('sha256', 'whsec_habit_planet_ci').update(`${process.env.TS}.${process.env.PAYLOAD}`).digest('hex');
+          process.stdout.write(digest);
+          NODE
+          )"
+          curl -fsS -X POST http://127.0.0.1:8787/api/stripe-webhook \
+            -H "stripe-signature: t=${timestamp},v1=${signature}" \
+            -H 'content-type: application/json' \
+            --data "$payload" >/tmp/hp-webhook-ok.json
+          grep -Fq '"received":true' /tmp/hp-webhook-ok.json
+
+          curl -fsS -X POST http://127.0.0.1:8787/api/stripe-webhook \
+            -H "stripe-signature: t=${timestamp},v1=${signature}" \
+            -H 'content-type: application/json' \
+            --data "$payload" >/tmp/hp-webhook-duplicate.json
+          grep -Fq '"duplicate":true' /tmp/hp-webhook-duplicate.json
       - name: Browser smoke test
         working-directory: standalone/habit-planet
         run: |
