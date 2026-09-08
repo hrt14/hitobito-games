@@ -1,0 +1,71 @@
+name: Habit Planet Firebase bootstrap deploy
+
+on:
+  push:
+    branches:
+      - feat/habit-planet-firebase
+    paths:
+      - .habit-planet-deploy-trigger
+      - .github/workflows/habit-planet-bootstrap-deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: habit-planet-firebase-bootstrap
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: habit-planet-5bbc3
+          workload_identity_provider: projects/995292381518/locations/global/workloadIdentityPools/hitobito-github/providers/hitobito-games
+          service_account: github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate bootstrap bundle
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          node --check public/app-entry.js
+          node --check public/firebase-client.js
+          test -s public/index.html
+          test -s firestore.rules
+          grep -Fq 'habit-planet-5bbc3' public/firebase-config.js
+          grep -Fq 'match /{document=**}' firestore.rules
+
+      - name: Deploy Hosting and Firestore rules
+        working-directory: standalone/habit-planet
+        run: |
+          npx --yes firebase-tools@latest deploy \
+            --only firestore:rules,hosting \
+            --project habit-planet-5bbc3 \
+            --config firebase.bootstrap.json \
+            --non-interactive
+
+      - name: Verify live Habit Planet
+        run: |
+          set -euo pipefail
+          for i in {1..12}; do
+            body="$(curl -fsS https://habit-planet-5bbc3.web.app/ || true)"
+            if printf '%s' "$body" | grep -Fq '<title>Habit Planet</title>'; then
+              echo 'Habit Planet bootstrap is live'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Habit Planet did not become verifiably live in time' >&2
+          exit 1
