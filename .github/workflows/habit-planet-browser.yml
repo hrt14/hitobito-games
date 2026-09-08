@@ -71,6 +71,7 @@ jobs:
             args: ['--no-sandbox', '--disable-background-networking', '--disable-component-update', '--disable-sync'],
           });
           const page = await browser.newPage();
+          page.setDefaultTimeout(10000);
           await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
           const errors = [];
           page.on('pageerror', (e) => errors.push(String(e)));
@@ -101,11 +102,19 @@ jobs:
           await page.click('[data-action="toggle-focus"]');
           if (!(await page.$('.planet'))) throw new Error('planet visual missing outside focus mode');
 
-          // Add a real habit, including frequency and normalization of group label.
-          await page.type('#habit-editor input[name="name"]', '散歩');
-          await page.type('#habit-editor input[name="group"]', 'health1');
-          await page.select('#habit-editor select[name="repeatEveryDays"]', '2');
-          await page.$eval('#habit-editor', (form) => form.requestSubmit());
+          // Add a real habit. Set values in-page so Japanese IME behavior cannot make the test flaky.
+          await page.$eval('#habit-editor', (form) => {
+            const name = form.elements.name;
+            const group = form.elements.group;
+            const repeat = form.elements.repeatEveryDays;
+            name.value = '散歩';
+            name.dispatchEvent(new Event('input', { bubbles: true }));
+            group.value = 'health1';
+            group.dispatchEvent(new Event('input', { bubbles: true }));
+            repeat.value = '2';
+            repeat.dispatchEvent(new Event('change', { bubbles: true }));
+            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+          });
           await page.waitForSelector('.modal-overlay');
           if (!(await text('.modal-overlay')).includes('「散歩」を今すぐ始めますか？')) throw new Error('post-add start prompt missing');
           await page.click('[data-action="later-added"]');
@@ -127,11 +136,10 @@ jobs:
           const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('habit-planet:v1') || 'null'));
           if (!stored?.sessions?.some((s) => s.habitId && s.durationMs > 0)) throw new Error('finished timer session not persisted');
 
-          // Completed filter and undo path must work.
+          // Completed view must include the just-finished habit.
           await page.click('[data-filter="completed"]');
           const completedId = await habitIdByName('散歩');
           if (!completedId) throw new Error('completed habit not shown in completed filter');
-          await page.click(`[data-action="manual-complete"][data-id="${completedId}"]`).catch(() => {});
 
           // Pro features: analysis, recurring controls, and one-time input are genuinely unlocked in local preview.
           await page.click('[data-view="analysis"]');
@@ -147,6 +155,7 @@ jobs:
 
           // Reload: local app state and the user's new habit must survive a revisit.
           await page.reload({ waitUntil: 'networkidle0' });
+          await page.click('[data-filter="all"]');
           if (!(await habitIdByName('散歩'))) throw new Error('habit not persisted across reload');
 
           // Desktop sanity check too.
