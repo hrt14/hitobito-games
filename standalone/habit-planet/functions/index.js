@@ -1,9 +1,29 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { setGlobalOptions } = require("firebase-functions/v2");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
+const { getAppCheck } = require("firebase-admin/app-check");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const crypto = require("node:crypto");
+
+const REGION = "asia-northeast1";
+const FIREBASE_WEB_APP_ID = "1:1087394687147:web:241410fa3271322f052fee";
+const INTEGRATION_IDENTIFIER = "habitplanet_q7m3z8pk";
+const MANAGE_EXISTING_STATUSES = new Set(["active", "trialing", "past_due", "unpaid", "incomplete", "paused"]);
+
+// Cost guardrails. Keep idle instances at zero and cap horizontal scale so an abuse spike
+// cannot fan out into a large number of billable containers before the Cloud Billing
+// Spend Cap reacts. gcf_gen1 restores the lower fractional CPU allocation for 256 MiB.
+setGlobalOptions({
+  region: REGION,
+  minInstances: 0,
+  maxInstances: 2,
+  memory: "256MiB",
+  cpu: "gcf_gen1",
+  concurrency: 1,
+  timeoutSeconds: 30,
+});
 
 initializeApp();
 const db = getFirestore();
@@ -11,21 +31,66 @@ const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const PRICE_ID = defineString("STRIPE_HABIT_PLANET_PRICE_ID", { default: "price_1UDOG913XnwPDs4e0qYRUIXo" });
 const APP_ORIGIN = defineString("HABIT_PLANET_PUBLIC_ORIGIN", { default: "https://habit-planet-5bbc3.web.app" });
-const REGION = "asia-northeast1";
-const INTEGRATION_IDENTIFIER = "habitplanet_q7m3z8pk";
-const MANAGE_EXISTING_STATUSES = new Set(["active", "trialing", "past_due", "unpaid", "incomplete", "paused"]);
+// Turn this on only after the Web app has been registered with Firebase App Check
+// and the client site key has been configured. Keeping it parameterized avoids a lockout
+// during the first deployment while still making enforcement a one-line deploy setting.
+const REQUIRE_APP_CHECK = defineString("HABIT_PLANET_REQUIRE_APP_CHECK", { default: "false" });
 
+const rateBuckets = new Map();
+
+function httpError(status, message) {
+  return Object.assign(new Error(message), { status });
+}
 function json(res, status, body) {
   res.status(status).set("content-type", "application/json; charset=utf-8").send(JSON.stringify(body));
 }
 function onlyPost(req, res) {
-  if (req.method !== "POST") { json(res, 405, { error: "Method not allowed" }); return false; }
+  if (req.method !== "POST") {
+    json(res, 405, { error: "Method not allowed" });
+    return false;
+  }
   return true;
+}
+function enforceRequestSize(req, maxBytes) {
+  const declared = Number(req.headers["content-length"] || 0);
+  const actual = Buffer.isBuffer(req.rawBody) ? req.rawBody.length : 0;
+  if ((Number.isFinite(declared) && declared > maxBytes) || actual > maxBytes) {
+    throw httpError(413, "Request too large");
+  }
+}
+function rateLimit(scope, key, limit, windowMs) {
+  const now = Date.now();
+  if (rateBuckets.size > 1000) {
+    for (const [bucketKey, value] of rateBuckets) {
+      if (value.resetAt <= now) rateBuckets.delete(bucketKey);
+    }
+  }
+  const bucketKey = `${scope}:${key}`;
+  let bucket = rateBuckets.get(bucketKey);
+  if (!bucket || bucket.resetAt <= now) bucket = { count: 0, resetAt: now + windowMs };
+  if (bucket.count >= limit) throw httpError(429, "Too many requests. Please try again later.");
+  bucket.count += 1;
+  rateBuckets.set(bucketKey, bucket);
 }
 async function requireUser(req) {
   const header = String(req.headers.authorization || "");
-  if (!header.startsWith("Bearer ")) throw Object.assign(new Error("Login required"), { status: 401 });
-  return getAuth().verifyIdToken(header.slice(7));
+  if (!header.startsWith("Bearer ")) throw httpError(401, "Login required");
+  try {
+    return await getAuth().verifyIdToken(header.slice(7));
+  } catch {
+    throw httpError(401, "Invalid login token");
+  }
+}
+async function requireAppCheckIfEnabled(req) {
+  if (REQUIRE_APP_CHECK.value().toLowerCase() !== "true") return;
+  const token = String(req.headers["x-firebase-appcheck"] || "");
+  if (!token) throw httpError(401, "App Check required");
+  try {
+    const claims = await getAppCheck().verifyToken(token);
+    if (claims.app_id && claims.app_id !== FIREBASE_WEB_APP_ID) throw new Error("Wrong app id");
+  } catch {
+    throw httpError(401, "Invalid App Check token");
+  }
 }
 async function stripeRequest(path, body, key, method = "POST") {
   const response = await fetch(`https://api.stripe.com${path}`, {
@@ -35,8 +100,7 @@ async function stripeRequest(path, body, key, method = "POST") {
   });
   const data = await response.json();
   if (!response.ok) {
-    const error = new Error(data?.error?.message || "Stripe request failed");
-    error.status = response.status;
+    const error = httpError(response.status, data?.error?.message || "Stripe request failed");
     throw error;
   }
   return data;
@@ -44,7 +108,7 @@ async function stripeRequest(path, body, key, method = "POST") {
 async function stripeGet(path, key) {
   const response = await fetch(`https://api.stripe.com${path}`, { headers: { Authorization: `Bearer ${key}` } });
   const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message || "Stripe request failed");
+  if (!response.ok) throw httpError(response.status, data?.error?.message || "Stripe request failed");
   return data;
 }
 function periodEnd(subscription) {
@@ -67,12 +131,12 @@ async function upsertEntitlement(subscription) {
   }, { merge: true });
 }
 function verifyStripe(rawBody, signature, secret) {
-  if (!signature) throw new Error("Missing stripe-signature");
+  if (!signature) throw httpError(400, "Missing stripe-signature");
   const fields = String(signature).split(",").map((part) => part.split("=", 2));
   const timestamp = Number(fields.find(([key]) => key === "t")?.[1]);
   const signatures = fields.filter(([key, value]) => key === "v1" && value).map(([, value]) => value);
-  if (!timestamp || !signatures.length) throw new Error("Invalid stripe-signature");
-  if (Math.abs(Date.now() / 1000 - timestamp) > 300) throw new Error("Stale stripe-signature");
+  if (!timestamp || !signatures.length) throw httpError(400, "Invalid stripe-signature");
+  if (Math.abs(Date.now() / 1000 - timestamp) > 300) throw httpError(400, "Stale stripe-signature");
   const digest = crypto.createHmac("sha256", secret).update(`${timestamp}.${rawBody.toString("utf8")}`).digest("hex");
   const expected = Buffer.from(digest, "hex");
   const valid = signatures.some((candidate) => {
@@ -83,15 +147,18 @@ function verifyStripe(rawBody, signature, secret) {
       return false;
     }
   });
-  if (!valid) throw new Error("Invalid stripe-signature");
+  if (!valid) throw httpError(400, "Invalid stripe-signature");
 }
 
-exports.checkout = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY] }, async (req, res) => {
+exports.checkout = onRequest({ secrets: [STRIPE_SECRET_KEY] }, async (req, res) => {
   if (!onlyPost(req, res)) return;
   try {
+    enforceRequestSize(req, 32 * 1024);
+    await requireAppCheckIfEnabled(req);
     const decoded = await requireUser(req);
+    rateLimit("checkout", decoded.uid, 5, 10 * 60 * 1000);
     const email = decoded.email;
-    if (!email) throw Object.assign(new Error("Google account email is required"), { status: 400 });
+    if (!email) throw httpError(400, "Google account email is required");
 
     const entitlementSnap = await db.doc(`entitlements/${decoded.uid}`).get();
     const existing = entitlementSnap.exists ? entitlementSnap.data() || {} : {};
@@ -124,36 +191,40 @@ exports.checkout = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY] }, a
     const session = await stripeRequest("/v1/checkout/sessions", body, STRIPE_SECRET_KEY.value());
     json(res, 200, { url: session.url });
   } catch (error) {
-    console.error("checkout", error);
+    console.error("checkout", error?.message || error);
     json(res, error.status || 500, { error: error.message || "Checkout failed" });
   }
 });
 
-exports.portal = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY] }, async (req, res) => {
+exports.portal = onRequest({ secrets: [STRIPE_SECRET_KEY] }, async (req, res) => {
   if (!onlyPost(req, res)) return;
   try {
+    enforceRequestSize(req, 32 * 1024);
+    await requireAppCheckIfEnabled(req);
     const decoded = await requireUser(req);
+    rateLimit("portal", decoded.uid, 10, 10 * 60 * 1000);
     const snap = await db.doc(`entitlements/${decoded.uid}`).get();
     const customer = snap.data()?.stripeCustomerId;
-    if (!customer) throw Object.assign(new Error("No Stripe customer found"), { status: 404 });
+    if (!customer) throw httpError(404, "No Stripe customer found");
     const session = await stripeRequest("/v1/billing_portal/sessions", {
       customer,
       return_url: APP_ORIGIN.value().replace(/\/$/, "") + "/",
     }, STRIPE_SECRET_KEY.value());
     json(res, 200, { url: session.url });
   } catch (error) {
-    console.error("portal", error);
+    console.error("portal", error?.message || error);
     json(res, error.status || 500, { error: error.message || "Portal failed" });
   }
 });
 
-exports.stripeWebhook = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET] }, async (req, res) => {
+exports.stripeWebhook = onRequest({ secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET] }, async (req, res) => {
   if (!onlyPost(req, res)) return;
   try {
+    enforceRequestSize(req, 1024 * 1024);
     const raw = req.rawBody || Buffer.from(JSON.stringify(req.body || {}));
     verifyStripe(raw, req.headers["stripe-signature"], STRIPE_WEBHOOK_SECRET.value());
     const event = JSON.parse(raw.toString("utf8"));
-    if (!event.id) throw new Error("Missing event id");
+    if (!event.id) throw httpError(400, "Missing event id");
 
     const marker = db.doc(`stripeEvents/${event.id}`);
     if ((await marker.get()).exists) {
@@ -174,10 +245,12 @@ exports.stripeWebhook = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY,
       await upsertEntitlement(event.data?.object || {});
     }
 
+    // Mark processed only after all side effects succeed so Stripe retries can recover
+    // from transient Stripe/Firestore failures instead of being incorrectly suppressed.
     await marker.set({ processedAt: FieldValue.serverTimestamp(), type: event.type });
     json(res, 200, { received: true });
   } catch (error) {
-    console.error("stripeWebhook", error);
-    json(res, 400, { error: error.message || "Webhook failed" });
+    console.error("stripeWebhook", error?.message || error);
+    json(res, error.status || 500, { error: error.message || "Webhook failed" });
   }
 });
