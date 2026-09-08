@@ -2,7 +2,7 @@ name: Habit Planet browser playtest
 
 on:
   push:
-    branches: [feat/habit-planet-firebase]
+    branches: [feat/habit-planet-firebase, feat/habit-planet-cloudflare]
     paths:
       - 'standalone/habit-planet/public/**'
       - '.github/workflows/habit-planet-browser.yml'
@@ -95,27 +95,24 @@ jobs:
             const state = await page.evaluate(() => ({
               alert: window.__lastAlert || '',
               modal: document.querySelector('.modal-overlay')?.textContent || '',
+              timer: document.querySelector('.timer-overlay')?.textContent || '',
               formName: document.querySelector('#habit-editor input[name="name"]')?.value || '',
               formGroup: document.querySelector('#habit-editor input[name="group"]')?.value || '',
               stored: localStorage.getItem('habit-planet:v1') || '',
-              body: document.body.innerText.slice(0, 4000),
+              body: document.body.innerText.slice(0, 5000),
             }));
             console.log(label, JSON.stringify(state));
             console.log('pageErrors', JSON.stringify(errors));
           }
 
-          // First 10 seconds: app identity, focus default, today's scope, and an obvious next action.
           if (!(await text('.brand')).includes('HABIT PLANET')) throw new Error('brand missing');
           if (!(await text('.today-card')).includes('今日の歩み')) throw new Error('focus mode is not default-on');
           if (!(await page.$('.breath-orb'))) throw new Error('breathing guide missing in focus mode');
           if (!(await page.$('[data-action="start"]'))) throw new Error('no obvious start action');
 
-          // Switch out of focus mode: the actual planet must become visible.
           await page.click('[data-action="toggle-focus"]');
           if (!(await page.$('.planet'))) throw new Error('planet visual missing outside focus mode');
 
-          // Add a real habit. Set values in-page, then use a real submit-button click so
-          // browser form semantics and the app's delegated submit handler are both exercised.
           await page.$eval('#habit-editor', (form) => {
             const name = form.elements.name;
             const group = form.elements.group;
@@ -141,9 +138,16 @@ jobs:
           const group = await page.$eval(`[data-habit="${walkId}"] .badge`, (el) => el.textContent.trim());
           if (group !== 'HEALTH') throw new Error(`group normalization failed: ${group}`);
 
-          // Start, pause, resume and finish a timer; a detailed session must persist.
-          await page.click(`[data-action="start"][data-id="${walkId}"]`);
-          await page.waitForSelector('.timer-overlay');
+          // Exercise the exact play button inside the new habit card, not a recommendation button.
+          const walkPlay = `[data-habit="${walkId}"] button[data-action="start"][data-id="${walkId}"]`;
+          await page.waitForSelector(walkPlay);
+          await page.click(walkPlay);
+          try {
+            await page.waitForSelector('.timer-overlay', { timeout: 3000 });
+          } catch (error) {
+            await debugState('timer did not open after habit-card play click');
+            throw error;
+          }
           await new Promise((r) => setTimeout(r, 1200));
           await page.click(`[data-action="pause"][data-id="${walkId}"]`);
           if (!(await text(`[data-action="pause"][data-id="${walkId}"]`)).includes('再開')) throw new Error('pause state not reflected');
@@ -154,12 +158,10 @@ jobs:
           const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('habit-planet:v1') || 'null'));
           if (!stored?.sessions?.some((s) => s.habitId && s.durationMs > 0)) throw new Error('finished timer session not persisted');
 
-          // Completed view must include the just-finished habit.
           await page.click('[data-filter="completed"]');
           const completedId = await habitIdByName('散歩');
           if (!completedId) throw new Error('completed habit not shown in completed filter');
 
-          // Pro features: analysis, recurring controls, and one-time input are genuinely unlocked in local preview.
           await page.click('[data-view="analysis"]');
           if (!(await page.$('.analysis-grid'))) throw new Error('Pro analysis did not open');
           if (!(await text('.analysis-grid')).includes('詳細履歴')) throw new Error('analysis metrics missing');
@@ -171,12 +173,10 @@ jobs:
           const oneTimeDisabled = await page.$eval('#habit-editor input[name="oneTime"]', (el) => el.disabled);
           if (oneTimeDisabled) throw new Error('one-time Pro control unexpectedly disabled');
 
-          // Reload: local app state and the user's new habit must survive a revisit.
           await page.reload({ waitUntil: 'networkidle0' });
           await page.click('[data-filter="all"]');
           if (!(await habitIdByName('散歩'))) throw new Error('habit not persisted across reload');
 
-          // Desktop sanity check too.
           await page.setViewport({ width: 1280, height: 900 });
           await page.reload({ waitUntil: 'networkidle0' });
           if (!(await page.$('.app'))) throw new Error('desktop app shell missing');
