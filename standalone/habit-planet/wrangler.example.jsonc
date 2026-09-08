@@ -12,7 +12,7 @@
   "vars": {
     "FIREBASE_PROJECT_ID": "habit-planet-5bbc3",
     "STRIPE_PRICE_ID": "price_1UDOG913XnwPDs4e0qYRUIXo",
-    "PUBLIC_ORIGIN": "https://REPLACE_WITH_WORKER_OR_CUSTOM_DOMAIN"
+    "PUBLIC_ORIGIN": "https://habit-planet.example.invalid"
   },
   "d1_databases": [
     {
