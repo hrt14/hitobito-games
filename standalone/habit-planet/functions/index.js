@@ -42,7 +42,10 @@ function httpError(status, message) {
   return Object.assign(new Error(message), { status });
 }
 function json(res, status, body) {
-  res.status(status).set("content-type", "application/json; charset=utf-8").send(JSON.stringify(body));
+  res.status(status)
+    .set("content-type", "application/json; charset=utf-8")
+    .set("cache-control", "no-store")
+    .send(JSON.stringify(body));
 }
 function onlyPost(req, res) {
   if (req.method !== "POST") {
@@ -92,17 +95,18 @@ async function requireAppCheckIfEnabled(req) {
     throw httpError(401, "Invalid App Check token");
   }
 }
-async function stripeRequest(path, body, key, method = "POST") {
+async function stripeRequest(path, body, key, method = "POST", extraHeaders = {}) {
   const response = await fetch(`https://api.stripe.com${path}`, {
     method,
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...extraHeaders,
+    },
     body: body ? new URLSearchParams(body).toString() : undefined,
   });
   const data = await response.json();
-  if (!response.ok) {
-    const error = httpError(response.status, data?.error?.message || "Stripe request failed");
-    throw error;
-  }
+  if (!response.ok) throw httpError(response.status, data?.error?.message || "Stripe request failed");
   return data;
 }
 async function stripeGet(path, key) {
@@ -188,7 +192,17 @@ exports.checkout = onRequest({ secrets: [STRIPE_SECRET_KEY] }, async (req, res) 
     if (existing.stripeCustomerId) body.customer = existing.stripeCustomerId;
     else body.customer_email = email;
 
-    const session = await stripeRequest("/v1/checkout/sessions", body, STRIPE_SECRET_KEY.value());
+    // Repeated clicks/retries from the same user during the same 10-minute window
+    // resolve to the same Checkout Session instead of creating parallel subscriptions.
+    const bucket = Math.floor(Date.now() / (10 * 60 * 1000));
+    const idempotencyKey = `habitplanet-checkout-${decoded.uid}-${bucket}`;
+    const session = await stripeRequest(
+      "/v1/checkout/sessions",
+      body,
+      STRIPE_SECRET_KEY.value(),
+      "POST",
+      { "Idempotency-Key": idempotencyKey },
+    );
     json(res, 200, { url: session.url });
   } catch (error) {
     console.error("checkout", error?.message || error);
