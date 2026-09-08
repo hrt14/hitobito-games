@@ -37,8 +37,8 @@
 - [x] 呼吸ガイド 3〜10秒
 - [x] ダークモード
 - [x] LocalStorage継続
-- [x] Firebase Googleログイン
-- [x] Firestoreクラウド同期
+- [x] Firebase Googleログイン（Authenticationのみ）
+- [x] Cloudflare Worker API経由のD1クラウド同期コード
 - [x] PWA / Service Worker
 
 ## 惑星育成への置換
@@ -71,11 +71,26 @@
 - [x] 履歴削除時に集計も補正
 - [x] 直近1週間 / 今年 / 全期間のコピー
 - [x] CSV出力
-- [x] Stripe Hosted Checkout
-- [x] Firestore entitlement
-- [x] Stripe webhookで購入/更新/解約を反映
+- [x] Stripe Hosted Checkout Workerコード
+- [x] D1 entitlement
+- [x] Stripe webhookで購入/更新/解約をD1へ反映
 - [x] Stripe Customer Portalへの導線
 - [x] Webhook event IDによる重複処理抑止
+
+## Cloudflare移行で追加した基盤
+- [x] Workers + Static Assets構成
+- [x] D1 migration
+- [x] `user_states` / `entitlements` / `stripe_events`
+- [x] Firebase ID TokenのRS256 / kid / 署名 / exp / iat / aud / iss / sub / auth_time検証
+- [x] Google公開証明書のCache API利用
+- [x] Stripe Webhook署名検証（Web Crypto HMAC-SHA256）
+- [x] Stripe Checkout Idempotency-Key
+- [x] entitlement通常pollを60秒へ抑制
+- [x] 購入直後だけ限定fast poll
+- [ ] 実D1 database作成 / binding
+- [ ] Cloudflare実環境deploy
+- [ ] Googleログイン / D1 / Stripe Sandbox E2E
+- [ ] 課金受付開始前にWorkers Paidへ変更
 
 ## 意図的に持ち込まないもの
 - Habit EggのSupabaseデータ / user_id
@@ -83,5 +98,6 @@
 - Egg Series共通 `egg_hatches` / 相棒図鑑共有
 - 卵、孵化、生き物、Touch Egg画像
 - Vercel固有の課金API
+- Habit Planet Firebase版のFirestore / Firebase Hosting / Firebase Functions（PR #459に退避）
 
-これらは「抜け」ではなく、Habit Planetを独立したFirebaseアプリにするための明示的な分離。
+これらは「抜け」ではなく、Habit Planetを独立したCloudflare + D1アプリにするための明示的な分離。
