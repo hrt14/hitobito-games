@@ -91,6 +91,18 @@ jobs:
               return card?.dataset.habit || '';
             }, name);
           }
+          async function debugState(label) {
+            const state = await page.evaluate(() => ({
+              alert: window.__lastAlert || '',
+              modal: document.querySelector('.modal-overlay')?.textContent || '',
+              formName: document.querySelector('#habit-editor input[name="name"]')?.value || '',
+              formGroup: document.querySelector('#habit-editor input[name="group"]')?.value || '',
+              stored: localStorage.getItem('habit-planet:v1') || '',
+              body: document.body.innerText.slice(0, 4000),
+            }));
+            console.log(label, JSON.stringify(state));
+            console.log('pageErrors', JSON.stringify(errors));
+          }
 
           // First 10 seconds: app identity, focus default, today's scope, and an obvious next action.
           if (!(await text('.brand')).includes('HABIT PLANET')) throw new Error('brand missing');
@@ -102,7 +114,8 @@ jobs:
           await page.click('[data-action="toggle-focus"]');
           if (!(await page.$('.planet'))) throw new Error('planet visual missing outside focus mode');
 
-          // Add a real habit. Set values in-page so Japanese IME behavior cannot make the test flaky.
+          // Add a real habit. Set values in-page, then use a real submit-button click so
+          // browser form semantics and the app's delegated submit handler are both exercised.
           await page.$eval('#habit-editor', (form) => {
             const name = form.elements.name;
             const group = form.elements.group;
@@ -113,9 +126,14 @@ jobs:
             group.dispatchEvent(new Event('input', { bubbles: true }));
             repeat.value = '2';
             repeat.dispatchEvent(new Event('change', { bubbles: true }));
-            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
           });
-          await page.waitForSelector('.modal-overlay');
+          await page.click('#habit-editor button[type="submit"]');
+          try {
+            await page.waitForSelector('.modal-overlay', { timeout: 3000 });
+          } catch (error) {
+            await debugState('post-add modal missing');
+            throw error;
+          }
           if (!(await text('.modal-overlay')).includes('「散歩」を今すぐ始めますか？')) throw new Error('post-add start prompt missing');
           await page.click('[data-action="later-added"]');
           const walkId = await habitIdByName('散歩');
