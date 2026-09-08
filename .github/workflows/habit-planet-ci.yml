@@ -6,7 +6,7 @@ on:
       - "standalone/habit-planet/**"
       - ".github/workflows/habit-planet-ci.yml"
   push:
-    branches: [main]
+    branches: [main, feat/habit-planet-firebase]
     paths:
       - "standalone/habit-planet/**"
       - ".github/workflows/habit-planet-ci.yml"
@@ -57,6 +57,22 @@ jobs:
           grep -Fq '"source":"/api/portal"' firebase.json
           grep -Fq '/api/stripe-webhook' firebase.json
           grep -Fq 'Habit Planet Pro' PARITY.md
+      - name: Verify cost and security guardrails
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          grep -Fq 'maxInstances: 2' functions/index.js
+          grep -Fq 'minInstances: 0' functions/index.js
+          grep -Fq 'cpu: "gcf_gen1"' functions/index.js
+          grep -Fq 'concurrency: 1' functions/index.js
+          grep -Fq 'HABIT_PLANET_REQUIRE_APP_CHECK' functions/index.js
+          grep -Fq 'X-Firebase-AppCheck' public/app-entry.js
+          grep -Fq 'ReCaptchaEnterpriseProvider' public/firebase-client.js
+          grep -Fq 'allow create, update:' firestore.rules
+          grep -Fq 'allow create, update, delete, list: if false;' firestore.rules
+          grep -Fq 'match /{document=**}' firestore.rules
+          grep -Fq 'X-Content-Type-Options' firebase.json
+          grep -Fq 'X-Frame-Options' firebase.json
       - name: Browser smoke test
         working-directory: standalone/habit-planet
         run: |
