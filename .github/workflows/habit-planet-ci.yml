@@ -6,7 +6,7 @@ on:
       - "standalone/habit-planet/**"
       - ".github/workflows/habit-planet-ci.yml"
   push:
-    branches: [main, feat/habit-planet-firebase]
+    branches: [main, feat/habit-planet-firebase, feat/habit-planet-cloudflare]
     paths:
       - "standalone/habit-planet/**"
       - ".github/workflows/habit-planet-ci.yml"
@@ -19,15 +19,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Install Cloudflare dependencies
+        working-directory: standalone/habit-planet
+        run: npm install --ignore-scripts
       - name: Syntax check
         working-directory: standalone/habit-planet
         run: |
           set -euo pipefail
-          for file in public/*.js functions/index.js; do
-            echo "checking $file"
+          npm run check
+          for file in public/app-part1.js public/app-part2.js public/app-part3.js public/app-part4.js public/app-part5.js; do
             node --check "$file"
           done
-      - name: Verify required app files
+      - name: Verify required app and D1 files
         working-directory: standalone/habit-planet
         run: |
           set -euo pipefail
@@ -43,8 +46,10 @@ jobs:
             public/firebase-client.js
             public/manifest.json
             public/sw.js
-            firestore.rules
-            firebase.json
+            worker/index.js
+            migrations/0001_init.sql
+            wrangler.example.jsonc
+            package.json
             PARITY.md
           )
           for file in "${required[@]}"; do
@@ -53,26 +58,42 @@ jobs:
           done
           grep -Fq '/app-part4.js' public/app-entry.js
           grep -Fq '/app-part5.js' public/app-entry.js
-          grep -Fq '"source":"/api/checkout"' firebase.json
-          grep -Fq '"source":"/api/portal"' firebase.json
-          grep -Fq '/api/stripe-webhook' firebase.json
+          grep -Fq 'user_states' migrations/0001_init.sql
+          grep -Fq 'entitlements' migrations/0001_init.sql
+          grep -Fq 'stripe_events' migrations/0001_init.sql
           grep -Fq 'Habit Planet Pro' PARITY.md
-      - name: Verify cost and security guardrails
+      - name: Verify Firebase ID Token checks
         working-directory: standalone/habit-planet
         run: |
           set -euo pipefail
-          grep -Fq 'maxInstances: 2' functions/index.js
-          grep -Fq 'minInstances: 0' functions/index.js
-          grep -Fq 'cpu: "gcf_gen1"' functions/index.js
-          grep -Fq 'concurrency: 1' functions/index.js
-          grep -Fq 'HABIT_PLANET_REQUIRE_APP_CHECK' functions/index.js
-          grep -Fq 'X-Firebase-AppCheck' public/app-entry.js
-          grep -Fq 'ReCaptchaEnterpriseProvider' public/firebase-client.js
-          grep -Fq 'allow create, update:' firestore.rules
-          grep -Fq 'allow create, update, delete, list: if false;' firestore.rules
-          grep -Fq 'match /{document=**}' firestore.rules
-          grep -Fq 'X-Content-Type-Options' firebase.json
-          grep -Fq 'X-Frame-Options' firebase.json
+          grep -Fq 'protectedHeader.alg !== "RS256"' worker/index.js
+          grep -Fq 'protectedHeader.kid' worker/index.js
+          grep -Fq 'importX509' worker/index.js
+          grep -Fq 'payload.exp' worker/index.js
+          grep -Fq 'payload.iat' worker/index.js
+          grep -Fq 'payload.auth_time' worker/index.js
+          grep -Fq 'payload.aud' worker/index.js
+          grep -Fq 'payload.iss' worker/index.js
+          grep -Fq 'payload.sub' worker/index.js
+          grep -Fq 'securetoken.google.com' worker/index.js
+          grep -Fq 'caches.default' worker/index.js
+      - name: Verify API and billing guardrails
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          grep -Fq 'MAX_STATE_BYTES' worker/index.js
+          grep -Fq 'STRIPE_TOLERANCE_SECONDS = 300' worker/index.js
+          grep -Fq 'stripe-signature' worker/index.js
+          grep -Fq 'crypto.subtle.importKey' worker/index.js
+          grep -Fq 'Idempotency-Key' worker/index.js
+          grep -Fq '/api/state' worker/index.js
+          grep -Fq '/api/entitlement' worker/index.js
+          grep -Fq '/api/checkout' worker/index.js
+          grep -Fq '/api/portal' worker/index.js
+          grep -Fq '/api/stripe-webhook' worker/index.js
+          grep -Fq 'run_worker_first' wrangler.example.jsonc
+          grep -Fq 'firebase-auth.js' public/firebase-client.js
+          ! grep -Fq 'firebase-firestore.js' public/firebase-client.js
       - name: Browser smoke test
         working-directory: standalone/habit-planet
         run: |
