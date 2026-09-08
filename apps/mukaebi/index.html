@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#100c0a" />
+  <meta name="description" content="山火事は水だけでは止まらない。風向き予報を読んで火の先へ回り込み、防火線と向かい火で燃える物を先に消す3分間の消火判断ゲーム。" />
+  <title>向かい火 — 山火事を止める3分 —</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<main id="app">
+
+  <!-- ============ START ============ -->
+  <section class="screen start active" id="startScreen" aria-labelledby="gameTitle">
+    <div class="start-scene" aria-hidden="true">
+      <span class="ridge r1"></span><span class="ridge r2"></span><span class="ridge r3"></span>
+      <span class="sun"></span>
+      <span class="fire f1"></span><span class="fire f2"></span><span class="fire f3"></span>
+      <span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span>
+    </div>
+
+    <div class="start-copy">
+      <p class="eyebrow">WILDFIRE CONTAINMENT</p>
+      <h1 id="gameTitle">向かい火</h1>
+      <p class="sub">山火事は、水だけでは止まらない。<br><b>火で止める。</b></p>
+
+      <ul class="rule-list">
+        <li><span class="ri water">水</span><b>放水</b>今すぐ消せる。でも量が足りない。</li>
+        <li><span class="ri line">線</span><b>防火線</b>燃えない線を引く。時間がかかる。</li>
+        <li><span class="ri fire">火</span><b>向かい火</b>先に燃やして、火の食料を断つ。</li>
+      </ul>
+
+      <p class="lead">風下に<b>集落が3つ</b>。放った向かい火も本物の火だ。<br>予報を読んで、火が来る前に回り込め。</p>
+
+      <button class="primary-btn" id="startBtn"><span>出動する</span><small>1回 約2分</small></button>
+      <p class="record" id="bestRecord"></p>
+      <button class="text-btn" id="howToBtn">くわしい遊び方</button>
+    </div>
+
+    <div class="howto" id="howto" hidden>
+      <h2>遊び方</h2>
+      <p><b>目的</b>：3つの集落を守り、森の焼失をできるだけ小さくして<b>鎮火</b>させる。</p>
+      <p><b>火の動き</b>：風下へ速く、風上へは遅く広がる。上り坂も速い。川・岩・林道・焼け跡は燃えない。</p>
+      <p><b>放水</b>：燃えている場所を消し、周囲を約15秒濡らす。3発まで。時間で補充。</p>
+      <p><b>防火線</b>：ドラッグで隊が線を切り開く。1マス約0.2秒。火の中には入れない。</p>
+      <p><b>向かい火</b>：森を自分で燃やして安全地帯を作る。ただし風下へ走るので、先に防火線か川で受け止めておくこと。</p>
+      <p><b>風</b>：数十秒ごとに向きが変わる。変わる前に画面上部へ<b>予報</b>が出る。</p>
+      <button class="text-btn" id="closeHowto">閉じる</button>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section class="screen game" id="gameScreen" aria-label="消火画面">
+    <header class="hud">
+      <div class="hud-left">
+        <div class="stat"><small>残り</small><strong id="timeLabel">3:00</strong></div>
+        <div class="stat"><small>集落</small><strong id="villageLabel">3/3</strong></div>
+        <div class="stat"><small>焼失</small><strong id="burnLabel">0%</strong></div>
+      </div>
+      <div class="wind-box" id="windBox">
+        <div class="compass" id="compass">
+          <i class="needle" id="windNeedle"></i>
+          <i class="ghost" id="windGhost"></i>
+        </div>
+        <div class="wind-text">
+          <strong id="windLabel">北西の風</strong>
+          <small id="windSpeedLabel">やや強い</small>
+        </div>
+      </div>
+    </header>
+
+    <div class="map-wrap" id="mapWrap">
+      <canvas id="map"></canvas>
+      <div class="forecast" id="forecast" hidden>
+        <span class="fc-label">予報</span>
+        <span class="fc-body" id="forecastText">まもなく西の風</span>
+        <span class="fc-count" id="forecastCount">15</span>
+        <i class="fc-bar" id="forecastBar"></i>
+      </div>
+      <div class="hint" id="hint" hidden></div>
+      <div class="toasts" id="toasts"></div>
+      <div class="flash" id="flash"></div>
+    </div>
+
+    <footer class="tools">
+      <button class="tool" id="toolWater" data-tool="water">
+        <span class="tool-icon">💧</span>
+        <span class="tool-name">放水</span>
+        <span class="tool-meta" id="waterMeta">3</span>
+        <i class="cool" id="waterCool"></i>
+      </button>
+      <button class="tool" id="toolLine" data-tool="line">
+        <span class="tool-icon">⛏</span>
+        <span class="tool-name">防火線</span>
+        <span class="tool-meta" id="lineMeta">38</span>
+      </button>
+      <button class="tool" id="toolFire" data-tool="fire">
+        <span class="tool-icon">🔥</span>
+        <span class="tool-name">向かい火</span>
+        <span class="tool-meta" id="fireMeta">OK</span>
+        <i class="cool" id="fireCool"></i>
+      </button>
+      <button class="mute" id="muteBtn" aria-label="音を切り替える">♪</button>
+    </footer>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section class="screen result" id="resultScreen" aria-label="結果">
+    <div class="result-inner">
+      <p class="res-eyebrow" id="resEyebrow">出動 1件目</p>
+      <h2 id="resTitle">鎮火</h2>
+      <p class="res-sub" id="resSub">01:47 で火を止めた</p>
+
+      <div class="res-grid">
+        <div class="res-cell"><small>守った集落</small><strong id="resVillage">3 / 3</strong></div>
+        <div class="res-cell"><small>森の焼失</small><strong id="resBurn">18%</strong></div>
+        <div class="res-cell"><small>向かい火 命中</small><strong id="resMeet">2 回</strong></div>
+      </div>
+
+      <div class="score-row">
+        <span class="rank" id="resRank">A</span>
+        <div><small>SCORE</small><strong id="resScore">1240</strong></div>
+        <div class="best-note" id="resBest"></div>
+      </div>
+
+      <div class="review" id="resReview"></div>
+
+      <div class="res-actions">
+        <button class="primary-btn" id="againBtn"><span>次の火事へ</span><small>地形と風が変わる</small></button>
+        <button class="text-btn" id="titleBtn">タイトルへ</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+<script src="./game.js"></script>
+</body>
+</html>
