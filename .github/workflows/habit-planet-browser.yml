@@ -96,13 +96,22 @@ jobs:
               alert: window.__lastAlert || '',
               modal: document.querySelector('.modal-overlay')?.textContent || '',
               timer: document.querySelector('.timer-overlay')?.textContent || '',
-              formName: document.querySelector('#habit-editor input[name="name"]')?.value || '',
-              formGroup: document.querySelector('#habit-editor input[name="group"]')?.value || '',
               stored: localStorage.getItem('habit-planet:v1') || '',
               body: document.body.innerText.slice(0, 5000),
             }));
             console.log(label, JSON.stringify(state));
             console.log('pageErrors', JSON.stringify(errors));
+          }
+          async function centerAndClick(selector) {
+            await page.$eval(selector, (el) => el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' }));
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            const reachable = await page.$eval(selector, (el) => {
+              const rect = el.getBoundingClientRect();
+              const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+              return hit === el || el.contains(hit);
+            });
+            if (!reachable) throw new Error(`target is covered after center scroll: ${selector}`);
+            await page.click(selector);
           }
 
           if (!(await text('.brand')).includes('HABIT PLANET')) throw new Error('brand missing');
@@ -114,17 +123,13 @@ jobs:
           if (!(await page.$('.planet'))) throw new Error('planet visual missing outside focus mode');
 
           await page.$eval('#habit-editor', (form) => {
-            const name = form.elements.name;
-            const group = form.elements.group;
-            const repeat = form.elements.repeatEveryDays;
-            name.value = '散歩';
-            name.dispatchEvent(new Event('input', { bubbles: true }));
-            group.value = 'health1';
-            group.dispatchEvent(new Event('input', { bubbles: true }));
-            repeat.value = '2';
-            repeat.dispatchEvent(new Event('change', { bubbles: true }));
+            form.elements.name.value = '散歩';
+            form.elements.group.value = 'health1';
+            form.elements.group.dispatchEvent(new Event('input', { bubbles: true }));
+            form.elements.repeatEveryDays.value = '2';
+            form.elements.repeatEveryDays.dispatchEvent(new Event('change', { bubbles: true }));
           });
-          await page.click('#habit-editor button[type="submit"]');
+          await centerAndClick('#habit-editor button[type="submit"]');
           try {
             await page.waitForSelector('.modal-overlay', { timeout: 3000 });
           } catch (error) {
@@ -133,21 +138,22 @@ jobs:
           }
           if (!(await text('.modal-overlay')).includes('「散歩」を今すぐ始めますか？')) throw new Error('post-add start prompt missing');
           await page.click('[data-action="later-added"]');
+
           const walkId = await habitIdByName('散歩');
           if (!walkId) throw new Error('new habit not present');
           const group = await page.$eval(`[data-habit="${walkId}"] .badge`, (el) => el.textContent.trim());
           if (group !== 'HEALTH') throw new Error(`group normalization failed: ${group}`);
 
-          // Exercise the exact play button inside the new habit card, not a recommendation button.
           const walkPlay = `[data-habit="${walkId}"] button[data-action="start"][data-id="${walkId}"]`;
           await page.waitForSelector(walkPlay);
-          await page.click(walkPlay);
+          await centerAndClick(walkPlay);
           try {
             await page.waitForSelector('.timer-overlay', { timeout: 3000 });
           } catch (error) {
-            await debugState('timer did not open after habit-card play click');
+            await debugState('timer did not open after reachable habit-card play click');
             throw error;
           }
+
           await new Promise((r) => setTimeout(r, 1200));
           await page.click(`[data-action="pause"][data-id="${walkId}"]`);
           if (!(await text(`[data-action="pause"][data-id="${walkId}"]`)).includes('再開')) throw new Error('pause state not reflected');
@@ -159,8 +165,7 @@ jobs:
           if (!stored?.sessions?.some((s) => s.habitId && s.durationMs > 0)) throw new Error('finished timer session not persisted');
 
           await page.click('[data-filter="completed"]');
-          const completedId = await habitIdByName('散歩');
-          if (!completedId) throw new Error('completed habit not shown in completed filter');
+          if (!(await habitIdByName('散歩'))) throw new Error('completed habit not shown in completed filter');
 
           await page.click('[data-view="analysis"]');
           if (!(await page.$('.analysis-grid'))) throw new Error('Pro analysis did not open');
@@ -181,7 +186,7 @@ jobs:
           await page.reload({ waitUntil: 'networkidle0' });
           if (!(await page.$('.app'))) throw new Error('desktop app shell missing');
           if (errors.length) throw new Error(`browser errors: ${errors.join(' | ')}`);
-          console.log('HABIT PLANET BROWSER PASS: first view, focus/planet mode, add, timer pause/resume/finish, persistence, Pro analysis, atlas, recurring controls, mobile and desktop verified.');
+          console.log('HABIT PLANET BROWSER PASS: first view, reachable mobile controls, add, timer pause/resume/finish, persistence, Pro analysis, atlas, recurring controls, mobile and desktop verified.');
           await browser.close();
           NODE
           node .habit-planet-browser-test.mjs
