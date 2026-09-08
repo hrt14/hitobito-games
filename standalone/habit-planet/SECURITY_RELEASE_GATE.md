@@ -1,87 +1,177 @@
-# Habit Planet — Security / Billing Release Gate
+# Habit Planet — Cloudflare Security / Release Gate
 
-公開前の課金事故・不正アクセス対策の最終ゲート。
-現時点の判定は **B: コード側はかなり固まっているが、外部設定が未完了**。
-以下の外部設定を完了して実機確認が通るまでは、PR #459 を Draft のままにして本番公開しない。
+このファイルは「コードが書けた」ではなく、**課金ユーザーを受け付けてよい状態か**を判定するための公開前ゲート。
+Cloudflare版はFirebase Authenticationだけを残し、Firestore / Firebase Hosting / Firebase Functionsを本番経路から外す。
 
-## すでにコードで対策済み
+## 判定
 
-### Firestore
-- `users/{uid}/appState/habit_planet` の固定1ドキュメントだけ本人が `get/create/update` 可
-- state書き込みは `state`, `updatedAt` の2フィールドだけ
-- collection `list` 不可
-- `entitlements/{uid}` は本人の `get` だけ。client write/list不可
-- `stripeEvents/*` はserver only
-- 未定義collectionは明示的にdeny
-- クライアントは全件queryではなく固定document参照
-- 現在Firestore Trigger Functionは使っていないため、Functionが自分の書き込みで再発火する無限ループ経路はない
+- 開発中: Workers Freeで可
+- Sandbox E2E前: **公開不可**
+- 有料ユーザー受付前: **Workers Paid必須**
+- 下記の必須項目が1つでも未確認: **公開不可**
 
-### Cloud Functions / Cloud Run Functions
-- `region: asia-northeast1`
-- `minInstances: 0`
-- `maxInstances: 2`
-- `memory: 256MiB`
-- `cpu: gcf_gen1`
-- `concurrency: 1`
-- `timeoutSeconds: 30`
-- Checkout: 1ユーザー5回 / 10分のbest-effort rate limit
-- Portal: 1ユーザー10回 / 10分のbest-effort rate limit
-- user API body 32KiB、Stripe webhook 1MiB上限
+## 1. Cloudflare基盤
 
-### Stripe
-- Webhookは `Stripe-Signature` をHMAC-SHA256で検証
-- timestamp許容は5分
-- 署名NGは処理しない
-- webhook event IDは副作用が成功した後だけ保存し、失敗時のStripe retryを妨げない
-- Checkout SessionはIdempotency-Key付き
-- 既存subscriptionがあるユーザーの二重subscription作成を拒否
+- [ ] `habit-planet` D1 databaseを作成
+- [ ] `wrangler.example.jsonc` を元に実 `wrangler.jsonc` を作成
+- [ ] `DB` bindingが正しいD1 database IDを参照
+- [ ] Static Assets binding `ASSETS` が有効
+- [ ] `/api/*` がWorkerを先に通る
+- [ ] `migrations/0001_init.sql` をremote D1へ適用
+- [ ] Cloudflare上の実URLを `PUBLIC_ORIGIN` に設定
+- [ ] Workers / D1のusage notificationを受け取れる状態
+- [ ] 同一Cloudflare accountの他アプリを含む総使用量を確認できる状態
 
-### App Check実装
-- WebクライアントにreCAPTCHA Enterprise用App Checkコード実装済み
-- Firestore SDKはApp Check初期化後にtokenを利用
-- `/api/checkout` と `/api/portal` は `X-Firebase-AppCheck` を送信
-- Functions側はApp Check token検証コード実装済み
-- Stripe webhookはStripe自身から来るためApp Check対象外
+## 2. 本番料金モード
 
-## 公開前に外部設定で必須
+Sandbox / 開発中はWorkers Freeでよい。
 
-- [ ] Firebase App Checkで `Habit Planet Web` + reCAPTCHA Enterpriseを登録
-- [ ] `public/firebase-config.js` に公開site keyを設定
-- [ ] App Check metricsで正規通信を確認
-- [ ] FirestoreのApp Checkを **Enforce**
-- [ ] Functions parameter `HABIT_PLANET_REQUIRE_APP_CHECK=true` で再deploy
-- [ ] `Cloud Run Functions` Spend Cap 月500円が有効であることを再確認
-- [ ] **Cloud Runにも別のSpend Cap 月500円を設定**
-- [ ] project全体のBilling Alert 月1,000円を維持
-- [ ] Billing Alertの通知先メールを実際に受信できることを確認
-- [ ] Cloud Billing accountが「Free Trial」か「Paid」かを確認し、90日後に意図せず停止しない運用を決める
-- [ ] Firebase/GCP IAMでGitHub deployerにHabit Planet projectの必要最小限deploy権限を付与
+課金受付開始前:
 
-## Sandbox E2E必須
+- [ ] Workers Paidへ変更済み
+- [ ] Paid切替後にWorker / D1 / Static Assetsが正常動作
+- [ ] account-wide usageを確認
 
-- [ ] Hosting / Firestore Rules / Functions deploy成功
-- [ ] Googleログイン成功
-- [ ] Firestore同期成功
-- [ ] App Check Enforce後も正規クライアントのread/write成功
-- [ ] App CheckなしのFunctions user APIが拒否される
-- [ ] Stripe Sandbox Checkout成功
-- [ ] Webhook署名OK
-- [ ] `entitlements/{uid}` がactiveになる
-- [ ] Pro機能が解放される
-- [ ] Customer Portalが開く
-- [ ] cancel_at_period_endが反映される
-- [ ] subscription削除後にProが失効する
-- [ ] webhook再送で二重副作用がない
-- [ ] iPhone実機でPWA / タイマー / 通知 / 再訪を確認
+理由: Free quotaのハード停止は開発中の事故防止には有効だが、課金済みユーザーまで巻き込んで停止するため、本番の可用性要件には合わない。
 
-## 現在の外部ブロッカー
+## 3. Firebase Authentication
 
-GitHub ActionsからFirebase bootstrap deployを実行したところ、Workload Identity認証自体は成功したが、
-`github-firebase-deployer@hitobito-levelup.iam.gserviceaccount.com` が `habit-planet-5bbc3` projectを参照できず停止した。
+Firebase project: `habit-planet-5bbc3`
 
-このIAMを解消するまではFirebase実機deploy・Stripe Sandbox E2Eへ進めない。
+- [x] Googleログインを利用するコード
+- [x] Firestore SDKをCloudflare版clientから除去
+- [x] Firebase Admin SDKをWorkerで不使用
+- [ ] Cloudflareの最終domainをFirebase Auth authorized domainsへ追加
+- [ ] 実domainからGoogleログイン成功
+- [ ] Identity Platformへのアップグレード有無を確認
 
-## 判定の上げ方
+Blaze → Spark降格は**Cloudflare E2E完了後**。先に降格しない。
 
-上の外部設定とE2Eをすべて通したら **A: 公開可** に上げる。
-Firestore Security RulesやApp Check enforcementが緩い状態で公開する場合は **C: 公開しない** と扱う。
+## 4. Firebase ID Token検証
+
+Workerで以下を全て必須にする。
+
+- [x] Authorization Bearer必須
+- [x] `alg === RS256`
+- [x] `kid` 必須
+- [x] `kid` がGoogle公開証明書に存在
+- [x] 公開証明書で署名検証
+- [x] `exp` が未来
+- [x] `iat` が未来でない
+- [x] `aud === habit-planet-5bbc3`
+- [x] `iss === https://securetoken.google.com/habit-planet-5bbc3`
+- [x] `sub` が空でなく128文字以下
+- [x] `auth_time` が未来でない
+- [x] Google公開証明書をCloudflare Cache APIでcache
+- [x] 未知`kid`時に1回だけcache refreshして鍵ローテーションへ追従
+
+実機 / integration test:
+
+- [ ] 正常token → 200
+- [ ] tokenなし → 401
+- [ ] 改ざんtoken → 401
+- [ ] wrong audience → 401
+- [ ] expired token → 401
+
+## 5. D1データ境界
+
+D1はブラウザから直接触らせない。WorkerだけがDB bindingを持つ。
+
+- [x] app stateはFirebase tokenの`sub`から決めたuidだけを読み書き
+- [x] request bodyのuidを信用しない
+- [x] state最大1MiB
+- [x] 1ユーザー1 `user_states` row
+- [x] entitlementはclient write APIなし
+- [x] Stripe event markerはWebhook内部だけでwrite
+- [ ] uid Aのtokenでuid Bのstateを取得できないことをintegration test
+- [ ] malformed / oversized stateを400/413で拒否
+
+## 6. D1使用量ガード
+
+- [x] timerの秒tickではD1 writeしない
+- [x] state saveはUI側でdebounce
+- [x] entitlement通常pollは60秒
+- [x] visible復帰時だけ追加refresh
+- [x] Checkout成功直後のみ2秒pollを最大約30秒
+- [ ] Cloudflare dashboardでD1 read/write usageを確認
+
+## 7. Stripe secrets
+
+- [ ] `STRIPE_SECRET_KEY` をCloudflare secretとして登録
+- [ ] `STRIPE_WEBHOOK_SECRET` をCloudflare secretとして登録
+- [ ] secretをGitHubへcommitしていない
+- [ ] secretをclient JSへ含めていない
+- [ ] secretをWrangler configのplain varsへ含めていない
+
+Sandbox Price:
+`price_1UDOG913XnwPDs4e0qYRUIXo`
+
+## 8. Stripe Checkout / Portal
+
+- [x] CheckoutはFirebase Auth必須
+- [x] PortalはFirebase Auth必須
+- [x] 既存subscription状態を見て二重契約を抑止
+- [x] Stripe CheckoutへIdempotency-Keyを送る
+- [x] success / cancel URLを`PUBLIC_ORIGIN`基準で生成
+- [ ] Sandbox Checkout実決済
+- [ ] Portalを開ける
+
+## 9. Stripe Webhook
+
+公開endpoint:
+`/api/stripe-webhook`
+
+- [x] `stripe-signature`必須
+- [x] HMAC-SHA256署名検証
+- [x] timestamp 5分許容
+- [x] `checkout.session.completed`処理
+- [x] subscription created / updated / deleted処理
+- [x] entitlementをD1へ反映
+- [x] event ID重複チェック
+- [x] 副作用成功後にevent marker保存
+- [ ] Sandbox webhook endpoint作成
+- [ ] 正常署名 → 2xx
+- [ ] 不正署名 → 400
+- [ ] 同一event再送 → duplicate 2xx、二重副作用なし
+- [ ] D1一時失敗 → event marker未保存、2xxにせずStripe retry可能
+
+## 10. Static Assets / browser security
+
+- [x] `X-Content-Type-Options: nosniff`
+- [x] `X-Frame-Options: DENY`
+- [x] `Referrer-Policy: strict-origin-when-cross-origin`
+- [x] camera / microphone / geolocation / payment Permissions Policyを禁止
+- [ ] Cloudflare実URLでheadersを確認
+- [ ] SPA deep-link / service worker / manifest確認
+
+## 11. Habit Planet機能E2E
+
+- [ ] 初回表示
+- [ ] 習慣追加
+- [ ] タイマー開始 / pause / resume / finish
+- [ ] LocalStorage再訪
+- [ ] Googleログイン
+- [ ] D1 state cloud sync
+- [ ] 18惑星の星図
+- [ ] Pro分析
+- [ ] 毎週 / 毎月 / one-time
+- [ ] 明日送り
+- [ ] Stripe購入 → Pro unlock
+- [ ] cancel_at_period_end反映
+- [ ] subscription deleted → Pro lock
+- [ ] iPhone PWA
+
+## 12. Firebase旧基盤の停止確認
+
+Cloudflare E2E成功後:
+
+- [ ] Cloudflare版browserにFirestore requestがない
+- [ ] Firebase Hostingを本番URLに使っていない
+- [ ] Firebase Functionsへ本番requestがない
+- [ ] Firebase版PR #459をfallbackとして残す / 廃止判断は別途
+- [ ] Identity Platform状態を確認してからBlaze → Spark判断
+- [ ] GCP Spend Cap / Budgetの削除はロールバック不要判断後
+
+## 公開判定
+
+**Sandbox E2E成功 + Worker token検証 + D1境界 + Stripe署名 + Workers Paid + Firebase authorized domain** が全部確認できるまで課金受付を開始しない。
