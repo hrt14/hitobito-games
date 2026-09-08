@@ -94,6 +94,12 @@ jobs:
           grep -Fq 'run_worker_first' wrangler.example.jsonc
           grep -Fq 'firebase-auth.js' public/firebase-client.js
           ! grep -Fq 'firebase-firestore.js' public/firebase-client.js
+          ! grep -Fq 'firebase-admin' worker/index.js
+      - name: Bundle Worker with Wrangler dry run
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          npx wrangler deploy --dry-run --config wrangler.example.jsonc
       - name: Browser smoke test
         working-directory: standalone/habit-planet
         run: |
