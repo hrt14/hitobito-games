@@ -13,6 +13,7 @@ const PRICE_ID = defineString("STRIPE_HABIT_PLANET_PRICE_ID", { default: "price_
 const APP_ORIGIN = defineString("HABIT_PLANET_PUBLIC_ORIGIN", { default: "https://habit-planet.web.app" });
 const REGION = "asia-northeast1";
 const INTEGRATION_IDENTIFIER = "habitplanet_q7m3z8pk";
+const MANAGE_EXISTING_STATUSES = new Set(["active", "trialing", "past_due", "unpaid", "incomplete", "paused"]);
 
 function json(res, status, body) {
   res.status(status).set("content-type", "application/json; charset=utf-8").send(JSON.stringify(body));
@@ -67,14 +68,22 @@ async function upsertEntitlement(subscription) {
 }
 function verifyStripe(rawBody, signature, secret) {
   if (!signature) throw new Error("Missing stripe-signature");
-  const parts = Object.fromEntries(String(signature).split(",").map((part) => part.split("=", 2)));
-  const timestamp = Number(parts.t);
-  const expected = parts.v1;
-  if (!timestamp || !expected) throw new Error("Invalid stripe-signature");
+  const fields = String(signature).split(",").map((part) => part.split("=", 2));
+  const timestamp = Number(fields.find(([key]) => key === "t")?.[1]);
+  const signatures = fields.filter(([key, value]) => key === "v1" && value).map(([, value]) => value);
+  if (!timestamp || !signatures.length) throw new Error("Invalid stripe-signature");
   if (Math.abs(Date.now() / 1000 - timestamp) > 300) throw new Error("Stale stripe-signature");
   const digest = crypto.createHmac("sha256", secret).update(`${timestamp}.${rawBody.toString("utf8")}`).digest("hex");
-  const a = Buffer.from(digest, "hex"), b = Buffer.from(expected, "hex");
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) throw new Error("Invalid stripe-signature");
+  const expected = Buffer.from(digest, "hex");
+  const valid = signatures.some((candidate) => {
+    try {
+      const provided = Buffer.from(candidate, "hex");
+      return provided.length === expected.length && crypto.timingSafeEqual(expected, provided);
+    } catch {
+      return false;
+    }
+  });
+  if (!valid) throw new Error("Invalid stripe-signature");
 }
 
 exports.checkout = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY] }, async (req, res) => {
@@ -83,12 +92,23 @@ exports.checkout = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY] }, a
     const decoded = await requireUser(req);
     const email = decoded.email;
     if (!email) throw Object.assign(new Error("Google account email is required"), { status: 400 });
+
+    const entitlementSnap = await db.doc(`entitlements/${decoded.uid}`).get();
+    const existing = entitlementSnap.exists ? entitlementSnap.data() || {} : {};
+    const existingStatus = String(existing.status || "");
+    if (existing.stripeCustomerId && MANAGE_EXISTING_STATUSES.has(existingStatus)) {
+      json(res, 409, {
+        error: "既存のサブスクリプションがあります。管理画面から状態を確認してください。",
+        code: "existing_subscription",
+      });
+      return;
+    }
+
     const origin = APP_ORIGIN.value().replace(/\/$/, "");
-    const session = await stripeRequest("/v1/checkout/sessions", {
+    const body = {
       mode: "subscription",
       "line_items[0][price]": PRICE_ID.value(),
       "line_items[0][quantity]": "1",
-      customer_email: email,
       client_reference_id: decoded.uid,
       success_url: `${origin}/?pro=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/?pro=cancel`,
@@ -97,7 +117,11 @@ exports.checkout = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY] }, a
       "subscription_data[metadata][firebase_uid]": decoded.uid,
       "subscription_data[metadata][product_key]": "habit_planet",
       integration_identifier: INTEGRATION_IDENTIFIER,
-    }, STRIPE_SECRET_KEY.value());
+    };
+    if (existing.stripeCustomerId) body.customer = existing.stripeCustomerId;
+    else body.customer_email = email;
+
+    const session = await stripeRequest("/v1/checkout/sessions", body, STRIPE_SECRET_KEY.value());
     json(res, 200, { url: session.url });
   } catch (error) {
     console.error("checkout", error);
@@ -130,18 +154,26 @@ exports.stripeWebhook = onRequest({ region: REGION, secrets: [STRIPE_SECRET_KEY,
     verifyStripe(raw, req.headers["stripe-signature"], STRIPE_WEBHOOK_SECRET.value());
     const event = JSON.parse(raw.toString("utf8"));
     if (!event.id) throw new Error("Missing event id");
+
     const marker = db.doc(`stripeEvents/${event.id}`);
-    if ((await marker.get()).exists) { json(res, 200, { received: true, duplicate: true }); return; }
+    if ((await marker.get()).exists) {
+      json(res, 200, { received: true, duplicate: true });
+      return;
+    }
+
     if (event.type === "checkout.session.completed") {
       const session = event.data?.object || {};
       if (session.subscription) {
         const subscription = await stripeGet(`/v1/subscriptions/${encodeURIComponent(session.subscription)}?expand[]=items.data`, STRIPE_SECRET_KEY.value());
-        if (!subscription.metadata?.firebase_uid && session.client_reference_id) subscription.metadata = { ...(subscription.metadata || {}), firebase_uid: session.client_reference_id };
+        if (!subscription.metadata?.firebase_uid && session.client_reference_id) {
+          subscription.metadata = { ...(subscription.metadata || {}), firebase_uid: session.client_reference_id };
+        }
         await upsertEntitlement(subscription);
       }
     } else if (["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"].includes(event.type)) {
       await upsertEntitlement(event.data?.object || {});
     }
+
     await marker.set({ processedAt: FieldValue.serverTimestamp(), type: event.type });
     json(res, 200, { received: true });
   } catch (error) {
