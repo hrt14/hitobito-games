@@ -48,6 +48,7 @@ jobs:
             public/sw.js
             worker/index.js
             migrations/0001_init.sql
+            wrangler.jsonc
             wrangler.example.jsonc
             package.json
             PARITY.md
@@ -62,6 +63,9 @@ jobs:
           grep -Fq 'entitlements' migrations/0001_init.sql
           grep -Fq 'stripe_events' migrations/0001_init.sql
           grep -Fq 'Habit Planet Pro' PARITY.md
+          grep -Fq '"database_name": "habit-planet"' wrangler.jsonc
+          grep -Fq '"binding": "DB"' wrangler.jsonc
+          ! grep -Fq '00000000-0000-0000-0000-000000000000' wrangler.jsonc
       - name: Verify Firebase ID Token checks
         working-directory: standalone/habit-planet
         run: |
@@ -91,7 +95,7 @@ jobs:
           grep -Fq '/api/checkout' worker/index.js
           grep -Fq '/api/portal' worker/index.js
           grep -Fq '/api/stripe-webhook' worker/index.js
-          grep -Fq 'run_worker_first' wrangler.example.jsonc
+          grep -Fq 'run_worker_first' wrangler.jsonc
           grep -Fq 'firebase-auth.js' public/firebase-client.js
           ! grep -Fq 'firebase-firestore.js' public/firebase-client.js
           ! grep -Fq 'firebase-admin' worker/index.js
@@ -99,18 +103,18 @@ jobs:
         working-directory: standalone/habit-planet
         run: |
           set -euo pipefail
-          npx wrangler deploy --dry-run --config wrangler.example.jsonc
+          npx wrangler deploy --dry-run --config wrangler.jsonc
       - name: Local Worker + D1 integration
         working-directory: standalone/habit-planet
         run: |
           set -euo pipefail
           rm -rf .wrangler
-          npx wrangler d1 migrations apply habit-planet --local --config wrangler.example.jsonc
+          npx wrangler d1 migrations apply habit-planet --local --config wrangler.jsonc
           cat > .dev.vars <<'VARS'
           STRIPE_SECRET_KEY="sk_test_ci_placeholder"
           STRIPE_WEBHOOK_SECRET="whsec_habit_planet_ci"
           VARS
-          npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config wrangler.example.jsonc >/tmp/habit-planet-worker.log 2>&1 &
+          npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config wrangler.jsonc >/tmp/habit-planet-worker.log 2>&1 &
           worker_pid=$!
           trap 'kill "$worker_pid" 2>/dev/null || true; rm -f .dev.vars' EXIT
           for i in {1..30}; do
