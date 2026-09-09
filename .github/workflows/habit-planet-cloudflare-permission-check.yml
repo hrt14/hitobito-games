@@ -32,12 +32,32 @@ jobs:
           echo "Existing Cloudflare secrets are present."
       - name: Install dependencies
         run: npm install --ignore-scripts
-      - name: Show token identity and permissions
+      - name: Token identity check (informational)
+        continue-on-error: true
         run: npx wrangler whoami
-      - name: Check D1 access against Habit Planet database
-        run: npx wrangler d1 execute habit-planet --remote --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;" --config wrangler.jsonc
-      - name: Check Workers API access without deploying
+      - name: Prove D1 write access with reversible probe
         run: |
           set -euo pipefail
-          RESPONSE="$(curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H 'Content-Type: application/json' "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts")"
-          printf '%s' "$RESPONSE" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(j.errors);process.exit(1)};console.log('Workers API access: OK; scripts visible:',Array.isArray(j.result)?j.result.length:0)})"
+          npx wrangler d1 execute habit-planet --remote --command "CREATE TABLE IF NOT EXISTS __hp_permission_probe (id INTEGER); DROP TABLE __hp_permission_probe;" --config wrangler.jsonc
+          npx wrangler d1 execute habit-planet --remote --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;" --config wrangler.jsonc
+      - name: Prove Workers Scripts write access with temporary worker
+        run: |
+          set -euo pipefail
+          PROBE="habit-planet-permission-probe-${GITHUB_RUN_ID}"
+          printf '%s\n' 'export default { async fetch(){ return new Response("ok") } };' > /tmp/hp-probe.js
+          cleanup() {
+            curl -sS -X DELETE \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H 'Content-Type: application/json' \
+              "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${PROBE}" >/tmp/hp-probe-delete.json || true
+          }
+          trap cleanup EXIT
+          RESPONSE="$(curl -sS -X PUT \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -F 'metadata={"main_module":"index.js"};type=application/json' \
+            -F 'index.js=@/tmp/hp-probe.js;type=application/javascript+module' \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${PROBE}")"
+          printf '%s' "$RESPONSE" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('Workers Scripts write access: OK')})"
+          cleanup
+          trap - EXIT
+          printf '%s' "$(cat /tmp/hp-probe-delete.json)" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('Temporary permission probe worker deleted.')})"
