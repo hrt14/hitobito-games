@@ -5,6 +5,7 @@ on:
     branches: [feat/habit-planet-cloudflare]
     paths:
       - '.github/workflows/habit-planet-cloudflare-deploy.yml'
+      - 'standalone/habit-planet/**'
   workflow_dispatch:
     inputs:
       apply_migrations:
