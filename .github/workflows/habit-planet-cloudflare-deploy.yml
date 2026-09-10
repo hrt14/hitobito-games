@@ -1,6 +1,10 @@
 name: Habit Planet Cloudflare Deploy
 
 on:
+  push:
+    branches: [feat/habit-planet-cloudflare]
+    paths:
+      - '.github/workflows/habit-planet-cloudflare-deploy.yml'
   workflow_dispatch:
     inputs:
       apply_migrations:
@@ -41,7 +45,7 @@ jobs:
         run: npx wrangler deploy --dry-run --config wrangler.jsonc
 
       - name: Apply remote D1 migrations
-        if: ${{ inputs.apply_migrations }}
+        if: ${{ github.event_name == 'push' || inputs.apply_migrations }}
         run: npx wrangler d1 migrations apply habit-planet --remote --config wrangler.jsonc
 
       - name: Deploy Habit Planet Worker
