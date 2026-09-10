@@ -42,6 +42,25 @@ jobs:
       - name: Install dependencies
         run: npm install --ignore-scripts
 
+      - name: Check Stripe secret names
+        run: |
+          set -euo pipefail
+          npx wrangler secret list --config wrangler.jsonc > /tmp/hp-secrets.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const raw = fs.readFileSync('/tmp/hp-secrets.json', 'utf8');
+          let names = [];
+          try {
+            const parsed = JSON.parse(raw);
+            names = Array.isArray(parsed) ? parsed.map(x => x?.name).filter(Boolean) : [];
+          } catch {
+            names = [...raw.matchAll(/\b(?:STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET)\b/g)].map(m => m[0]);
+          }
+          for (const name of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET']) {
+            console.log(`${name}: ${names.includes(name) ? 'PRESENT' : 'MISSING'}`);
+          }
+          NODE
+
       - name: Validate Worker bundle
         run: npx wrangler deploy --dry-run --config wrangler.jsonc
 
