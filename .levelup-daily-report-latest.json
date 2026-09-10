@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-09T21:59:36.369Z",
+  "generatedAt": "2026-09-10T21:57:48.352Z",
   "timezone": "Asia/Tokyo",
   "current": {
-    "date": "20260909",
+    "date": "20260910",
     "available": false,
     "metrics": null,
     "games": [],
@@ -11,23 +11,9 @@
     "blockedReason": null
   },
   "previous": {
-    "date": "20260908",
-    "available": true,
-    "metrics": {
-      "gameDurationSec": 0,
-      "lastUpdatedAt": "2026-09-08T11:22:26.003Z",
-      "visitorUu": 2,
-      "gameSessions": 1,
-      "sessions": 2,
-      "homeSessions": 1,
-      "searches": 0,
-      "date": "20260908",
-      "loginUu": 0,
-      "completedGames": 0,
-      "leftGames": 0,
-      "completionRate": 0,
-      "avgGameDurationSec": 0
-    },
+    "date": "20260909",
+    "available": false,
+    "metrics": null,
     "games": [],
     "needs": [],
     "blockedReason": null
