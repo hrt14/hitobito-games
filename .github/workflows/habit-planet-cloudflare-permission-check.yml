@@ -41,6 +41,7 @@ jobs:
           npx wrangler d1 execute habit-planet --remote --command "CREATE TABLE IF NOT EXISTS __hp_permission_probe (id INTEGER); DROP TABLE __hp_permission_probe;" --config wrangler.jsonc
           npx wrangler d1 execute habit-planet --remote --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;" --config wrangler.jsonc
       - name: Prove Workers Scripts write access with temporary worker
+        if: ${{ always() }}
         run: |
           set -euo pipefail
           PROBE="habit-planet-permission-probe-${GITHUB_RUN_ID}"
