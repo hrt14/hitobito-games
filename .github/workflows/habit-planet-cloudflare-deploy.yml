@@ -61,6 +61,14 @@ jobs:
           }
           NODE
 
+      - name: Diagnose D1 billing sync
+        run: |
+          set -euo pipefail
+          echo "Entitlement row count:"
+          npx wrangler d1 execute habit-planet --remote --config wrangler.jsonc --command "SELECT COUNT(*) AS entitlement_count FROM entitlements;"
+          echo "Stripe event counts:"
+          npx wrangler d1 execute habit-planet --remote --config wrangler.jsonc --command "SELECT event_type, COUNT(*) AS event_count FROM stripe_events GROUP BY event_type ORDER BY event_type;"
+
       - name: Validate Worker bundle
         run: npx wrangler deploy --dry-run --config wrangler.jsonc
 
