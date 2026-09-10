@@ -45,20 +45,27 @@ jobs:
         run: |
           set -euo pipefail
           PROBE="habit-planet-permission-probe-${GITHUB_RUN_ID}"
-          printf '%s\n' 'export default { async fetch(){ return new Response("ok") } };' > /tmp/hp-probe.js
+          cat > /tmp/hp-probe.js <<'JS'
+          export default {
+            async fetch() {
+              return new Response("ok");
+            }
+          };
+          JS
+          cat > /tmp/hp-probe-wrangler.jsonc <<JSON
+          {
+            "name": "${PROBE}",
+            "main": "./hp-probe.js",
+            "compatibility_date": "2026-09-10"
+          }
+          JSON
+          WRANGLER="$GITHUB_WORKSPACE/standalone/habit-planet/node_modules/.bin/wrangler"
           cleanup() {
-            curl -sS -X DELETE \
-              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-              -H 'Content-Type: application/json' \
-              "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${PROBE}" >/tmp/hp-probe-delete.json || true
+            (cd /tmp && "$WRANGLER" delete --config /tmp/hp-probe-wrangler.jsonc --force) || true
           }
           trap cleanup EXIT
-          RESPONSE="$(curl -sS -X PUT \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -F 'metadata={"main_module":"index.js"};type=application/json' \
-            -F 'index.js=@/tmp/hp-probe.js;type=application/javascript+module' \
-            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${PROBE}")"
-          printf '%s' "$RESPONSE" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('Workers Scripts write access: OK')})"
+          (cd /tmp && "$WRANGLER" deploy --config /tmp/hp-probe-wrangler.jsonc)
+          echo "Workers Scripts write access: OK"
           cleanup
           trap - EXIT
-          printf '%s' "$(cat /tmp/hp-probe-delete.json)" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);if(!j.success){console.error(JSON.stringify(j.errors));process.exit(1)};console.log('Temporary permission probe worker deleted.')})"
+          echo "Temporary permission probe worker deleted."
