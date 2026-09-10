@@ -26,6 +26,7 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      HABIT_PLANET_URL: https://habit-planet.hiratamanabu14.workers.dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,3 +51,16 @@ jobs:
 
       - name: Deploy Habit Planet Worker
         run: npx wrangler deploy --config wrangler.jsonc
+
+      - name: Verify deployed app and auth guards
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4 5; do
+            if curl -fsS "$HABIT_PLANET_URL/" -o /tmp/hp-index.html; then break; fi
+            sleep 2
+          done
+          grep -q "Habit Planet" /tmp/hp-index.html
+          test "$(curl -sS -o /tmp/hp-state.json -w '%{http_code}' "$HABIT_PLANET_URL/api/state")" = "401"
+          test "$(curl -sS -o /tmp/hp-entitlement.json -w '%{http_code}' "$HABIT_PLANET_URL/api/entitlement")" = "401"
+          test "$(curl -sS -o /tmp/hp-checkout.json -w '%{http_code}' -X POST "$HABIT_PLANET_URL/api/checkout")" = "401"
+          echo "Habit Planet deployed smoke test: OK"
