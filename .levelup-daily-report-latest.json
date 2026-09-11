@@ -1,17 +1,56 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-10T21:57:48.352Z",
+  "generatedAt": "2026-09-11T22:00:02.759Z",
   "timezone": "Asia/Tokyo",
   "current": {
-    "date": "20260910",
-    "available": false,
-    "metrics": null,
-    "games": [],
+    "date": "20260911",
+    "available": true,
+    "metrics": {
+      "leftGames": 0,
+      "date": "20260911",
+      "completedGames": 0,
+      "visitorUu": 4,
+      "homeSessions": 2,
+      "gameDurationSec": 0,
+      "gameSessions": 2,
+      "sessions": 4,
+      "loginUu": 1,
+      "lastUpdatedAt": "2026-09-11T13:38:56.052Z",
+      "searches": 0,
+      "completionRate": 0,
+      "avgGameDurationSec": 0
+    },
+    "games": [
+      {
+        "left": 0,
+        "date": "20260911",
+        "title": "今日の分岐を1つだけ変える。",
+        "completed": 0,
+        "lastUpdatedAt": "2026-09-11T13:38:39.168Z",
+        "durationSec": 0,
+        "slug": "10-years-back",
+        "sessions": 1,
+        "completionRate": 0,
+        "avgDurationSec": 0
+      },
+      {
+        "slug": "reaction-pattern",
+        "lastUpdatedAt": "2026-09-11T13:38:56.726Z",
+        "completed": 0,
+        "date": "20260911",
+        "durationSec": 0,
+        "left": 0,
+        "sessions": 1,
+        "title": "自分のクセ、見えてる？",
+        "completionRate": 0,
+        "avgDurationSec": 0
+      }
+    ],
     "needs": [],
     "blockedReason": null
   },
   "previous": {
-    "date": "20260909",
+    "date": "20260910",
     "available": false,
     "metrics": null,
     "games": [],
