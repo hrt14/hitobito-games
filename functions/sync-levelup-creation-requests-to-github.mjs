@@ -184,6 +184,7 @@ for (const user of userDocs) {
   }
 }
 console.log(`[LEVEL UP maker] requested rows=${requested}; schema-rejected=${invalid}; normalized-selection-goals=${normalizedGoals}`);
+if (invalid > 0) throw new Error(`LEVEL UP queue health audit found ${invalid} schema-rejected requested request(s)`);
 
 const synced = await syncLevelupCreationRequests({
   db,
