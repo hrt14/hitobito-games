@@ -20,7 +20,7 @@ document.addEventListener("click",async(e)=>{const btn=e.target.closest("button,
 
 watchAuth(async(next)=>{entitlementUnsub();entitlementUnsub=()=>{};user=next;if(!next){entitlement=null;cloudStatus=cloudAvailable?"未ログイン":"この端末に保存";render();return}cloudStatus="クラウドから読込中…";render();try{const cloud=await loadState(next.uid);if(cloud){data=normalizeData(cloud);localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}else await saveState(next.uid,data);cloudStatus="クラウド同期済み"}catch(e){console.error(e);cloudStatus="同期できませんでした"}entitlementUnsub=watchEntitlement(next.uid,(value)=>{entitlement=value;generateRecurring();render()});render()});
 
-const q=new URLSearchParams(location.search);if(q.get("pro")==="success"){ui.toast="購入を確認中です。Pro反映まで数秒かかる場合があります。";history.replaceState({},"",location.pathname)}
+const q=new URLSearchParams(location.search);if(q.get("pro")==="success"){history.replaceState({},"",location.pathname);showToast("購入を確認中です。Pro反映まで数秒かかる場合があります。")} 
 if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
 applyTheme();generateRecurring();render();
 setInterval(()=>{tick=Date.now();if(ui.timerHabitId){const el=$("#timer-clock");if(el)el.textContent=msLabel(elapsedFor(ui.timerHabitId))}overworkCheck();const today=dateKey();if(window.__habitPlanetDay!==today){window.__habitPlanetDay=today;generateRecurring();render()}},1000);
