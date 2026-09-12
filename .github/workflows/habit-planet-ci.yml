@@ -50,6 +50,9 @@ jobs:
             migrations/0001_init.sql
             wrangler.jsonc
             wrangler.example.jsonc
+            provisioning.json
+            scripts/provision-paid-app.mjs
+            PAID_APP_AUTOMATION.md
             package.json
             PARITY.md
           )
@@ -63,6 +66,8 @@ jobs:
           grep -Fq 'entitlements' migrations/0001_init.sql
           grep -Fq 'stripe_events' migrations/0001_init.sql
           grep -Fq 'Habit Planet Pro' PARITY.md
+          node scripts/provision-paid-app.mjs >/tmp/hp-provision-plan.json
+          grep -Fq '"mode": "dry-run"' /tmp/hp-provision-plan.json
           grep -Fq '"database_name": "habit-planet"' wrangler.jsonc
           grep -Fq '"binding": "DB"' wrangler.jsonc
           ! grep -Fq '00000000-0000-0000-0000-000000000000' wrangler.jsonc
@@ -86,10 +91,14 @@ jobs:
         run: |
           set -euo pipefail
           grep -Fq 'MAX_STATE_BYTES' worker/index.js
-          grep -Fq 'STRIPE_TOLERANCE_SECONDS = 300' worker/index.js
+          grep -Fq '2026-07-29.dahlia' worker/index.js
+          grep -Fq 'constructEventAsync' worker/index.js
+          grep -Fq 'Stripe.createSubtleCryptoProvider' worker/index.js
           grep -Fq 'stripe-signature' worker/index.js
-          grep -Fq 'crypto.subtle.importKey' worker/index.js
-          grep -Fq 'Idempotency-Key' worker/index.js
+          grep -Fq 'idempotencyKey' worker/index.js
+          grep -Fq 'integration_identifier' worker/index.js
+          grep -Fq 'STRIPE_LIVEMODE' worker/index.js
+          grep -Fq 'STRIPE_PORTAL_CONFIGURATION_ID' worker/index.js
           grep -Fq '/api/state' worker/index.js
           grep -Fq '/api/entitlement' worker/index.js
           grep -Fq '/api/checkout' worker/index.js
@@ -113,6 +122,7 @@ jobs:
           cat > .dev.vars <<'VARS'
           STRIPE_SECRET_KEY="sk_test_ci_placeholder"
           STRIPE_WEBHOOK_SECRET="whsec_habit_planet_ci"
+          STRIPE_LIVEMODE="false"
           VARS
           npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config wrangler.jsonc >/tmp/habit-planet-worker.log 2>&1 &
           worker_pid=$!
@@ -131,7 +141,7 @@ jobs:
           test "$code" = "400"
           grep -Fq 'Missing stripe-signature' /tmp/hp-webhook-no-signature.json
 
-          payload='{"id":"evt_habit_planet_ci","type":"habit.planet.ci","data":{"object":{}}}'
+          payload='{"id":"evt_habit_planet_ci","livemode":false,"type":"habit.planet.ci","data":{"object":{}}}'
           timestamp="$(date +%s)"
           signature="$(PAYLOAD="$payload" TS="$timestamp" node - <<'NODE'
           const crypto = require('node:crypto');

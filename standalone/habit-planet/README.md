@@ -19,9 +19,10 @@ Habit Eggの成熟した実用機能をベースにしつつ、既存Habit Egg�
 - 終了して明日に送る
 - 分析 / 履歴修正 / CSV
 
-Stripe Sandbox:
-- Product: `prod_VDpvSMqdeljCGP`
-- Price: `price_1UDOG913XnwPDs4e0qYRUIXo`
+Stripe本番:
+- Product: `prod_VEzn3Cicd6Izx6`
+- Price: `price_1UEVo51aNgCtoyibZTDalob6`
+- 500円/月・税込
 
 ## 本番アーキテクチャ
 
@@ -98,7 +99,7 @@ Firebase Authのauthorized domainには、最終的なCloudflare Worker / custom
 
 ## Stripe
 
-Sandboxで先にE2Eする。
+Sandbox E2E後、本番Product / Priceを固定する。Workerは設定された`STRIPE_LIVEMODE`とsecret keyのmodeが一致しない場合、Checkout / Portal / Webhookを拒否する。
 
 必要な秘密値:
 - `STRIPE_SECRET_KEY`
@@ -108,32 +109,28 @@ Sandboxで先にE2Eする。
 Cloudflare側へsecretとして直接登録する。
 
 通常変数:
-- `STRIPE_PRICE_ID=price_1UDOG913XnwPDs4e0qYRUIXo`
+- `PRODUCT_KEY=habit_planet`
+- `PLAN_KEY=pro_monthly`
+- `STRIPE_PRICE_ID=price_1UEVo51aNgCtoyibZTDalob6`
+- `STRIPE_LIVEMODE=true`
+- `STRIPE_PORTAL_CONFIGURATION_ID=<アプリ専用Portal設定ID>`
+- `STRIPE_INTEGRATION_IDENTIFIER=habit_planet_checkout_qnvtjxka`
 - `FIREBASE_PROJECT_ID=habit-planet-5bbc3`
-- `PUBLIC_ORIGIN=<Cloudflareの実URL>`
+- `PUBLIC_ORIGIN=https://habit-planet.hitobito.jp`
 
 Webhook購読イベント:
 - `checkout.session.completed`
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
+- `invoice.paid`
+- `invoice.payment_failed`
 
-Webhookは`stripe-signature`をHMAC-SHA256で検証し、timestamp許容は5分。CheckoutはFirebase uid + 10分bucketのStripe Idempotency-Keyを送って連打時の重複session作成を抑える。
+Webhookは公式Stripe SDKで`stripe-signature`を検証し、timestamp許容は5分。CheckoutはFirebase uid + 10分bucketのStripe Idempotency-Keyを送って連打時の重複session作成を抑える。Customer Portalはアプリ専用configuration IDを指定し、他アプリのPortal設定変更から分離する。
 
-## Cloudflare初期セットアップ
+## 本番基盤セットアップ
 
-Cloudflare側のD1 database IDはまだリポジトリへ固定していない。実環境作成後に以下を行う。
-
-1. `habit-planet` D1 databaseを作成
-2. `wrangler.example.jsonc` を `wrangler.jsonc` へコピー
-3. `database_id` を実D1 IDへ置換
-4. `PUBLIC_ORIGIN` を実URLへ置換
-5. D1 migrationを適用
-6. Stripe secretsをCloudflareへ直接登録
-7. deploy
-8. Firebase Auth authorized domainへ公開domainを追加
-9. Stripe Sandbox Webhookを `/api/stripe-webhook` へ接続
-10. Sandbox E2E
+本番D1 ID、公開origin、Firebase project、Stripe本番Priceは`wrangler.jsonc`へ固定済み。D1作成、migration、Stripeリソース、Worker secrets、Firebase authorized domain、Vercel proxyを次アプリでも同じ手順で構成するには、[PAID_APP_AUTOMATION.md](./PAID_APP_AUTOMATION.md)と`provisioning.json`を使う。
 
 ローカル例:
 
@@ -145,7 +142,7 @@ npm run d1:migrate:local
 npm run dev
 ```
 
-remote D1 IDを入れた後:
+既存remote D1へ手動で適用する場合:
 
 ```bash
 npm run d1:migrate:remote

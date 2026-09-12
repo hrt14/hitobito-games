@@ -1,9 +1,10 @@
 import { decodeProtectedHeader, importX509, jwtVerify } from "jose";
+import Stripe from "stripe";
 
 const FIREBASE_CERTS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 const MAX_STATE_BYTES = 1024 * 1024;
-const STRIPE_TOLERANCE_SECONDS = 300;
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing", "past_due", "unpaid", "incomplete", "paused"]);
+const STRIPE_API_VERSION = "2026-07-29.dahlia";
 
 const encoder = new TextEncoder();
 
@@ -24,6 +25,19 @@ function withSecurityHeaders(response) {
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  headers.set("Content-Security-Policy", [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "script-src 'self' https://www.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https://*.googleusercontent.com",
+    "connect-src 'self' https://*.googleapis.com",
+    "frame-src https://accounts.google.com https://*.firebaseapp.com",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+  ].join("; "));
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
@@ -149,11 +163,9 @@ async function readEntitlement(request, env, ctx) {
   if (!row) return json({ entitlement: null });
   return json({
     entitlement: {
-      product: "habit_planet",
-      plan: "pro_monthly",
+      product: String(env.PRODUCT_KEY || "habit_planet"),
+      plan: String(env.PLAN_KEY || "pro_monthly"),
       status: row.status,
-      stripeCustomerId: row.stripe_customer_id,
-      stripeSubscriptionId: row.stripe_subscription_id,
       currentPeriodEnd: row.current_period_end,
       cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
       updatedAt: row.updated_at,
@@ -161,18 +173,19 @@ async function readEntitlement(request, env, ctx) {
   });
 }
 
-async function stripeRequest(env, path, params = {}, { method = "POST", idempotencyKey = "" } = {}) {
-  const headers = { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` };
-  let body;
-  if (method !== "GET") {
-    headers["content-type"] = "application/x-www-form-urlencoded";
-    body = new URLSearchParams(params).toString();
+function stripeClient(env) {
+  const secretKey = String(env.STRIPE_SECRET_KEY || "").trim();
+  const expectedLive = String(env.STRIPE_LIVEMODE || "false") === "true";
+  const actualLive = /^[sr]k_live_/.test(secretKey);
+  const actualTest = /^[sr]k_test_/.test(secretKey);
+  if (!secretKey || (!actualLive && !actualTest) || expectedLive !== actualLive) {
+    throw error(503, "Billing is temporarily unavailable", "stripe_mode_mismatch");
   }
-  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
-  const response = await fetch(`https://api.stripe.com${path}`, { method, headers, body });
-  const data = await response.json();
-  if (!response.ok) throw error(response.status >= 500 ? 502 : response.status, data?.error?.message || "Stripe request failed");
-  return data;
+  return new Stripe(secretKey, {
+    apiVersion: STRIPE_API_VERSION,
+    httpClient: Stripe.createFetchHttpClient(),
+    maxNetworkRetries: 2,
+  });
 }
 
 async function checkout(request, env, ctx) {
@@ -187,24 +200,30 @@ async function checkout(request, env, ctx) {
   }
 
   const origin = String(env.PUBLIC_ORIGIN || new URL(request.url).origin).replace(/\/$/, "");
+  const productKey = String(env.PRODUCT_KEY || "habit_planet");
+  const integrationIdentifier = String(env.STRIPE_INTEGRATION_IDENTIFIER || "").trim();
+  if (!integrationIdentifier) throw error(500, "Stripe integration identifier is not configured");
   const params = {
     mode: "subscription",
+    locale: "ja",
     "line_items[0][price]": env.STRIPE_PRICE_ID,
     "line_items[0][quantity]": "1",
     client_reference_id: user.uid,
     success_url: `${origin}/?pro=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/?pro=cancel`,
     "metadata[firebase_uid]": user.uid,
-    "metadata[product_key]": "habit_planet",
+    "metadata[product_key]": productKey,
     "subscription_data[metadata][firebase_uid]": user.uid,
-    "subscription_data[metadata][product_key]": "habit_planet",
+    "subscription_data[metadata][product_key]": productKey,
+    "custom_text[submit][message]": "税込500円/月の自動更新です。購入後はプラン・支払い管理からいつでも解約できます。",
   };
   if (current?.stripe_customer_id) params.customer = current.stripe_customer_id;
   else params.customer_email = user.email;
 
   const bucket = Math.floor(Date.now() / (10 * 60 * 1000));
-  const session = await stripeRequest(env, "/v1/checkout/sessions", params, {
-    idempotencyKey: `habit-planet-checkout:${user.uid}:${bucket}`,
+  params.integration_identifier = integrationIdentifier;
+  const session = await stripeClient(env).checkout.sessions.create(params, {
+    idempotencyKey: `${productKey}-checkout:${user.uid}:${bucket}`,
   });
   return json({ url: session.url });
 }
@@ -216,36 +235,14 @@ async function portal(request, env, ctx) {
   const current = await env.DB.prepare("SELECT stripe_customer_id FROM entitlements WHERE uid = ?1").bind(user.uid).first();
   if (!current?.stripe_customer_id) throw error(404, "No Stripe customer found");
   const origin = String(env.PUBLIC_ORIGIN || new URL(request.url).origin).replace(/\/$/, "");
-  const session = await stripeRequest(env, "/v1/billing_portal/sessions", {
+  const params = {
     customer: current.stripe_customer_id,
     return_url: `${origin}/`,
-  });
+  };
+  const configuration = String(env.STRIPE_PORTAL_CONFIGURATION_ID || "").trim();
+  if (configuration) params.configuration = configuration;
+  const session = await stripeClient(env).billingPortal.sessions.create(params);
   return json({ url: session.url });
-}
-
-function hex(bytes) {
-  return [...new Uint8Array(bytes)].map((value) => value.toString(16).padStart(2, "0")).join("");
-}
-
-function constantTimeHexEqual(a, b) {
-  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-async function verifyStripeSignature(rawBody, signatureHeader, secret) {
-  if (!signatureHeader) throw error(400, "Missing stripe-signature");
-  const pieces = signatureHeader.split(",").map((part) => part.split("=", 2));
-  const timestamp = Number(pieces.find(([name]) => name === "t")?.[1]);
-  const signatures = pieces.filter(([name, value]) => name === "v1" && value).map(([, value]) => value);
-  if (!timestamp || !signatures.length) throw error(400, "Invalid stripe-signature");
-  if (Math.abs(Math.floor(Date.now() / 1000) - timestamp) > STRIPE_TOLERANCE_SECONDS) throw error(400, "Stale stripe-signature");
-
-  const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const digest = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${rawBody}`));
-  const expected = hex(digest);
-  if (!signatures.some((candidate) => constantTimeHexEqual(candidate, expected))) throw error(400, "Invalid stripe-signature");
 }
 
 function subscriptionPeriodEnd(subscription) {
@@ -255,7 +252,9 @@ function subscriptionPeriodEnd(subscription) {
 
 async function upsertEntitlement(env, subscription) {
   const uid = String(subscription?.metadata?.firebase_uid || subscription?.metadata?.uid || "");
-  if (!uid) return;
+  const productKey = String(subscription?.metadata?.product_key || "");
+  const priceIds = (subscription?.items?.data || []).map((item) => String(item?.price?.id || item?.plan?.id || ""));
+  if (!uid || productKey !== String(env.PRODUCT_KEY || "habit_planet") || !priceIds.includes(String(env.STRIPE_PRICE_ID || ""))) return false;
   const customer = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || null;
   const now = Math.floor(Date.now() / 1000);
   await env.DB.prepare(`
@@ -278,6 +277,7 @@ async function upsertEntitlement(env, subscription) {
     subscription.cancel_at_period_end ? 1 : 0,
     now,
   ).run();
+  return true;
 }
 
 async function stripeWebhook(request, env) {
@@ -285,22 +285,32 @@ async function stripeWebhook(request, env) {
   assertBodySize(request, 1024 * 1024);
   const raw = await request.text();
   if (encoder.encode(raw).byteLength > 1024 * 1024) throw error(413, "Request too large");
-  await verifyStripeSignature(raw, request.headers.get("stripe-signature"), env.STRIPE_WEBHOOK_SECRET);
-
+  const signature = request.headers.get("stripe-signature");
+  if (!signature) throw error(400, "Missing stripe-signature");
+  const webhookSecret = String(env.STRIPE_WEBHOOK_SECRET || "").trim();
+  if (!webhookSecret.startsWith("whsec_")) throw error(503, "Webhook is not configured");
   let event;
   try {
-    event = JSON.parse(raw);
+    event = await stripeClient(env).webhooks.constructEventAsync(
+      raw,
+      signature,
+      webhookSecret,
+      300,
+      Stripe.createSubtleCryptoProvider(),
+    );
   } catch {
-    throw error(400, "Invalid JSON");
+    throw error(400, "Invalid stripe-signature");
   }
   if (!event?.id) throw error(400, "Missing event id");
+  const expectedLive = String(env.STRIPE_LIVEMODE || "false") === "true";
+  if (Boolean(event.livemode) !== expectedLive) throw error(400, "Wrong Stripe mode");
   const seen = await env.DB.prepare("SELECT event_id FROM stripe_events WHERE event_id = ?1").bind(event.id).first();
   if (seen) return json({ received: true, duplicate: true });
 
   if (event.type === "checkout.session.completed") {
     const session = event.data?.object || {};
     if (session.subscription) {
-      const subscription = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(session.subscription)}?expand[]=items.data`, {}, { method: "GET" });
+      const subscription = await stripeClient(env).subscriptions.retrieve(session.subscription, { expand: ["items.data"] });
       if (!subscription.metadata?.firebase_uid && session.client_reference_id) {
         subscription.metadata = { ...(subscription.metadata || {}), firebase_uid: session.client_reference_id };
       }
@@ -308,6 +318,14 @@ async function stripeWebhook(request, env) {
     }
   } else if (["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"].includes(event.type)) {
     await upsertEntitlement(env, event.data?.object || {});
+  } else if (["invoice.paid", "invoice.payment_failed"].includes(event.type)) {
+    const invoice = event.data?.object || {};
+    const subscriptionReference = invoice.parent?.subscription_details?.subscription || invoice.subscription;
+    const subscriptionId = typeof subscriptionReference === "string" ? subscriptionReference : subscriptionReference?.id;
+    if (subscriptionId) {
+      const subscription = await stripeClient(env).subscriptions.retrieve(subscriptionId, { expand: ["items.data"] });
+      await upsertEntitlement(env, subscription);
+    }
   }
 
   await env.DB.prepare("INSERT INTO stripe_events (event_id, event_type, processed_at) VALUES (?1, ?2, ?3)")
