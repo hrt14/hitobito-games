@@ -83,15 +83,21 @@ jobs:
       - name: Verify deployed app and auth guards
         run: |
           set -euo pipefail
-          for i in 1 2 3 4 5; do
-            if curl -fsS -D /tmp/hp-index-headers.txt "$HABIT_PLANET_URL/" -o /tmp/hp-index.html; then break; fi
+          ready=0
+          for i in {1..15}; do
+            if curl -fsS -D /tmp/hp-index-headers.txt "$HABIT_PLANET_URL/" -o /tmp/hp-index.html; then
+              tr -d '\r' </tmp/hp-index-headers.txt >/tmp/hp-index-headers-normalized.txt
+              if grep -q "Habit Planet" /tmp/hp-index.html \
+                && grep -Eiq '^content-security-policy:.*frame-ancestors' /tmp/hp-index-headers-normalized.txt \
+                && grep -Eiq '^x-frame-options: *DENY' /tmp/hp-index-headers-normalized.txt \
+                && grep -Eiq '^x-content-type-options: *nosniff' /tmp/hp-index-headers-normalized.txt; then
+                ready=1
+                break
+              fi
+            fi
             sleep 2
           done
-          grep -q "Habit Planet" /tmp/hp-index.html
-          tr -d '\r' </tmp/hp-index-headers.txt >/tmp/hp-index-headers-normalized.txt
-          grep -Eiq '^content-security-policy:.*frame-ancestors' /tmp/hp-index-headers-normalized.txt
-          grep -Eiq '^x-frame-options: *DENY' /tmp/hp-index-headers-normalized.txt
-          grep -Eiq '^x-content-type-options: *nosniff' /tmp/hp-index-headers-normalized.txt
+          test "$ready" = "1"
           test "$(curl -sS -o /tmp/hp-state.json -w '%{http_code}' "$HABIT_PLANET_URL/api/state")" = "401"
           test "$(curl -sS -o /tmp/hp-entitlement.json -w '%{http_code}' "$HABIT_PLANET_URL/api/entitlement")" = "401"
           test "$(curl -sS -o /tmp/hp-checkout.json -w '%{http_code}' -X POST "$HABIT_PLANET_URL/api/checkout")" = "401"
