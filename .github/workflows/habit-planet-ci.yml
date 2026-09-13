@@ -1,0 +1,116 @@
+name: Habit Planet CI
+
+on:
+  pull_request:
+    paths:
+      - "standalone/habit-planet/**"
+      - ".github/workflows/habit-planet-ci.yml"
+  push:
+    branches: [main, feat/habit-planet-firebase]
+    paths:
+      - "standalone/habit-planet/**"
+      - ".github/workflows/habit-planet-ci.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Syntax check
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          for file in public/*.js functions/index.js; do
+            echo "checking $file"
+            node --check "$file"
+          done
+      - name: Verify required app files
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          required=(
+            public/index.html
+            public/styles.css
+            public/app-entry.js
+            public/app-part1.js
+            public/app-part2.js
+            public/app-part3.js
+            public/app-part4.js
+            public/app-part5.js
+            public/firebase-client.js
+            public/manifest.json
+            public/sw.js
+            firestore.rules
+            firebase.json
+            PARITY.md
+          )
+          for file in "${required[@]}"; do
+            echo "checking $file"
+            test -f "$file"
+          done
+          grep -Fq '/app-part4.js' public/app-entry.js
+          grep -Fq '/app-part5.js' public/app-entry.js
+          grep -Fq '"source":"/api/checkout"' firebase.json
+          grep -Fq '"source":"/api/portal"' firebase.json
+          grep -Fq '/api/stripe-webhook' firebase.json
+          grep -Fq 'Habit Planet Pro' PARITY.md
+      - name: Verify cost and security guardrails
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          grep -Fq 'maxInstances: 2' functions/index.js
+          grep -Fq 'minInstances: 0' functions/index.js
+          grep -Fq 'cpu: "gcf_gen1"' functions/index.js
+          grep -Fq 'concurrency: 1' functions/index.js
+          grep -Fq 'HABIT_PLANET_REQUIRE_APP_CHECK' functions/index.js
+          grep -Fq 'X-Firebase-AppCheck' public/app-entry.js
+          grep -Fq 'ReCaptchaEnterpriseProvider' public/firebase-client.js
+          grep -Fq 'allow create, update:' firestore.rules
+          grep -Fq 'allow create, update, delete, list: if false;' firestore.rules
+          grep -Fq 'match /{document=**}' firestore.rules
+          grep -Fq 'X-Content-Type-Options' firebase.json
+          grep -Fq 'X-Frame-Options' firebase.json
+      - name: Browser smoke test
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          cat > public/ci-smoke.html <<'HTML'
+          <!doctype html>
+          <html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="/styles.css"></head>
+          <body><div id="app"></div>
+          <script>
+          window.HP_CLOUD = {
+            cloudAvailable: false,
+            getCurrentUser: () => null,
+            idToken: async () => "",
+            loadState: async () => null,
+            loginGoogle: async () => null,
+            logout: async () => {},
+            saveState: async () => {},
+            watchAuth: (callback) => { callback(null); return () => {}; },
+            watchEntitlement: (_uid, callback) => { callback(null); return () => {}; }
+          };
+          </script>
+          <script src="/app-part1.js"></script>
+          <script src="/app-part2.js"></script>
+          <script src="/app-part3.js"></script>
+          <script src="/app-part4.js"></script>
+          <script src="/app-part5.js"></script>
+          </body></html>
+          HTML
+          python3 -m http.server 4173 --directory public >/tmp/habit-planet-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:4173/ci-smoke.html >/dev/null && break
+            sleep 0.25
+          done
+          google-chrome --headless --no-sandbox --disable-gpu --disable-background-networking \
+            --disable-component-update --disable-sync --no-first-run --virtual-time-budget=2500 \
+            --dump-dom http://127.0.0.1:4173/ci-smoke.html > /tmp/habit-planet-dom.html
+          grep -Fq 'HABIT PLANET' /tmp/habit-planet-dom.html
+          grep -Eq '今日の(歩み|習慣)' /tmp/habit-planet-dom.html
+          ! grep -Fq 'ReferenceError' /tmp/habit-planet-dom.html
