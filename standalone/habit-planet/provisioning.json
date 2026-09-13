@@ -38,7 +38,7 @@
       "invoice.paid",
       "invoice.payment_failed"
     ],
-    "cancelMode": "immediately",
+    "cancelMode": "at_period_end",
     "privacyPolicyUrl": "https://habit-planet.hitobito.jp/legal/privacy",
     "termsOfServiceUrl": "https://habit-planet.hitobito.jp/legal/terms"
   },
