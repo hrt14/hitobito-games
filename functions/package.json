@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": { "node": "22" },
-  "main": "index.js",
+  "main": "entry.js",
   "dependencies": {
     "firebase-admin": "latest",
     "firebase-functions": "latest"
