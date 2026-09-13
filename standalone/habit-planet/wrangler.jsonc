@@ -16,7 +16,7 @@
     "PLAN_KEY": "pro_monthly",
     "STRIPE_PRICE_ID": "price_1UEVo51aNgCtoyibZTDalob6",
     "STRIPE_LIVEMODE": "true",
-    "STRIPE_PORTAL_CONFIGURATION_ID": "",
+    "STRIPE_PORTAL_CONFIGURATION_ID": "bpc_1UErxf1aNgCtoyibPHR0Woaj",
     "STRIPE_INTEGRATION_IDENTIFIER": "habit_planet_checkout_qnvtjxka",
     "PUBLIC_ORIGIN": "https://habit-planet.hitobito.jp"
   },
