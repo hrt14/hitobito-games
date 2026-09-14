@@ -1,59 +1,34 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-13T21:46:06.322Z",
+  "generatedAt": "2026-09-14T22:46:30.801Z",
   "timezone": "Asia/Tokyo",
   "current": {
-    "date": "20260913",
-    "available": false,
-    "metrics": null,
+    "date": "20260914",
+    "available": true,
+    "metrics": {
+      "visitorUu": 1,
+      "homeSessions": 1,
+      "gameSessions": 0,
+      "lastUpdatedAt": "2026-09-14T14:18:14.386Z",
+      "loginUu": 0,
+      "leftGames": 0,
+      "searches": 0,
+      "gameDurationSec": 0,
+      "sessions": 1,
+      "date": "20260914",
+      "completedGames": 0,
+      "completionRate": null,
+      "avgGameDurationSec": null
+    },
     "games": [],
     "needs": [],
     "blockedReason": null
   },
   "previous": {
-    "date": "20260912",
-    "available": true,
-    "metrics": {
-      "gameDurationSec": 0,
-      "date": "20260912",
-      "leftGames": 0,
-      "completedGames": 0,
-      "visitorUu": 1,
-      "lastUpdatedAt": "2026-09-11T16:15:48.943Z",
-      "loginUu": 0,
-      "gameSessions": 5,
-      "sessions": 6,
-      "searches": 0,
-      "homeSessions": 1,
-      "completionRate": 0,
-      "avgGameDurationSec": 0
-    },
-    "games": [
-      {
-        "completed": 0,
-        "slug": "mind-reading-off",
-        "durationSec": 0,
-        "title": "考えすぎストップ。",
-        "lastUpdatedAt": "2026-09-11T16:15:43.202Z",
-        "date": "20260912",
-        "sessions": 1,
-        "left": 0,
-        "completionRate": 0,
-        "avgDurationSec": 0
-      },
-      {
-        "date": "20260912",
-        "lastUpdatedAt": "2026-09-11T16:15:49.753Z",
-        "left": 0,
-        "slug": "smartphone-escape",
-        "completed": 0,
-        "title": "スマホ中毒脱出",
-        "durationSec": 0,
-        "sessions": 1,
-        "completionRate": 0,
-        "avgDurationSec": 0
-      }
-    ],
+    "date": "20260913",
+    "available": false,
+    "metrics": null,
+    "games": [],
     "needs": [],
     "blockedReason": null
   },
