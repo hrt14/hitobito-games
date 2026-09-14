@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function self(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function validAppStateWrite() {
+      return request.resource.data.keys().hasOnly(["state", "updatedAt"])
+        && request.resource.data.keys().hasAll(["state", "updatedAt"])
+        && request.resource.data.state is map
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    // One fixed state document per authenticated user. No collection listing and
+    // no arbitrary extra fields. Deletes are intentionally disabled from clients.
+    match /users/{uid}/appState/{docId} {
+      allow get: if self(uid) && docId == "habit_planet";
+      allow create, update: if self(uid) && docId == "habit_planet" && validAppStateWrite();
+      allow delete: if false;
+    }
+
+    // Subscription state is server-owned. The client can observe only its own doc.
+    match /entitlements/{uid} {
+      allow get: if self(uid);
+      allow create, update, delete, list: if false;
+    }
+
+    // Stripe webhook idempotency markers are server-only.
+    match /stripeEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    // Explicit default deny for any future collection not separately reviewed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
