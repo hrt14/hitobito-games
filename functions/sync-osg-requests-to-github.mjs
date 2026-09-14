@@ -1,9 +1,11 @@
+import { randomUUID } from 'node:crypto';
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'hitobito-levelup';
 const repo = process.env.REQUEST_QUEUE_REPOSITORY || '';
 const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
+const CLAIM_TTL_MS = 2 * 60 * 1000;
 if (!repo.includes('/')) throw new Error('REQUEST_QUEUE_REPOSITORY is required');
 if (!token) throw new Error('GH_TOKEN is required');
 
@@ -20,7 +22,7 @@ async function github(apiPath, options = {}) {
       'content-type': 'application/json', ...(options.headers || {})
     }
   });
-  if (!response.ok) throw new Error(`GitHub ${options.method || 'GET'} ${apiPath} -> ${response.status}: ${(await response.text()).slice(0, 500)}`);
+  if (!response.ok) throw new Error(`GitHub ${options.method || 'GET'} ${apiPath} -> ${response.status}`);
   if (response.status === 204) return null;
   return response.json();
 }
@@ -101,6 +103,43 @@ async function updateUserRequest(userRef, requestId, patch) {
   });
 }
 
+function millis(value) {
+  if (value?.toMillis) return value.toMillis();
+  const parsed = new Date(value || 0).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+async function acquireClaim(userDoc, request) {
+  const indexRef = db.collection('osgRequestIndex').doc(request.id);
+  const claimId = randomUUID();
+  let acquired = false;
+  let completed = null;
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(indexRef);
+    if (snap.exists) {
+      const data = snap.data();
+      if (data?.githubIssueNumber) {
+        completed = data;
+        return;
+      }
+      const fresh = data?.status === 'claiming' && (Date.now() - millis(data.claimedAt)) < CLAIM_TTL_MS;
+      if (fresh) return;
+    }
+    acquired = true;
+    tx.set(indexRef, {
+      userId: userDoc.id,
+      requestId: request.id,
+      gameId: request.gameId,
+      type: request.type,
+      status: 'claiming',
+      claimId,
+      claimedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+  return { indexRef, claimId, acquired, completed };
+}
+
 await assertPrivateQueue();
 await ensureLabel('osg-game-request', '6f2cff', 'OneShotGames new game request');
 await ensureLabel('osg-improvement', '0b7cff', 'OneShotGames improvement request');
@@ -108,16 +147,20 @@ await ensureLabel('osg-rejected', 'd73a4a', 'OneShotGames request rejected for s
 
 const users = await db.collection('levelupUsers').limit(1000).get();
 let synced = 0;
+let busy = 0;
 for (const userDoc of users.docs) {
   const requests = Array.isArray(userDoc.data()?.osgRequests) ? userDoc.data().osgRequests : [];
   for (const request of requests.filter(validRequest)) {
-    const indexRef = db.collection('osgRequestIndex').doc(request.id);
-    const indexed = await indexRef.get();
-    if (indexed.exists) {
-      const data = indexed.data();
-      await updateUserRequest(userDoc.ref, request.id, { status: data.status || 'synced', githubIssueNumber: data.githubIssueNumber || null, githubIssueUrl: null });
+    const { indexRef, claimId, acquired, completed } = await acquireClaim(userDoc, request);
+    if (completed?.githubIssueNumber) {
+      await updateUserRequest(userDoc.ref, request.id, { status: completed.status || 'synced', githubIssueNumber: completed.githubIssueNumber, githubIssueUrl: null });
       continue;
     }
+    if (!acquired) {
+      busy += 1;
+      continue;
+    }
+
     let issue = await findExistingIssue(request.id);
     if (!issue) {
       issue = await github(`/repos/${owner}/${name}/issues`, {
@@ -129,9 +172,23 @@ for (const userDoc of users.docs) {
         })
       });
     }
-    await indexRef.set({ userId: userDoc.id, requestId: request.id, gameId: request.gameId, type: request.type, status: 'synced', githubIssueNumber: issue.number, githubIssueUrl: issue.html_url, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(indexRef);
+      if (!snap.exists || snap.data()?.claimId !== claimId) throw new Error(`OSG request ${request.id} claim was superseded`);
+      tx.set(indexRef, {
+        userId: userDoc.id,
+        requestId: request.id,
+        gameId: request.gameId,
+        type: request.type,
+        status: 'synced',
+        githubIssueNumber: issue.number,
+        githubIssueUrl: issue.html_url,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+    });
     await updateUserRequest(userDoc.ref, request.id, { status: 'synced', githubIssueNumber: issue.number, githubIssueUrl: null });
     synced += 1;
   }
 }
-console.log(`[OSG] synced ${synced} queued request(s) to private request queue`);
+console.log(`[OSG] synced ${synced} queued request(s); ${busy} request(s) already claimed by event delivery`);
