@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "habit-planet",
+  "main": "./worker/index.js",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "habit-planet-5bbc3",
+    "PRODUCT_KEY": "habit_planet",
+    "PLAN_KEY": "pro_monthly",
+    "STRIPE_PRICE_ID": "price_1UEVo51aNgCtoyibZTDalob6",
+    "STRIPE_LIVEMODE": "true",
+    "STRIPE_PORTAL_CONFIGURATION_ID": "bpc_1UErxf1aNgCtoyibPHR0Woaj",
+    "STRIPE_INTEGRATION_IDENTIFIER": "habit_planet_checkout_qnvtjxka",
+    "PUBLIC_ORIGIN": "https://habit-planet.hitobito.jp"
+  },
+  "secrets": {
+    "required": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "habit-planet",
+      "database_id": "7ebeb481-4ae9-42b5-b8ef-5266b3ad2bbe",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

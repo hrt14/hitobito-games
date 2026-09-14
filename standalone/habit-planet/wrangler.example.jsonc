@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "habit-planet",
+  "main": "./worker/index.js",
+  "compatibility_date": "2026-09-08",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "habit-planet-5bbc3",
+    "PRODUCT_KEY": "habit_planet",
+    "PLAN_KEY": "pro_monthly",
+    "STRIPE_PRICE_ID": "price_replace_me",
+    "STRIPE_LIVEMODE": "false",
+    "STRIPE_PORTAL_CONFIGURATION_ID": "",
+    "STRIPE_INTEGRATION_IDENTIFIER": "habit_planet_checkout_replace_me",
+    "PUBLIC_ORIGIN": "https://habit-planet.example.invalid"
+  },
+  "secrets": {
+    "required": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "habit-planet",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

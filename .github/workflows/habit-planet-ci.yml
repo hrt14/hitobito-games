@@ -1,0 +1,206 @@
+name: Habit Planet CI
+
+on:
+  pull_request:
+    paths:
+      - "standalone/habit-planet/**"
+      - ".github/workflows/habit-planet-ci.yml"
+  push:
+    branches: [main, feat/habit-planet-firebase, feat/habit-planet-cloudflare]
+    paths:
+      - "standalone/habit-planet/**"
+      - ".github/workflows/habit-planet-ci.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Cloudflare dependencies
+        working-directory: standalone/habit-planet
+        run: npm install --ignore-scripts
+      - name: Syntax check
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          npm run check
+          for file in public/app-part1.js public/app-part2.js public/app-part3.js public/app-part4.js public/app-part5.js; do
+            node --check "$file"
+          done
+      - name: Verify required app and D1 files
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          required=(
+            public/index.html
+            public/_headers
+            public/styles.css
+            public/app-entry.js
+            public/app-part1.js
+            public/app-part2.js
+            public/app-part3.js
+            public/app-part4.js
+            public/app-part5.js
+            public/firebase-client.js
+            public/manifest.json
+            public/sw.js
+            worker/index.js
+            migrations/0001_init.sql
+            wrangler.jsonc
+            wrangler.example.jsonc
+            provisioning.json
+            scripts/provision-paid-app.mjs
+            PAID_APP_AUTOMATION.md
+            package.json
+            PARITY.md
+          )
+          for file in "${required[@]}"; do
+            echo "checking $file"
+            test -f "$file"
+          done
+          grep -Fq '/app-part4.js' public/app-entry.js
+          grep -Fq '/app-part5.js' public/app-entry.js
+          grep -Fq 'user_states' migrations/0001_init.sql
+          grep -Fq 'entitlements' migrations/0001_init.sql
+          grep -Fq 'stripe_events' migrations/0001_init.sql
+          grep -Fq 'Habit Planet Pro' PARITY.md
+          grep -Fq "Content-Security-Policy" public/_headers
+          grep -Fq "frame-ancestors 'none'" public/_headers
+          node scripts/provision-paid-app.mjs >/tmp/hp-provision-plan.json
+          grep -Fq '"mode": "dry-run"' /tmp/hp-provision-plan.json
+          grep -Fq '"database_name": "habit-planet"' wrangler.jsonc
+          grep -Fq '"binding": "DB"' wrangler.jsonc
+          ! grep -Fq '00000000-0000-0000-0000-000000000000' wrangler.jsonc
+      - name: Verify Firebase ID Token checks
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          grep -Fq 'protectedHeader.alg !== "RS256"' worker/index.js
+          grep -Fq 'protectedHeader.kid' worker/index.js
+          grep -Fq 'importX509' worker/index.js
+          grep -Fq 'payload.exp' worker/index.js
+          grep -Fq 'payload.iat' worker/index.js
+          grep -Fq 'payload.auth_time' worker/index.js
+          grep -Fq 'payload.aud' worker/index.js
+          grep -Fq 'payload.iss' worker/index.js
+          grep -Fq 'payload.sub' worker/index.js
+          grep -Fq 'securetoken.google.com' worker/index.js
+          grep -Fq 'caches.default' worker/index.js
+      - name: Verify API and billing guardrails
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          grep -Fq 'MAX_STATE_BYTES' worker/index.js
+          grep -Fq '2026-07-29.dahlia' worker/index.js
+          grep -Fq 'constructEventAsync' worker/index.js
+          grep -Fq 'Stripe.createSubtleCryptoProvider' worker/index.js
+          grep -Fq 'stripe-signature' worker/index.js
+          grep -Fq 'idempotencyKey' worker/index.js
+          grep -Fq 'integration_identifier' worker/index.js
+          grep -Fq 'STRIPE_LIVEMODE' worker/index.js
+          grep -Fq 'STRIPE_PORTAL_CONFIGURATION_ID' worker/index.js
+          grep -Fq '/api/state' worker/index.js
+          grep -Fq '/api/entitlement' worker/index.js
+          grep -Fq '/api/checkout' worker/index.js
+          grep -Fq '/api/portal' worker/index.js
+          grep -Fq '/api/stripe-webhook' worker/index.js
+          grep -Fq 'run_worker_first' wrangler.jsonc
+          grep -Fq 'firebase-auth.js' public/firebase-client.js
+          ! grep -Fq 'firebase-firestore.js' public/firebase-client.js
+          ! grep -Fq 'firebase-admin' worker/index.js
+      - name: Bundle Worker with Wrangler dry run
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          npx wrangler deploy --dry-run --config wrangler.jsonc
+      - name: Local Worker + D1 integration
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          rm -rf .wrangler
+          npx wrangler d1 migrations apply habit-planet --local --config wrangler.jsonc
+          cat > .dev.vars <<'VARS'
+          STRIPE_SECRET_KEY="sk_test_ci_placeholder"
+          STRIPE_WEBHOOK_SECRET="whsec_habit_planet_ci"
+          STRIPE_LIVEMODE="false"
+          VARS
+          npx wrangler dev --local --ip 127.0.0.1 --port 8787 --config wrangler.jsonc >/tmp/habit-planet-worker.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" 2>/dev/null || true; rm -f .dev.vars' EXIT
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:8787/ >/tmp/hp-index.html && break
+            sleep 0.5
+          done
+          grep -Fq '<title>Habit Planet</title>' /tmp/hp-index.html
+
+          code="$(curl -sS -o /tmp/hp-state.json -w '%{http_code}' http://127.0.0.1:8787/api/state)"
+          test "$code" = "401"
+          grep -Fq 'Login required' /tmp/hp-state.json
+
+          code="$(curl -sS -o /tmp/hp-webhook-no-signature.json -w '%{http_code}' -X POST http://127.0.0.1:8787/api/stripe-webhook -d '{}')"
+          test "$code" = "400"
+          grep -Fq 'Missing stripe-signature' /tmp/hp-webhook-no-signature.json
+
+          payload='{"id":"evt_habit_planet_ci","livemode":false,"type":"habit.planet.ci","data":{"object":{}}}'
+          timestamp="$(date +%s)"
+          signature="$(PAYLOAD="$payload" TS="$timestamp" node - <<'NODE'
+          const crypto = require('node:crypto');
+          const digest = crypto.createHmac('sha256', 'whsec_habit_planet_ci').update(`${process.env.TS}.${process.env.PAYLOAD}`).digest('hex');
+          process.stdout.write(digest);
+          NODE
+          )"
+          curl -fsS -X POST http://127.0.0.1:8787/api/stripe-webhook \
+            -H "stripe-signature: t=${timestamp},v1=${signature}" \
+            -H 'content-type: application/json' \
+            --data "$payload" >/tmp/hp-webhook-ok.json
+          grep -Fq '"received":true' /tmp/hp-webhook-ok.json
+
+          curl -fsS -X POST http://127.0.0.1:8787/api/stripe-webhook \
+            -H "stripe-signature: t=${timestamp},v1=${signature}" \
+            -H 'content-type: application/json' \
+            --data "$payload" >/tmp/hp-webhook-duplicate.json
+          grep -Fq '"duplicate":true' /tmp/hp-webhook-duplicate.json
+      - name: Browser smoke test
+        working-directory: standalone/habit-planet
+        run: |
+          set -euo pipefail
+          cat > public/ci-smoke.html <<'HTML'
+          <!doctype html>
+          <html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="/styles.css"></head>
+          <body><div id="app"></div>
+          <script>
+          window.HP_CLOUD = {
+            cloudAvailable: false,
+            getCurrentUser: () => null,
+            idToken: async () => "",
+            loadState: async () => null,
+            loginGoogle: async () => null,
+            logout: async () => {},
+            saveState: async () => {},
+            watchAuth: (callback) => { callback(null); return () => {}; },
+            watchEntitlement: (_uid, callback) => { callback(null); return () => {}; }
+          };
+          </script>
+          <script src="/app-part1.js"></script>
+          <script src="/app-part2.js"></script>
+          <script src="/app-part3.js"></script>
+          <script src="/app-part4.js"></script>
+          <script src="/app-part5.js"></script>
+          </body></html>
+          HTML
+          python3 -m http.server 4173 --directory public >/tmp/habit-planet-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:4173/ci-smoke.html >/dev/null && break
+            sleep 0.25
+          done
+          google-chrome --headless --no-sandbox --disable-gpu --disable-background-networking \
+            --disable-component-update --disable-sync --no-first-run --virtual-time-budget=2500 \
+            --dump-dom http://127.0.0.1:4173/ci-smoke.html > /tmp/habit-planet-dom.html
+          grep -Fq 'HABIT PLANET' /tmp/habit-planet-dom.html
+          grep -Eq '今日の(歩み|習慣)' /tmp/habit-planet-dom.html
+          ! grep -Fq 'ReferenceError' /tmp/habit-planet-dom.html

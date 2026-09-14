@@ -1,0 +1,12 @@
+{
+  "name": "Habit Planet",
+  "short_name": "Habit Planet",
+  "description": "習慣を続けるほど、自分の惑星が育つ。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    {"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

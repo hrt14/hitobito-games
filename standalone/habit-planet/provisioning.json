@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "app": {
+    "key": "habit_planet",
+    "planKey": "pro_monthly",
+    "name": "Habit Planet",
+    "publicOrigin": "https://habit-planet.hitobito.jp"
+  },
+  "cloudflare": {
+    "workerName": "habit-planet",
+    "appDirectory": ".",
+    "wranglerConfig": "wrangler.jsonc",
+    "d1DatabaseName": "habit-planet",
+    "d1Binding": "DB"
+  },
+  "firebase": {
+    "projectId": "habit-planet-5bbc3",
+    "authorizedDomains": ["habit-planet.hitobito.jp"]
+  },
+  "stripe": {
+    "livemode": true,
+    "productId": "prod_VEzn3Cicd6Izx6",
+    "priceId": "price_1UEVo51aNgCtoyibZTDalob6",
+    "portalConfigurationId": "bpc_1UErxf1aNgCtoyibPHR0Woaj",
+    "productName": "Habit Planet Pro",
+    "currency": "jpy",
+    "unitAmount": 500,
+    "interval": "month",
+    "taxBehavior": "inclusive",
+    "taxCode": "txcd_10103000",
+    "integrationIdentifier": "habit_planet_checkout_qnvtjxka",
+    "webhookUrl": "https://habit-planet.hitobito.jp/api/stripe-webhook",
+    "webhookEvents": [
+      "checkout.session.completed",
+      "customer.subscription.created",
+      "customer.subscription.updated",
+      "customer.subscription.deleted",
+      "invoice.paid",
+      "invoice.payment_failed"
+    ],
+    "cancelMode": "at_period_end",
+    "privacyPolicyUrl": "https://habit-planet.hitobito.jp/legal/privacy",
+    "termsOfServiceUrl": "https://habit-planet.hitobito.jp/legal/terms"
+  },
+  "vercel": {
+    "enabled": true,
+    "teamId": "team_vCUqyPcmj2xuDuBM7f7aOiMQ",
+    "projectName": "habit-planet-proxy",
+    "customDomain": "habit-planet.hitobito.jp",
+    "workerOrigin": "https://habit-planet.hiratamanabu14.workers.dev"
+  }
+}

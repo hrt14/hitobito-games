@@ -1,0 +1,21 @@
+{
+  "name": "habit-planet-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check worker/index.js && node --check public/firebase-client.js && node --check public/app-entry.js",
+    "provision:plan": "node scripts/provision-paid-app.mjs",
+    "provision:apply": "node scripts/provision-paid-app.mjs --apply --yes",
+    "dev": "wrangler dev --config wrangler.jsonc",
+    "deploy": "wrangler deploy --config wrangler.jsonc",
+    "d1:migrate:local": "wrangler d1 migrations apply habit-planet --local --config wrangler.jsonc",
+    "d1:migrate:remote": "wrangler d1 migrations apply habit-planet --remote --config wrangler.jsonc"
+  },
+  "dependencies": {
+    "jose": "^6.1.0",
+    "stripe": "22.4.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.35.0"
+  }
+}
